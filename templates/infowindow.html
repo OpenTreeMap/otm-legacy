@@ -1,0 +1,24 @@
+
+{% block tophead %}
+{% endblock %}
+        
+<div id="popupContainer">
+	<ul>
+
+            {% block content %}
+                <li id="details">
+                    {% block left_panel %}
+                    left panel text
+                    {% endblock %}
+                </li>
+                
+            
+				<li id="options">
+                    {% block right_panel %}
+                    right panel text
+                    {% endblock %}
+                  </li>
+
+            {% endblock content %}
+	</ul>
+</div>

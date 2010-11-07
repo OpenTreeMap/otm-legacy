@@ -1,0 +1,32 @@
+{% extends "template_1.html" %}
+{% block body_load %}onload=tm.init_sidebar_map('tree',{{tree.id}}){% endblock %}>  
+
+{% block tophead %}
+    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script>
+{% endblock %}
+
+{% block top_right_panel %}
+    <div id="sidebar_map"></div>
+{% endblock %}
+
+
+{% block top_left_panel %}
+<h3> Area Details </h3>
+    <div id="list_container">
+    {% for object in objects %}
+        <h4><a href="./{{object.id}}">{{object}}</a></h4>
+        Total Trees: {{object.aggregates.total_trees}}<br>
+        Unique Species: {{object.aggregates.distinct_species}}<br>
+        Annual Stormwater Management: {{object.aggregates.annual_stormwater_management}}<br>
+        Annual Electricity Conserved: {{object.aggregates.annual_electricity_conserved}}<br>
+        Annual Natural Gas Conserved: {{object.aggregates.annual_natural_gas_conserved}}<br>
+        Annual Air Quality Improvement: {{object.aggregates.annual_air_quality_improvement}}<br>
+        Annual C02 Squestered: {{object.aggregates.annual_c02_squestered}}<br>
+        Annual C02 Avoided: {{object.aggregates.annual_c02_avoided}}<br>
+        Total C02 Stored: {{object.aggregates.total_c02_stored}}<br>
+        <br>
+    {% endfor %}
+    </div>
+
+{% endblock %}
+

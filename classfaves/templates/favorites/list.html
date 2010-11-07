@@ -1,0 +1,12 @@
+{% extends "template_3.html" %}
+
+{% block right_panel %}
+    <p>Favorites for {{ favorite_user }}:</p>
+    <ul>
+    {% for favorite in favorites %}
+        <li><a href="{{ favorite.get_absolute_url }}">{{ favorite }}</a></li>
+    {% empty %}
+        <li>No Favorites</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

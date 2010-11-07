@@ -1,0 +1,73 @@
+{% extends "template_3.html" %}
+
+{% block left_panel %}
+    
+<div id="register">
+
+    <h1>Add a photo <span class="note">(If it's bold it's required)</span></h1>
+
+    {% if form.errors %}
+    <div id="genError"><b>Oops!</b> There was a problem.<br />
+    {% if form.non_field_errors %}
+        <span id="smError">{{ form.non_field_errors }} </span></div>
+    {% else %}
+        <span id="smError">Error are noted in red below.</span></div>
+    {% endif %}
+    {% endif %}
+
+    {% if form.is_multipart %}
+        <form enctype="multipart/form-data" method="post" action=".">
+    {% else %}
+        <form method="post" action=".">
+    {% endif %}
+
+    <fieldset>
+          
+        {% comment %}
+        Note: this form is also used for profiles photos which don't have a title
+        {% endcomment %}
+        
+        {% if form.title %}
+            <label {% if form.title.errors %}id="error"{% endif %}>Title
+                {% if form.title.errors %}
+                     {% for error in form.title.errors %}
+                         <span id="smError2">{{ error }}</span>
+                     {% endfor %}
+                {% else %}
+                <span class="small">Enter a title for your photo</span>
+                {% endif %}
+            </label>
+            {{ form.title }}
+            
+        {% endif %}
+    
+        <label {% if form.photo.errors %}id="error"{% endif %}>Photo
+            {% if form.title.errors %}
+                 {% for error in form.photo.errors %}
+                     <span id="smError2">{{ error }}</span>
+                 {% endfor %}
+            {% else %}
+            <span class="small">We'll take GIF, JPG or PNG files</span>
+            {% endif %}
+        </label>
+        {{ form.photo }}
+        
+        <button type="submit">Submit photo</button>
+    </fieldset>
+    </form>
+
+</div>
+    
+{% endblock %}
+
+{% block right_panel %}
+   <div id="calloutContainer">
+        <h2 class="title-edit">Support</h2>
+        <p>Running into a problem?</p>
+        <p><a href="/contact">Get in touch and we'll try to help &raquo;</a></p>
+    </div>
+
+{% endblock right_panel %}
+
+
+

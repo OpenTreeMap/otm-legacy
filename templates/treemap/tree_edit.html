@@ -1,0 +1,275 @@
+{% extends "template_2.html" %}
+
+{% load thumbnail dynamic_attribute %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="/static/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
+   <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" media="screen" />
+
+<script type="text/javascript">
+    jQuery().ready(function() {
+        tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
+        tm.init_tree_map(true);
+        tm.currentTreeId = {{instance.id}};
+        // Custom submit function
+
+        $("#treekey").fancybox({
+        'width'        : 980,
+        'height'      : 600,
+        'autoScale'       : false,
+        'transitionIn'    : 'none',
+        'transitionOut'    : 'none',
+        'type'        : 'iframe'
+        });
+
+    });
+</script>
+{% endblock %}
+
+            {% block content_body_top %}
+               
+                <!-- start contentbody -->
+                    <div id="contentbody">
+                         <div id="tabcontainer"> 
+                            <ul id="tablist"> 
+                                <li class="first"><a href="../">Tree info</a></li> 
+                                <li><a href="#" id="current">Edit tree</a></li>
+<!--                                 <li id="addIt"><a href="/trees/add" id="addTree">Add a tree &raquo;</a></li>  -->
+                            </ul> 
+                        </div> 
+                        <div class="tab-content" id="tab-2">
+
+                            <div class="wrap">
+                {% endblock %}
+
+
+  {% block middle_panel %}
+          <div class="data">
+
+            <div class="wrap">
+
+<table class="box-table-a">
+<!--
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">General tree information</th>
+        </tr>
+    </thead>
+-->
+    <tbody>
+{% for field in data %}
+{% ifequal field.type "header" %} 
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">{{ field.text }}</th>
+        </tr>
+    </thead>
+{% endifequal %}
+{% ifequal field.type "field_noedit" %}  
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
+            <td></td>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "species_field" %}   
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/key/What-kind-of-leaves-does-the-tree-have/#start" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "status_field" %}   
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.display }}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+                <script>tm.setupEdit("{{field.name}}", "TreeStatus", null, {
+                    extraData: {
+                        parent: {'model': 'Tree', 'id': {{instance.id}} }
+                    }{{field.jsOptions|safe}}
+                });</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "diameter_field" %}   
+    	<tr>
+        	<td class="col1">{{field.label}} <a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+            <td id="edit_{{field.name}}">{{ field.display }}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_{{field.name}}', {{field.diams|safe}}); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "field" %}  
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}});</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "field_choices" %}  
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value }}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/{{field.name}}/'});</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "hazards" %}   
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td colspan="2" class="activeEditRowValue" id="edit_{{field.name}}"><span id="hazardCount">{{ field.value.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
+        </tr>
+        <tr>
+        <td colspan="3" id="dropSpace">
+            <div id="hazardList">
+            <table id="hazardTable" width="100%">
+             <tr>
+               <td><b>Alert type</b></td>
+               <td><b>Date</b></td>
+               <td><b>Resolved?</b></td>
+               <td></td>
+             </tr>
+{% if field.value.count > 0 %}
+
+            {% for h in field.value %}
+              <tr>
+                <td>
+                  {{ h.get_key_display }}
+                </td>
+                <td>
+                    {{ h.value|date:"Y-m-d" }}
+                </td>
+                <td>
+                  {{ h.solved|default:"no" }}
+                </td>
+                <td>
+                  <a href="#" onclick="tm.deleteHazard('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                </td>  
+              </tr>  
+            {% endfor %}
+{% endif %}
+            </table>
+            </div>
+          <script>
+          $("#hazardList").hide();
+          </script>
+        </td></tr>  
+{% endifequal %}
+{% ifequal field.type "actions" %}
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td colspan="2" class="activeEditRowValue" id="edit_{{field.name}}"><span id="actionCount">{{ field.value.count }} </span> actions <span class="viewAddSep"><a href="#" onclick="$('#actionList').show();tm.newAction(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add actions{% else %}Add an action{% endif %}</a></span></td>
+        </tr>
+        <tr>
+        <td colspan="3" id="dropSpace">
+            <div id="actionList">
+            <table id="actionTable" width="100%">
+             <tr>
+               <td><b>Action type</b></td>
+               <td><b>Date</b></td>
+               <td></td>
+             </tr>  
+{% if field.value.count > 0 %}
+            {% for h in field.value %}
+              <tr>
+                <td>
+                  {{ h.get_key_display }}
+                </td>
+                <td>
+                    {{ h.value|date }}
+                </td>
+                <td>
+                  <a href="#" onclick="tm.deleteAction('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                </td>  
+              </tr>  
+            {% endfor %}
+{% endif %}
+            <!--
+            <tr>
+                <td colspan="3" id="addHazard">{% if field.value.count == 0 %}No actions recorded. {% endif %}<a href="javascript:tm.newAction()"><b>Add an action &raquo;</b></a></td>
+            </tr>
+            -->
+            </table>
+            </div>
+          <script>
+          $("#actionList").hide();
+          </script>
+        </td></tr>  
+{% endifequal %}
+{% endfor %}
+<input id="id_geometry" type="hidden"/>
+    </tbody>
+</table>
+
+            </div>
+            </div>
+        {% endblock middle_panel %}
+  
+        {% block right_panel %}
+            <!-- start t2_right_panel  -->
+                <div class="aside">
+                    <div id="editOptionContainer">
+                        <ul>
+                            <li id="title">Edit the tree location</li>
+                            <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing tree location</a></span></li>
+                        </ul>
+                    </div>
+                    <div class="editMap">
+                        <div id="add_tree_map"></div>
+                        <div id="alternate_tree_div"></div>
+                        <div id="tree_streetview"></div>
+                    </div>
+                </div>   
+
+        {% endblock %}
+        
+     
+
+        {% block left_panel %}
+        
+        
+         <div id="t2_top_left_panel">
+            <ul id="userImage">
+                <li>
+{% if instance.treephoto_set.count %}
+                            <a href="/media/{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                            <img src="/media/{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                            </a>
+                            <ul id="additionalImages">
+                            {% for item in instance.treephoto_set.all|slice:"1:4" %}
+                                    <li><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                            {% endfor %}
+                            </ul>
+                            <ul id="imageOptions">
+                                <li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a></li>
+							</ul>
+                            {% else %}
+                            <img src="/static/images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" />
+<!--
+                            <ul id="additionalImages">
+                                <li><a href="#"><img src="/static/images/es/image15.jpg" alt="image description" width="55" height="36" /></a></li>
+                                <li><a href="#"><img src="/static/images/es/image16.jpg" alt="image description" width="55" height="36" /></a></li>
+                                <li><a href="#"><img src="/static/images/es/image17.jpg" alt="image description" width="55" height="36" /></a></li>
+                            </ul>
+-->
+                            <ul id="imageOptions">
+                                <li id="first"><a href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a></li>
+                            </ul>
+{% endif %}
+                </li>
+            </ul>
+            {% comment %}
+            <ul id="message">
+                <li id="title"><a href="#">Flag this tree</a></li>
+                <li>Let us know if you see a problem and we'll look into it.</li>
+            </ul>
+            {% endcomment %}
+            <ul id="message">
+                <li id="title"><a href="/contact">Feedback</a></li>
+                <li>Tell us about a specific problem or give us general feedback. We like both!</a></li>
+            </ul>
+        </div>
+    {% endblock %}

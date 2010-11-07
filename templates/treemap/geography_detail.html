@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block body_load %}onload='tm_ol.init_sidebar_map("geography",{{object.geometry.geojson|safe}})'{% endblock %}>  
+
+{% block tophead %}
+    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script>
+    <script type="text/javascript" src="/static/treemap_ol.js"></script>
+{% endblock %}
+
+{% block right_panel %}
+    <div id="sidebar_map"></div>
+{% endblock %}
+
+
+{% block left_panel %}
+<h3> {{object}} </h3>
+    
+    Total Trees: {{object.aggregates.total_trees}}<br><br>
+    Unique Species: {{object.aggregates.distinct_species}}<br><br>
+    
+<h4>Environmental</h4>    
+        Annual Stormwater Management: {{object.aggregates.annual_stormwater_management}}<br>
+        Annual Electricity Conserved: {{object.aggregates.annual_electricity_conserved}}<br>
+        Annual Natural Gas Conserved: {{object.aggregates.annual_natural_gas_conserved}}<br>
+        Annual Air Quality Improvement: {{object.aggregates.annual_air_quality_improvement}}<br>
+        Annual C02 Squestered: {{object.aggregates.annual_c02_squestered}}<br>
+        Annual C02 Avoided: {{object.aggregates.annual_c02_avoided}}<br>
+        Total C02 Stored: {{object.aggregates.total_c02_stored}}<br>
+    
+    
+    
+{% endblock %}
+

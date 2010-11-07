@@ -1,0 +1,35 @@
+{% extends "infowindow.html" %}
+{% block right_panel %}
+    <div id="eco_sidebar_map" class="sidebar_map" style="width:180px;height:320px;" ></div>
+    <script type="text/javascript">tm_ol.init_sidebar_map('tree',{{tree.id}},'eco_sidebar_map')</script>
+{% endblock %}
+
+
+{% block left_panel %}
+<table "width=75%">
+<tr>
+    <td>
+        Tree #{{tree.id}}<br>
+        {% if tree.species %}{{tree.species}}{% else %}Species unknown {% endif %}<br>    
+    </td>
+    <td>
+        {{tree.geocoded_address}}<br>
+        Trunk Diameter {{tree.dbh}}<br>    
+    </td>
+</tr>
+</table>
+<br><br>
+
+    
+{% if tree.species %} {% if tree.dbh %}
+<h4>Environmental</h4>
+    Annual Stormwater intercepted: {{tree.treeresource.annual_stormwater_management|floatformat:0}} gal<br>
+    Annual Energy Conserved: {{tree.treeresource.energy_conserved|floatformat:0}} kWh<br>
+    Annual Air pollutants removed: {{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs<br>
+    Annual Carbon dioxide reduced: {{tree.treeresource.c02_reduced|floatformat:0}} lbs<br>
+    Annual Total C02 stored to date: {{tree.treeresource.total_c02_stored|floatformat:0}} lbs<br>
+ {% else %}Trunk diameter needed to calculate environmental resources <br>
+{% endif %}    {% else %} Tree Species needed to calculate environmental resources {% endif %}
+
+{% endblock %}
+

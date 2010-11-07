@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Urban Forest Map site admin' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'Urban Forest Map site admin' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+  <p>&nbsp;&nbsp;<a href='/'>{% trans "Urban Forest Map Home" %}</a>{% comment %} | <a href='/databrowse'>{% trans "Databrowse" %}</a>{% endcomment %}</p>
+{% endblock %}
