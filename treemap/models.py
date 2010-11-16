@@ -47,11 +47,83 @@ benefits = {
 }
 
 BOOLEAN_CHOICES =  (
-                  (False, "No"),
-                  (True, "Yes"),
-                  (None, "Unknown"),
-                )
-                
+      (False, "No"),
+      (True, "Yes"),
+      (None, "Unknown"),
+    )
+      
+FACTOID_CATEGORIES = (
+        ('general','General'),
+        ('quote','Interesting Quote'),
+        ('help','How You can Help'),
+        ('edit','Editing'),
+        ('fact','Interesting Fact')
+    )
+    
+PLOT_TYPE_CHOICES = (
+        ('tree_pit', 'Tree pit'),
+        ('median', 'Median'),
+        ('planting_strip','Tree lawn/planting strip'),
+        ('open_area','Open/unrestricted area'),
+        ('island','Island'),
+        ('raised_planter','Raised planter'),
+        ('other','Other'),
+    )  
+    
+STATUS_CHOICES = {
+        "sidewalk_damage": (
+            (1, "Minor or no Damage"),
+            (2, "Raised more than 3/4 inch"),
+            )            
+        ,
+        "plot_type": PLOT_TYPE_CHOICES,
+        "powerline_conflict_potential": BOOLEAN_CHOICES,
+        "condition": (
+            (1, "Dead"),
+            (2, "Critical"),
+            (3, "Poor"),
+            (4, "Fair"),
+            (5, "Good"),
+            (6, "Very Good"),
+            (7, "Excellent"),
+        ),
+    }
+    
+status_choices = (
+        ('height','Height (in feet)'),
+        ('dbh','Diameter (in inches)'),
+        ('condition','condition'),
+        ('sidewalk_damage','sidewalk_damage')
+    )
+    
+alert_choices = (
+        ('needs_watering','Needs watering'),
+        ('needs_pruning','Needs pruning'),
+        ('needs_removal','Should be removed'),
+        ('pests_or_disease','Pest or disease present'),
+        ('guard_removal','Guard should be removed'),
+        ('stake_tie_removal','Stakes and ties should be removed'),
+        ('construction','Construction work in the vicinity'),
+        ('touching_wires','Touching wires'),
+        ('blocking_signs','Blocking signs/traffic signals'),
+        ('improperly_pruned','Has been improperly pruned/topped'),
+        # disabled till we have commenting ability
+        #('other','Other'),
+    ) 
+
+
+action_choices = (
+        ('watered','Tree has been watered'),
+        ('pruned','Tree has been pruned'),
+        ('harvested','Fruit/nuts have been harvested from this tree'),
+        ('removed','Tree has been removed'),
+        ('inspected','Tree has been inspected'),
+        # disabled till we have commenting ability
+        #('other','Other'),
+    )
+
+
+
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
     """
@@ -88,13 +160,6 @@ class ZipCode(models.Model):
     
     def __unicode__(self): return '%s (%s)' % (self.id, self.zip)
     
-    
-FACTOID_CATEGORIES = (
-    ('general','General'),
-    ('quote','Interesting Quote'),
-    ('help','How You can Help'),
-    ('edit','Editing'),
-    ('fact','Interesting Fact'))
     
 class Factoid(models.Model):
     category = models.CharField(max_length=255, choices=FACTOID_CATEGORIES)
@@ -279,16 +344,7 @@ class GeocodeCache(models.Model):
     geometry = models.PointField(null=True, srid=4326)
     objects = models.GeoManager()
 
-PLOT_TYPE_CHOICES = (
-            #(None, ''),
-            ('tree_pit', 'Tree pit'),
-            ('median', 'Median'),
-            ('planting_strip','Tree lawn/planting strip'),
-            ('open_area','Open/unrestricted area'),
-            ('island','Island'),
-            ('raised_planter','Raised planter'),
-            ('other','Other'),
-            )
+
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -556,29 +612,6 @@ class SanFranciscoTree(Tree):
 class TreeFavorite(FavoriteBase):
     tree = models.ForeignKey(Tree)
 
-STATUS_CHOICES = {
-            "sidewalk_damage": (
-                (1, "Minor or no Damage"),
-                (2, "Raised more than 3/4 inch"),
-                )            
-            ,
-            "plot_type": PLOT_TYPE_CHOICES,
-            "powerline_conflict_potential": BOOLEAN_CHOICES,
-            #"powerline_conflict_potential":(
-            #      (False, "No"),
-            #      (True, "Yes"),
-            #      (None, "Unknown"),
-            #    ),
-            "condition": (
-                    (1, "Dead"),
-                    (2, "Critical"),
-                    (3, "Poor"),
-                    (4, "Fair"),
-                    (5, "Good"),
-                    (6, "Very Good"),
-                    (7, "Excellent"),
-                ),
-            }
 
 class TreeItem(models.Model):
     """
@@ -615,20 +648,6 @@ class TreePhoto(TreeItem):
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
 
-alert_choices = (
-        ('needs_watering','Needs watering'),
-        ('needs_pruning','Needs pruning'),
-        ('needs_removal','Should be removed'),
-        ('pests_or_disease','Pest or disease present'),
-        ('guard_removal','Guard should be removed'),
-        ('stake_tie_removal','Stakes and ties should be removed'),
-        ('construction','Construction work in the vicinity'),
-        ('touching_wires','Touching wires'),
-        ('blocking_signs','Blocking signs/traffic signals'),
-        ('improperly_pruned','Has been improperly pruned/topped'),
-        # disabled till we have commenting ability
-        #('other','Other'),
-        ) 
         
 class TreeAlert(TreeItem):
     """
@@ -639,26 +658,10 @@ class TreeAlert(TreeItem):
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)
     
-action_choices = (
-        ('watered','Tree has been watered'),
-        ('pruned','Tree has been pruned'),
-        ('harvested','Fruit/nuts have been harvested from this tree'),
-        ('removed','Tree has been removed'),
-        ('inspected','Tree has been inspected'),
-        # disabled till we have commenting ability
-        #('other','Other'),
-        )
-
 class TreeAction(TreeItem):
     key = models.CharField(max_length=256, choices=action_choices)
     value = models.DateTimeField()
 
-
-status_choices = (
-    ('height','Height (in feet)'),
-    ('dbh','Diameter (in inches)'),
-    ('condition','condition'),
-    ('sidewalk_damage','sidewalk_damage'))
         
 class TreeStatus(TreeItem):
     """
@@ -683,8 +686,6 @@ class TreeStatus(TreeItem):
         #fix up tree if we got a new dbh
         self.tree.update_dbh()
         super(TreeStatus, self).save(*args,**kwargs) 
-
-        
 
        
 class ResourceSummaryModel(models.Model):
