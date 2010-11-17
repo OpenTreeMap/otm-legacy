@@ -196,7 +196,48 @@
           <script>
           $("#actionList").hide();
           </script>
-        </td></tr>  
+        </td></tr>
+{% endifequal %}
+{% ifequal field.type "local" %}
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td colspan="2" class="activeEditRowValue" id="edit_{{field.name}}"><span id="localCount">{{ field.value.count }} </span> flags <span class="viewAddSep"><a href="#" onclick="$('#localList').show();tm.newLocal(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add local flags{% else %}Add a flag{% endif %}</a></span></td>
+        </tr>
+        <tr>
+        <td colspan="3" id="dropSpace">
+            <div id="localList">
+            <table id="localTable" width="100%">
+             <tr>
+               <td><b>Local flag type</b></td>
+               <td><b>Date</b></td>
+               <td></td>
+             </tr>
+{% if field.value.count > 0 %}
+            {% for h in field.value %}
+              <tr>
+                <td>
+                  {{ h.get_key_display }}
+                </td>
+                <td>
+                    {{ h.value|date }}
+                </td>
+                <td>
+                  <a href="#" onclick="tm.deleteLocal('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                </td>
+              </tr>
+            {% endfor %}
+{% endif %}
+            <!--
+            <tr>
+                <td colspan="3" id="addHazard">{% if field.value.count == 0 %}No actions recorded. {% endif %}<a href="javascript:tm.newAction()"><b>Add an action &raquo;</b></a></td>
+            </tr>
+            -->
+            </table>
+            </div>
+          <script>
+          $("#localList").hide();
+          </script>
+        </td></tr>
 {% endifequal %}
 {% endfor %}
 <input id="id_geometry" type="hidden"/>
@@ -206,7 +247,7 @@
             </div>
             </div>
         {% endblock middle_panel %}
-  
+
         {% block right_panel %}
             <!-- start t2_right_panel  -->
                 <div class="aside">

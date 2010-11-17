@@ -27,6 +27,7 @@ from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benef
 from spreadsheet import ExcelResponse
 from treemap.update_aggregates import cache_search_aggs
 import time
+from time import mktime
 
 
 app_models = {'UserProfile':'profiles','User':'auth'}
@@ -97,8 +98,8 @@ def result_map(request):
     max_updated = 0 
     updated = Tree.objects.exclude(last_updated=None).order_by("last_updated")
     if updated.exists():
-        min_updated = int(updated[0].last_updated.strftime("%s"))
-        max_updated = int(updated[updated.count()-1].last_updated.strftime("%s"))
+        min_updated = mktime(updated[0].last_updated.timetuple())
+        max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
     latest_trees = Tree.objects.order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.order_by("-reported")[0:8]
@@ -437,6 +438,11 @@ def tree_edit(request, tree_id = ''):
          'label':"Alerts",
          'value': tree.treealert_set.filter(solved=False)
         },
+        {'type':'local',
+         'name': 'local',
+         'label':"Local",
+         'value': tree.treeflags_set.all()
+        },
         {'type':'field_choices',
          'name': 'powerline_conflict_potential',
          'label':"Is there a powerline overhead?",
@@ -713,29 +719,29 @@ def _build_tree_search_result(request):
             pt = Point(coords)
             ns = ns.filter(geometry__contains=pt)
             if ns.count():
-                trees = trees.filter(sanfranciscotree__neighborhood = ns[0])
+                trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
         else:
             z = ZipCode.objects.filter(zip=loc)
             if z.count():
-                trees = trees.filter(sanfranciscotree__zipcode = z[0])
+                trees = trees.filter(zipcode = z[0])
                 geog_obj = z[0]
     elif 'hood' in request.GET:
         ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
         if ns:
-             trees = trees.filter(sanfranciscotree__neighborhood = ns[0])
+             trees = trees.filter(neighborhood = ns[0])
              geog_obj = ns[0]
 
     #import pdb;pdb.set_trace()
 
-    tree_criteria = {'carbon' : 'sanfranciscotree__sf_local_carbon_fund',
-                     'gleaning' : 'sanfranciscotree__sf_fruit_gleaning_project',
-                     'landmark' : 'sanfranciscotree__sf_landmark'}
+    tree_criteria = {'carbon' : 'sf_local_carbon_fund',
+                     'gleaning' : 'sf_fruit_gleaning_project',
+                     'landmark' : 'sf_landmark'}
     for k in tree_criteria.keys():
         v = request.GET.get(k,'')
         if v:
             attrib = tree_criteria[k]
-            trees = trees.filter(**{attrib:v})
+            trees = trees.filter(treeflags__key__exact=attrib)
             print 'filtered trees by %s = %s' % (tree_criteria[k],v)
             print '  .. now we have %d trees' % len(trees)
 

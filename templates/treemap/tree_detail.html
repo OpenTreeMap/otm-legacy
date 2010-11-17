@@ -68,26 +68,35 @@
                     <li><img src="/static/images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
                     {% endif %}
                     {% endcomment %}
-                {% if tree.sanfranciscotree.sf_local_carbon_fund %}
-                <li><img src="/static/images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
+
+                {% if tree.get_flag_count > 0 %}
+                	{% for a in tree.treeflags_set.all %}
+						{% if a.key == 'sf_local_carbon_fund' %}
+							<li><img src="/static/images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
+						{% endif %}
+						{% if a.key == 'sf_fruit_gleaning_project' %}
+							<li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
+						{% endif %}
+						{% if a.key == 'sf_landmark' %}
+							<li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
+						{% endif %}
+						{% if a.key == 'sf_significant' %}
+							<li><img src="/static/images/v2/icon_landmark.gif" alt="Historically Significant Tree" title="Historically Significant Tree" width="20" /></li>
+						{% endif %}
+                    {% endfor %}
+
                 {% endif %}
-                {% if tree.sanfranciscotree.sf_fruit_gleaning_project %}
-                <li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
-                {% endif %}
-                {% if tree.sanfranciscotree.sf_landmark %}
-                <li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
-                {% endif %}
-                
+
                 <!-- ALSO sf significant??? -->
-                
+
             {% else %}
             <li>None at this time</li>
             {% endif %}
 
             </ul>
         </div>
-                        
-                        
+
+
 <table class="box-table-a">
     <thead>
     	<tr>
@@ -260,6 +269,29 @@
                 </table>
             </td>
         </tr>
+        <tr>
+        	<td class="col1Wide">Local Flags</td>
+            <td>{{tree.get_flag_count}} known</td>
+            <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">Details</a>{% endif %}</td>
+        </tr>
+        <tr id="local" style="display:none;">
+            <td colspan="5">
+                <table class="box-table-b" colspan="5">
+                    <tbody>
+                    	<tr>
+                        	<td class="col1Wide"><b>Local flag</b></td>
+                            <td><b>Added by</b></td>
+                        </tr>
+                        {% for a in tree.treeflags_set.all %}
+                        <tr>
+                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                            <td>{{ a.reported_by }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
     </tbody>
 </table>
 
@@ -281,18 +313,6 @@
         <tr>
         	<td class="col1Wide">Native to area</td>
             <td>{{ tree.species.native_status }}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Landmark tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_landmark_display}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Fruit Gleaning Project tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_fruit_gleaning_project_display}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Carbon Fund tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_local_carbon_fund_display}}</td>
         </tr>
 
     </tbody>

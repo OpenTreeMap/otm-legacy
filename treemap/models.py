@@ -123,6 +123,13 @@ action_choices = (
     )
 
 
+local_choices = (
+    ('sf_landmark', 'Landmark Tree'),
+    ('sf_local_carbon_fund', 'Local Carbon Fund'),
+    ('sf_fruit_gleaning_project', 'Fruit Gleaning Project'),
+    ('sf_significant', 'Historically Significant Tree')
+)
+
 
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
@@ -377,6 +384,8 @@ class Tree(models.Model):
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
     address_zip = models.CharField(max_length=30,blank=True, null=True)
+    neighborhood = models.ForeignKey(Neighborhood, null=True)
+    zipcode = models.ForeignKey(ZipCode, null=True)
     
     geocoded_accuracy = models.IntegerField(null=True)
     geocoded_address = models.CharField(max_length=256)
@@ -398,10 +407,8 @@ class Tree(models.Model):
     objects = models.GeoManager()
     
     def has_common_attributes(self):
-        if hasattr(self,'sanfranciscotree'):
-            sf = self.sanfranciscotree
-            if sf.sf_local_carbon_fund or sf.sf_fruit_gleaning_project or sf.sf_landmark:
-                return True
+        if self.get_flag_count > 0:
+            return True
         if self.species:
             spp = self.species
             if spp.flower_conspicuous or spp.fall_conspicuous or spp.palatable_human or spp.native_status:
@@ -477,6 +484,9 @@ class Tree(models.Model):
 
     def get_alert_count(self):
         return len(self.treealert_set.all())
+        
+    def get_flag_count(self):
+        return len(self.treeflags_set.all())
         
     def set_environmental_summaries(self):
         if not self.species or not self.current_dbh:
@@ -583,32 +593,6 @@ class Tree(models.Model):
             return self.geocoded_address
     
 
-class SanFranciscoTree(Tree):
-    site_order = models.IntegerField(null=True)
-    sf_landmark = models.NullBooleanField(default=False,choices=BOOLEAN_CHOICES)
-    sf_local_carbon_fund = models.NullBooleanField(default=False,choices=BOOLEAN_CHOICES)
-    sf_fruit_gleaning_project = models.NullBooleanField(default=False,choices=BOOLEAN_CHOICES)
-    sf_significant = models.NullBooleanField(default=False,choices=BOOLEAN_CHOICES)
-    neighborhood = models.ForeignKey(Neighborhood, null=True)
-    zipcode = models.ForeignKey(ZipCode, null=True)
-
-
-    def save(self,*args,**kwargs):
-        #create or update tree resource
-        #super(Tree, self).save(*args,**kwargs)  #save, in order to get ID for the tree
-        #logging.debug('saved .. id is %s' % self.id)
-        #self.set_environmental_summaries()
-        #figure out what geographies it is in
-        n = Neighborhood.objects.filter(geometry__contains=self.geometry)
-        z = ZipCode.objects.filter(geometry__contains=self.geometry)
-        if n: self.neighborhood = n[0]
-        else: self.neighborhood = None
-        if z: self.zipcode = z[0]
-        else: self.zipcode = None
-        super(SanFranciscoTree, self).save(*args,**kwargs)
-        
-
-
 class TreeFavorite(FavoriteBase):
     tree = models.ForeignKey(Tree)
 
@@ -629,6 +613,11 @@ class TreeItem(models.Model):
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.key)
+
+
+class TreeFlags(TreeItem):
+    key = models.CharField(max_length=256, choices=local_choices)
+    value = models.DateTimeField()
 
 
 class TreePhoto(TreeItem):

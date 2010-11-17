@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto, SanFranciscoTree
+from models import Tree, Species, TreePhoto
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 
@@ -39,9 +39,9 @@ class TreeAddForm(forms.Form):
         if species:
             spp = Species.objects.filter(symbol=species)
             if spp:
-                new_tree = SanFranciscoTree(species=spp[0])
+                new_tree = Tree(species=spp[0])
             else:
-                new_tree = SanFranciscoTree()
+                new_tree = Tree()
         else:
             new_tree = Tree()
         add = self.cleaned_data.get('edit_address_street')

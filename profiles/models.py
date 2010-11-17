@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _ # internationalization translate call
 from django.contrib.gis.db import models
-from treemap.models import SanFranciscoTree, TreePhoto
+from treemap.models import Tree, TreePhoto
 
 import random
 
@@ -33,7 +33,7 @@ class UserProfile(models.Model):
         verbose_name_plural = _('Profiles')
         
     def recently_edited_trees(self):
-        return SanFranciscoTree.objects.filter(last_updated_by=self.user).order_by('-last_updated')[:7]
+        return Tree.objects.filter(last_updated_by=self.user).order_by('-last_updated')[:7]
 
     def recently_added_photos(self):
         return TreePhoto.objects.filter(reported_by=self.user).order_by('-reported_by')[:7]

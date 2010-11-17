@@ -1049,7 +1049,7 @@ var tm = {
             if (value == "null") {
                 value = null;
             }
-            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus"]) >=0) {
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus", "TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
             } else {    
@@ -1162,6 +1162,19 @@ var tm = {
         );
         $("#actionTable").append(tr);
     },
+    newLocal: function() {
+            var select = $("<select id='localTypeSelection' />");
+            for (var key in tm.localTypes) {
+                select.append($("<option value='"+key+"'>"+tm.localTypes[key]+"</option>"));
+            }    
+            var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+            tr.append(
+                $("<td />").append(
+                    $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewLocal)
+                )
+            );
+            $("#localTable").append(tr);
+    },
     newHazard: function() {
         var select = $("<select id='hazardTypeSelection' />");
         for (var key in tm.hazardTypes) {
@@ -1250,6 +1263,35 @@ var tm = {
          'inspected':'Tree has been inspected'
          // disabled till we have commenting ability
          //'other':'Other',
+    },
+   handleNewLocal: function(evt) {
+       var data = $("#localTypeSelection")[0].value;
+       settings = {
+           'extraData': {
+               'parent': {
+                   'model': 'Tree',
+                   'id': tm.currentTreeId
+               }
+           },
+           model: 'TreeFlags',
+           fieldName: data,
+           submit: 'Save',
+           cancel: 'Cancel'
+       };    
+           
+       $(this.parentNode.parentNode).remove();
+       var d = new Date();
+       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+       tm.updateEditableServerCall(dateStr, settings)
+       $("#localTable").append(
+           $("<tr><td>"+tm.localTypes[data]+"</td><td>"+dateStr+"</td></tr>"));  
+       $("#localCount").html(parseInt($("#localCount")[0].innerHTML) + 1);     
+    },
+    localTypes: {
+         'sf_landmark': 'Landmark Tree',
+	 'sf_local_carbon_fund': 'Local Carbon Fund',
+	 'sf_fruit_gleaning_project': 'Fruit Gleaning Project',
+    	 'sf_significant': 'Historically Significant Tree'
     },
     searchParams: {},
     pageLoadSearch: function () {
