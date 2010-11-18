@@ -12,26 +12,26 @@
                 return false;
                 }).next().hide();
             });
-            
+
         tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
         tm.currentTreeId = {{tree.id}};
         tm.init_tree_map(false); //not editable
         tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     });
-    
+
 </script>
 {% endblock %}
 
         {% block content_body_top %}
         <!-- start contentbody -->
-        
+
         <div id="contentbody">
-             <div id="tabcontainer"> 
-                <ul id="tablist"> 
-                    <li class="first"><a href="../{{ tree.id }}" id="current">Tree info</a></li> 
-                    <li><a href="./edit">Edit tree</a></li> 
-                </ul> 
-            </div> 
+             <div id="tabcontainer">
+                <ul id="tablist">
+                    <li class="first"><a href="../{{ tree.id }}" id="current">Tree info</a></li>
+                    <li><a href="./edit">Edit tree</a></li>
+                </ul>
+            </div>
             <div class="tab-content" id="tab-1">
                 <ul id="progress">
                     <!-- TODO -->
@@ -194,7 +194,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width}} / {{tree.plot_length }} ft/ft</td>
+            <td>{{tree.plot_width}} ft x {{tree.plot_length }} ft</td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
@@ -249,7 +249,7 @@
         <tr>
         	<td class="col1Wide">Actions</td>
             <td>{{tree.get_action_count}} known</td>
-            <td>{% if tree.get_action_count > 1 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">Details</a>{% endif %}</td>
+            <td>{% if tree.get_action_count > 0 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">Details</a>{% endif %}</td>
         </tr>
         <tr id="actions" style="display:none;">
             <td colspan="5">
@@ -350,8 +350,8 @@
 
                 {% endblock %}
 
-    
-    
+
+
                 {% block right_panel %}
                     <!-- start t2_right_panel  -->
                         <div class="aside">
@@ -362,8 +362,8 @@
                         </div>
                         <!-- end t2_right_panel  -->
                 {% endblock right_panel %}
-                
-                
+
+
                 {% block content_body_bottom %}
                                 </div>      <!-- end wrap -->
                             </div>
@@ -371,11 +371,11 @@
                         <!-- end contentbody -->
                 {% endblock %}
 
-                
+
 
                 {% block left_panel %}
                 <!-- start t2_left_panel  -->
-                
+
          <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>
@@ -437,7 +437,7 @@
                         <li><a href="#">Tweet this page</a></li>
                     </ul>
                     -->
-                    
+
                 </li>
             </ul>
 
@@ -459,8 +459,8 @@
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
             </ul>
         </div>
-                
-                
+
+
                  <!-- end t2_left_panel  -->
 
             {% endblock left_panel %}
@@ -503,15 +503,15 @@
                      <div class="tree_detail_val">{{tree.steward}}</div>
                  </div>
                 <h5>Environmental</h5>
-               
+
             </td>
             <td>
             static map<br><br><br>
             What do i share?<br>
-            
+
             </td>
         </tr></table>
-    </div>   
+    </div>
 
 
 

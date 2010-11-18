@@ -734,9 +734,9 @@ def _build_tree_search_result(request):
 
     #import pdb;pdb.set_trace()
 
-    tree_criteria = {'carbon' : 'sf_local_carbon_fund',
-                     'gleaning' : 'sf_fruit_gleaning_project',
-                     'landmark' : 'sf_landmark'}
+    tree_criteria = {'carbon' : '2',
+                     'gleaning' : '3',
+                     'landmark' : '1'}
     for k in tree_criteria.keys():
         v = request.GET.get(k,'')
         if v:

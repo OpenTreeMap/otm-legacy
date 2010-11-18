@@ -1,0 +1,289 @@
+[{
+	"pk": 1, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "factoid", 
+		"value": "General", 
+		"key": 1
+	
+	}
+}, 
+{
+	"pk": 2, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field":"factoid", 
+		"value": "Interesting Quote", 
+		"key": 2
+	}
+},
+{
+	"pk": 3, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "factoid", 
+		"value": "How You Can Help", 
+		"key": 3
+	}
+},
+{
+	"pk": 4, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "factoid", 
+		"value": "Editing", 
+		"key": 4
+	}
+},
+{
+	"pk": 5, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "factoid", 
+		"value": "Interesting Fact", 
+		"key": 5
+	}
+},
+{
+	"pk": 6, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Tree Pit", 
+		"key": 1
+	}
+},
+{
+	"pk":7, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Median", 
+		"key": 2
+	}
+},
+{
+	"pk": 8, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Lawn or Planting Strip", 
+		"key": 3
+	}
+},
+{
+	"pk": 9, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Island", 
+		"key": 4
+	}
+},
+{
+	"pk": 10, 
+	"model":"treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Raised Planter", 
+		"key": 5
+	}
+},
+{
+	"pk": 11, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "plot", 
+		"value": "Other", 
+		"key": 6
+	}
+},
+{
+	"pk": 12, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "status", 
+		"value": "Height (in feet)", 
+		"key": 1
+	}
+},
+{
+	"pk": 13, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "status", 
+		"value": "Diameter (in inches)", 
+		"key": 2
+	}
+},
+{
+	"pk": 14, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Needs Watering", 
+		"key": 1
+	}
+},
+{
+	"pk": 15, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Needs Pruning", 
+		"key": 2
+	}
+},
+{
+	"pk": 16, 
+	"model":"treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Should Be Removed", 
+		"key": 3
+	}
+},
+{
+	"pk": 17, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Pest or Disease present", 
+		"key": 4
+	}
+},
+{
+	"pk": 18, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Guard Should be Removed", 
+		"key": 5
+	}
+}, 
+{
+	"pk": 19, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Stakes and Ties Should be Removed", 
+		"key": 6
+	}
+},
+{
+	"pk": 20, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Construction Work in the Area", 
+		"key": 7
+	}
+},
+{
+	"pk": 21, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Touching Wires", 
+		"key": 8
+	}
+},
+{
+	"pk": 22, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value": "Blocking Signs or Traffic Signals", 
+		"key": 9
+	}
+},
+{
+	"pk": 23, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "alert", 
+		"value":"Improperly Pruned or Topped", 
+		"key": 10
+	}
+},
+{
+	"pk": 24, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "action", 
+		"value": "Watered", 
+		"key": 1
+	}
+},
+{
+	"pk": 25, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "action", 
+		"value": "Pruned", 
+		"key":2
+	}
+},
+{
+	"pk": 26, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "action", 
+		"value": "Fruit or Nuts Harvested", 
+		"key": 3
+	}
+},
+{
+	"pk": 27, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "action", 
+		"value": "Removed", 
+		"key": 4
+	}
+},
+{
+	"pk": 28, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "action", 
+		"value": "Inspected", 
+		"key": 5
+	}
+},
+{
+	"pk": 29, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "local", 
+		"value": "Landmark Tree", 
+		"key": 1
+	}
+},
+{
+	"pk": 30, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "local", 
+		"value": "Local Carbon Fund", 
+		"key": 2
+	}
+},
+{
+	"pk": 31, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "local", 
+		"value": "Fruit Gleaning Project", 
+		"key": 3
+	}
+},
+{
+	"pk": 32, 
+	"model": "treemap.choices", 
+	"fields": {
+		"field": "local", 
+		"value": "Historically Significant Tree", 
+		"key": 4
+	}
+}]

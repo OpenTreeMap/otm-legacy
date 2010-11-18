@@ -51,24 +51,37 @@ BOOLEAN_CHOICES =  (
       (True, "Yes"),
       (None, "Unknown"),
     )
-      
-FACTOID_CATEGORIES = (
-        ('general','General'),
-        ('quote','Interesting Quote'),
-        ('help','How You can Help'),
-        ('edit','Editing'),
-        ('fact','Interesting Fact')
+          
+status_choices = (
+        ('height','Height (in feet)'),
+        ('dbh','Diameter (in inches)'),
+        ('condition','condition'),
+        ('sidewalk_damage','sidewalk_damage')
     )
     
-PLOT_TYPE_CHOICES = (
-        ('tree_pit', 'Tree pit'),
-        ('median', 'Median'),
-        ('planting_strip','Tree lawn/planting strip'),
-        ('open_area','Open/unrestricted area'),
-        ('island','Island'),
-        ('raised_planter','Raised planter'),
-        ('other','Other'),
-    )  
+choices_choices = (
+    ('factoid', 'Factoid'), 
+    ('plot', 'Plot'), 
+    ('status', 'Status'), 
+    ('alert', 'Alert'), 
+    ('action', 'Action'), 
+    ('local', 'Local')
+)
+
+class Choices(models.Model):
+    field = models.CharField(max_length=255, choices=choices_choices)
+    key = models.CharField(max_length=50)
+    value = models.CharField(max_length=255)
+    
+    def get_field_choices(self, fieldName):
+        li = {}
+        for c in Choices.objects.filter(field__exact=fieldName):
+            li[c.key] = c.value
+        return li.items()
+    
+    def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
+        
+
     
 STATUS_CHOICES = {
         "sidewalk_damage": (
@@ -76,7 +89,7 @@ STATUS_CHOICES = {
             (2, "Raised more than 3/4 inch"),
             )            
         ,
-        "plot_type": PLOT_TYPE_CHOICES,
+        "plot_type": Choices().get_field_choices('plot'),
         "powerline_conflict_potential": BOOLEAN_CHOICES,
         "condition": (
             (1, "Dead"),
@@ -88,48 +101,6 @@ STATUS_CHOICES = {
             (7, "Excellent"),
         ),
     }
-    
-status_choices = (
-        ('height','Height (in feet)'),
-        ('dbh','Diameter (in inches)'),
-        ('condition','condition'),
-        ('sidewalk_damage','sidewalk_damage')
-    )
-    
-alert_choices = (
-        ('needs_watering','Needs watering'),
-        ('needs_pruning','Needs pruning'),
-        ('needs_removal','Should be removed'),
-        ('pests_or_disease','Pest or disease present'),
-        ('guard_removal','Guard should be removed'),
-        ('stake_tie_removal','Stakes and ties should be removed'),
-        ('construction','Construction work in the vicinity'),
-        ('touching_wires','Touching wires'),
-        ('blocking_signs','Blocking signs/traffic signals'),
-        ('improperly_pruned','Has been improperly pruned/topped'),
-        # disabled till we have commenting ability
-        #('other','Other'),
-    ) 
-
-
-action_choices = (
-        ('watered','Tree has been watered'),
-        ('pruned','Tree has been pruned'),
-        ('harvested','Fruit/nuts have been harvested from this tree'),
-        ('removed','Tree has been removed'),
-        ('inspected','Tree has been inspected'),
-        # disabled till we have commenting ability
-        #('other','Other'),
-    )
-
-
-local_choices = (
-    ('sf_landmark', 'Landmark Tree'),
-    ('sf_local_carbon_fund', 'Local Carbon Fund'),
-    ('sf_fruit_gleaning_project', 'Fruit Gleaning Project'),
-    ('sf_significant', 'Historically Significant Tree')
-)
-
 
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
@@ -169,7 +140,7 @@ class ZipCode(models.Model):
     
     
 class Factoid(models.Model):
-    category = models.CharField(max_length=255, choices=FACTOID_CATEGORIES)
+    category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
     header = models.CharField(max_length=100)
     fact = models.TextField(max_length=500)
     
@@ -379,7 +350,7 @@ class Tree(models.Model):
     present = models.BooleanField(default=True)
     plot_width = models.IntegerField(null=True, blank=True)
     plot_length = models.IntegerField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=PLOT_TYPE_CHOICES)
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -616,7 +587,7 @@ class TreeItem(models.Model):
 
 
 class TreeFlags(TreeItem):
-    key = models.CharField(max_length=256, choices=local_choices)
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField()
 
 
@@ -643,12 +614,12 @@ class TreeAlert(TreeItem):
     status of attributes that we want to track changes over time.
     sidwalk damage might be scale of 0 thru 5, where dbh or height might be an arbitrary float
     """
-    key = models.CharField(max_length=256, choices=alert_choices)
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices('alert'))
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)
     
-class TreeAction(TreeItem):
-    key = models.CharField(max_length=256, choices=action_choices)
+class TreeAction(TreeItem): 
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
     value = models.DateTimeField()
 
         

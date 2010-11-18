@@ -1212,16 +1212,16 @@ var tm = {
         $("#hazardCount").html(parseInt($("#hazardCount")[0].innerHTML) + 1);     
     },
     hazardTypes: {
-        'needs_watering':'Needs watering',
-        'needs_pruning':'Needs pruning',
-        'needs_removal':'Should be removed',
-        'pests_or_disease':'Pest or disease present',
-        'guard_removal':'Guard should be removed',
-        'stake_tie_removal':'Stakes and ties should be removed',
-        'construction':'Construction work in the vicinity',
-        'touching_wires':'Touching wires',
-        'blocking_signs':'Blocking signs/traffic signals',
-        'improperly_pruned':'Has been improperly pruned/topped'
+        '1':'Needs watering',
+        '2':'Needs pruning',
+        '3':'Should be removed',
+        '4':'Pest or disease present',
+        '5':'Guard should be removed',
+        '6':'Stakes and ties should be removed',
+        '7':'Construction work in the vicinity',
+        '8':'Touching wires',
+        '9':'Blocking signs/traffic signals',
+        '10':'Has been improperly pruned/topped'
    }, 
    deleteAction: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
@@ -1256,11 +1256,11 @@ var tm = {
     },
     actionTypes: {
          //'planted':'Tree has been planted',
-         'watered':'Tree has been watered',
-         'pruned':'Tree has been pruned',
-         'harvested':'Fruit/nuts have been harvested from this tree',
-         'removed':'Tree has been removed',
-         'inspected':'Tree has been inspected'
+         '1':'Tree has been watered',
+         '2':'Tree has been pruned',
+         '3':'Fruit/nuts have been harvested from this tree',
+         '4':'Tree has been removed',
+         '5':'Tree has been inspected'
          // disabled till we have commenting ability
          //'other':'Other',
     },
@@ -1288,10 +1288,10 @@ var tm = {
        $("#localCount").html(parseInt($("#localCount")[0].innerHTML) + 1);     
     },
     localTypes: {
-         'sf_landmark': 'Landmark Tree',
-	 'sf_local_carbon_fund': 'Local Carbon Fund',
-	 'sf_fruit_gleaning_project': 'Fruit Gleaning Project',
-    	 'sf_significant': 'Historically Significant Tree'
+         '1': 'Landmark Tree',
+	 '2': 'Local Carbon Fund',
+	 '3': 'Fruit Gleaning Project',
+    	 '4': 'Historically Significant Tree'
     },
     searchParams: {},
     pageLoadSearch: function () {
