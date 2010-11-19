@@ -62,44 +62,50 @@ status_choices = (
 choices_choices = (
     ('factoid', 'Factoid'), 
     ('plot', 'Plot'), 
-    ('status', 'Status'), 
     ('alert', 'Alert'), 
     ('action', 'Action'), 
-    ('local', 'Local')
+    ('local', 'Local'),
+    ('sidewalk_damage', 'Sidewalk Damage'),
+    ('condition', 'Condition')
 )
 
 class Choices(models.Model):
     field = models.CharField(max_length=255, choices=choices_choices)
     key = models.CharField(max_length=50)
     value = models.CharField(max_length=255)
+    key_type = models.CharField(max_length=15)
     
     def get_field_choices(self, fieldName):
         li = {}
         for c in Choices.objects.filter(field__exact=fieldName):
+            key = self.resolve_type(c)
+            #TODO: Figure out why we need both! The 2. works for status, 1. for all else
             li[c.key] = c.value
+            if key is not None:
+                li[key] = c.value
         return li.items()
+    
+    def resolve_type(self, choice):
+        if choice.key_type == 'int':
+            return int(choice.key)
+        elif choice.key_type == 'bool':
+            return bool(choice.key)
+        elif choice.key_type == 'str':
+            return choice.key
+        elif choice.key_type == 'none':
+            return None
+        else:
+            raise Exception("Invalid key type %r" % choice.key_type)
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
-
+choices = Choices()
     
 STATUS_CHOICES = {
-        "sidewalk_damage": (
-            (1, "Minor or no Damage"),
-            (2, "Raised more than 3/4 inch"),
-            )            
-        ,
-        "plot_type": Choices().get_field_choices('plot'),
-        "powerline_conflict_potential": BOOLEAN_CHOICES,
-        "condition": (
-            (1, "Dead"),
-            (2, "Critical"),
-            (3, "Poor"),
-            (4, "Fair"),
-            (5, "Good"),
-            (6, "Very Good"),
-            (7, "Excellent"),
-        ),
+        "sidewalk_damage": choices.get_field_choices('sidewalk_damage'),
+        "plot_type": choices.get_field_choices('plot'),
+        "powerline_conflict_potential": choices.get_field_choices('bool_set'),
+        "condition": choices.get_field_choices('condition'),
     }
 
 # GEOGRAPHIES #
@@ -140,7 +146,7 @@ class ZipCode(models.Model):
     
     
 class Factoid(models.Model):
-    category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
+    category = models.CharField(max_length=255, choices=choices.get_field_choices('factoid'))
     header = models.CharField(max_length=100)
     fact = models.TextField(max_length=500)
     
@@ -350,7 +356,7 @@ class Tree(models.Model):
     present = models.BooleanField(default=True)
     plot_width = models.IntegerField(null=True, blank=True)
     plot_length = models.IntegerField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=choices.get_field_choices('plot'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -587,7 +593,7 @@ class TreeItem(models.Model):
 
 
 class TreeFlags(TreeItem):
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
+    key = models.CharField(max_length=256, choices=choices.get_field_choices("local"))
     value = models.DateTimeField()
 
 
@@ -614,12 +620,12 @@ class TreeAlert(TreeItem):
     status of attributes that we want to track changes over time.
     sidwalk damage might be scale of 0 thru 5, where dbh or height might be an arbitrary float
     """
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices('alert'))
+    key = models.CharField(max_length=256, choices=choices.get_field_choices('alert'))
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)
     
 class TreeAction(TreeItem): 
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
+    key = models.CharField(max_length=256, choices=choices.get_field_choices('action'))
     value = models.DateTimeField()
 
         
@@ -634,7 +640,7 @@ class TreeStatus(TreeItem):
     @property
     def display(self):
         val = self.value
-        if self.key in STATUS_CHOICES.keys():
+        if self.key in STATUS_CHOICES:
             choices = STATUS_CHOICES[self.key]
             for item in choices:
                 if item[0] == self.value:

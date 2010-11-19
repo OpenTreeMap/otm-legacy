@@ -71,23 +71,21 @@
 
                 {% if tree.get_flag_count > 0 %}
                 	{% for a in tree.treeflags_set.all %}
-						{% if a.key == 'sf_local_carbon_fund' %}
+						{% if a.key == '2' %}
 							<li><img src="/static/images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
 						{% endif %}
-						{% if a.key == 'sf_fruit_gleaning_project' %}
+						{% if a.key == '3' %}
 							<li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
 						{% endif %}
-						{% if a.key == 'sf_landmark' %}
+						{% if a.key == '1' %}
 							<li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
 						{% endif %}
-						{% if a.key == 'sf_significant' %}
+						{% if a.key == '4' %}
 							<li><img src="/static/images/v2/icon_landmark.gif" alt="Historically Significant Tree" title="Historically Significant Tree" width="20" /></li>
 						{% endif %}
                     {% endfor %}
 
                 {% endif %}
-
-                <!-- ALSO sf significant??? -->
 
             {% else %}
             <li>None at this time</li>
