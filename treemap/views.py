@@ -294,6 +294,10 @@ def tree_edit_choices(request, tree_id, type_):
             sidewalks = tree.treestatus_set.filter(key="condition").order_by("-reported")
             if sidewalks.count():
                 data['selected'] = str(int(sidewalks[0].value))
+        if type_ == "canopy_condition":
+            sidewalks = tree.treestatus_set.filter(key="canopy_condition").order_by("-reported")
+            if sidewalks.count():
+                data['selected'] = str(int(sidewalks[0].value))
     return HttpResponse(simplejson.dumps(data))    
 
 #http://docs.djangoproject.com/en/dev/topics/forms/modelforms/#model-formsets
@@ -354,6 +358,25 @@ def tree_edit(request, tree_id = ''):
         height['value'] = heights[0].value
         height['display'] = heights[0].value
     
+    c_height = {'type':'status_field',
+         'name': 'c_height',
+         'label': "Canopy height (feet)",
+        }
+    c_heights = tree.treestatus_set.filter(key="canopy_height").order_by('-reported')
+    if c_heights.count():
+        c_height['value'] = c_height[0].value
+        c_height['display'] = c_height[0].value
+    
+    c_condition = {'type':'status_field',
+             'name': 'canopy_condition',
+             'label': "Canopy condition",
+             'jsOptions': ", 'type':'select', 'loadurl':'choices/canopy_condition/'"
+            }
+    c_conditions = tree.treestatus_set.filter(key="canopy_condition").order_by('-reported')
+    if c_conditions.count():
+        c_condition['value'] = c_conditions[0].value
+        c_condition['display'] = c_conditions[0].display
+        
     sidewalk = {'type':'status_field',
          'name': 'sidewalk_damage',
          'label': "Sidewalk damage",
@@ -390,6 +413,8 @@ def tree_edit(request, tree_id = ''):
         },
         diam,
         height,
+        c_height,
+        c_condition,
         {'type':'field',
          'name': 'address_street',
          'label':"Street",

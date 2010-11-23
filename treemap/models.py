@@ -46,17 +46,13 @@ benefits = {
     "bvoc":7.2200,
 }
 
-BOOLEAN_CHOICES =  (
-      (False, "No"),
-      (True, "Yes"),
-      (None, "Unknown"),
-    )
-          
 status_choices = (
         ('height','Height (in feet)'),
         ('dbh','Diameter (in inches)'),
         ('condition','condition'),
-        ('sidewalk_damage','sidewalk_damage')
+        ('sidewalk_damage','sidewalk_damage'),
+        ('canopy_height', 'Canopy Height (in feet)'),
+        ('canopy_condition', 'canopy_condition')
     )
     
 choices_choices = (
@@ -66,7 +62,8 @@ choices_choices = (
     ('action', 'Action'), 
     ('local', 'Local'),
     ('sidewalk_damage', 'Sidewalk Damage'),
-    ('condition', 'Condition')
+    ('condition', 'Condition'),
+    ('canopy_condition', 'Canopy Condition')
 )
 
 class Choices(models.Model):
@@ -102,10 +99,11 @@ class Choices(models.Model):
 choices = Choices()
     
 STATUS_CHOICES = {
-        "sidewalk_damage": choices.get_field_choices('sidewalk_damage'),
-        "plot_type": choices.get_field_choices('plot'),
+        "sidewalk_damage": Choices().get_field_choices('sidewalk_damage'),
+        "plot_type": Choices().get_field_choices('plot'),
         "powerline_conflict_potential": choices.get_field_choices('bool_set'),
-        "condition": choices.get_field_choices('condition'),
+        "condition": Choices().get_field_choices('condition'),
+        "canopy_condition": Choices().get_field_choices('canopy_condition'),
     }
 
 # GEOGRAPHIES #
@@ -146,7 +144,7 @@ class ZipCode(models.Model):
     
     
 class Factoid(models.Model):
-    category = models.CharField(max_length=255, choices=choices.get_field_choices('factoid'))
+    category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
     header = models.CharField(max_length=100)
     fact = models.TextField(max_length=500)
     
@@ -287,15 +285,15 @@ class Species(models.Model):
     state_t_e_status = models.CharField(max_length=255, null=True, blank=True)
     national_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
     regional_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
-    fall_conspicuous = models.NullBooleanField(choices=BOOLEAN_CHOICES)
-    fire_resistance = models.NullBooleanField(choices=BOOLEAN_CHOICES)
+    fall_conspicuous = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    fire_resistance = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     flower_conspicuous = models.NullBooleanField()
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
     fruit_seed_abundance = models.CharField(max_length=255, null=True, blank=True)
     fruit_seed_period_begin = models.CharField(max_length=255, null=True, blank=True)
     fruit_seed_period_end = models.CharField(max_length=255, null=True, blank=True)
-    berry_nut_seed_product = models.NullBooleanField(choices=BOOLEAN_CHOICES)
-    palatable_human = models.NullBooleanField(choices=BOOLEAN_CHOICES)
+    berry_nut_seed_product = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    palatable_human = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
     tree_count = models.IntegerField(default=0, db_index=True)
@@ -352,11 +350,11 @@ class Tree(models.Model):
     date_planted = models.DateField(null=True, blank=True) 
     powerline_conflict_potential = models.NullBooleanField(
         help_text = "Are there overhead powerlines present?", 
-        choices=BOOLEAN_CHOICES,null=True, blank=True)
+        choices=choices.get_field_choices('bool_set'),null=True, blank=True)
     present = models.BooleanField(default=True)
     plot_width = models.IntegerField(null=True, blank=True)
     plot_length = models.IntegerField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=choices.get_field_choices('plot'))
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -421,6 +419,20 @@ class Tree(models.Model):
             return height[0].value
         else:
             return None
+    
+    def get_canopy_height(self):
+        height = self.treestatus_set.filter(key='canopy_height').order_by('-reported')
+        if height:
+            return height[0].value
+        else:
+            return None     
+            
+    def get_canopy_condition(self):
+        condition = self.treestatus_set.filter(key='canopy_condition').order_by('-reported')
+        if condition:
+            return condition[0].display
+        else:
+            return None    
             
     def update_dbh(self):
         #update the current_dbh if out of date .. called by treeStatus save
@@ -545,7 +557,7 @@ class Tree(models.Model):
 
     def percent_complete(self):
         has = 0
-        desired = 4
+        desired = 6
         if self.species:
             if self.species.scientific_name:
                 has += 1
@@ -554,6 +566,10 @@ class Tree(models.Model):
         if self.get_sidewalk_damage():
             has += 1
         if not self.powerline_conflict_potential is None:
+            has += 1
+        if self.get_canopy_height():
+            has += 1 
+        if self.get_canopy_condition():
             has += 1
         attr = ['current_dbh','plot_width','plot_length','plot_type']
         desired += len(attr)
@@ -593,7 +609,7 @@ class TreeItem(models.Model):
 
 
 class TreeFlags(TreeItem):
-    key = models.CharField(max_length=256, choices=choices.get_field_choices("local"))
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField()
 
 
@@ -620,12 +636,12 @@ class TreeAlert(TreeItem):
     status of attributes that we want to track changes over time.
     sidwalk damage might be scale of 0 thru 5, where dbh or height might be an arbitrary float
     """
-    key = models.CharField(max_length=256, choices=choices.get_field_choices('alert'))
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices('alert'))
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)
     
 class TreeAction(TreeItem): 
-    key = models.CharField(max_length=256, choices=choices.get_field_choices('action'))
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
     value = models.DateTimeField()
 
         
