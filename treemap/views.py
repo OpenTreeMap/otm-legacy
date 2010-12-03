@@ -12,6 +12,7 @@ from django.db.models import Count, Sum, Q
 from django.views.decorators.csrf import csrf_view_exempt
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
+from django_reputation.models import Reputation, Permission
 
 # formsets
 from django.forms.formsets import formset_factory
@@ -27,7 +28,7 @@ from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benef
 from spreadsheet import ExcelResponse
 from treemap.update_aggregates import cache_search_aggs
 import time
-from time import mktime
+from time import mktime, strptime
 
 
 app_models = {'UserProfile':'profiles','User':'auth'}
@@ -156,7 +157,7 @@ def tree_location_search(request):
                              'plot_length',
                              'distance',
                              'orig_species',
-                             'current_geometry',
+                             'geometry',
                              'native',
                              'geocoded_address',
                              'photo',
@@ -172,8 +173,8 @@ def tree_location_search(request):
                              'condition_leaves',
                              'height',
                              'plot_height',
-                             'geocoded_lat',
                              'private_property',
+                             'geocoded_lat',
                              'geocoded_lon',
                              'site_type'])
 
@@ -332,7 +333,7 @@ def batch_edit(request):
 
 @login_required    
 def tree_edit(request, tree_id = ''):
-
+    
     tree = get_object_or_404(Tree, pk=tree_id)
     #if not request.user in (tree.data_owner, tree.tree_owner) and not request.user.is_superuser:
     #    return render_to_response("not_allowed.html", {'user' : request.user, "error_message":"You are not the owner of this tree."})
@@ -414,7 +415,6 @@ def tree_edit(request, tree_id = ''):
         diam,
         height,
         c_height,
-        c_condition,
         {'type':'field',
          'name': 'address_street',
          'label':"Street",
@@ -429,6 +429,11 @@ def tree_edit(request, tree_id = ''):
          'name': 'address_zip',
          'label':"Zip code",
          'value': tree.address_zip
+        },
+        {'type':'date_field',
+         'name': 'date_planted',
+         'label':"Date Planted",
+         'value': tree.date_planted
         },
         {'type':'header',
          'text': "Environment"
@@ -448,11 +453,20 @@ def tree_edit(request, tree_id = ''):
          'label':"Plot type",
          'value': tree.get_plot_type_display()
         },
+        {'type':'field_choices',
+         'name': 'powerline_conflict_potential',
+         'label':"Is there a powerline overhead?",
+         'value': tree.get_powerline_conflict_potential_display()
+        },
+        ]
+    
+    status_data = [  
         {'type':'header',
          'text': "Status"
-        },
+        },      
         sidewalk,
         condition,
+        c_condition,
         {'type':'actions',
          'name': 'actions',
          'label':"Actions",
@@ -468,15 +482,17 @@ def tree_edit(request, tree_id = ''):
          'label':"Local",
          'value': tree.treeflags_set.all()
         },
-        {'type':'field_choices',
-         'name': 'powerline_conflict_potential',
-         'label':"Is there a powerline overhead?",
-         'value': tree.get_powerline_conflict_potential_display()
-        },
         #{'type':'header',
         # 'text': "Location information"
         #},
         ] 
+    
+    #TODO: Move this check to somewhere related to creating a user
+    perm = Permission.objects.get(name = 'can_edit_condition')
+    rep = Reputation.objects.reputation_for_user(request.user)
+    print perm, rep
+    if rep.reputation >= perm.required_reputation:
+        data.extend(status_data)
 
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree, 'data': data}))           
@@ -530,6 +546,7 @@ def object_update(request):
         
     parent_instance = None
     post = {}
+    save_value = 5
     
     if request.method == 'POST':
         if request.META['SERVER_NAME'] == 'testserver':
@@ -621,7 +638,7 @@ def object_update(request):
                             else:
                                 setattr(instance,k,cleaned)
                         except ValidationError,e:
-                            response_dict['errors'].append(e.messages[0])                                
+                            response_dict['errors'].append(e.messages[0])
                         except Exception,e:
                             response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
                         if hasattr(instance,'display'):
@@ -630,10 +647,11 @@ def object_update(request):
                             value = getattr(instance,'get_%s_display' % k)()
                         else:    
                             value = getattr(instance, k)
-                        if isinstance(value,datetime):
-                            value = value.strftime('%Y-%m-%d')
+                        if isinstance(value,datetime): 
+                            value = value.strftime('%b %d %Y')
                         elif not isinstance(value, basestring):
                             value = unicode(value)
+                        #print isinstance(value, basestring)
                         response_dict['update'][k] = value
                     else:
                         response_dict['errors'].append("%s does not have a '%s' attribute" % (instance,k))
@@ -671,8 +689,13 @@ def object_update(request):
             try:
                 if not delete:
                     instance.save()
+                    print "instance save"
+                    Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
                 if parent_instance:
-                    parent_instance.save()
+                    pass
+                    #parent_instance.save()
+                    #print "instance parent save"
+                    #print parent_instance, instance
             except Exception, e:
                 response_dict['errors'].append('Related - %s: %s' % (sys.exc_type,str(e)))
 
@@ -696,7 +719,7 @@ def tree_add(request, tree_id = ''):
         if form.is_valid():
             new_tree = form.save(request)
             print 'saved %s' % new_tree
-
+            Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, instance)
             
             return HttpResponseRedirect('/trees/%s/edit/' % new_tree.id)
     else:

@@ -92,7 +92,7 @@
                 });</script>
         </tr>
 {% endifequal %}
-{% ifequal field.type "diameter_field" %}   
+{% ifequal field.type "diameter_field" %}
     	<tr>
         	<td class="col1">{{field.label}} <a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
             <td id="edit_{{field.name}}">{{ field.display }}</td>
@@ -100,7 +100,7 @@
             <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
         </tr>
 {% endifequal %}
-{% ifequal field.type "field" %}  
+{% ifequal field.type "field" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
@@ -108,7 +108,15 @@
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}});</script>
         </tr>
 {% endifequal %}
-{% ifequal field.type "field_choices" %}  
+{% ifequal field.type "date_field" %}
+    	<tr>
+        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value}}</td>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}});</script>
+        </tr>
+{% endifequal %}
+{% ifequal field.type "field_choices" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value }}</td>
@@ -116,7 +124,7 @@
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/{{field.name}}/'});</script>
         </tr>
 {% endifequal %}
-{% ifequal field.type "hazards" %}   
+{% ifequal field.type "hazards" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td colspan="2" class="activeEditRowValue" id="edit_{{field.name}}"><span id="hazardCount">{{ field.value.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>

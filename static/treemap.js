@@ -1049,6 +1049,11 @@ var tm = {
             if (value == "null") {
                 value = null;
             }
+            //if (!isNaN(Date.parse(value))) {
+            //	//it's a javascript-parsable date, so we'll take it
+            //	var dateVal = new Date(Date.parse(value));
+            //	value = dateVal.getFullYear() + "-" + (dateVal.getMonth()+1) + "-" + dateVal.getDate()
+            //}
             if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus", "TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
@@ -1228,6 +1233,10 @@ var tm = {
    
    },
    deleteHazard: function(key, value, elem) {
+       $(elem.parentNode.parentNode).remove();
+   
+   },
+   deleteLocal: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
    
    },

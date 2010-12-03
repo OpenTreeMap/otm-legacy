@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _ # internationalization translate call
 from django.contrib.gis.db import models
 from treemap.models import Tree, TreePhoto
+from django_reputation.models import UserReputationAction
 
 import random
 
@@ -37,6 +38,9 @@ class UserProfile(models.Model):
 
     def recently_added_photos(self):
         return TreePhoto.objects.filter(reported_by=self.user).order_by('-reported_by')[:7]
+
+    def recently_changed_reputation(self):
+        return UserReputationAction.objects.filter(user=self.user).order_by('-date_created')[:7]
 
     def made_edit(self):
         self.site_edits += 1

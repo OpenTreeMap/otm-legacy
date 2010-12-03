@@ -5,6 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 #local_settings
 GOOGLE_API_KEY = 'abcdf'
+GOOGLE_API_DEV_KEY = 'ghijk'
 
 # must end with trees/ because of odd tilecache deployment issue
 # will be populated with layer name /trees/{layername} dynamically
@@ -44,6 +45,16 @@ ACCOUNT_ACTIVATION_DAYS = 5
 DEFAULT_FROM_EMAIL= 'contact@urbanforestmap.org'
 EMAIL_MANAGERS = False
 
+EMAIL_HOST = 'postoffice.dca.net'
+EMAIL_PORT = 25
+
+#reputation
+REPUTATION_ENABLED = True
+MAX_REPUTATION_LOSS_PER_DAY = 100
+BASE_REPUTATION = 0
+REPUTATION_REQUIRED_TEMPLATE = 'django_reputation/reputation_required.html'
+MAX_REPUTATION_GAIN_PER_DAY = 100
+
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
 
@@ -53,8 +64,10 @@ DATABASES = {
     'default': {
         'NAME': 'sftrees',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'USER': 'sftrees',
-        'PASSWORD': ''
+        'USER': 'treekeyuser',                      # Not used with sqlite3.
+        'PASSWORD': '12345',                  # Not used with sqlite3.
+        'HOST': 'sajara01',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '5432',
     }
 }
 
@@ -114,6 +127,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+    'django_reputation.middleware.ReputationMiddleware'
     #'middleware.ajax.AJAXSimpleExceptionResponse',
 )
 
@@ -141,6 +155,7 @@ INSTALLED_APPS = (
     'registration',
     'template_utils',
     'profiles',
+    'django_reputation',
     'tagging',
     'sorl.thumbnail',
     'classfaves',

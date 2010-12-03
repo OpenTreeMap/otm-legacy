@@ -6,7 +6,6 @@ from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.db import models as dmodels
 import models
 
- 
 mods = [x for x in models.__dict__.values() if issubclass(type(x), dmodels.base.ModelBase)]
  
 admins = []

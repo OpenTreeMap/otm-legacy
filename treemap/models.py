@@ -7,6 +7,7 @@ from django.contrib.auth.models import User, Group
 from sorl.thumbnail.fields import ImageWithThumbnailsField
 from classfaves.models import FavoriteBase
 import logging
+import audit
 
 RESOURCE_NAMES = ['Hydro interception',
                      'Property Value',
@@ -31,20 +32,6 @@ RESOURCE_NAMES = ['Hydro interception',
                      'CPA',
                      'CO2 Storage']
 
-# for use in summaries
-# http://sftrees.securemaps.com/ticket/108
-benefits = {
-    "stormwater":0.0040,
-    "electricity":0.1323,
-    "natural_gas":1.3048,
-    "co2":0.0200,
-    "ozone":10.3101,
-    "nox":10.3101,
-    "pm10":11.7901,
-    "sox":3.6700,
-    "voc":7.2200,
-    "bvoc":7.2200,
-}
 
 status_choices = (
         ('height','Height (in feet)'),
@@ -65,6 +52,21 @@ choices_choices = (
     ('condition', 'Condition'),
     ('canopy_condition', 'Canopy Condition')
 )
+
+class BenefitValues(models.Model):
+    area = models.CharField(max_length=255)
+    stormwater = models.FloatField()
+    electricity = models.FloatField()
+    natural_gas = models.FloatField()
+    co2 = models.FloatField()
+    ozone = models.FloatField()
+    nox = models.FloatField()
+    pm10 = models.FloatField()
+    sox = models.FloatField()
+    voc = models.FloatField()
+    bvoc = models.FloatField()
+    
+    def __unicode__(self): return '%s' % (self.area)
 
 class Choices(models.Model):
     field = models.CharField(max_length=255, choices=choices_choices)
@@ -331,7 +333,7 @@ class GeocodeCache(models.Model):
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
-        self.current_geometry = self.geometry or None       
+        #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
     data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
@@ -348,6 +350,7 @@ class Tree(models.Model):
     #special = models.BooleanField(help_text="Landmark or other Special status")
     current_dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     date_planted = models.DateField(null=True, blank=True) 
+    date_removed = models.DateField(null=True, blank=True)
     powerline_conflict_potential = models.NullBooleanField(
         help_text = "Are there overhead powerlines present?", 
         choices=choices.get_field_choices('bool_set'),null=True, blank=True)
@@ -380,6 +383,8 @@ class Tree(models.Model):
     s_order = models.IntegerField(null=True, blank=True)
    
     objects = models.GeoManager()
+    history = audit.AuditTrail()
+    
     
     def has_common_attributes(self):
         if self.get_flag_count > 0:
@@ -540,18 +545,18 @@ class Tree(models.Model):
                 self.old_species.save()
             if self.species:
                 self.species.save()
-        if self.current_geometry:
-            if self.current_geometry.x != self.geometry.x or self.current_geometry.y != self.geometry.y:
-                # new tile
-                pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
-                pu.save()
-                # old tile
-                pu = PointUpdate(lon=self.current_geometry.x, lat=self.current_geometry.y, tree=self)
-                pu.save()
-        if self.current_geometry == None:        
-            if self.geometry:
-                pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
-                pu.save()
+        #if self.current_geometry:
+        #    if self.current_geometry.x != self.geometry.x or self.current_geometry.y != self.geometry.y:
+        #        # new tile
+        #        pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
+        #        pu.save()
+        #        # old tile
+        #        pu = PointUpdate(lon=self.current_geometry.x, lat=self.current_geometry.y, tree=self)
+        #        pu.save()
+        #if self.current_geometry == None:
+        #    if self.geometry:
+        #        pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
+        #        pu.save()
         self.set_environmental_summaries()
         super(Tree, self).save(*args,**kwargs) 
 
@@ -608,10 +613,14 @@ class TreeItem(models.Model):
         return '%s, %s, %s' % (self.reported, self.tree, self.key)
 
 
+def get_parent_id(instance):
+    return instance.key
+
 class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField()
 
+    history = audit.AuditTrail()
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):
@@ -626,6 +635,7 @@ class TreePhoto(TreeItem):
     title = models.CharField(max_length=256,null=True,blank=True)
     photo = ImageWithThumbnailsField(upload_to=get_photo_path, blank=True, null=True, thumbnail={'size': (50, 50)})
 
+    history = audit.AuditTrail()
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
@@ -638,12 +648,15 @@ class TreeAlert(TreeItem):
     """
     key = models.CharField(max_length=256, choices=Choices().get_field_choices('alert'))
     value = models.DateTimeField()
-    solved = models.BooleanField(default=False)
+    solved = models.BooleanField(default=False)    
+    
+    history = audit.AuditTrail()
     
 class TreeAction(TreeItem): 
     key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
     value = models.DateTimeField()
 
+    history = audit.AuditTrail()
         
 class TreeStatus(TreeItem):
     """
@@ -653,6 +666,8 @@ class TreeStatus(TreeItem):
     key = models.CharField(max_length=256, choices=status_choices)
     value = models.FloatField()
 
+    history = audit.AuditTrail()
+    
     @property
     def display(self):
         val = self.value
@@ -690,22 +705,23 @@ class ResourceSummaryModel(models.Model):
         
     def benefits(self):
         d = {}
-        d['water'] = (self.annual_stormwater_management * benefits['stormwater'])
+        b = BenefitValues.objects.all()[0]
+        d['water'] = (self.annual_stormwater_management * b.stormwater)
 
-        d['energy'] = (self.annual_energy_conserved * benefits['electricity']) 
+        d['energy'] = (self.annual_energy_conserved * b.electricity) 
 
-        d['air_quality'] = abs((self.annual_ozone * benefits['ozone']) \
-                            + (self.annual_nox * benefits['nox']) \
-                            + (self.annual_pm10 * benefits['pm10']) \
-                            + (self.annual_sox * benefits['sox']) \
-                            + (self.annual_voc * benefits['voc']) \
-                            + (self.annual_bvoc * benefits['bvoc'])
+        d['air_quality'] = abs((self.annual_ozone * b.ozone) \
+                            + (self.annual_nox * b.nox) \
+                            + (self.annual_pm10 * b.pm10) \
+                            + (self.annual_sox * b.sox) \
+                            + (self.annual_voc * b.voc) \
+                            + (self.annual_bvoc * b.bvoc)
                             )
                             
-        d['natural_gas'] = self.annual_natural_gas_conserved * benefits['natural_gas']
-        d['co2_reduced'] = (self.annual_co2_sequestered * benefits['co2']) + (self.annual_co2_avoided * benefits['co2'])
-        d['co2_stored'] = self.total_co2_stored * benefits['co2']
-        d['greenhouse'] = (self.annual_co2_sequestered + self.annual_co2_avoided) * benefits['co2']
+        d['natural_gas'] = self.annual_natural_gas_conserved * b.natural_gas
+        d['co2_reduced'] = (self.annual_co2_sequestered * b.co2) + (self.annual_co2_avoided * b.co2)
+        d['co2_stored'] = self.total_co2_stored * b.co2
+        d['greenhouse'] = (self.annual_co2_sequestered + self.annual_co2_avoided) * b.co2
         
         return d
     
@@ -758,10 +774,10 @@ class AggregateSupervisorDistrict(AggregateSummaryModel):
 class AggregateZipCode(AggregateSummaryModel):
     location = models.OneToOneField(ZipCode, related_name='aggregates')
 
-class PointUpdate(models.Model):
-    lon = models.FloatField()
-    lat = models.FloatField()
-    created = models.DateTimeField(auto_now=True, null=True)
-    creator = models.ForeignKey(User, null=True)
-    tree = models.ForeignKey(Tree, null=True)
+#class PointUpdate(models.Model):
+#    lon = models.FloatField()
+#    lat = models.FloatField()
+#    created = models.DateTimeField(auto_now=True, null=True)
+#    creator = models.ForeignKey(User, null=True)
+#    tree = models.ForeignKey(Tree, null=True)
 
