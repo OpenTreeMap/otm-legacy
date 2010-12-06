@@ -55,6 +55,7 @@ BASE_REPUTATION = 0
 REPUTATION_REQUIRED_TEMPLATE = 'django_reputation/reputation_required.html'
 MAX_REPUTATION_GAIN_PER_DAY = 100
 
+
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
 
@@ -95,7 +96,7 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'media/')
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/static/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -160,6 +161,7 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'classfaves',
     'qs_tiles',
+    'treekey',
 )
 
 try:

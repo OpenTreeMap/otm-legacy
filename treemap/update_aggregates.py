@@ -11,7 +11,7 @@ sys.path.insert(0,os.path.dirname(here))
 #setup_environ(settings)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from profiles.models import *
-from treemap.models import PointUpdate, TreePhoto
+from treemap.models import TreePhoto
 
 
 from django.db import connection, transaction

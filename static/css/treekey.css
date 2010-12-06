@@ -1,0 +1,55 @@
+/*  
+  cream - F9F9DD 
+  light green - F6FFDF
+  med green - 6EA400
+  dark green - 3E5D00  
+  
+*/
+body {margin:0;}
+ul {margin:0px;padding-left:20px; color:#3E5D00;}
+li a {line-height:1.5em; color:#3E5D00;}
+a {text-decoration:none; color:#3E5D00;}
+a img {border:0px;}
+
+.header {height:48px; background: #6ea400 url(../images/treekey/header-background.gif);}
+.menu {line-height:48px; padding-left:20px; font-size:20px; color:#F6FFDF; }
+	.menu a {color:inherit; padding-left:20px;}
+
+.content {width:950px; margin-left:auto; margin-right:auto; font-family:arial; font-size:.9em;}
+
+.trail {line-height:2.5em; padding-top:10px; border-bottom:2px solid #ccc; font-size:.9em;}
+
+.left-panel {float:left; width:250px; padding-top:20px;}
+.right-panel {float:left; width:700px; padding-top:20px;}
+
+.node-description, .leaf-name, .species-name {font-weight:bold;font-size:1.7em;padding-bottom:5px;}
+
+.leaf {float:left; width:275px; position:relative; margin:15px 30px 15px 0;padding:10px 15px 30px 15px;
+	border:1px solid #3E5D00; background-color:#F9F9DD;}
+.leaf-text {font-size:.9em; color:#3E5D00;}
+.leaf-link {position:absolute; bottom:5px; right:5px;}
+
+.leaf-choice {position:relative; margin:15px 0;padding:20px 15px 20px 15px;
+	border:1px solid #3E5D00; background-color:#F9F9DD; clear:both;}
+.leaf-choice .leaf-image {display:inline-block; width:20%;}
+.leaf-image img {width:100%;}
+.leaf-info {display:inline-block; vertical-align:top; width:78%; padding-left:1%;}
+.leaf-species-name a {font-size:1.6em;color:#3E5D00;}
+.leaf-species-feature {padding-top:20px; font-size:1.2em;}
+	.leaf-species-feature .label {font-weight:bold;}
+	
+.species-name {color:#3E5D00;}
+.species {padding:20px 15px; margin-bottom:20px; border: 1px solid #3E5D00; background-color:#F9F9DD;}
+.species-scientific {padding-bottom:5px; font-size:1.2em; font-style:italic;}
+.species-feature {padding-top:10px; font-size:1.2em;}
+	.species-feature .label {font-weight:bold;}
+.species-info {margin-top:10px; font-size:0.9em;}
+	.species-info li {line-height:1.5em;}
+	.species-info .label {font-weight:bold;}
+	.species-info .info {color:black;}
+.species-links {margin-top:15px; margin-left:8px;}
+	.species-links .link {font-size:.9em; line-height:1.4em;}
+.species-images {margin-top:15px;}
+.species-image {display:inline-block; width:30%; vertical-align:top; margin-right:10px;}
+	.species-image img {width:100%;}
+	.species-image-caption {font-size:.8em; color:#3E5D00;}

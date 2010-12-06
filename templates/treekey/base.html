@@ -1,0 +1,31 @@
+<html>
+
+<head>
+	<link rel="stylesheet" href="/static/css/treekey.css" type="text/css"/>
+</head>
+
+<body>
+	<div class="header">
+		<div class="menu">
+			<a href="/treekey/start/">Home</a>
+		</div>
+	</div>
+
+	<div class="content">
+
+		{% include "treekey/trail.html" %}
+
+		<div class="left-panel">{% block left_panel %}
+			{% include "treekey/list.html" %}
+			{% endblock left_panel %}
+		</div>
+		<div class="right-panel">
+			{% block right_panel %} {% endblock right_panel %}
+		</div>
+	</div>
+
+	<div class="footer">
+	</div>
+</body>
+
+</html>

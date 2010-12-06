@@ -1029,5 +1029,30 @@ def contact(request):
         form = ContactForm() # An unbound form
 
     return render_to_response('treemap/contact.html', {
-        'form': form,
+        'form': form, 
     })
+
+def verify_edits(request, audit_type='tree'):
+    changes = []
+    trees = Tree.history.all().filter(user_rep__lt=100)
+    treestatus = TreeStatus.history.all().filter(user_rep__lt=100)
+    
+    for tree in trees:
+        changes.append({
+            'id': tree.id,
+            'address_street': tree.address_street,
+            'last_updated_by': tree.last_updated_by,
+            'last_updated': tree.last_updated,
+            'change_description': 'something here',
+        })
+    for status in treestatus:
+        changes.append({
+            'id': status.tree.id,
+            'address_street': status.tree.address_street,
+            'last_updated_by': status.reported_by,
+            'last_updated': status.reported,
+            'change_description': 'something here',
+        })
+    
+    
+    return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))

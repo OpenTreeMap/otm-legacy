@@ -17,6 +17,10 @@ urlpatterns = patterns('',
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA}),
+    (r'^Species/(?P<path>.*)$', 'django.views.static.serve', 
+        {'document_root': settings.MEDIA_ROOT + "/Species"}),
+    (r'^Nodes/(?P<path>.*)$', 'django.views.static.serve', 
+        {'document_root': settings.MEDIA_ROOT + "/Nodes"}),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),        
     (r'^comments/', include('django.contrib.comments.urls')), 
@@ -33,6 +37,6 @@ urlpatterns = patterns('',
     # dispatch the remainder of the urls to the default backend...
     (r'^accounts/', include('registration.backends.default.urls')),
     (r'^profiles/', include('profiles.urls')),
-
+    (r'^treekey/', include('treekey.urls'))
 
 )

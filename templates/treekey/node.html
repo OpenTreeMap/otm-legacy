@@ -1,0 +1,54 @@
+{% extends "treekey/base.html" %}
+
+{% block right_panel %}
+
+
+	<div class="node-description">
+		{{ node.question }}
+	</div>
+
+	{% for leaf in node.child_set.all %}
+
+	<div class="leaf">
+		<div class="leaf-name">{{ leaf }}</div>
+
+		{% if leaf.has_children %}
+
+			{% for image in leaf.nodeimage_set.all %}
+				<div class="leaf-image">
+					<a href="/treekey/node/{{ leaf.id }}/">
+						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+					</a>
+				</div>
+			{% endfor %}
+
+			<div class="leaf-text">
+				{{ leaf.description }}
+			</div>
+			<div class="leaf-link">
+				<a href="/treekey/node/{{ leaf.id }}/">{{ leaf }}</a>
+			</div>
+
+		{% else %}
+
+			{% for image in leaf.nodeimage_set.all %}
+				<div class="leaf-image">
+					<a href="/treekey/leaf/{{ leaf.id }}/">
+						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+					</a>
+				</div>
+			{% endfor %}
+
+			<div class="leaf-text">
+				{{ leaf.description }}
+			</div>
+			<div class="leaf-link">
+				<a href="/treekey/leaf/{{ leaf.id }}/">{{ leaf }}</a>
+			</div>
+
+		{% endif %}
+	</div>
+
+	{% endfor %}
+
+{% endblock right_panel %}

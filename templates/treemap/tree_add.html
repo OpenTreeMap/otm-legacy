@@ -126,21 +126,21 @@ $("#treekey").fancybox({
         {% endif %}
     </label>
     {{ form.edit_address_zip }}
-    
+
 	<div id="mapHolder">
     <label class="required" {% if form.edit_address_zip.errors %}id="error"{% endif %}>Specify placement
         <span class="small">Once you enter an address, grab the tree and move it to the correct location.</span>
     </label>
 	<div id="add_tree_map" class="addMap"></div>
 	</div>
-            
+
     <label class="required" {% if form.species_name.errors %}id="error"{% endif %}>Species name
         {% if form.species_name.errors %}
              {% for error in form.species_name.errors %}
                  <span class="small" id="smError2">{{ error }}</span>
              {% endfor %}
         {% else %}
-        <span class="small"><a id="treekey" href="/treekey/key/What-kind-of-leaves-does-the-tree-have/#start" target="_blank">Not sure what kind of tree it is?</a></span>
+        <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is?</a></span>
         {% endif %}
     </label>
     {{ form.species_name }}

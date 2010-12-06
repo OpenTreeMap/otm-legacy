@@ -55,6 +55,9 @@ urlpatterns = patterns('',
     (r'^contact/$', contact),
     (r'^contact/thanks/$', static, {'template':'contact_thanks.html'}),
 
+    url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
+    #TODO: add filters for other verifyable objects
+    #url(r'^verify/(?P<audit_type>(tree|other))/$', verify_edits, name='treemap_verify_by_type'),
     
 )
     

@@ -74,7 +74,7 @@
 {% endifequal %}
 {% ifequal field.type "species_field" %}   
     	<tr>
-        	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/key/What-kind-of-leaves-does-the-tree-have/#start" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
+        	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
