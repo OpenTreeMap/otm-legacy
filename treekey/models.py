@@ -47,9 +47,9 @@ class SpeciesLink(models.Model):
     url = models.CharField(max_length=200)
     species = models.ForeignKey(Species)
 
-# Nodes are decision points in a key. 
-# A node can point to either other nodes (though their parent_node fields)
-#    or point to one or more species
+# Nodes are decision points in a key and have a child view and parent page
+# A node can point up to either another node (though their parent_node fields)
+#    or point down to one or more species, and may do both
 class Node(models.Model):
     name = models.CharField(max_length=200)  
     description = models.CharField(max_length=500)  #longer description for the child display
@@ -66,7 +66,7 @@ class Node(models.Model):
     def has_parent(self):
         return self.parent_node != None
 
-# An iconic image to help users at this node. 
+# An iconic image to help users at the child display of this node. 
 # There should only be one per node, but this is not enforced
 class NodeImage(models.Model):
     image = models.FileField(upload_to='Nodes')
