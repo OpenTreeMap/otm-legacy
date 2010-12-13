@@ -36,10 +36,10 @@ RESOURCE_NAMES = ['Hydro interception',
 status_choices = (
         ('height','Height (in feet)'),
         ('dbh','Diameter (in inches)'),
-        ('condition','condition'),
-        ('sidewalk_damage','sidewalk_damage'),
+        ('condition','Condition'),
+        ('sidewalk_damage','Sidewalk Damage'),
         ('canopy_height', 'Canopy Height (in feet)'),
-        ('canopy_condition', 'canopy_condition')
+        ('canopy_condition', 'Canopy Condition')
     )
     
 choices_choices = (

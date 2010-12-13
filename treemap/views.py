@@ -331,7 +331,7 @@ def tree_add_edit_photos(request, tree_id = ''):
 def batch_edit(request):
     return render_to_response('treemap/batch_edit.html',RequestContext(request,{ }))
 
-@login_required    
+@login_required
 def tree_edit(request, tree_id = ''):
     
     tree = get_object_or_404(Tree, pk=tree_id)
@@ -360,13 +360,13 @@ def tree_edit(request, tree_id = ''):
         height['display'] = heights[0].value
     
     c_height = {'type':'status_field',
-         'name': 'c_height',
+         'name': 'canopy_height',
          'label': "Canopy height (feet)",
         }
     c_heights = tree.treestatus_set.filter(key="canopy_height").order_by('-reported')
     if c_heights.count():
-        c_height['value'] = c_height[0].value
-        c_height['display'] = c_height[0].value
+        c_height['value'] = c_heights[0].value
+        c_height['display'] = c_heights[0].value
     
     c_condition = {'type':'status_field',
              'name': 'canopy_condition',
@@ -487,11 +487,10 @@ def tree_edit(request, tree_id = ''):
         #},
         ] 
     
-    #TODO: Move this check to somewhere related to creating a user
     perm = Permission.objects.get(name = 'can_edit_condition')
     rep = Reputation.objects.reputation_for_user(request.user)
     print perm, rep
-    if rep.reputation >= perm.required_reputation:
+    if rep.reputation >= perm.required_reputation or request.user.is_superuser:
         data.extend(status_data)
 
 
@@ -626,18 +625,23 @@ def object_update(request):
                 #   circ = update.get('value')
                 #   if circ:
                 #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']                   
+                #   #response_dict['update']['']    
                 for k,v in update.items():
                     if hasattr(instance,k):
-                        #print k,v,instance
+                        #print k,v
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
                             cleaned = fld.clean(v,instance)
                             if k == 'species_id':
+                                response_dict['update']['old_' + k] = instance.get_scientific_name()
                                 instance.set_species(v,commit=False)
                             else:
+                                # old value for non-status objects only, status objects return None
+                                # and are handled after parent model is set
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
                                 setattr(instance,k,cleaned)
                         except ValidationError,e:
+                            print "here"
                             response_dict['errors'].append(e.messages[0])
                         except Exception,e:
                             response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
@@ -651,7 +655,9 @@ def object_update(request):
                             value = value.strftime('%b %d %Y')
                         elif not isinstance(value, basestring):
                             value = unicode(value)
-                        #print isinstance(value, basestring)
+                        if k == "key" and value == "None":
+                            for s in status_choices:
+                                if v == s[0]: value = s[1]
                         response_dict['update'][k] = value
                     else:
                         response_dict['errors'].append("%s does not have a '%s' attribute" % (instance,k))
@@ -682,12 +688,21 @@ def object_update(request):
                             # eg. Tree.objects.all()[1].treestatus_set
                             set = getattr(parent_instance,post['model'].lower() + '_set')
                             set.add(instance)
+                            print "instance set"
+                            if response_dict['update'].has_key('old_value'):
+                                history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
+                                if history.count() > 0:
+                                    if isinstance(history[0].value, datetime):
+                                        response_dict['update']['old_value'] = history[0].value.strftime("%b %d %Y")
+                                    else:
+                                        response_dict['update']['old_value'] = history[0].value.__str__()
                         except Exception, e:
                             response_dict['errors'].append('Error setting related obj: %s: %s' % (sys.exc_type,str(e)))
 
             # finally save the instance...
             try:
                 if not delete:
+                    instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
                     print "instance save"
                     Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
@@ -719,7 +734,7 @@ def tree_add(request, tree_id = ''):
         if form.is_valid():
             new_tree = form.save(request)
             print 'saved %s' % new_tree
-            Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, instance)
+            Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
             
             return HttpResponseRedirect('/trees/%s/edit/' % new_tree.id)
     else:
@@ -1032,27 +1047,141 @@ def contact(request):
         'form': form, 
     })
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+
+from django.core import serializers
+
 def verify_edits(request, audit_type='tree'):
+    
+    def clean_diff(jsonstr):
+        #print jsonstr
+        diff = simplejson.JSONDecoder().decode(jsonstr)
+        diff_no_old = {}
+        for key in diff:
+            if not key.startswith('old_'):
+                diff_no_old[key] = diff[key]
+        return diff_no_old
+    
+    def clean_key_names(jsonstr):
+        diff = simplejson.JSONDecoder().decode(jsonstr)
+        diff_clean = {}
+        for key in diff:
+            diff_clean[key.replace('_', ' ').title()] = diff[key]
+        return diff_clean    
+        
     changes = []
-    trees = Tree.history.all().filter(user_rep__lt=100)
-    treestatus = TreeStatus.history.all().filter(user_rep__lt=100)
+    trees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='')
+    newtrees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='I')
+    treestatus = TreeStatus.history.all().filter(_audit_change_type__exact='U')
+    treeactions = []
+    treealerts = []
+    treeflags = []
+    if (request.user.reputation.reputation >= 2000):
+        treeactions = TreeAction.history.all().filter(_audit_change_type__exact='U')
+        treealerts = TreeAlert.history.all().filter(_audit_change_type__exact='U')
+        treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U')
+    
     
     for tree in trees:
+        species = 'no species name'
+        if tree.species:
+            species = tree.species.common_name
         changes.append({
             'id': tree.id,
+            'species': species,
             'address_street': tree.address_street,
             'last_updated_by': tree.last_updated_by,
             'last_updated': tree.last_updated,
-            'change_description': 'something here',
+            'change_description': clean_key_names(tree._audit_diff),
+            'change_id': tree._audit_id,
+            'type': 'tree'
+        })
+    for tree in newtrees:
+        species = 'no species name'
+        if tree.species:
+            species = tree.species.common_name
+        changes.append({
+            'id': tree.id,
+            'species': species,
+            'address_street': tree.address_street,
+            'last_updated_by': tree.last_updated_by,
+            'last_updated': tree.last_updated,
+            'change_description': 'New Tree',
+            'change_id': tree._audit_id,
+            'type': 'tree'
         })
     for status in treestatus:
+        species = 'no species name'
+        if status.tree.species:
+            species = status.tree.species.common_name
+        
+        diff = simplejson.JSONDecoder().decode(status._audit_diff)
+        diff_no_old = {}
+        for key in diff:
+            if not key == 'old_key':
+                diff_no_old[key] = diff[key]
         changes.append({
             'id': status.tree.id,
+            'species': species,
             'address_street': status.tree.address_street,
             'last_updated_by': status.reported_by,
             'last_updated': status.reported,
-            'change_description': 'something here',
+            'change_description': diff_no_old,
+            'change_id': status.id,
+            'type': 'status'
         })
-    
-    
+    for actions in treeactions:
+        species = 'no species name'
+        if actions.tree.species:
+            species = actions.tree.species.common_name
+        changes.append({
+            'id': actions.tree.id,
+            'species': species,
+            'address_street': actions.tree.address_street,
+            'last_updated_by': actions.reported_by,
+            'last_updated': actions.reported,
+            'change_description': clean_diff(actions._audit_diff),
+            'change_id': actions.id,
+            'type': 'action'
+        })
+    for alerts in treealerts:
+        species = 'no species name'
+        if alerts.tree.species:
+            species = alerts.tree.species.common_name
+        changes.append({
+            'id': alerts.tree.id,
+            'species': species,
+            'address_street': alerts.tree.address_street,
+            'last_updated_by': alerts.reported_by,
+            'last_updated': alerts.reported,
+            'change_description': clean_diff(alerts._audit_diff),
+            'change_id': alerts.id,
+            'type': 'alert'
+        })
+    for flags in treeflags:
+        species = 'no species name'
+        if flags.tree.species:
+            species = flags.tree.species.common_name
+
+        changes.append({
+            'id': flags.tree.id,
+            'species': species,
+            'address_street': flags.tree.address_street,
+            'last_updated_by': flags.reported_by,
+            'last_updated': flags.reported,
+            'change_description':  clean_diff(flags._audit_diff),
+            'change_id': flags.id,
+            'type': 'flag'
+        })
+        
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
+    
+def verify_rep_change(request):
+    return ''
+    

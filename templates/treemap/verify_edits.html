@@ -29,16 +29,36 @@
 					<th>Updated By</th>
 					<th>Date</th>
 					<th>Change</th>
+					<th>Rep</th>
 				</tr>
 			</thead>
 			<tbody>
 				{% for c in changes %}
 				<tr >
-					<td><a href="/trees/{{c.id}}" target="_blank">View Record</a></td>
+					<td><i>{{c.species}}</i><br><a href="/trees/{{c.id}}" target="_blank">View Record</a></td>
 					<td>{{c.address_street}}</td>
 					<td><a href="/profiles/{{c.last_updated_by.username}}" target="_blank">{{c.last_updated_by}}</a></td>
 					<td>{{c.last_updated|date:'DATETIME_FORMAT'}}</td>
-					<td>{{c.change_description}}</td>
+					{% if c.change_description.key %}
+						<td><b>{{c.change_description.key}}</b> - {{c.change_description.value}}<br>
+						{% if c.change_description.old_value %}
+							Old Value: {{c.change_description.old_value}}
+						{% endif %}
+						</td>
+					{% else %}
+						{% if c.change_description.items %}
+							<td>
+							{% for key, value in c.change_description.items %}
+								<b>{{key}}:</b> {{value}}<br>
+							{% endfor %}
+							</td>
+						{% else %}
+							<td>{{c.change_description}}</td>
+						{% endif %}
+					{% endif %}
+					<td> <a href="/verify/{{c.type}}/{{c.change_id}}/up">U</a>
+						 <a href="/verify/{{c.type}}/{{c.change_id}}/neutral">N</a>
+						 <a href="/verify/{{c.type}}/{{c.change_id}}/down">D</a> </td>
 				</tr>
 				{% endfor %}
 			<tbody>

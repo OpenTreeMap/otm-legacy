@@ -15,7 +15,7 @@ table  thead tr th, table  tfoot tr th {
 }
 table  thead tr .header {
 	background-image: url(/static/tablesorter/bg.png);
-	background-repeat: no-repeat;
+	background-repeat: repeat-x;
 	background-position: center right;
 	cursor: pointer;
         padding-right:20px;

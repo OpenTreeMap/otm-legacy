@@ -123,12 +123,13 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',
     'django.contrib.csrf.middleware.CsrfViewMiddleware',
     'django.contrib.csrf.middleware.CsrfResponseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
-    'django_reputation.middleware.ReputationMiddleware'
+    'django_reputation.middleware.ReputationMiddleware', 
     #'middleware.ajax.AJAXSimpleExceptionResponse',
 )
 
