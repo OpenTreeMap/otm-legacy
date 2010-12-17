@@ -16,5 +16,5 @@ def get_diff(instance):
 GLOBAL_TRACK_FIELDS = (
     ('_audit_user_rep', models.IntegerField(), get_user_rep),
     ('_audit_diff', models.TextField(), get_diff),
-    #('_audit_verified', models.IntegerField(), 0)
+    ('_audit_verified', models.IntegerField(), 0)
 )

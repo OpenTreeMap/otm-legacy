@@ -34,7 +34,7 @@
 			</thead>
 			<tbody>
 				{% for c in changes %}
-				<tr >
+				<tr id="{{c.type}}_{{c.change_id}}">
 					<td><i>{{c.species}}</i><br><a href="/trees/{{c.id}}" target="_blank">View Record</a></td>
 					<td>{{c.address_street}}</td>
 					<td><a href="/profiles/{{c.last_updated_by.username}}" target="_blank">{{c.last_updated_by}}</a></td>
@@ -56,9 +56,9 @@
 							<td>{{c.change_description}}</td>
 						{% endif %}
 					{% endif %}
-					<td> <a href="/verify/{{c.type}}/{{c.change_id}}/up">U</a>
-						 <a href="/verify/{{c.type}}/{{c.change_id}}/neutral">N</a>
-						 <a href="/verify/{{c.type}}/{{c.change_id}}/down">D</a> </td>
+					<td> <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'up');return false;">U</a>
+						 <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'neurtal');return false;">N</a>
+						 <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'down');return false;">D</a> </td>
 				</tr>
 				{% endfor %}
 			<tbody>

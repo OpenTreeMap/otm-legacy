@@ -1076,16 +1076,16 @@ def verify_edits(request, audit_type='tree'):
         return diff_clean    
         
     changes = []
-    trees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='')
-    newtrees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='I')
-    treestatus = TreeStatus.history.all().filter(_audit_change_type__exact='U')
+    trees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newtrees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    treestatus = TreeStatus.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     treeactions = []
     treealerts = []
     treeflags = []
     if (request.user.reputation.reputation >= 2000):
-        treeactions = TreeAction.history.all().filter(_audit_change_type__exact='U')
-        treealerts = TreeAlert.history.all().filter(_audit_change_type__exact='U')
-        treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U')
+        treeactions = TreeAction.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+        treealerts = TreeAlert.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+        treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     
     
     for tree in trees:
@@ -1133,7 +1133,7 @@ def verify_edits(request, audit_type='tree'):
             'last_updated_by': status.reported_by,
             'last_updated': status.reported,
             'change_description': diff_no_old,
-            'change_id': status.id,
+            'change_id': status._audit_id,
             'type': 'status'
         })
     for actions in treeactions:
@@ -1147,7 +1147,7 @@ def verify_edits(request, audit_type='tree'):
             'last_updated_by': actions.reported_by,
             'last_updated': actions.reported,
             'change_description': clean_diff(actions._audit_diff),
-            'change_id': actions.id,
+            'change_id': actions._audit_id,
             'type': 'action'
         })
     for alerts in treealerts:
@@ -1161,7 +1161,7 @@ def verify_edits(request, audit_type='tree'):
             'last_updated_by': alerts.reported_by,
             'last_updated': alerts.reported,
             'change_description': clean_diff(alerts._audit_diff),
-            'change_id': alerts.id,
+            'change_id': alerts._audit_id,
             'type': 'alert'
         })
     for flags in treeflags:
@@ -1176,12 +1176,47 @@ def verify_edits(request, audit_type='tree'):
             'last_updated_by': flags.reported_by,
             'last_updated': flags.reported,
             'change_description':  clean_diff(flags._audit_diff),
-            'change_id': flags.id,
+            'change_id': flags._audit_id,
             'type': 'flag'
         })
         
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
+
+#TODO: test this
+def verify_rep_change(request, change_type, change_id, rep_dir):
+    #parse change type and retrieve change object
+    if change_type == 'tree':
+        change = Tree.history.all().filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.last_updated_by_id)
+        obj = get_object_or_404(Tree, pk=change.id)
+    elif change_type == 'status':
+        change = TreeStatus.history.all().filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.reported_by_id)
+        obj = get_object_or_404(TreeStatus, pk=change.id)
+    elif change_type == 'action':
+        change = TreeAction.history.all().filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.reported_by_id)
+        obj = get_object_or_404(TreeAction, pk=change.id)
+    elif change_type == 'alert':
+        change = TreeAlert.history.all().filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.reported_by_id)
+        obj = get_object_or_404(TreeAlert, pk=change.id)
+    elif change_type == 'flag':
+        change = TreeFlags.history.all().filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.reported_by_id)
+        obj = get_object_or_404(TreeFlags, pk=change.id)
     
-def verify_rep_change(request):
-    return ''
+        
+    #do the rep adjustment
+    if rep_dir == 'up':
+        rep_gain = 5    
+    elif rep_dir == 'down':
+        rep_gain= -5      
+    elif rep_dir == 'neutral':
+        rep_gain = 1
+    
+    Reputation.objects.log_reputation_action(user, request.user, 'edit verified', rep_gain, obj)
+    change._audit_verified = 1
+    change.save()
+    return render_to_json({'change_type': change_type, 'change_id': change_id})
     

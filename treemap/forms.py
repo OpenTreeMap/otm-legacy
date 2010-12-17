@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto
+from models import Tree, Species, TreePhoto, Neighborhood, ZipCode
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 
@@ -59,7 +59,15 @@ class TreeAddForm(forms.Form):
         #import pdb;pdb.set_trace()
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
         new_tree.geometry = pnt
-        new_tree.last_updated_by = request.user                   
+        print pnt
+        n = Neighborhood.objects.filter(geometry__contains=pnt)
+        z = ZipCode.objects.filter(geometry__contains=pnt)
+        print n, z
+        if n: new_tree.neighborhood = n[0]
+        else: new_tree.neighborhood = None
+        if z: new_tree.zipcode = z[0]
+        else: new_tree.zipcode = None
+        new_tree.last_updated_by = request.user
         new_tree.save()
         dbh = self.cleaned_data.get('dbh')
         if dbh:
@@ -70,7 +78,7 @@ class TreeAddForm(forms.Form):
                 tree = new_tree)
             ts.save()
         return new_tree
-
+#(-75.1593616604804993 39.9517746248708292)
        
 class _TreeAddForm(forms.ModelForm):
     data_owner = forms.CharField(widget=forms.HiddenInput, required=False)

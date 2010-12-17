@@ -297,6 +297,9 @@
             </div>
 			<div class="recent-photos">
 				<div class="wrap">
+					<h2>Total Reputation: {{ profile.user.reputation.reputation|stringformat:"+d" }}</h2>
+				</div>
+				<div class="wrap">
 				  <h2>Recent Reputation Changes</h2>
 				</div>
 				{% if profile.recently_changed_reputation %}

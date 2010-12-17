@@ -10,7 +10,8 @@ var tm_urls = {
     eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
     // now pulled in from settings file...
     //tc_url : 'http://tc2.beardedmaps.com/tilecache.cgi/1.0.0/'
-    tc_url : 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/',
+    //tc_url : 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/',
+    tc_url : 'http://sajara01.internal.azavea.com/tilecache/tiles/1.0.0/trees/',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
     };
 
@@ -85,7 +86,7 @@ var tm = {
             if (this.value) {
                 tm.handleSearchLocation(this.value);
             } else {
-                $("#location_search_input").val("San Francisco, CA");
+                $("#location_search_input").val("Philadelphia, PA");
                 delete tm.searchParams['location'];
                 tm.updateSearch();
 
@@ -236,7 +237,7 @@ var tm = {
         }
         function triggerSearch() {
             var q = $.query.empty();
-            if ($("#location_search_input").val() != "San Francisco, CA") { 
+            if ($("#location_search_input").val() != "Philadelphia, PA") { 
                 q = q.set("location", $("#location_search_input").val());
             }
             if ($("#species_search_id").val()) {
@@ -278,10 +279,10 @@ var tm = {
     },
     setup : function(){
         tm.geocoder = new GClientGeocoder();
-        tm.map.setCenter(new GLatLng(37.76, -122.45), 12);
+        tm.map.setCenter(new GLatLng(39.99, -75.19), 11);
         // bounds based on new GLatLng(37.76, -122.45), 10);
         // we should consider making this a user-set database value
-        tm.maxExtent = new GLatLngBounds(new GLatLng(37.65,-122.7), new GLatLng(37.85,-122.2));    
+        tm.maxExtent = new GLatLngBounds(new GLatLng(39.75,-76), new GLatLng(40.5,-74.5));    
         tm.geocoder.setViewport(tm.maxExtent) //bias results for sf
         },
         
@@ -346,7 +347,7 @@ var tm = {
         jQuery('#id_edit_address_street').change(function(nearby_field){
             //console.log(nearby_field);
             var new_addy = nearby_field.target.value;
-            new_addy += ", sf";
+            //new_addy += ", ph";
             if (!tm.tree_marker && new_addy){ //only add marker if it doesn't yet exist
                 
                 tm.geocoder.getLatLng(new_addy, function(ll){
@@ -421,7 +422,7 @@ var tm = {
         jQuery('#id_nearby_address').change(function(nearby_field){
 
             var new_addy = nearby_field.target.value;
-            new_addy += ', sf';
+            //new_addy += ', ph';
             tm.geocoder.getLatLng(new_addy, function(ll){
                 if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
                     tm.add_new_tree_marker(ll);
@@ -543,12 +544,12 @@ var tm = {
 
         this.set_default_map_zoom_levels();
         //set map zoom levels
-        jQuery.each(tm.map.getMapTypes(), function(i,mt){
-            mt.getMinimumResolution = function() {return 12;}
-            mt.getMaximumResolution = function() {return 19;}
-            if (mt.getName() == 'Terrain') {mt.getMaximumResolution = function() { return 15;}}
-            //if (mt.getName() == 'Satellite') {tm.map.removeMapType(mt);}
-            });
+        //jQuery.each(tm.map.getMapTypes(), function(i,mt){
+        //    mt.getMinimumResolution = function() {return 10;}
+        //    mt.getMaximumResolution = function() {return 19;}
+        //    if (mt.getName() == 'Terrain') {mt.getMaximumResolution = function() { return 15;}}
+        //    //if (mt.getName() == 'Satellite') {tm.map.removeMapType(mt);}
+        //    });
             
         //todo replace map layer with custom
         
@@ -631,7 +632,7 @@ var tm = {
     set_default_map_zoom_levels : function(){
         //set map zoom levels
         jQuery.each(tm.map.getMapTypes(), function(i,mt){
-            mt.getMinimumResolution = function() {return 12;}
+            mt.getMinimumResolution = function() {return 10;}
             mt.getMaximumResolution = function() {return 19;}
             if (mt.getName() == 'Terrain') {mt.getMaximumResolution = function() { return 15;}}
             //if (mt.getName() == 'Satellite') {tm.map.removeMapType(mt);}
@@ -878,7 +879,7 @@ var tm = {
                     //ew.html(addy + ' in ' + geog.name);
                     }
             } else {
-                $('#summary_subset_val').html('San Francisco');
+                $('#summary_subset_val').html('Philadelphia');
             }
             if (results.tile_query){
                 tm.selected_tile_query = results.tile_query;
@@ -966,7 +967,7 @@ var tm = {
         var lat_lon = new GLatLng(point.lat(),point.lng(),0);
 
         if (tm.maxExtent && !tm.maxExtent.containsLatLng(lat_lon)){
-            alert("Sorry, '" + address + "' appears not to be within San Francisco");
+            alert("Sorry, '" + address + "' appears to be too far away from our supported area.");
             return false;
         }
         return true;
@@ -977,7 +978,7 @@ var tm = {
             address = jQuery('#searchInput').text();
         }
         tm.geocoder.setViewport(tm.map.getBounds()); 
-        var address = address + ", sf";
+        //var address = address + ", ph";
         tm.geocoder.getLatLng(address,function(point) {
             if (tm.validate_point(point,address)) {   
                 if (tm.location_marker) {tm.map.removeOverlay(tm.location_marker)} 
@@ -1545,7 +1546,19 @@ var tm = {
      updateSpeciesFromKey: function(tree_code, tree_cultivar)  {
        alert(tree_code);
      },
-
+    
+    updateReputation: function(change_type, change_id, rep_dir) {
+    	$.ajax({
+	    url: '/verify/' + change_type + '/' + change_id + '/' + rep_dir,
+	    dataType: 'json',
+	    success: function(response) {
+	    	$("#" + response.change_type + "_" + response.change_id).fadeOut();
+	    },
+	    error: function(err) {
+		alert("Error: " + err.status + "\nQuery: " + change_type + " " + change_id + " " + rep_dir);
+		}
+        });
+    },
     
 }  
 $.editable.addInputType("autocomplete_species", {
