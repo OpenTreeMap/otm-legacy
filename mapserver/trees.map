@@ -3,7 +3,7 @@ NAME "treemap_trees"
 STATUS ON
 SIZE 400 400
 #SYMBOLSET ./symbols.sym
-EXTENT -123 47 -122.8 47.2
+EXTENT -76 39.5 -74 40.5
 UNITS DD
 SHAPEPATH "../data"
 FONTSET "./fonts.txt"
@@ -22,75 +22,75 @@ IMAGETYPE agg
     SYMBOL
       NAME "green1"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
 
     SYMBOL
       NAME "green1s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
     
     SYMBOL
       NAME "green2"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
     END
 
     SYMBOL
       NAME "green2s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
     END
     
     SYMBOL
       NAME "green3"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom5.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom5.png"
     END
 
     SYMBOL
       NAME "green3s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
     END
     
     SYMBOL
       NAME "green4"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom6.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom6.png"
     END
 
     SYMBOL
       NAME "green4s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
     END
     
     SYMBOL
       NAME "green5"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
     END
 
     SYMBOL
       NAME "green5s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
     END
     
     SYMBOL
       NAME "green6"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
     END
 
     SYMBOL
       NAME "green6s"
       TYPE PIXMAP
-      IMAGE "/projects/sftrees/static/images/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
+      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
     END
                 
 OUTPUTFORMAT
@@ -137,7 +137,7 @@ LAYER
     TYPE POLYGON
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION " dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION " dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
         #STYLE
@@ -158,7 +158,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 7 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -242,7 +242,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -325,7 +325,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -410,7 +410,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     # dane - not sure why ilike paved is in there, so commenting
     #DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and (species_id is null) and  orig_species not ilike '%paved%' ) as foo using unique id using srid=4326"
     DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null)and species_id is null ) as foo using unique id using srid=4326"
@@ -483,7 +483,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and species_id is not null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -553,7 +553,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees_r1 user=postgres  port=5432"
+    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
     DATA 'geometry from (select * from treemap_tree where species_id = %SPECIES_ID%) as foo using unique id using srid=4326'
     #CLASSITEM 'species_id'
       CLASS 

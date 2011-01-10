@@ -20,7 +20,7 @@ ADMINS = (
 
 ROOT_URL = 'http://urbanforestmap.org'
 
-TILED_SEARCH_RESPONSE = True
+TILED_SEARCH_RESPONSE = False
 
 # separate instance of tilecache for dynamic selection tiles
 CACHE_SEARCH_TILES = True

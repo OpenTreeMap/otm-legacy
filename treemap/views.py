@@ -178,11 +178,11 @@ def tree_location_search(request):
                              'geocoded_lon',
                              'site_type'])
 
-@cache_page(60*60*4)
-def species(request, selection='in-use', format='html'):
+#@cache_page(60*60*4)
+def species(request, selection='all', format='html'):
     """
     return list of species
-     - selection:  'in-use', 'all', or 'nearby'
+     - selection:  'in-use',  'page' or 'nearby'
      url params
      - page: # (only used with 'all' which is paginated)
      - format:  html or json (defaults to html) #todo add csv
@@ -191,7 +191,6 @@ def species(request, selection='in-use', format='html'):
     page = 0
     
     species = Species.objects.all()
-    
     if selection == 'in-use':
         species = species.filter(tree_count__gt=0).order_by('-tree_count')
         
@@ -207,10 +206,7 @@ def species(request, selection='in-use', format='html'):
         species = Species.objects.filter(tree__in=trees)
     
     if selection == 'all':
-        paginator = Paginator(species, 200)
-        page_number = request.GET.get('page',1)
-        page = paginator.page(page_number)
-        species = page.object_list
+        species = Species.objects.all()
     
     if format == 'json':
         res = [{"symbol":str(x.accepted_symbol or ''), 
@@ -496,6 +492,11 @@ def tree_edit(request, tree_id = ''):
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree, 'data': data}))           
 
+@login_required
+def edit_users(request):
+    users = User.objects.all()
+    return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users}))
+
 # http://docs.djangoproject.com/en/dev/topics/db/transactions/
 # specific imports needed for the below view, keeping here in case
 # this view gets moved elsewhere...
@@ -641,7 +642,6 @@ def object_update(request):
                                 response_dict['update']['old_' + k] = getattr(instance,k).__str__()
                                 setattr(instance,k,cleaned)
                         except ValidationError,e:
-                            print "here"
                             response_dict['errors'].append(e.messages[0])
                         except Exception,e:
                             response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
@@ -706,6 +706,7 @@ def object_update(request):
                     instance.save()
                     print "instance save"
                     Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
+                    instance.validate_all()
                 if parent_instance:
                     pass
                     #parent_instance.save()

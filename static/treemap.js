@@ -11,7 +11,7 @@ var tm_urls = {
     // now pulled in from settings file...
     //tc_url : 'http://tc2.beardedmaps.com/tilecache.cgi/1.0.0/'
     //tc_url : 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/',
-    tc_url : 'http://sajara01.internal.azavea.com/tilecache/tiles/1.0.0/trees/',
+    tc_url : 'http://sajara01:8080/tilecache/tilecache.cgi/1.0.0/',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
     };
 
@@ -978,11 +978,11 @@ var tm = {
             address = jQuery('#searchInput').text();
         }
         tm.geocoder.setViewport(tm.map.getBounds()); 
-        //var address = address + ", ph";
+        var address = address + ", pa";
         tm.geocoder.getLatLng(address,function(point) {
             if (tm.validate_point(point,address)) {   
                 if (tm.location_marker) {tm.map.removeOverlay(tm.location_marker)} 
-                tm.map.setCenter(point, 16);
+                tm.map.setCenter(point, 15);
                 tm.location_marker = new GMarker(point);
                 address = address.replace('+',' '); 
                 tm.location_marker.html = '<div id="search_location_infowindow">' + address + '</div>';

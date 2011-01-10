@@ -1,8 +1,10 @@
 import os
 import math
+from decimal import *
 from datetime import datetime
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
 from sorl.thumbnail.fields import ImageWithThumbnailsField
 from classfaves.models import FavoriteBase
@@ -42,7 +44,7 @@ status_choices = (
         ('canopy_condition', 'Canopy Condition')
     )
     
-choices_choices = (
+choices_choices = ( 
     ('factoid', 'Factoid'), 
     ('plot', 'Plot'), 
     ('alert', 'Alert'), 
@@ -52,6 +54,20 @@ choices_choices = (
     ('condition', 'Condition'),
     ('canopy_condition', 'Canopy Condition')
 )
+watch_choices = {
+    "height_dbh": "Height to DBH Ratio",
+    "proximity": "Trees Nearby",
+    "canopy_condition": "Canopy-Condition Matching",
+    "max_height": "Species Height",
+    "max_dbh": "Species DBH",
+}
+watch_tests = {
+    "height_dbh": 'validate_height_dbh',
+    "proximity": 'validate_proximity',
+    "canopy_condition": 'validate_canopy_condition',
+    "max_height": 'validate_max_dbh',
+    "max_dbh": 'validate_max_height',
+}
 
 class BenefitValues(models.Model):
     area = models.CharField(max_length=255)
@@ -298,7 +314,12 @@ class Species(models.Model):
     palatable_human = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
+    
     tree_count = models.IntegerField(default=0, db_index=True)
+    
+    v_max_dbh = models.IntegerField(null=True, blank=True)
+    v_max_height = models.IntegerField(null=True, blank=True)
+    v_multiple_trunks = models.NullBooleanField()
     
     resource = models.ManyToManyField(Resource, null=True)
     objects = models.GeoManager()
@@ -536,29 +557,14 @@ class Tree(models.Model):
             self.save()
 
     def save(self,*args,**kwargs):
-        #create or update tree resource
-        if not self.id:
-            super(Tree, self).save(*args,**kwargs)  #save, in order to get ID for the tree
-        if hasattr(self,'old_species'):
-            super(Tree, self).save(*args,**kwargs)  #in order to get proper tree count
-            if self.old_species:
-                self.old_species.save()
-            if self.species:
-                self.species.save()
-        #if self.current_geometry:
-        #    if self.current_geometry.x != self.geometry.x or self.current_geometry.y != self.geometry.y:
-        #        # new tile
-        #        pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
-        #        pu.save()
-        #        # old tile
-        #        pu = PointUpdate(lon=self.current_geometry.x, lat=self.current_geometry.y, tree=self)
-        #        pu.save()
-        #if self.current_geometry == None:
-        #    if self.geometry:
-        #        pu = PointUpdate(lon=self.geometry.x, lat=self.geometry.y, tree=self)
-        #        pu.save()
-        self.set_environmental_summaries()
         super(Tree, self).save(*args,**kwargs) 
+        self.set_environmental_summaries()
+        #set new species counts
+        if hasattr(self,'old_species') and self.old_species:
+            self.old_species.save()
+        if hasattr(self,'species') and self.species:
+            self.species.save()
+        
 
     def percent_complete(self):
         has = 0
@@ -583,13 +589,100 @@ class Tree(models.Model):
                 if getattr(self,item):
                     has +=1
         return has/float(desired)*100
-                
+    
+    def validate_all(self):
+        #print watch_tests
+        for test, method in watch_tests.iteritems():
+            #print test
+            result = getattr(self, method)()
+            #print result  
+            
+            # check for results and save - passed tests return None   
+            if not result:
+                TreeWatch.objects.filter(tree=self, key=watch_choices[test]).delete()
+                continue
+            # if identical watch already exists skip it
+            if TreeWatch.objects.filter(tree=self, key=watch_choices[test], value=result): 
+                continue
+            
+            TreeWatch.objects.filter(tree=self, key=watch_choices[test]).delete()
+            self.treewatch_set.create(
+                key=watch_choices[test],
+                value=result,
+            )
+            
+    def validate_proximity(self, return_trees=False, max_count=1):
+        if not self.geometry:
+            return None
+        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=5)))
+        if nearby.count() > max_count: 
+            if return_trees:
+                return nearby 
+            return (nearby.count()-max_count).__str__() #number greater than max_count allows
+        return None
+    
+    
+    # Disallowed combinations:
+    #   Dead + 0% loss, Dead + 25% loss, Dead + 50% loss, Dead + 75% loss
+    #   Excellent + 100% loss, Excellent + 75% loss
+    def validate_canopy_condition(self):
+        if not self.get_canopy_condition() or not self.get_condition():
+            return None
+        
+        cond = self.get_condition()
+        c_cond = self.get_canopy_condition()
+        if cond == 'Dead':
+            if not c_cond == 'Little or None (up to 100% missing)' and not c_cond == 'None' :
+                return cond + ", " + c_cond
+            
+        elif cond == 'Excellent':
+            if c_cond == 'Little or None (up to 100% missing)' or c_cond == 'Large Gaps (up to 75% missing)':
+                return cond + ", " + c_cond
+        
+        return None
+    
+    # discussions: http://www.nativetreesociety.org/measure/tdi/diameter_height_ratio.htm
+    def validate_height_dbh(self):
+        if not self.get_height() or not self.get_dbh():
+            return None
+        getcontext().prec = 3
+        cbh = self.get_dbh() * math.pi
+        cbh_feet = cbh * .75 / 9
+        float_ratio = self.get_height() / cbh_feet
+        hd_ratio = Decimal(float_ratio.__str__())
+        #print hd_ratio        
+        if hd_ratio < 100:
+            return None
+        return hd_ratio.__str__()
+    
+    def validate_max_dbh(self):
+        pass
+        #if not self.get_dbh() or not self.species or not self.species.v_max_dbh:
+        #    return None
+        #if self.get_dbh() > self.species.v_max_dbh:
+        #    return self.get_dbh() + " (species max: " + self.species.v_max_dbh + ")"
+        #return None
+        
+    def validate_max_height(self):
+        pass        
+        #if not self.get_height() or not self.species or not self.species.v_max_height:
+        #    return None
+        #if self.get_height() > self.species.v_max_height:
+        #    return self.get_height() + " (species max: " + self.species.v_max_height + ")"
+        #return None
+        
     def __unicode__(self): 
         if self.species:
             return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.geocoded_address)
         else:
-            return self.geocoded_address
-    
+            return self.geocoded_address    
+
+class TreeWatch(models.Model):
+    key = models.CharField(max_length=255, choices=watch_choices.iteritems())
+    value = models.CharField(max_length=255)
+    tree = models.ForeignKey(Tree)
+    severity = models.IntegerField(default=0)
+    valid = models.BooleanField(default=False)
 
 class TreeFavorite(FavoriteBase):
     tree = models.ForeignKey(Tree)
@@ -608,10 +701,13 @@ class TreeItem(models.Model):
 
     class Meta:
         abstract=True
+    
+    def validate_all(self):
+        if self.tree:
+            return self.tree.validate_all()
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.key)
-
 
 def get_parent_id(instance):
     return instance.key
@@ -773,11 +869,3 @@ class AggregateSupervisorDistrict(AggregateSummaryModel):
 
 class AggregateZipCode(AggregateSummaryModel):
     location = models.OneToOneField(ZipCode, related_name='aggregates')
-
-#class PointUpdate(models.Model):
-#    lon = models.FloatField()
-#    lat = models.FloatField()
-#    created = models.DateTimeField(auto_now=True, null=True)
-#    creator = models.ForeignKey(User, null=True)
-#    tree = models.ForeignKey(Tree, null=True)
-
