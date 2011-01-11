@@ -51,6 +51,8 @@ urlpatterns = patterns('',
     (r'^search/(?P<format>.*)/$', advanced_search),
     
     (r'^check_username/$', check_username),
+    (r'^users/$', edit_users),
+    (r'^users/update/$', update_users),
 
     (r'^contact/$', contact),
     (r'^contact/thanks/$', static, {'template':'contact_thanks.html'}),

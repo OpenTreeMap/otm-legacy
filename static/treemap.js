@@ -1560,6 +1560,48 @@ var tm = {
         });
     },
     
+    updateReputation_Admin: function(user_id, rep_total) {
+    	var data = {
+	    'user_id': user_id,
+	    'rep_total': rep_total
+	};
+        var jsonString = JSON.stringify(data);
+    	
+    	$.ajax({
+	    url: '/users/update/',
+	    dataType: 'json',
+	    data: jsonString,
+	    type: 'POST',
+	    success: function(response) {
+	    },
+	    error: function(err) {
+		alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+		}
+        });
+    },
+    
+    updateGroup_Admin: function(user_id, group_id) {
+    	var data = {
+    	    'user_id': user_id,
+    	    'group_id': group_id
+    	};
+            var jsonString = JSON.stringify(data);
+        	
+        $.ajax({
+    	    url: '/users/update/',
+    	    dataType: 'json',
+    	    data: jsonString,
+    	    type: 'POST',
+    	    success: function(response) {
+    	    	if (response.new_rep)
+    	    	{$("#reputation_" + response.user_id).val(response.new_rep);}
+    	    },
+    	    error: function(err) {
+    		alert("Error: " + err.status + "\nQuery: " + user_id + " " + group_id);
+    		}
+        });
+    },
+    
 }  
 $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {

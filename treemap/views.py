@@ -492,10 +492,58 @@ def tree_edit(request, tree_id = ''):
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree, 'data': data}))           
 
+from django.contrib.auth.decorators import permission_required
+
 @login_required
+@permission_required('change_user')
 def edit_users(request):
     users = User.objects.all()
-    return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users}))
+    groups = Group.objects.all()
+    return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users, 'groups': groups}))
+
+def update_users(request):
+    response_dict = {}
+    if request.method == 'POST':
+        post = simplejson.loads(request.raw_post_data)
+    
+    if post.get('rep_total'):  
+        id = post.get('user_id')
+        user = User.objects.get(pk=id)
+        rep = Reputation.objects.reputation_for_user(user)
+        #rep_gain = int(post.get('rep_total')) - rep.reputation
+        user.reputation.reputation = int(post.get('rep_total'))
+        user.reputation.save()
+        #Reputation.objects.log_reputation_action(user, request.user, 'Administrative Action', rep_gain, user)
+        response_dict['success'] = True
+    elif post.get('group_id'):
+        id = post.get('user_id')
+        gid = post.get('group_id')
+        user = User.objects.get(pk=id)
+        try:
+            group = Group.objects.get(pk=gid)
+            user.groups.clear()
+            user.groups.add(group)
+            rep = Reputation.objects.reputation_for_user(user)
+            #increase rep if now part of an 'admin' group and too low
+            if user.has_perm('django_reputation.change_reputation') and rep.reputation < 100:
+                #rep_gain = 100 - rep.reputation
+                #Reputation.objects.log_reputation_action(user, request.user, 'Administrative Action', rep_gain, user)
+                user.reputation.reputation = 100
+                user.reputation.save()
+                response_dict['new_rep'] = user.reputation.reputation
+                response_dict['user_id'] = user.id
+        except Exception:
+            user.groups.clear()
+        
+        response_dict['success'] = True
+    else:
+        raise Http404
+    
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+    
 
 # http://docs.djangoproject.com/en/dev/topics/db/transactions/
 # specific imports needed for the below view, keeping here in case
@@ -1057,7 +1105,7 @@ def is_number(s):
 
 
 from django.core import serializers
-
+@login_required 
 def verify_edits(request, audit_type='tree'):
     
     def clean_diff(jsonstr):
@@ -1183,7 +1231,7 @@ def verify_edits(request, audit_type='tree'):
         
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
 
-#TODO: test this
+@login_required 
 def verify_rep_change(request, change_type, change_id, rep_dir):
     #parse change type and retrieve change object
     if change_type == 'tree':
