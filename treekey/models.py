@@ -9,11 +9,11 @@ class Species(models.Model):
     common_name = models.CharField(max_length=200)
     feature = models.CharField(max_length=500)
     type = models.CharField(max_length=200, blank=True)
-    form = models.CharField(max_length=200, blank=True)
-    leaf = models.CharField(max_length=200, blank=True)
-    flower = models.CharField(max_length=200, blank=True)
-    bark = models.CharField(max_length=200, blank=True)
-    fruit = models.CharField(max_length=200, blank=True)
+    form = models.CharField(max_length=500, blank=True)
+    leaf = models.CharField(max_length=500, blank=True)
+    flower = models.CharField(max_length=500, blank=True)
+    bark = models.CharField(max_length=500, blank=True)
+    fruit = models.CharField(max_length=500, blank=True)
     other = models.CharField(max_length=200, blank=True)
     
     class Meta:

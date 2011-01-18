@@ -2,6 +2,9 @@
 
 {% load thumbnail dynamic_attribute humanize %}
 {% load maths %}
+{% load comments %}
+
+{% get_comment_count for tree as comment_count %}
 
 {% block extrahead %}
 <script type="text/javascript">
@@ -364,7 +367,51 @@
                             <div id="add_tree_map"></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
+							<div id="tree_comments">
+								<div class="wrap">
+									<h2>Comments</h2>
+								</div>
+								{% if user.is_authenticated %}
+									{% get_comment_form for tree as form %}
+									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+										<input type="hidden" name="next" value="{{ next }}" />
+										{% for field in form %}
+										{% if field.is_hidden %}
+										  {{ field }}
+										{% else %}
+										  {% if field.errors %}{{ field.errors }}{% endif %}
+										  <div class="comment_field {% if field.errors %} error{% endif %}"
+											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
+											{{ field.label_tag }} {{ field }}
+										  </div>
+										{% endif %}
+										{% endfor %}
+										<div class="submit">
+											<input type="submit" name="post" class="submit-post" value="Post" />
+										</div>
+									</form>
+								{% else %}
+									<div>Please login to add comments</div>
+								{% endif %}
+								<div class="comment_list">
+								{% get_comment_list for tree as comment_list %}
+								{% for comment in comment_list %}
+									<div class="comment_item">
+										<div class="comment_head">
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+										</div>
+										<div class="comment_body">
+											{{ comment.comment }}
+										</div>
+									</div>
+								{% endfor %}
+								</div>
 
+							</div>
                         </div>
                         <!-- end t2_right_panel  -->
                 {% endblock right_panel %}

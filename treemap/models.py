@@ -205,7 +205,7 @@ class Resource(models.Model):
         """
         return how far along we are along the dbh_list, and interpolated %
         """
-        dbh_list = [3.81,11.43,22.86,38.10,53.34,68.58,83.82,99.06,114.30]
+        dbh_list = [7.60,50.20,30.50,45.70,61.00,76.20,91.40,106.70,150.00]
         #convert from cm to inches
         dbh_list = [d * 0.393700787 for d in dbh_list]
 
@@ -292,25 +292,25 @@ class Species(models.Model):
     common_name = models.CharField(max_length=255, null=True, blank=True)
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
 
-    plants_floristic_area = models.CharField(max_length=255, null=True, blank=True)
-    state_and_province = models.CharField(max_length=455, null=True, blank=True)
-    growth_habit = models.CharField(max_length=255, null=True, blank=True) #tree/shrub
+    #plants_floristic_area = models.CharField(max_length=255, null=True, blank=True)
+    #state_and_province = models.CharField(max_length=455, null=True, blank=True)
+    #growth_habit = models.CharField(max_length=255, null=True, blank=True) #tree/shrub
     native_status = models.CharField(max_length=255, null=True, blank=True)
-    federal_noxious_status = models.CharField(max_length=255, null=True, blank=True)
-    state_noxious_status = models.CharField(max_length=255, null=True, blank=True)
-    invasive = models.CharField(max_length=255, null=True, blank=True)
-    federal_t_e_status = models.CharField(max_length=255, null=True, blank=True)
-    state_t_e_status = models.CharField(max_length=255, null=True, blank=True)
-    national_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
-    regional_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
+    #federal_noxious_status = models.CharField(max_length=255, null=True, blank=True)
+    #state_noxious_status = models.CharField(max_length=255, null=True, blank=True)
+    #invasive = models.CharField(max_length=255, null=True, blank=True)
+    #federal_t_e_status = models.CharField(max_length=255, null=True, blank=True)
+    #state_t_e_status = models.CharField(max_length=255, null=True, blank=True)
+    #national_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
+    #regional_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
     fall_conspicuous = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
-    fire_resistance = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    #fire_resistance = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     flower_conspicuous = models.NullBooleanField()
-    bloom_period = models.CharField(max_length=255, null=True, blank=True)
-    fruit_seed_abundance = models.CharField(max_length=255, null=True, blank=True)
-    fruit_seed_period_begin = models.CharField(max_length=255, null=True, blank=True)
-    fruit_seed_period_end = models.CharField(max_length=255, null=True, blank=True)
-    berry_nut_seed_product = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    #bloom_period = models.CharField(max_length=255, null=True, blank=True)
+    #fruit_seed_abundance = models.CharField(max_length=255, null=True, blank=True)
+    #fruit_seed_period_begin = models.CharField(max_length=255, null=True, blank=True)
+    #fruit_seed_period_end = models.CharField(max_length=255, null=True, blank=True)
+    #berry_nut_seed_product = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     palatable_human = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
@@ -656,20 +656,18 @@ class Tree(models.Model):
         return hd_ratio.__str__()
     
     def validate_max_dbh(self):
-        pass
-        #if not self.get_dbh() or not self.species or not self.species.v_max_dbh:
-        #    return None
-        #if self.get_dbh() > self.species.v_max_dbh:
-        #    return self.get_dbh() + " (species max: " + self.species.v_max_dbh + ")"
-        #return None
+        if not self.get_dbh() or not self.species or not self.species.v_max_dbh:
+            return None
+        if self.get_dbh() > self.species.v_max_dbh:
+            return self.get_dbh() + " (species max: " + self.species.v_max_dbh + ")"
+        return None
         
     def validate_max_height(self):
-        pass        
-        #if not self.get_height() or not self.species or not self.species.v_max_height:
-        #    return None
-        #if self.get_height() > self.species.v_max_height:
-        #    return self.get_height() + " (species max: " + self.species.v_max_height + ")"
-        #return None
+        if not self.get_height() or not self.species or not self.species.v_max_height:
+            return None
+        if self.get_height() > self.species.v_max_height:
+            return self.get_height() + " (species max: " + self.species.v_max_height + ")"
+        return None
         
     def __unicode__(self): 
         if self.species:

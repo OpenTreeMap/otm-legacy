@@ -17,6 +17,22 @@ margin:2px;
  float:right;
 }
 
+/* Tree Detail Comments */
+.comment_field{
+ padding-bottom:4px;
+}
+.comment_list{
+ padding-top:10px;
+}
+.comment_item{
+ margin-top:8px;
+ padding-top:8px;
+ border-top: 1px dashed #ccc;
+}
+.comment_body{
+ padding-left:6px;
+}
+
 
 /* MAP */
 
