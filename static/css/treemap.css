@@ -18,6 +18,10 @@ margin:2px;
 }
 
 /* Tree Detail Comments */
+#tree_comments{
+ padding-top:10px;
+}
+
 .comment_field{
  padding-bottom:4px;
 }

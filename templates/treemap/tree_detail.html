@@ -374,7 +374,7 @@
 								{% if user.is_authenticated %}
 									{% get_comment_form for tree as form %}
 									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
-										<input type="hidden" name="next" value="{{ next }}" />
+										<input type="hidden" name="next" value="{{ request.get_full_path }}" />
 										{% for field in form %}
 										{% if field.is_hidden %}
 										  {{ field }}
@@ -401,13 +401,15 @@
 								{% for comment in comment_list %}
 									<div class="comment_item">
 										<div class="comment_head">
-											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											<a href="/profiles/{{comment.user.username}}">{{ comment.user.username }}</a> - {{ comment.submit_date|date:"P M j, Y"}}
 											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
 										</div>
 									</div>
+								{% empty %}
+									<div class="comment_item">No comments yet!</div>
 								{% endfor %}
 								</div>
 

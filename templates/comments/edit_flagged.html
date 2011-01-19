@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block extrahead %}
+    <script src="/static/tablesorter/jquery.tablesorter.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        jQuery("#flagged_list_table").tablesorter({sortList: [[1,1]]})
+        });
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<div class="content">
+	<h2>Flagged Comments</h2>
+	{% if page %}
+		You are looking at flags {{page.start_index}} through {{page.end_index}} <br>
+		{% if page.has_previous %}<a href="./?page={{page.previous_page_number}}">previous</a>{% endif %}
+		{% if page.has_next %}<a href="./?page={{page.next_page_number}}">next</a>{% endif %}
+	{% endif %}
+	<div id="flagged_list">
+		<table id="flagged_list_table">
+			<thead>
+				<tr>
+					<th>Flagged By</th>
+					<th>Date</th>
+					<th>Comment</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for c in flags %}
+				<tr id="{{c.id}}">
+					<td><a href="/profile/{{c.user.username}}" target="_blank">{{c.user.username}}</a></td>
+					<td>{{c.flag_date|date:'DATETIME_FORMAT'}}</td>
+					<td>
+						<a href="/profile/{{c.comment.user.username}}" target="_blank">{{c.comment.user.username}}</a> - {{c.comment.submit_date|date:'DATETIME_FORMAT'}}:
+						<br>{{c.comment.comment}}</td>
+					<td>
+						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>
+						<br><a href="#" onclick="tm.removeFlag({{c.id}}); return false;">Remove Flag</a>
+				 	</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+{% endblock %}
+

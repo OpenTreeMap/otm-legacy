@@ -54,6 +54,13 @@
 			<div class="species-image-caption">
 				{{ image.caption }}
 			</div>
+			<div class="species-image-attrib">
+				{% if image.attrib_link %}
+					<a href="{{image.attrib_link}}" target="_blank">{{ image.attrib_text }}</a>
+				{% else %}
+					{{ image.attrib_text }}
+				{% endif %}
+			</div>
 		</div>
 	{% endfor %}
 	</div>

@@ -53,6 +53,10 @@ urlpatterns = patterns('',
     (r'^check_username/$', check_username),
     (r'^users/$', edit_users),
     (r'^users/update/$', update_users),
+    
+    (r'^comments/moderate/$', view_flagged),
+    (r'^comments/hide/$', hide_comment),
+    (r'^comments/unflag/$', remove_flag),
 
     (r'^contact/$', contact),
     (r'^contact/thanks/$', static, {'template':'contact_thanks.html'}),

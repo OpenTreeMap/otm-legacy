@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point
+from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
 from django.db.models import Count, Sum, Q
 from django.views.decorators.csrf import csrf_view_exempt
@@ -1045,7 +1046,7 @@ def check_username(request):
             return render_to_json({'status':'username "%s" not available' % name})
     return render_to_json({'status':''})
 
-#@cache_page(60*5)    
+@cache_page(60*5)    
 def geographies(request, model, id=''):
     """
     return list of nhbds and resource attrs, possibly in json format
@@ -1269,3 +1270,36 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     change.save()
     return render_to_json({'change_type': change_type, 'change_id': change_id})
     
+@login_required
+@permission_required('moderate_comments')
+def view_flagged(request):
+    flags = CommentFlag.objects.filter(comment__is_public=True)
+    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
+    
+    
+def hide_comment(request):
+    response_dict = {}
+    post = simplejson.loads(request.raw_post_data)
+    flag_id = post.get('flag_id')
+    comment = CommentFlag.objects.get(id=flag_id).comment
+    comment.is_public = False
+    comment.save()
+    response_dict['success'] = True
+    
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+    
+def remove_flag(request):
+    response_dict = {}
+    post = simplejson.loads(request.raw_post_data)
+    flag_id = post.get('flag_id')
+    flag = CommentFlag.objects.get(id=flag_id)    
+    flag.delete()
+    response_dict['success'] = True
+
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )

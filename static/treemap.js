@@ -1602,6 +1602,42 @@ var tm = {
         });
     },
     
+    hideComment: function(flag_id) {
+	var data = {
+    	    'flag_id': flag_id
+    	};
+        var jsonString = JSON.stringify(data);    	
+    	$.ajax({
+	    url: '/comments/hide/',
+	    dataType: 'json',
+	    data: jsonString,
+	    type: 'POST',
+	    success: function(response) {
+		$("#" + flag_id).fadeOut();
+	    },
+	    error: function(err) {
+		alert("Error: " + err.status + "\nQuery: " + flag_id );
+		}
+        });
+    },
+    removeFlag: function(flag_id) {
+    	var data = {
+	    'flag_id': flag_id
+	};
+	var jsonString = JSON.stringify(data);    	
+	$.ajax({
+	    url: '/comments/unflag/',
+	    dataType: 'json',
+	    data: jsonString,
+	    type: 'POST',
+	    success: function(response) {
+		$("#" + flag_id).fadeOut();
+	    },
+	    error: function(err) {
+		alert("Error: " + err.status + "\nQuery: " + flag_id );
+	    }
+	});
+    },
 }  
 $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {
