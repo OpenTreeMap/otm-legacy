@@ -14,6 +14,7 @@ urlpatterns += patterns('treekey.views',
     (r'^leaf/(?P<node_id>\d+)/$', 'node'),
     (r'^start/$', 'first_node'),
     (r'^species/(?P<species_id>\d+)/$', 'species'),
+    (r'^browse/$', 'browse'),
     
     (r'^admin/', include(admin.site.urls)),
 )

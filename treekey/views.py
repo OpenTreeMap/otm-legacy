@@ -54,3 +54,8 @@ def species(request, species_id):
     n = s.node_set.all()[0];
     return render_to_response('treekey/species.html', {'species':s, 'display':index_maker(), 'trail':trail_maker(n)})
     
+def browse(request):
+    f = Node.objects.order_by('id')[0]
+    species = Species.objects.all()
+    return render_to_response('treekey/browse.html', {'species':species, 'display':index_maker(), 'trail':trail_maker(f)})
+    
