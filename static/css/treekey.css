@@ -11,13 +11,14 @@ li a {line-height:1.5em; color:#3E5D00;}
 a {text-decoration:none; color:#3E5D00;}
 a img {border:0px;}
 
-.header {height:48px; background: #6ea400 url(../images/treekey/header-background.gif);}
+.head {height:48px; background: #6ea400 url(../images/treekey/header-background.gif);}
 .menu {line-height:48px; padding-left:20px; font-size:20px; color:#F6FFDF; }
 	.menu a {color:inherit; padding-left:20px;}
 
 .content {width:950px; margin-left:auto; margin-right:auto; font-family:arial; font-size:.9em;}
 
 .trail {line-height:2.5em; padding-top:10px; border-bottom:2px solid #ccc; font-size:.9em;}
+.browse {float:right;}
 
 .left-panel {float:left; width:250px; padding-top:20px;}
 .right-panel {float:left; width:700px; padding-top:20px;}
