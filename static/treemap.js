@@ -915,6 +915,26 @@ var tm = {
                 
                 tm.misc_markers.addMarker(tm.location_marker);
                 
+                tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
+                    var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
+                    popupPixel.y += this.icon.offset.y - 25;
+                    tm.smallPopup = new OpenLayers.Popup("popup_address",
+                               tm.map.getLonLatFromPixel(popupPixel),
+                               null,
+                               $("#location_search_input").val(),
+                               false);
+                    tm.smallPopup.minSize = new OpenLayers.Size(20,25);
+                    tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+                    tm.smallPopup.border = "1px solid Black";
+                    tm.map.addPopup(tm.smallPopup);
+                    tm.smallPopup.updateSize();
+                });
+
+                tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
+                    tm.map.removePopup(tm.smallPopup);
+                });
+                
+                
                 if (callback) {
                     callback(olPoint);
                 }
