@@ -301,10 +301,15 @@ var tm = {
                 maxResolution: 156543.0399,
                 units: 'm',
                 projection: new OpenLayers.Projection("EPSG:102100"),
-                displayProjection: new OpenLayers.Projection("EPSG:4326")
+                displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                controls: [new OpenLayers.Control.Attribution(),
+                           new OpenLayers.Control.Navigation(),
+                           new OpenLayers.Control.ArgParser(),
+                           new OpenLayers.Control.PanPanel(),
+                           new OpenLayers.Control.ZoomPanel()]
             }
         );
-
+        
         var baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
             "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
             {
@@ -318,7 +323,8 @@ var tm = {
                 type: 'png',
                 isBaseLayer: false,
                 opacity:0.7,
-                wrapDateLine: true
+                wrapDateLine: true,
+                attribution: "(c) PhillyTreeMap.org"
             }
         );
         baseLayer.buffer = 0;
@@ -334,7 +340,6 @@ var tm = {
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors')
         
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
-        tm.map.addControl(new OpenLayers.Control.Attribution());
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 11);
@@ -385,7 +390,6 @@ var tm = {
         }
 
         tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
-        tm.map.addControl(new OpenLayers.Control.Attribution());
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
@@ -451,7 +455,6 @@ var tm = {
         
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
         tm.map.addLayers([tm.tree_layer]);
-        tm.map.addControl(new OpenLayers.Control.Attribution());
         
         //load in favorite trees
         var url = ['/trees/favorites/' + user + '/geojson/']
@@ -495,7 +498,6 @@ var tm = {
         }
         
         tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
-        tm.map.addControl(new OpenLayers.Control.Attribution());
         tm.map.addControl(tm.drag_control);
         
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
