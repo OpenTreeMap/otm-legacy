@@ -81,10 +81,31 @@ var tm = {
                 }
             }    
         });
+        $("#location_go").click(function(evt) {
+            if ($("#location_search_input")[0].value) {
+                tm.handleSearchLocation($("#location_search_input")[0].value);
+            } else {
+                $("#location_search_input").val("Philadelphia, PA");
+                delete tm.searchParams['location'];
+                tm.updateSearch();
+
+                if (tm.cur_polygon){
+                    tm.map.removeOverlay(tm.cur_polygon);
+                }
+            }    
+        });
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
                 $("#species_search_id").val("");
                 $(this).val("All species");
+                delete tm.searchParams['species'];
+                tm.updateSearch();
+            }    
+        });
+        $("#species_go").click(function(evt) {
+            if ($("#species_search_input")[0].value) {
+                $("#species_search_id").val("");
+                $("#species_search_input").val("All species");
                 delete tm.searchParams['species'];
                 tm.updateSearch();
             }    
@@ -104,7 +125,7 @@ var tm = {
                 tm.updateSearch();
             }
         });    
-        $("#search_form").submit(function() { return false; });
+        //$("#search_form").submit(function() { return false; });
         var curmin = 0;
         var curmax = 50;
         $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [curmin, curmax],

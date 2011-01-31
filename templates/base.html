@@ -77,47 +77,47 @@
 	<div id="headerWrap">
 			<div id="headerContainer">
 					<h1 id="logo"><a href="/">Philly Tree Map</a></h1>
-					
+
 			<div id="searchBox">
 				<div>
 					<div id="headerLocationSearch">
 						<h2 id="labelLocationSearch"></h2><a class="floatRight" href="">Featured Searches</a>
 					</div>
 					<div id="headerSpeciesSearch">
-						<h2 id="labelSpeciesSearch"></h2><a href="#" id="advanced" class="advanced floatRight">Advanced filters</a>	
+						<h2 id="labelSpeciesSearch"></h2><a href="#" id="advanced" class="advanced floatRight">Advanced filters</a>
 					</div>
 				</div>
-					
+
 					<form method="get" action="/map/" name="address" class="address" id="search_form">
-					<ul id="searchBoxes">	
+					<ul id="searchBoxes">
 						<li id="searchLocationBox">
 							<div id="searchLocationBrowse" class="buttonMed"><div class="icon"></div><div class="label"
 							></div></div>
 							<div class="headerSearchContainer">
-								<input type="text"  name="location" onFocus="this.value=''" id="location_search_input" class="headerSearch" value="Philadelphia, PA" />
-								<div class="go buttonSmall"><div class="label"></div></div>
+								<input type="text"  name="location_search_input" onFocus='if (this.value == "Philadelphia, PA") { this.value=""; };' id="location_search_input" class="headerSearch" value="Philadelphia, PA" />
+								<div class="go buttonSmall"><div class="label" id="location_go"></div></div>
 							</div>
-						</li>					
+						</li>
 						<li id="searchSpeciesBox">
 							<div id="searchSpeciesBrowse" class="buttonMed"><div class="icon"></div><div class="label"
 							></div></div>
 							  <div class="headerSearchContainer">
 								  <input type="text"  id="species_search_input" class="headerSearch" value="All trees"
 								   onFocus='if (this.value == "All trees") { this.value=""; };' />
-								   <div class="go buttonSmall"><div class="label"></div></div>
+								   <div class="go buttonSmall"><div class="label" id="species_go"></div></div>
 								</div>
 							  <input type='hidden' name='species_search_id' id="species_search_id" />
 							  <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
 							</li>
-	
+
 					</ul>
 					</form>
 
-					
+
 				</div>
 				<div class="clearBoth"></div>
 			</div>
-			
+
                 <div class="filter-box" style="display:none">
                     <div class="wrap">
 						<div class="filter-box-control">
