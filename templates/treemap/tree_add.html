@@ -19,7 +19,7 @@
     <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" media="screen" />
 <script type="text/javascript">
     jQuery().ready(function() {
-        
+
         //tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
         //tm.init_tree_map(true);
         //tm.currentTreeId = {{instance.id}};
@@ -32,7 +32,7 @@
                 //{
                     //$('#common_name')[0].innerHTML = item.sname;
                 //}
-                $("#id_species_id").val(item.symbol).change(); 
+                $("#id_species_id").val(item.symbol).change();
             });
             //var spec = $.address.parameter("species");
             //tm.updateSpeciesFields("search_species2",spec);
@@ -63,7 +63,7 @@ $("#treekey").fancybox({
 
 {% comment %}
 {% block content_body_top %}
-   
+
     <!-- start contentbody -->
         <div id="contentbody">
             <div class="tabset-holder">
@@ -79,7 +79,7 @@ $("#treekey").fancybox({
 {% endcomment %}
 
 {% block left_panel %}
-    
+
 <div id="register">
 
     <h1>Add a new tree <span class="note">(If it's bold it's required)</span></h1>
@@ -95,7 +95,7 @@ $("#treekey").fancybox({
 
     <form action="." method="POST">
     <fieldset>
-      
+
 
     <label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Nearby address
         {% if form.edit_address_street.errors %}
@@ -107,7 +107,7 @@ $("#treekey").fancybox({
         {% endif %}
     </label>
     {{ form.edit_address_street }}
-    
+
     <label class="required" {% if form.edit_address_city.errors %}id="error"{% endif %}>City
         {% if form.edit_address_city.errors %}
              {% for error in form.edit_address_city.errors %}
@@ -134,7 +134,10 @@ $("#treekey").fancybox({
     <label class="required" {% if form.edit_address_zip.errors %}id="error"{% endif %}>Specify placement
         <span class="small">Once you enter an address, grab the tree and move it to the correct location.</span>
     </label>
-	<div id="add_tree_map" class="addMap"></div>
+	<div id="add_tree_map" class="addMap">
+		<div class="shadowLeft"></div>
+		<div class="shadowTop"></div>
+	</div>
 	</div>
 
     <label class="required" {% if form.species_name.errors %}id="error"{% endif %}>Species name
@@ -187,12 +190,12 @@ $("#treekey").fancybox({
     </div>
 
     {% endblock %}
-    
+
     {% block right_panel %}
        <div id="calloutContainer">
             <h2 class="title-edit">Double check</h2>
             <p>Are you sure the tree you want to add isn't already in our database? Make sure you <a href="/map">search for the tree first</a>. Then, add it if we don't have it in our system.</p>
         </div>
-    
+
     {% endblock right_panel %}
 

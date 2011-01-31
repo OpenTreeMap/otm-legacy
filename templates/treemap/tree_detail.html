@@ -29,19 +29,18 @@
         <!-- start contentbody -->
 
         <div id="contentbody">
-             <div id="tabcontainer">
-                <ul id="tablist">
-                    <li class="first"><a href="../{{ tree.id }}" id="current">Tree info</a></li>
-                    <li><a href="./edit">Edit tree</a></li>
-                </ul>
-            </div>
+				<a href="./edit" class="buttonMed floatRight"><span class="icon iconUpdate"></span><span class="label">Update Tree Info</span></a>
+		<h2 id="pageHead">
+		{% ifequal tree.get_common_name "unavailable" %}
+			Species Not Yet Determined
+		{% else %}
+			{{tree.get_common_name}}
+		{% endifequal %}
+		</h2>
+
+	
             <div class="tab-content" id="tab-1">
-                <ul id="progress">
-                    <!-- TODO -->
-                    <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
-                    <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
-                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
-                </ul>
+
                 <div class="wrap">
         {% endblock %}
 
@@ -364,9 +363,9 @@
                 {% block right_panel %}
                     <!-- start t2_right_panel  -->
                         <div class="aside">
-                            <div id="add_tree_map"></div>
+                            <div id="add_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                             <div id="alternate_tree_div"></div>
-                            <div id="tree_streetview"></div>
+                            <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
 							<div id="tree_comments">
 								<div class="wrap">
 									<h2>Comments</h2>
@@ -374,7 +373,7 @@
 								{% if user.is_authenticated %}
 									{% get_comment_form for tree as form %}
 									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
-										<input type="hidden" name="next" value="{{ request.get_full_path }}" />
+										<input type="hidden" name="next" value="{{ next }}" />
 										{% for field in form %}
 										{% if field.is_hidden %}
 										  {{ field }}
@@ -401,15 +400,13 @@
 								{% for comment in comment_list %}
 									<div class="comment_item">
 										<div class="comment_head">
-											<a href="/profiles/{{comment.user.username}}">{{ comment.user.username }}</a> - {{ comment.submit_date|date:"P M j, Y"}}
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
 											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
 										</div>
 									</div>
-								{% empty %}
-									<div class="comment_item">No comments yet!</div>
 								{% endfor %}
 								</div>
 
@@ -509,6 +506,17 @@
                     </ul>
                 </li>
             </ul>
+			
+			<ul id="progress">
+                    <!-- TODO -->
+                    <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
+                    
+					<li id="progressStatus">
+					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
+						<div class="progressText">{{ tree.percent_complete|floatformat }}%&nbsp;complete</div></li>
+                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
+			</ul>
+			
             <ul id="message">
                 <li id="title">Your turn</li>
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>

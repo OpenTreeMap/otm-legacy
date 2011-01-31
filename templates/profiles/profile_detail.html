@@ -1,4 +1,4 @@
-{% extends "profiles/base.html" %}     
+{% extends "profiles/base.html" %}
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
@@ -9,27 +9,24 @@
         tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
 
     });
-    
+
 </script>
 {% endblock %}
 
-        
+
         {% block content_body_top %}
         <!-- start contentbody -->
         <div id="contentbody">
-        
-            <div id="tabcontainer"> 
-                <ul id="tablist"> 
-                    <li class="first"><a id="current" href="/profiles/{{ user.username }}/" >Profile</a></li> 
-                </ul> 
-            </div> 
-        
+
+            <h2 id="pageHead">Profile</h2>
+         
+
             <div class="tab-content" id="tab-1">
 
         <div class="wrap">
         {% endblock %}
-        
-        
+
+
 {% block left_panel %}
 
         <div id="t2_top_left_panel">
@@ -135,8 +132,8 @@
 {% endblock left_panel %}
 
 
-   
-{% block middle_panel %} 
+
+{% block middle_panel %}
 <div class="comments" id="first">
     <div class="wrap">
             <h2>Favorite trees</h2>
@@ -145,11 +142,11 @@
             {% if profile.user = user %}
                 <div class="note">You have not favorited any trees yet!</div>
             {% else %}
-                <div class="note">This user hasn't favorited any trees</div>            
-            {% endif %}    
+                <div class="note">This user hasn't favorited any trees</div>
+            {% endif %}
         {% endif %}
     </div>
-          
+
     {% if profile.user.treefavorite_set.count > 0 %}
         <!-- outer table to hold favorites / map -->
         <div id="favoritesContainer">
@@ -161,7 +158,7 @@
                     <td class="fav">
         		       <a href="/trees/{{ fav.tree.id }}/">View</a><br>
                        <a href="#" class="favorite fav unfave" id="favorite_{{fav.tree.id}}">Unfavorite</a><br>
-                    </td> 
+                    </td>
                     <td class="species">
                         <span>Tree species</span>
                         <em>{{ fav.tree.species.common_name|default:"Unknown" }}</em>
@@ -198,7 +195,7 @@
 
 </div>
 
-                
+
             <div class="comments">
                 <div class="wrap">
                   <h2>Recently added and edited trees</h2>
@@ -209,7 +206,7 @@
                         <td class="fav">
             		       <a href="/trees/{{ tree.id }}/">View</a><br>
                            <!--<a href="#" class="favorite fav unfave" id="favorite_{{tree.id}}">Unfavorite</a><br>-->
-                        </td> 
+                        </td>
                         <td class="species">
                             <span>Tree species</span>
                             <em>{{ tree.species.common_name|default:"Unknown" }}</em>
@@ -231,7 +228,7 @@
                         <td colspan="4"><p><a href="#">See all updates &raquo;</a></p></td>
                     </tr>
                     -->
-                       
+
                 </table>
             </div>
             {% comment %}
@@ -261,8 +258,8 @@
                 -->
             </div>
             {% endcomment %}
-            
-            
+
+
             <div class="recent-photos">
                 <div class="wrap">
                   <h2>Recent photos added</h2>
@@ -274,7 +271,7 @@
                         <a href="{{ pic.tree.get_absolute_url }}">
                             <img src="/media/{% thumbnail pic.photo 100x70 crop %}" alt="image description" width="202" height="146" />
                         </a>
-                        
+
                         <dl>
                             <dt>Tree #:</dt>
                             <dd><a href="{{ pic.tree.get_absolute_url }}">{{ pic.tree.id }}</a></dd>

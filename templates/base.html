@@ -2,18 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{% block title %}Urban Forest Map{% endblock %}</title>
-        
+    <title>{% block title %}Philly Tree Map{% endblock %}</title>
+
         {% block tophead %}
         {% endblock %}
 
         {% if 0 %}
         <script type="text/javascript" src="/static/jquery/ui/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="/static/jquery/ui/js/jquery-ui-1.8rc3.custom.min.js"></script>
-        
+
         <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>-->
-        
+
         <script type="text/javascript" src="/static/jquery/jquery.autocomplete.min.js"></script>
         <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="/static/jquery/jquery.address-1.1.min.js"></script>
@@ -27,14 +27,14 @@
         <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
         <script type="text/javascript" src="/static/treemap.js"></script>
         <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/css/ufmp1.1.css" media="all" />
+        <link rel="stylesheet" type="text/css" href="/static/css/ptm.css" media="all" />
         <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
-<script type="text/javascript" src="/static/maps/TMbak.js"></script> 
+<script type="text/javascript" src="/static/maps/TMbak.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
         <link rel="shortcut icon" href="/static/images/favicon.ico" />
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
-        
-                
+
+
         {% block js_ready %}
         <script type="text/javascript">
             jQuery().ready(tm.baseTemplatePageLoad);
@@ -48,71 +48,82 @@
 
 <body {% block body_load %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
     <div id="wrapper">
-        
+
 <!-- start: header -->
-    	<div id="announceHeader">
-    		<b>We're in beta!</b> Please <a href="http://www.surveymonkey.com/s/HS8JFV6" target="_new">fill out our survey</a> or use our feedback button.
-    	</div>
-    	<div id="header">
-            <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
-            <ul id="nav">
-                <li>
-                    {% if user.is_authenticated %}
-                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span>
-                    {% else %}
-                        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
-                    {% endif %}
-                </li>
-            </ul>
-        </div>
-        
-<!-- end: header -->
-
-<!-- start: search box -->
-        
-        <div id="searchBox">
-            <div id="searchBoxContainer">
-                <ul id="searchTitles">
-                    <li id="searchSpecies"><img src="/static/images/v2/search_species.gif" width="300" alt="Species or common name" /></li>
-                    <li id="searchLocation"><img src="/static/images/v2/search_location.gif" width="120" alt="Location" /></li>
-                </ul>
-                <ul id="searchBoxes">
-                <form method="get" action="/map/" name="address" class="address" id="search_form">
-                    <li id="searchSpeciesBox">
-                      <input type="text"  id="species_search_input" value="All trees"
-                       onFocus='if (this.value == "All trees") { this.value=""; };' />
-                      <input type='hidden' name='species_search_id' id="species_search_id" />
-                      <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
-                    </li>
-                    <li id="searchJoiner">near</li>
-                    <li id="searchLocationBox"><input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Philadelphia, PA" />
-</li>
-                    <li id="searchButton"><input class="go" type="submit" value="Search Philadelphia" /></li>
-                </form>
-                </ul>
-                <ul id="searchSuggest">
-                    <li id="searchSpeciesSuggest">Examples:
-
-                        <a onclick='$("#species_search_input").val("American elm"); $("#species_search_id").val("ULAM"); $("#species_search_id").change();  return false' href="#">American elm</a>
-                        or <a onclick='$("#species_search_input").val("Ginkgo biloba"); $("#species_search_id").val("GIBI"); $("#species_search_id").change(); return false' href="#">Ginkgo biloba</a>
-
-                    </li>
-
-                    <li id="searchLocationSuggest">Examples:
-
-                        <a onclick='$("#location_search_input").val("592 Arch St"); $("#location_search_input").change(); return false;' href="#">592 Arch St</a>,
-                        <a onclick='$("#location_search_input").val("Rittenhouse Square"); $("#location_search_input").change(); return false;' href="#">Rittenhouse Square</a>,
-                        <a onclick='$("#location_search_input").val("19107"); $("#location_search_input").change(); return false;' href="#">19107</a>
-                    </li>
-                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
-                </ul>
-            </div>
-        </div>
+		<div id="headerNavWrap">
+			<div id="headerNavContent">
+				<ul id="headerNavLinks">
+					<li id="headerNavExplore" class="active"><a href=""></a></li>
+					<li id="headerNavAdd"><a href=""></a></li>
+					<li id="headerNavUpdate"><a href=""></a></li>
+					<li id="headerNavSupport"><a href=""></a></li>
+				</ul>
+				<div id="loginlogout">
+						 {% if user.is_authenticated %}
+								Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout"> <a href="/accounts/logout/?next=/" id="logout" class="buttonSmall">Logout</a></span>
+						{% else %}
+							<a href="/accounts/login/" class="buttonSmall">Login</a> or <a href="/accounts/register/" class="buttonSmall">Sign up</a>
+						{% endif %}
+				</div>
+			</div>
+		</div>
 
 
 
+	<!-- end: header -->
+
+	<!-- start: search box -->
+
+	<div id="headerWrap">
+			<div id="headerContainer">
+					<h1 id="logo"><a href="/">Philly Tree Map</a></h1>
+					
+			<div id="searchBox">
+				<div>
+					<div id="headerLocationSearch">
+						<h2 id="labelLocationSearch"></h2><a class="floatRight" href="">Featured Searches</a>
+					</div>
+					<div id="headerSpeciesSearch">
+						<h2 id="labelSpeciesSearch"></h2><a href="#" id="advanced" class="advanced floatRight">Advanced filters</a>	
+					</div>
+				</div>
+					
+					<form method="get" action="/map/" name="address" class="address" id="search_form">
+					<ul id="searchBoxes">	
+						<li id="searchLocationBox">
+							<div id="searchLocationBrowse" class="buttonMed"><div class="icon"></div><div class="label"
+							></div></div>
+							<div class="headerSearchContainer">
+								<input type="text"  name="location" onFocus="this.value=''" id="location_search_input" class="headerSearch" value="Philadelphia, PA" />
+								<div class="go buttonSmall"><div class="label"></div></div>
+							</div>
+						</li>					
+						<li id="searchSpeciesBox">
+							<div id="searchSpeciesBrowse" class="buttonMed"><div class="icon"></div><div class="label"
+							></div></div>
+							  <div class="headerSearchContainer">
+								  <input type="text"  id="species_search_input" class="headerSearch" value="All trees"
+								   onFocus='if (this.value == "All trees") { this.value=""; };' />
+								   <div class="go buttonSmall"><div class="label"></div></div>
+								</div>
+							  <input type='hidden' name='species_search_id' id="species_search_id" />
+							  <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+							</li>
+	
+					</ul>
+					</form>
+
+					
+				</div>
+				<div class="clearBoth"></div>
+			</div>
+			
                 <div class="filter-box" style="display:none">
                     <div class="wrap">
+						<div class="filter-box-control">
+							<h2 id="advanced-filters"></h2>
+							<button id="close-fitlers">Reset</button>
+						</div>
                         <div class="parameter">
                             <ul>
                                 <li>
@@ -209,7 +220,14 @@
                             </fieldset>
                         </form>
                     </div>
-                </div>
+                </div>			
+			
+
+			
+		</div>
+
+
+
 
             <!-- end search-box -->
             {% block content %}
@@ -225,26 +243,7 @@
             {% endblock callout %}
 
             {% block sub_footer %}
-                <div class="content">
-                <div id="subfooterContainer">
-                    <div class="threecolumns">
-                        <h2>How you can help</h2>
-                        <div class="box">
-                            <span class="number">1</span>
-                            <p><span class="mark"><a href="/map/">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="/map" class="more">Go  &raquo;</a></p>
-                        </div>
-                        <div class="box">
-                            <span class="number">2</span>
-                            <p><span class="mark"><a href="/trees/add/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="/trees/add/" class="more">Go  &raquo;</a></p>
-                        </div>
-                        <div class="box" id="boxLast">
-                            <span class="number">3</span>
-                            <p><span class="mark"><a href="/map/">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="/map/" class="more">Go  &raquo;</a></p>
-                        </div>
-                    </div>
-                </div>
-                </div>
-                <div id="cityFade"></div>
+
              {% endblock %}
 
 
@@ -254,14 +253,19 @@
             <div id="footer">
                 <div class="footer-holder">
                     <div class="ad">
-                        <strong>Our Partners</strong>
+                        <h2>Our Partners</h2>
                         <ul>
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li>
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li>
-                            <li><a href="http://www.fire.ca.gov/"><img src="/static/images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li>
-                            <li><a href="http://www.sfgov.org/"><img src="/static/images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li>
-                        </ul>
+                            <li><a href="http://www.pennsylvaniahorticulturalsociety.org/"><img src="/static/images/ptm/logo-phs.png" alt="The Pennsylvania Horticultural Society" /></a></li>
+                            <li><a href="hhttp://www.phila.gov/"><img src="/static/images/ptm/logo-city-phl.png" alt="The City of Philadelphia" /></a></li>
+                            <li><a href="http://www.lowermerion.org/"><img src="/static/images/ptm/logo-lower-marion.png" alt="The City of Lower Merion" /></a></li>
+                            <li class="clearLeft"><a href="http://www.azavea.com/"><img src="/static/images/ptm/logo-azavea.png" alt="Azavea" /></a></li>
+                            <li><a href="http://www.dvrpc.org/"><img src="/static/images/ptm/logo-dvrpc.png" alt="The Delaware County Regional Planning Commission" /></a></li>	
+						</ul>
                     </div>
+					<div class="site-descrip">
+						<p>Philly Tree Map is a collaboration of government, nonprofits, businesses and you to build an inventory of Philadelphia's urban forest.</p>
+						<p><a href="">Learn more about Philly Tree Map &raquo;</a></p>
+					</div>
                     <ul class="footer-nav">
                         <li><a href="/trees/add/">Add a tree</a></li>
                         <li><a href="/about/">About</a></li>
@@ -279,15 +283,15 @@
                                <li><a href="/editor/flatpages/flatpage/">Edit Content</a></li>
                            {% endif %}
                         {% else %}
-                            <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
+                            <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSmall">Sign up</a></li>
                         {% endif %}
-                    </ul> 
-                </div> 
-                <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>.
-            </div> 
-            <!-- End Global footer --> 
+                    </ul>
+                </div>
+                <!-- <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>. -->
+            </div>
+            <!-- End Global footer -->
             {% endblock global_footer %}
-            
+
         </div>
 
 
@@ -306,13 +310,13 @@ pageTracker._trackPageview();
 </script>
 
 <script type="text/javascript">
-var is_ssl = ("https:" == document.location.protocol); var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/"; document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E")); 
-</script> 
+var is_ssl = ("https:" == document.location.protocol); var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/"; document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
 
 
-<script type="text/javascript"> 
+<script type="text/javascript">
 try {
-var feedback_widget_options = {}; feedback_widget_options.display = "overlay"; feedback_widget_options.company = "urban_forest_map"; feedback_widget_options.placement = "left"; feedback_widget_options.color = "#222"; feedback_widget_options.style = "idea"; var feedback_widget = new GSFN.feedback_widget(feedback_widget_options); 
+var feedback_widget_options = {}; feedback_widget_options.display = "overlay"; feedback_widget_options.company = "urban_forest_map"; feedback_widget_options.placement = "left"; feedback_widget_options.color = "#222"; feedback_widget_options.style = "idea"; var feedback_widget = new GSFN.feedback_widget(feedback_widget_options);
 } catch(err) {}
 </script>
 

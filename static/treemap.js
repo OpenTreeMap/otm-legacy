@@ -264,7 +264,7 @@ var tm = {
         return x1 + x2;
     },
     
-    load_nearby_trees : function(ll, clickEvent){
+    load_nearby_trees : function(ll){
         //load in nearby trees as well
         var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
         $.getJSON(url, function(geojson){
@@ -276,18 +276,8 @@ var tm = {
                 var marker = new OpenLayers.Marker(ll, icon);
                 marker.tid = f.properties.id;
                 
-                //TODO: get this working
-                if (clickEvent){
-                    marker.events.register('click', marker, function(evt){
-                        if (marker.tid){
-                            var html = '<a href="/trees/' + marker.tid + '">Tree #' + marker.tid + '</a>';
-                            $('#alternate_tree_div').html(html);
-                        }
-                    });
-                }
-                
                 tm.tree_layer.addMarker(marker);
-            
+                                
             });
         });
     },
@@ -507,12 +497,24 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
-        tm.load_nearby_trees(currentPoint, true);
+        tm.load_nearby_trees(currentPoint);
         
         if (editable) { tm.drag_control.activate(); }
         
         tm.load_streetview(currentPoint, 'tree_streetview');
-                    
+                
+        tm.map.events.register('click', tm.map, function(e){
+            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            jQuery.getJSON('/trees/location/',
+                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_trees' : 1},
+                function(json) {
+                    var html = '<a href="/trees/' + json.features[0].properties.id + '">Tree #' + json.features[0].properties.id + '</a>';
+                    $('#alternate_tree_div').html(html);
+                }
+            );
+        });
+        
         if (!editable) {return;}
         
         //listen for change to address field to update map location //todo always?
@@ -553,6 +555,7 @@ var tm = {
           } else {
             var icon = tm.get_icon(tm_icons.focus_tree, 40);
             var marker = new OpenLayers.Marker(ll, icon);
+                        
           }
           
         return marker

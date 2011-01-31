@@ -1,0 +1,208 @@
+div #results_aside{
+height:370px;
+}
+
+
+/* Tree Detail */
+.tree_detail_item{
+width:400px;
+margin:2px;
+}
+
+.tree_detail_key{
+  width:140px; display:inline;
+}
+.tree_detail_val{
+ width:200px; display:inline;
+ float:right;
+}
+
+/* Tree Detail Comments */
+#tree_comments{
+ padding-top:10px;
+}
+
+.comment_field{
+ padding-bottom:4px;
+}
+.comment_list{
+ padding-top:10px;
+}
+.comment_item{
+ margin-top:8px;
+ padding-top:8px;
+ border-top: 1px dashed #ccc;
+}
+.comment_body{
+ padding-left:6px;
+}
+
+
+/* MAP */
+
+#map{
+height:382px;
+}
+#index_map{
+border:10px solid #eef5d8;
+height:400px;
+}
+#results_map{
+height:480px;
+width:622px;
+border:10px solid #eef5d8;
+}
+#favorite_tree_map{
+height:250px;
+width:260px;
+border:10px solid #eef5d8;
+}
+
+#add_tree_map{
+height:220px;
+width:260px;
+border:10px solid #eef5d8;
+overflow: hidden;
+}
+.addMap{
+margin-left:210px;
+margin-bottom:15px;
+}
+#static_map{
+height:40px;%
+width:40px;
+}
+
+#tree_streetview{
+height:220px;
+width:260px;
+border:10px solid #eef5d8;
+padding-top:0;
+margin-top:0;
+}
+#add_tree_streetview{
+height:180px;
+width:270px;
+}
+#max_tree_infowindow{
+width:390px;
+min-height:225px;
+background: #fff;
+margin:0;
+padding:0;
+}
+
+#infowindow{
+color:#555;
+}
+#infowindow_left{
+    float:left;
+    width:210px;
+    border-right:1px solid #E25A00;
+}
+#infowindow_right{
+    width:150px;
+    float:right;
+}
+.activeEditRowValue {
+    margin:0;
+    padding:0;
+}
+.activeEditTable tr th {
+    font-weight: normal;
+}
+.activeEditTable tr td {
+    font-weight: bold;
+}    
+.activeEditRowLabel {
+    text-align: left;
+    width: 30%;
+    font-weight: normal; 
+}
+.activeEdit {
+    margin: 0;
+    padding: 0;
+    width: 90%;
+/*
+    background-color: #ccc;
+    border: 1px solid red;
+*/
+} 
+ul.edit .activeEdit input {
+	width:150px;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+    margin-left:0px;
+}
+ul.edit .activeEdit button, input.button {
+	float:left;
+	width:50px;
+	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
+	border:2px solid #d8731a;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:11px;
+	font-weight:bold;
+	padding:2px 5px;
+	margin:7px 10px 7px 0;
+	cursor: pointer;
+}
+ul.edit .activeEdit button:hover {
+	background:#e08a00;
+	text-decoration:none;
+} 
+.activeEdit button, input.button {
+	clear:both;
+	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
+	border:2px solid #d8731a;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:11px;
+	font-weight:bold;
+	padding:2px 5px;
+	margin:7px 10px 7px -6px;
+	cursor: pointer;
+}
+input.button {
+    margin-top:-2px;
+}
+.activeEdit button:hover {
+	background:#e08a00;
+	text-decoration:none;
+}    
+.activeEdit input, .activeEdit select {
+/*     display: block; */
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+	line-height:10px;
+    padding:3px 0 3px 5px;
+    margin:-4px 0 0 -7px;
+/*     width: 50%; */
+}
+#edit_dbh {
+	display:block;
+	margin-top:1px;
+	padding-bottom:22px;
+	border-bottom:1px solid #eef5d8;
+}
+.activeEdit input.hide {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+.activeEdit select {
+    width:195px;
+}
+#actionTypeSelection select, #hazardTypeSelection select {
+    width:125px;
+}
+#actionTypeSelection option, #hazardTypeSelection option, .activeEdit option {
+    font-size:12px;
+    padding:0
+    margin:0;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+}
+#hazardTable, #actionTable {
+    font-size:12px;
+}

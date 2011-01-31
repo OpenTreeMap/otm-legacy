@@ -30,13 +30,15 @@
 
                 <!-- start contentbody -->
                     <div id="contentbody">
-                         <div id="tabcontainer">
-                            <ul id="tablist">
-                                <li class="first"><a href="../">Tree info</a></li>
-                                <li><a href="#" id="current">Edit tree</a></li>
-<!--                                 <li id="addIt"><a href="/trees/add" id="addTree">Add a tree &raquo;</a></li>  -->
-                            </ul>
-                        </div>
+					<a href="../" class="buttonMed floatRight"><span class="icon"></span><span class="label">Full Tree Detail</span></a>
+				{% for field in data %}
+					{% ifequal field.name "species" %}
+					
+						<h2 id="pageHead">
+						{{ field.value|default:"Species Not Yet Determined" }}		
+						</h2>
+					{% endifequal %}
+				{% endfor %}
                         <div class="tab-content" id="tab-2">
 
                             <div class="wrap">
@@ -57,22 +59,23 @@
     </thead>
 -->
     <tbody>
-{% for field in data %}
-{% ifequal field.type "header" %} 
+{% for field in data %}	
+	
+{% ifequal field.type "header" %}
     <thead>
     	<tr>
         	<th scope="col" colspan="4">{{ field.text }}</th>
         </tr>
     </thead>
 {% endifequal %}
-{% ifequal field.type "field_noedit" %}  
+{% ifequal field.type "field_noedit" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
             <td></td>
         </tr>
 {% endifequal %}
-{% ifequal field.type "species_field" %}   
+{% ifequal field.type "species_field" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
@@ -80,7 +83,7 @@
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
         </tr>
 {% endifequal %}
-{% ifequal field.type "status_field" %}   
+{% ifequal field.type "status_field" %}
     	<tr>
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.display }}</td>
@@ -154,8 +157,8 @@
                 </td>
                 <td>
                   <a href="#" onclick="tm.deleteHazard('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
-                </td>  
-              </tr>  
+                </td>
+              </tr>
             {% endfor %}
 {% endif %}
             </table>
@@ -163,7 +166,7 @@
           <script>
           $("#hazardList").hide();
           </script>
-        </td></tr>  
+        </td></tr>
 {% endifequal %}
 {% ifequal field.type "actions" %}
     	<tr>
@@ -178,7 +181,7 @@
                <td><b>Action type</b></td>
                <td><b>Date</b></td>
                <td></td>
-             </tr>  
+             </tr>
 {% if field.value.count > 0 %}
             {% for h in field.value %}
               <tr>
@@ -190,8 +193,8 @@
                 </td>
                 <td>
                   <a href="#" onclick="tm.deleteAction('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
-                </td>  
-              </tr>  
+                </td>
+              </tr>
             {% endfor %}
 {% endif %}
             <!--
@@ -263,23 +266,23 @@
                         <ul>
                             <li id="title">Edit the tree location</li>
                             <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
-                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing tree location</a></span></li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a></span></li>
                         </ul>
                     </div>
                     <div class="editMap">
-                        <div id="add_tree_map"></div>
+                        <div id="add_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                         <div id="alternate_tree_div"></div>
-                        <div id="tree_streetview"></div>
+                        <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                     </div>
-                </div>   
+                </div>
 
         {% endblock %}
-        
-     
+
+
 
         {% block left_panel %}
-        
-        
+
+
          <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>
