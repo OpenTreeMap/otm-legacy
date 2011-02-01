@@ -207,7 +207,7 @@ def species(request, selection='all', format='html'):
         species = Species.objects.filter(tree__in=trees)
     
     if selection == 'all':
-        species = Species.objects.all()
+        species = Species.objects.all().order_by('common_name')
     
     if format == 'json':
         res = [{"symbol":str(x.accepted_symbol or ''), 
@@ -1054,7 +1054,7 @@ def geographies(request, model, id=''):
     format = request.GET.get('format','html')
     location = request.GET.get('location','')
     
-    ns = model.objects.all().order_by('id')
+    ns = model.objects.all().order_by('name')
     
     if location:
         coords = map(float,location.split(','))

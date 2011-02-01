@@ -231,8 +231,10 @@ var tm = {
         for(var i=0; i<tm.locations.features.length;i++) {
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
-            var feature = tm.locations.features[i]
-            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + feature.properties.name + "</li>")
+            var feature = tm.locations.features[i];
+            var name = feature.properties.name;
+            if (feature.properties.city != "") {name = feature.properties.city = " - " + feature.properties.name;}
+            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + name + "</li>")
         }
 
         $("#n_list > li").hover(function(evt) {
@@ -589,7 +591,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 11);
+        tm.map.setCenter(olPoint, 15);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
