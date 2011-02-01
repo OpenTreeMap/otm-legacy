@@ -37,6 +37,7 @@ var tm = {
     geocoder : null,
     maxExtent : null,
     clckTimeOut : null,
+    locations: null,
     tree_columns_of_interest : {
         'address_street' : true,
         'id' : false,
@@ -101,6 +102,9 @@ var tm = {
                 delete tm.searchParams['species'];
                 tm.updateSearch();
             }    
+        });
+        $("#searchSpeciesBrowse").click(function(evt){
+            $('#species_search_input')[0].click();
         });
         $("#species_go").click(function(evt) {
             if ($("#species_search_input")[0].value) {
@@ -189,7 +193,58 @@ var tm = {
             }
         });    
         $("#updated_slider")[0].updateDisplay();
+        $("#searchSpeciesBrowse").click(function(evt) {
+            $("#searchSpeciesList").toggle();
+        });
+        
+        
+        $("#searchLocationBrowse").click(function(evt) {
+            $("#searchNBList").toggle();
+        });
+        
     },    
+    
+    setupSpeciesList: function() {
+        var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
+        $("#searchSpeciesList").append(ul).hide();
+        for(var i=0; i<tm.speciesData.length;i++) {
+            var c = "ac_odd";
+            if (i%2 == 0) {c = 'ac-even';}
+            ul.append("<li id='" + tm.speciesData[i].symbol + "' class='" + c + "'>" + tm.speciesData[i].cname + " [" + tm.speciesData[i].sname + "]</li>")
+        }
+        
+        $("#s_list > li").hover(function(evt) {
+            $(this).addClass("ac_over")
+        }, function(evt) {
+            $(this).removeClass("ac_over")
+        }).click(function(evt) {
+            $('#species_search_input').val(this.innerHTML)
+            $("#species_search_id").val(this.id).change();
+            $("#searchSpeciesList").toggle();
+        });
+        
+    },
+    
+    setupLocationList: function() {
+        var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
+        $("#searchNBList").append(ul).hide();
+        for(var i=0; i<tm.locations.features.length;i++) {
+            var c = "ac_odd";
+            if (i%2 == 0) {c = 'ac-even';}
+            var feature = tm.locations.features[i]
+            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + feature.properties.name + "</li>")
+        }
+
+        $("#n_list > li").hover(function(evt) {
+            $(this).addClass("ac_over")
+        }, function(evt) {
+            $(this).removeClass("ac_over")
+        }).click(function(evt) {
+            $('#location_search_input').val(this.innerHTML).change();
+            $("#searchNBList").toggle();
+        });
+            
+    },
     baseTemplatePageLoad:function() {
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
@@ -201,6 +256,7 @@ var tm = {
                     $("#species_search_id_cultivar").val("").change();
                 }    
             });
+            tm.setupSpeciesList();
             var spec = $.address.parameter("species");
             var cultivar = $.address.parameter("cultivar");
             tm.updateSpeciesFields("search_species",spec, cultivar);
@@ -209,6 +265,10 @@ var tm = {
             }    
             //var loc = $.address.parameter("location");
             //tm.updateLocationFields(loc);
+        });
+        jQuery.getJSON('/neighborhoods/', {format:'json'}, function(nbhoods){
+            tm.locations = nbhoods;
+            tm.setupLocationList();
         });
         $("#species_search_form").submit(function() {
             if (location.href.substr(0,4) != "/map") {
@@ -224,7 +284,7 @@ var tm = {
                     }
                     adv_active = true;
                     $('#arrow').attr('src','/static/images/v2/arrow2.gif');
-                    $('#filter_name')[0].innerHTML = 'Hide advanced filters';
+                    //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
                 }    
                 else {
                     if (location.pathname == "/map/") {
@@ -232,7 +292,7 @@ var tm = {
                     }
                     adv_active = false;
                     $('#arrow').attr('src','/static/images/v2/arrow1.gif');
-                    $('#filter_name')[0].innerHTML = 'Show advanced filters';          
+                    //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
                 }
                 return false;
             });
@@ -1118,6 +1178,7 @@ var tm = {
         return field.autocomplete(tm.speciesData, {
             matchContains: true,
             minChars: 1,
+            max:50,
 
             formatItem: function(row, i, max) {
                 var text = row.cname;
