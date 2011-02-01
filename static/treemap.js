@@ -324,7 +324,7 @@ var tm = {
         var baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
             "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
             {
-                sphericalMercator: true, numZoomLevels:10, minZoomLevel:8
+                sphericalMercator: true
             }
         );
         tms = new OpenLayers.Layer.TMS('TreeLayer', 
@@ -352,7 +352,7 @@ var tm = {
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 3);
+            , 11);
             
         //check to see if coming for a bookmarked tree
         var bookmark_id = jQuery.urlParam('tree');
@@ -387,6 +387,19 @@ var tm = {
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
         
+        var arial = new OpenLayers.Layer.XYZ("ArcOnlineArial", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true
+            }
+        );
+        var roads = new OpenLayers.Layer.XYZ("ArcOnlineRoads", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true, isBaseLayer:false
+            }
+        );
+        
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
 
@@ -399,19 +412,20 @@ var tm = {
             jQuery('#id_lon').val(mapCoord.lon);
         }
 
-        tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+        tm.map.addLayers([arial, roads, tm.add_vector_layer, tm.tree_layer]);
+        tm.map.setBaseLayer(arial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 3);
+            , 11);
             
         tm.map.events.register("click", tm.map, function (e) {
             if (tm.add_vector_layer.features.length > 0) {
                 return false;
             }
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            var zoom = 5;
-            if (tm.map.getZoom() > 5) {zoom = tm.map.getZoom();}
+            var zoom = 15;
+            if (tm.map.getZoom() > 15) {zoom = tm.map.getZoom();}
             tm.map.setCenter(mapCoord, zoom);
             
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
@@ -441,7 +455,7 @@ var tm = {
                     function(results, status) {
                         if (status == google.maps.GeocoderStatus.OK) {
                             var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                            tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 8);
+                            tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
          
                             tm.load_nearby_trees(olPoint);
                             tm.add_new_tree_marker(olPoint);
@@ -515,7 +529,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 8);
+        tm.map.setCenter(olPoint, 11);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
@@ -547,7 +561,7 @@ var tm = {
             tm.geocoder.getLatLng(new_addy, function(ll){
                 if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
                     tm.add_new_tree_marker(ll);
-                    tm.map.setCenter(ll,8);
+                    tm.map.setCenter(ll,15);
                     }
                 
                 });
@@ -933,7 +947,7 @@ var tm = {
             if (status == google.maps.GeocoderStatus.OK) {
                 if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
                 var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 8);
+                tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
                 
                 var icon = tm.get_icon(tm_icons.marker,0);
                 tm.location_marker = new OpenLayers.Marker(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), icon);
