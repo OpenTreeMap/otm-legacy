@@ -18,7 +18,7 @@ var tm_icons = {
     base_folder : '/static/images/map_icons/v3/', 
     small_trees : "/static/images/map_icons/v4/zoom5.png",
     small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
-    focus_tree : '/static/images/map_icons/v4/zoom8.png',
+    focus_tree : '/static/images/map_icons/v4/marker-selected.png',
     marker : '/static/openlayers/img/marker.png'
     };
 
@@ -536,7 +536,7 @@ var tm = {
         var size = new OpenLayers.Size(size, size);
         var offset = new OpenLayers.Pixel(-(size.w/2), -(size.h/2));
         if (type == tm_icons.marker) {
-            size = new OpenLayers.Size(21, 25);
+            size = new OpenLayers.Size(33, 32);
             offset = new OpenLayers.Pixel(-(size.w/2), -(size.h)); 
         }
         
@@ -563,7 +563,7 @@ var tm = {
         
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-        var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 45));
+        var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
 
         return marker
         },
@@ -655,7 +655,7 @@ var tm = {
             }
         var poly = new OpenLayers.Geometry.LineString(verts);
         var feature = new OpenLayers.Feature.Vector(poly, null, {
-            strokeColor: "#00008B",
+            strokeColor: "#289255",
             strokeWidth: 4,
             strokeOpacity: 0.7
         });

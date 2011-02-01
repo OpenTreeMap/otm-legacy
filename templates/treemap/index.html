@@ -10,11 +10,7 @@
        
     {% endblock %}
         {% block top_left_panel %}
-        <div class="getStarted">
-        	<ul>
-        		<li><a href="/map/">Get Started</a></li>
-        	</ul>
-       </div>
+
         {% endblock %}
 
         {% block top_right_panel %}
@@ -23,21 +19,7 @@
         
         {% block xcallout %}
         <!--Start Callout  --> 
-            <div class="callout"> 
-                <!--Start Callout inner  --> 
-                <div class="callout-inner"> 
-                <ul> 
-                
-                            <li><a href="#"><img src="/static/images/es/image02.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="/static/images/es/image03.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="/static/images/es/image04.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="/static/images/es/image05.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="/static/images/es/image06.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li class="last"><a href="#"><img src="/static/images/es/image07.jpg" alt="image description" width="76" height="76" /></a></li> 
-                </ul> 
-                </div> 
-                <!--End Callout inner  --> 
-            </div> 
+
             <!--End Callout  --> 
         {% endblock xcallout %}
         
@@ -56,49 +38,6 @@
           
 <!-- start: subfooter -->
 
-    <div class="content">
-        <div id="subfooterContainer" class="front">
-            <div id="col1">
-                <ul class="header">
-                    <li><a href="/about/#about">About the project</a></li>
-                </ul>
-                <p>The Urban Forest Map is a collaboration of government, nonprofits, businesses and you to build an inventory of San Francisco's urban forest. <a href="/about/#about" class="more">More&nbsp;&raquo;</a></p>
-                <ul class="header">
-                    <li><a href="/about/#why">Why</a></li>
-                </ul>
-                <p>The urban forest needs our help to survive and grow. Understanding what is out there is one of the first steps to planning for the future. <a href="/about/#why" class="more">More&nbsp;&raquo;</a></p>            
-            </div>
-            
-            <div id="col2">
-                <ul class="header">
-                    <li><a href="/resources/#why">Your role</a></li>
-                </ul>
-                
-                <p>As a citizen forester, you can get involved by searching for trees, verifying records, and by adding the trees in your neighborhood! <a href="/resources/#why" class="more">More&nbsp;&raquo;</a><br /></p>
-                
-                <ul class="header">
-                    <li><a href="/faq/">FAQs</a></li>
-                </ul>
-                <p><a href="/resources/#species">What if I don't know the species?</a></p>
-                <p><a href="/resources/#measuretrunk">How do I measure the trunk diameter?</a></p>
-                <p><a href="/resources/#ecoservices">What are the ecosystem services?</a></p>
-                <p><a href="/resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></p>
-            </div>
-            <div id="col3">
-                <ul class="header">
-                    <li><a href="http://urbanforestmap.org/">From the blog</a></li>
-                </ul>
-                {% cache 600 blog %}
-                    {% parse_feed "http://feeds.feedburner.com/urbanforestmap/fsLF?format=xml" as es_blog %}
-                    {% for e in es_blog.entries %}
-                    <p><a href="{{e.link}}">{{e.title}}</a></p>
-                    {% endfor %}
-                {% endcache %}
-                <p><a href="http://urbanforestmap.org/" class="more">See all blog posts&nbsp;&raquo;</a></p>
-            </div>
-        </div>
-    </div>
-    <div id="cityFade"></div>    
 
 {% comment %}    
 <!-- end: subfooter -->

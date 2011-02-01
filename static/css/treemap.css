@@ -75,16 +75,20 @@ border:1px solid #ccc;
 }
 #favorite_tree_map{
 height:250px;
-width:260px;
-border:10px solid #eef5d8;
+border: 1px solid #ccc;
+position: relative;
 }
 
 #add_tree_map{
 height:240px;
-width:248px;
+width:284px;
 border:1px solid #ccc;
 overflow: hidden;
 position:relative;
+float:left;
+margin-left: 10px !important;
+margin-bottom: 15px !important;
+
 }
 .addMap{
 margin-left:210px;
@@ -255,7 +259,7 @@ cursor:pointer;
     height: 12px !important;
     left: 19px !important;
     top: 13px !important;
-    width: 19px !important;
+    width: 18px !important;
 }
 .olControlPanPanel .olControlPanEastItemInactive:hover {
     background-position: -56px -13px !important;
@@ -296,3 +300,5 @@ cursor:pointer;
 .olControlZoomPanel .olControlZoomOutItemInactive:hover {
 	background-position: -19px -32px !important;
 }
+
+.olControlAttribution {bottom: 0 !important}

@@ -759,14 +759,15 @@ ul#promoMap li#promoMapEmbed {
 */
 
 .home {
-	width:100%;
-	background:#fff url(/static/images/v2/bg_index.gif) repeat-x top left;
+
+margin: 40px 0 -25px 28px;
 }
 #t4_top_content {
-	width:1090px;
-	height:500px;
-	margin:0 auto;
-	background:#fff url(/static/images/v2/index_main3.gif) no-repeat top left;
+
+	background: url(/static/images/ptm/home-screen.png) 0 0 no-repeat;
+		width:965px;
+	height: 475px;
+		margin: 0 auto;
 }
 #t4_top_left_panel {
 	float:left;
@@ -1170,13 +1171,13 @@ ul#progress li {
     display:inline;
 }
 .tab-content .comments #favoritesData {
-    width:400px;
+    width:375px;
     margin:0;
     padding:0;
     float:left;
 }
 .tab-content .comments #favoritesMap {
-    width:280px;
+    width:260px;
     margin:0 0 15px 0;
     padding:0;
     float:right;
@@ -3133,6 +3134,9 @@ table.addet .update p{
 	padding:25px 0 40px;
 	margin-top:50px;
 }
+#footer a {
+color: #673f14
+}
 .footer-holder{
 	width:944px;
 	overflow:hidden;
@@ -3193,8 +3197,9 @@ table.addet .update p{
     font-size: 15px;
     font-weight: bold;
     line-height: 20px;
-    padding: 0 23px;
+    padding: 0 23px 27px;
     width: 456px;
+	margin-left: 15px;
 }
 
 
@@ -3579,7 +3584,7 @@ width:944px;
 }
 
 
-* MISC
+/* MISC
 ** _____________________________________________________________________________
 */
 
@@ -3592,4 +3597,11 @@ div.clearer {
 	height: 0;
 	line-height: 1%;
 	font-size: 1px;
+}
+
+
+/* flat content */
+
+#flatcontent p {
+	line-height: 18px;
 }
