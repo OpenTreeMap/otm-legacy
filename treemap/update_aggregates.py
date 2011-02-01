@@ -27,7 +27,7 @@ def update_aggregates(base_model, ag_model, tree_geom):
     example: update_aggregates(Neighborhood, AggregateNeighborhood)
     """
     gext = tree_geom.envelope
-    ns = base_model.objects.filter(geometry__intersects=gext)
+    ns = base_model.objects.all()#.filter(geometry__intersects=gext)
     for n in ns:
         print n
         agg =  ag_model.objects.filter(location=n)
