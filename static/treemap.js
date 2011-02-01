@@ -81,10 +81,31 @@ var tm = {
                 }
             }    
         });
+        $("#location_go").click(function(evt) {
+            if ($("#location_search_input")[0].value) {
+                tm.handleSearchLocation($("#location_search_input")[0].value);
+            } else {
+                $("#location_search_input").val("Philadelphia, PA");
+                delete tm.searchParams['location'];
+                tm.updateSearch();
+
+                if (tm.cur_polygon){
+                    tm.map.removeOverlay(tm.cur_polygon);
+                }
+            }    
+        });
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
                 $("#species_search_id").val("");
                 $(this).val("All species");
+                delete tm.searchParams['species'];
+                tm.updateSearch();
+            }    
+        });
+        $("#species_go").click(function(evt) {
+            if ($("#species_search_input")[0].value) {
+                $("#species_search_id").val("");
+                $("#species_search_input").val("All species");
                 delete tm.searchParams['species'];
                 tm.updateSearch();
             }    
@@ -104,7 +125,7 @@ var tm = {
                 tm.updateSearch();
             }
         });    
-        $("#search_form").submit(function() { return false; });
+        //$("#search_form").submit(function() { return false; });
         var curmin = 0;
         var curmax = 50;
         $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [curmin, curmax],
@@ -288,7 +309,7 @@ var tm = {
         };
         tm.map = new OpenLayers.Map(div_id, {
                 maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-                maxResolution: 156543.0399,
+                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4717730.118866,-8187275.141121,5011248.307428), 
                 units: 'm',
                 projection: new OpenLayers.Projection("EPSG:102100"),
                 displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -320,8 +341,7 @@ var tm = {
         baseLayer.buffer = 0;
         tm.map.addLayers([baseLayer, tms]);
     },
-    
-    
+        
     init_map : function(div_id){
         tm.init_base_map(div_id);
         
@@ -367,6 +387,19 @@ var tm = {
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
         
+        var arial = new OpenLayers.Layer.XYZ("ArcOnlineArial", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true
+            }
+        );
+        var roads = new OpenLayers.Layer.XYZ("ArcOnlineRoads", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true, isBaseLayer:false
+            }
+        );
+        
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
 
@@ -379,7 +412,8 @@ var tm = {
             jQuery('#id_lon').val(mapCoord.lon);
         }
 
-        tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+        tm.map.addLayers([arial, roads, tm.add_vector_layer, tm.tree_layer]);
+        tm.map.setBaseLayer(arial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
@@ -390,7 +424,9 @@ var tm = {
                 return false;
             }
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            tm.map.setCenter(mapCoord, 15);
+            var zoom = 15;
+            if (tm.map.getZoom() > 15) {zoom = tm.map.getZoom();}
+            tm.map.setCenter(mapCoord, zoom);
             
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             
@@ -493,7 +529,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 16);
+        tm.map.setCenter(olPoint, 11);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
@@ -525,7 +561,7 @@ var tm = {
             tm.geocoder.getLatLng(new_addy, function(ll){
                 if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
                     tm.add_new_tree_marker(ll);
-                    tm.map.setCenter(ll,16);
+                    tm.map.setCenter(ll,15);
                     }
                 
                 });
