@@ -651,7 +651,7 @@ var tm = {
             else { var icon = tm.get_icon(tm_icons.small_trees, 13);}
             var marker = new OpenLayers.Marker(ll, icon);
           } else {
-            var icon = tm.get_icon(tm_icons.focus_tree, 40);
+            var icon = tm.get_icon(tm_icons.focus_tree, 19);
             var marker = new OpenLayers.Marker(ll, icon);
                         
           }

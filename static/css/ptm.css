@@ -109,6 +109,11 @@ form, fieldset {
 	border-radius:  5px
 	
 }
+/* firefox button padding fix*/
+button::-moz-focus-inner { 
+    border: 0;
+    padding: 0;
+}
 
 .buttonSmall:hover, button:hover {
 	background-position: 0 -28px;
@@ -366,7 +371,16 @@ ul#searchBoxes {
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
 }
-ul#searchBoxes li#searchSpeciesBox, ul#searchBoxes  li#searchLocationBox {
+
+ul#searchBoxes  li#searchLocationBox {
+	float:left;
+	width:350px;
+	height: 50px;
+	list-style-type: none;
+	padding-top: 12px;
+}
+
+ul#searchBoxes li#searchSpeciesBox {
 	float:left;
 	width:350px;
 	height: 50px;
@@ -3604,4 +3618,10 @@ div.clearer {
 
 #flatcontent p {
 	line-height: 18px;
+	margin: 16px 0;
 }
+#flatcontent li {
+	line-height: 18px;
+	}
+
+#flatcontent .floatRight {margin: 5px 0 20px 20px;}
