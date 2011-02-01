@@ -81,14 +81,18 @@ position: relative;
 
 #add_tree_map{
 height:240px;
-width:284px;
+width:248px;
 border:1px solid #ccc;
 overflow: hidden;
 position:relative;
+
+
+}
+#register #add_tree_map {
 float:left;
 margin-left: 10px !important;
 margin-bottom: 15px !important;
-
+width: 284px;
 }
 .addMap{
 margin-left:210px;
@@ -226,6 +230,7 @@ cursor:pointer;
 }
 .olControlPanPanel div {
     background-image: url("/static/images/ptm/pan-sprite.png") !important;
+	position:absolute
 }
 .olControlPanPanel .olControlPanNorthItemInactive {
     height: 13px !important;
@@ -272,6 +277,7 @@ cursor:pointer;
 .olControlZoomPanel div {
 	background-image: url("/static/images/ptm/zoom-sprite.png") !important;
 	background-repeat: no-repeat;
+	position:absolute
 }
 
 .olControlZoomPanel .olControlZoomInItemInactive {
