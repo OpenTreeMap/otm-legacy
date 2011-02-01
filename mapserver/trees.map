@@ -22,75 +22,75 @@ IMAGETYPE agg
     SYMBOL
       NAME "green1"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
 
     SYMBOL
       NAME "green1s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
     
     SYMBOL
       NAME "green2"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
     END
 
     SYMBOL
       NAME "green2s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
     END
     
     SYMBOL
       NAME "green3"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom5.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom5.png"
     END
 
     SYMBOL
       NAME "green3s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
     END
     
     SYMBOL
       NAME "green4"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom6.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom6.png"
     END
 
     SYMBOL
       NAME "green4s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
     END
     
     SYMBOL
       NAME "green5"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
     END
 
     SYMBOL
       NAME "green5s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
     END
     
     SYMBOL
       NAME "green6"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
     END
 
     SYMBOL
       NAME "green6s"
       TYPE PIXMAP
-      IMAGE "E:/projects/UrbanForestMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
+      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
     END
                 
 OUTPUTFORMAT
