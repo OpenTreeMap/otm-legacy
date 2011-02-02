@@ -801,9 +801,8 @@ def _build_tree_search_result(request):
     max_species_count = species.count()
     
     species_criteria = {'species' : 'accepted_symbol',
-                        'performer' : 'performer',
                         'native' : 'native_status',
-                        'edible' : 'fruit_seed_abundance',
+                        'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
                         'cultivar' : 'cultivar_name',
                         'flowering' : 'flower_conspicuous'}

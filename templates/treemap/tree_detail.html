@@ -373,7 +373,7 @@
 								{% if user.is_authenticated %}
 									{% get_comment_form for tree as form %}
 									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
-										<input type="hidden" name="next" value="{{ next }}" />
+										<input type="hidden" name="next" value="{{request.get_full_path}}" />
 										{% for field in form %}
 										{% if field.is_hidden %}
 										  {{ field }}

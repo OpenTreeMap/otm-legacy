@@ -197,11 +197,28 @@ var tm = {
             $("#searchSpeciesList").toggle();
         });
         
+        $("#close-filters").click(function(evt) {
+            $("#diameter_slider").slider('option', 'values', [curmin, curmax]);
+            $("#planted_slider").slider('option', 'values', [min_year, current_year]);
+            $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
+            delete tm.searchParams['diameter_range'];
+            delete tm.searchParams['planted_range'];
+            delete tm.searchParams['updated_range'];
+            
+            var checks = $("#options_form input:checked");
+            for(var i=0;i<checks.length;i++) {
+                delete tm.searchParams[checks[i].id];
+            }
+            $("#options_form input:checked").attr('checked', false)
+            tm.updateSearch()
+
+        });
         
         $("#searchLocationBrowse").click(function(evt) {
             $("#searchNBList").toggle();
         });
         
+        tm.updateSearch();
     },    
     
     setupSpeciesList: function() {
@@ -233,7 +250,6 @@ var tm = {
             if (i%2 == 0) {c = 'ac-even';}
             var feature = tm.locations.features[i];
             var name = feature.properties.name;
-            if (feature.properties.city != "") {name = feature.properties.city = " - " + feature.properties.name;}
             ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + name + "</li>")
         }
 
@@ -1432,7 +1448,7 @@ var tm = {
         if (tm.loadingSearch) { return; }
         //tm.tree_layer.clearMarkers();
         var qs = tm.serializeSearchParams();
-        if (!qs) { return; }
+        //if (!qs) { return; }
         jQuery('#displayResults').show();
         $.ajax({
             url: '/search/'+qs,
