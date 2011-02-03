@@ -891,7 +891,7 @@ def _build_tree_search_result(request):
         max = datetime.fromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
     if not geog_obj:
-        q = request.META['QUERY_STRING']
+        q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             geog_obj = cached_search_agg[0]
