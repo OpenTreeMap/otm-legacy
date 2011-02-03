@@ -163,7 +163,7 @@ var tm = {
             }    
         });
         $("#location_go").click(function(evt) {
-            if ($("#location_search_input")[0].value) {
+            if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
                 tm.handleSearchLocation($("#location_search_input")[0].value);
             } else {
                 $("#location_search_input").val("Philadelphia, PA");
@@ -190,12 +190,6 @@ var tm = {
                 delete tm.searchParams['species'];
                 tm.updateSearch();
             }    
-        });
-        $("#searchSpeciesBrowse").click(function(evt) {
-            $("#searchSpeciesList").toggle();
-        });
-        $("#searchLocationBrowse").click(function(evt) {
-            $("#searchNBList").toggle();
         });
 
         $("#close-filters").click(function(evt) {
@@ -951,6 +945,7 @@ var tm = {
     display_search_results : function(results){
         
         if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+        if (tm.tree_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
         //{
