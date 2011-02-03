@@ -69,51 +69,6 @@ var tm = {
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
             tm.updateSearch(); 
         });
-        $("#location_search_input").change(function(evt) {
-            if (this.value) {
-                tm.handleSearchLocation(this.value);
-            } else {
-                $("#location_search_input").val("Philadelphia, PA");
-                delete tm.searchParams['location'];
-                tm.updateSearch();
-
-                if (tm.cur_polygon){
-                    tm.map.removeOverlay(tm.cur_polygon);
-                }
-            }    
-        });
-        $("#location_go").click(function(evt) {
-            if ($("#location_search_input")[0].value) {
-                tm.handleSearchLocation($("#location_search_input")[0].value);
-            } else {
-                $("#location_search_input").val("Philadelphia, PA");
-                delete tm.searchParams['location'];
-                tm.updateSearch();
-
-                if (tm.cur_polygon){
-                    tm.map.removeOverlay(tm.cur_polygon);
-                }
-            }    
-        });
-        $("#species_search_input").change(function(evt) {
-            if (this.value === "") {
-                $("#species_search_id").val("");
-                $(this).val("All species");
-                delete tm.searchParams['species'];
-                tm.updateSearch();
-            }    
-        });
-        $("#searchSpeciesBrowse").click(function(evt){
-            $('#species_search_input')[0].click();
-        });
-        $("#species_go").click(function(evt) {
-            if ($("#species_search_input")[0].value) {
-                $("#species_search_id").val("");
-                $("#species_search_input").val("All species");
-                delete tm.searchParams['species'];
-                tm.updateSearch();
-            }    
-        });
         $("#species_search_id").change(function(evt) {
             if (this.value) {
                 tm.searchParams['species'] = this.value;
@@ -193,15 +148,68 @@ var tm = {
             }
         });    
         $("#updated_slider")[0].updateDisplay();
-        $("#searchSpeciesBrowse").click(function(evt) {
-            $("#searchSpeciesList").toggle();
+        
+        $("#location_search_input").change(function(evt) {
+            if (this.value) {
+                tm.handleSearchLocation(this.value);
+            } else {
+                $("#location_search_input").val("Philadelphia, PA");
+                delete tm.searchParams['location'];
+                tm.updateSearch();
+
+                if (tm.cur_polygon){
+                    tm.map.removeOverlay(tm.cur_polygon);
+                }
+            }    
+        });
+        $("#location_go").click(function(evt) {
+            if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
+                tm.handleSearchLocation($("#location_search_input")[0].value);
+            } else {
+                $("#location_search_input").val("Philadelphia, PA");
+                delete tm.searchParams['location'];
+                tm.updateSearch();
+
+                if (tm.cur_polygon){
+                    tm.map.removeOverlay(tm.cur_polygon);
+                }
+            }    
+        });
+        $("#species_search_input").change(function(evt) {
+            if (this.value === "") {
+                $("#species_search_id").val("");
+                $(this).val("All trees");
+                delete tm.searchParams['species'];
+                tm.updateSearch();
+            }    
+        });
+        $("#species_go").click(function(evt) {
+            if ($("#species_search_input")[0].value) {
+                $("#species_search_id").val("");
+                $("#species_search_input").val("All trees");
+                delete tm.searchParams['species'];
+                tm.updateSearch();
+            }    
+        });
+
+        $("#close-filters").click(function(evt) {
+            $("#diameter_slider").slider('option', 'values', [curmin, curmax]);
+            $("#planted_slider").slider('option', 'values', [min_year, current_year]);
+            $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
+            delete tm.searchParams['diameter_range'];
+            delete tm.searchParams['planted_range'];
+            delete tm.searchParams['updated_range'];
+
+            var checks = $("#options_form input:checked");
+            for(var i=0;i<checks.length;i++) {
+                delete tm.searchParams[checks[i].id];
+            }
+            $("#options_form input:checked").attr('checked', false)
+            tm.updateSearch()
+
         });
         
-        
-        $("#searchLocationBrowse").click(function(evt) {
-            $("#searchNBList").toggle();
-        });
-        
+        //tm.updateSearch();
     },    
     
     setupSpeciesList: function() {
@@ -231,8 +239,9 @@ var tm = {
         for(var i=0; i<tm.locations.features.length;i++) {
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
-            var feature = tm.locations.features[i]
-            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + feature.properties.name + "</li>")
+            var feature = tm.locations.features[i];
+            var name = feature.properties.name;
+            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + name + "</li>")
         }
 
         $("#n_list > li").hover(function(evt) {
@@ -278,25 +287,49 @@ var tm = {
         });
         var adv_active = false;
         $('#advanced').click(function() {
-                if (!adv_active) {
-                    if (location.pathname == "/map/") {
-                        $('.filter-box').slideDown('slow');
-                    }
-                    adv_active = true;
-                    $('#arrow').attr('src','/static/images/v2/arrow2.gif');
-                    //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
-                }    
-                else {
-                    if (location.pathname == "/map/") {
-                        $('.filter-box').slideUp('slow');
-                    }
-                    adv_active = false;
-                    $('#arrow').attr('src','/static/images/v2/arrow1.gif');
-                    //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
+            if (!adv_active) {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideDown('slow');
                 }
-                return false;
-            });
+                adv_active = true;
+                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
+                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
+            }    
+            else {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideUp('slow');
+                }
+                adv_active = false;
+                $('#arrow').attr('src','/static/images/v2/arrow1.gif');
+                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
+            }
+            return false;
+        });
         
+        $("#location_search_input").blur(function(evt) {
+            if (!this.value) {
+                $("#location_search_input").val("Philadelphia, PA");
+            }    
+        });
+        $("#species_search_input").blur(function(evt) {
+            if (!this.value) {
+                $("#species_search_id").val("");
+                $(this).val("All trees");
+            }    
+        });
+        $("#location_go").click(function(evt) {
+                triggerSearch();
+        });
+        $("#species_go").click(function(evt) {            
+                triggerSearch();
+        });
+        $("#searchSpeciesBrowse").click(function(evt) {
+            $("#searchSpeciesList").toggle();
+        });
+        $("#searchLocationBrowse").click(function(evt) {
+            $("#searchNBList").toggle();
+        });
+
         // todo - clean this logic up...
         if (jQuery.urlParam('diameter') || jQuery.urlParam('date') || jQuery.urlParam('characteristics') ||  jQuery.urlParam('advanced') )
         {
@@ -352,7 +385,7 @@ var tm = {
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-               
+                if (f.properties.id == tm.currentTreeId) {return;}
                 var icon = tm.get_icon(tm_icons.small_trees, 17);
                 var marker = new OpenLayers.Marker(ll, icon);
                 marker.tid = f.properties.id;
@@ -579,7 +612,7 @@ var tm = {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
-            tm.updateEditableLocation();
+            //tm.updateEditableLocation();
             
         }
         
@@ -589,13 +622,13 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 11);
+        tm.map.setCenter(olPoint, 15);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
         tm.load_nearby_trees(currentPoint);
         
-        if (editable) { tm.drag_control.activate(); }
+        //if (editable) { tm.drag_control.activate(); }
         
         tm.load_streetview(currentPoint, 'tree_streetview');
                 
@@ -912,6 +945,7 @@ var tm = {
     display_search_results : function(results){
         
         if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+        if (tm.tree_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
         //{
@@ -962,16 +996,18 @@ var tm = {
 
      
     enableEditTreeLocation : function(){
-        tm.tree_marker.enableDragging();
+        //tm.tree_marker.enableDragging();
+        tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttomSm"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },
         
     saveTreeLocation : function(){
-        tm.tree_marker.disableDragging();     
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing tree location</a>'
+        //tm.tree_marker.disableDragging();     
+        tm.drag_control.activate();
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
         },
@@ -1430,7 +1466,7 @@ var tm = {
         if (tm.loadingSearch) { return; }
         //tm.tree_layer.clearMarkers();
         var qs = tm.serializeSearchParams();
-        if (!qs) { return; }
+        //if (!qs) { return; }
         jQuery('#displayResults').show();
         $.ajax({
             url: '/search/'+qs,

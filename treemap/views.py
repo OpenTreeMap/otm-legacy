@@ -207,7 +207,7 @@ def species(request, selection='all', format='html'):
         species = Species.objects.filter(tree__in=trees)
     
     if selection == 'all':
-        species = Species.objects.all()
+        species = Species.objects.all().order_by('common_name')
     
     if format == 'json':
         res = [{"symbol":str(x.accepted_symbol or ''), 
@@ -801,9 +801,8 @@ def _build_tree_search_result(request):
     max_species_count = species.count()
     
     species_criteria = {'species' : 'accepted_symbol',
-                        'performer' : 'performer',
                         'native' : 'native_status',
-                        'edible' : 'fruit_seed_abundance',
+                        'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
                         'cultivar' : 'cultivar_name',
                         'flowering' : 'flower_conspicuous'}
@@ -892,7 +891,7 @@ def _build_tree_search_result(request):
         max = datetime.fromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
     if not geog_obj:
-        q = request.META['QUERY_STRING']
+        q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             geog_obj = cached_search_agg[0]
@@ -934,8 +933,8 @@ def advanced_search(request, format='json'):
     if settings.TILED_SEARCH_RESPONSE:
         maximum_trees_for_display = 0
     else:
-        maximum_trees_for_display = 750   
-    maximum_trees_for_summary = 5250   
+        maximum_trees_for_display = 1000   
+    maximum_trees_for_summary = 200000  
     response = {}
 
     trees, geog_obj = _build_tree_search_result(request)
@@ -1054,7 +1053,7 @@ def geographies(request, model, id=''):
     format = request.GET.get('format','html')
     location = request.GET.get('location','')
     
-    ns = model.objects.all().order_by('id')
+    ns = model.objects.all().order_by('name')
     
     if location:
         coords = map(float,location.split(','))
