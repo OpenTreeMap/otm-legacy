@@ -391,7 +391,7 @@ var tm = {
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-               
+                if (f.properties.id == tm.currentTreeId) {return;}
                 var icon = tm.get_icon(tm_icons.small_trees, 17);
                 var marker = new OpenLayers.Marker(ll, icon);
                 marker.tid = f.properties.id;

@@ -933,8 +933,8 @@ def advanced_search(request, format='json'):
     if settings.TILED_SEARCH_RESPONSE:
         maximum_trees_for_display = 0
     else:
-        maximum_trees_for_display = 750   
-    maximum_trees_for_summary = 5250   
+        maximum_trees_for_display = 1000   
+    maximum_trees_for_summary = 200000  
     response = {}
 
     trees, geog_obj = _build_tree_search_result(request)

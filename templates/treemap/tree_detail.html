@@ -121,21 +121,21 @@
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.current_dbh|floatformat:1}} inches</td>
+            <td>{{tree.get_dbh|add:" inches"|default:"Missing"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree height</td>
-            <td>{{tree.get_height}} feet</td>
+            <td>{{tree.get_height|add:" feet"|default:"Missing"}}</td>
             <td></td>
         </tr><tr>
         	<td class="col1Wide">Canopy height</td>
-            <td>{{tree.get_canopy_height}} feet</td>
+            <td>{{tree.get_canopy_height|add:" feet"|default:"Missing"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.address_street}}</td>
+            <td>{{tree.address_street|default:"Missing"}}</td>
             <td></td>
         </tr>
     </tbody>
@@ -198,19 +198,19 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width}} ft x {{tree.plot_length }} ft</td>
+            <td>{{tree.plot_width|add:" ft x "|default:"Missing"}}{{tree.plot_length|add:" ft"|default:"" }} </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
-            <td>{{ tree.get_plot_type_display }}</td>
+            <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
-            <td>{{ tree.get_sidewalk_damage_display }}</td>
+            <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
 
     </tbody>
@@ -225,11 +225,11 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Tree status</td>
-            <td>{{tree.get_condition}}</td>
+            <td>{{tree.get_condition|default:"Missing"}}</td>
         </tr>
         <tr>
 			<td class="col1Wide">Canopy condition</td>
-			<td>{{tree.get_canopy_condition}}</td>
+			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Alerts</td>
@@ -312,15 +312,15 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Flowering</td>
-            <td>{{tree.species.flower_conspicuous}}</td>
+            <td>{{tree.species.flower_conspicuous|default:"Missing"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Edible (fruits/nuts)</td>
-            <td>{{ tree.species.fruit_seed_abundance }}</td>
+            <td>{{ tree.species.palatable_human|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Native to area</td>
-            <td>{{ tree.species.native_status }}</td>
+            <td>{{ tree.species.native_status|default:"Missing" }}</td>
         </tr>
 
     </tbody>
@@ -335,12 +335,12 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Date planted</td>
-            <td>{{tree.date_planted|date}}</td>
+            <td>{{tree.date_planted|date|default:"Missing"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree steward</td>
-            <td>{{tree.steward_name}}</td>
+            <td>{{tree.steward_name|default:"Missing"}}</td>
             <td></td>
         </tr>
 <!--
