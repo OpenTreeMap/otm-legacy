@@ -222,13 +222,13 @@ LAYER
       END
       CLASS
         MINSCALEDENOM 50000
-        MAXSCALEDENOM 150000
+        MAXSCALEDENOM 250000
         STYLE
           #COLOR 15 120 20
           #WIDTH 1
           #SIZE 2
           #OUTLINECOLOR 110 175 110
-          SYMBOL "green1"
+          SYMBOL "green2"
           ANTIALIAS true
         END
       END
