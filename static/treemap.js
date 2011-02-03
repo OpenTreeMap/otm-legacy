@@ -618,7 +618,7 @@ var tm = {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
-            tm.updateEditableLocation();
+            //tm.updateEditableLocation();
             
         }
         
@@ -634,7 +634,7 @@ var tm = {
         tm.add_new_tree_marker(currentPoint);
         tm.load_nearby_trees(currentPoint);
         
-        if (editable) { tm.drag_control.activate(); }
+        //if (editable) { tm.drag_control.activate(); }
         
         tm.load_streetview(currentPoint, 'tree_streetview');
                 
@@ -1001,16 +1001,18 @@ var tm = {
 
      
     enableEditTreeLocation : function(){
-        tm.tree_marker.enableDragging();
+        //tm.tree_marker.enableDragging();
+        tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttomSm"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },
         
     saveTreeLocation : function(){
-        tm.tree_marker.disableDragging();     
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing tree location</a>'
+        //tm.tree_marker.disableDragging();     
+        tm.drag_control.activate();
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
         },
