@@ -218,7 +218,7 @@ var tm = {
             $("#searchNBList").toggle();
         });
         
-        tm.updateSearch();
+        //tm.updateSearch();
     },    
     
     setupSpeciesList: function() {
