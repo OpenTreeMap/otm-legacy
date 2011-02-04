@@ -162,6 +162,7 @@ var tm = {
                 }
             }    
         });
+        $("#location_go").unbind('click');
         $("#location_go").click(function(evt) {
             if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
                 tm.handleSearchLocation($("#location_search_input")[0].value);
@@ -183,6 +184,7 @@ var tm = {
                 tm.updateSearch();
             }    
         });
+        $("#species_go").unbind('click');
         $("#species_go").click(function(evt) {
             if ($("#species_search_input")[0].value) {
                 $("#species_search_id").val("");
@@ -336,6 +338,7 @@ var tm = {
         // todo - clean this logic up...
         if (jQuery.urlParam('diameter') || jQuery.urlParam('date') || jQuery.urlParam('characteristics') ||  jQuery.urlParam('advanced') )
         {
+            //TODO: might be causing duplicate search
             jQuery('#advanced').click();
         }
         function triggerSearch() {
@@ -1469,7 +1472,7 @@ var tm = {
         if (tm.loadingSearch) { return; }
         //tm.tree_layer.clearMarkers();
         var qs = tm.serializeSearchParams();
-        //if (!qs) { return; }
+        if (qs === false) { return; }
         jQuery('#displayResults').show();
         $.ajax({
             url: '/search/'+qs,
