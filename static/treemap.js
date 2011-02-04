@@ -255,6 +255,9 @@ var tm = {
             
     },
     baseTemplatePageLoad:function() {
+        $("#logo").click(function() {
+            location.href="http://207.245.89.214/";
+        });        
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {

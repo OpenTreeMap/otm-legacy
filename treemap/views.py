@@ -1063,6 +1063,7 @@ def geographies(request, model, id=''):
     if id:
         ns = ns.filter(id=id)
     if format.lower() == 'json':
+        ns = ns.exclude(aggregates__total_trees=0)
         return render_to_geojson(ns, simplify=.0005)
     if id:
         if format.lower() == 'infowindow':

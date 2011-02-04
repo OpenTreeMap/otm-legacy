@@ -221,6 +221,7 @@ text-decoration: none;
 	float:left;
 	background:url(/static/images/ptm/logo-graphic-text.png) bottom center no-repeat;
 	margin:0;
+	cursor:pointer;
 }
 
 .logo#logoText {
