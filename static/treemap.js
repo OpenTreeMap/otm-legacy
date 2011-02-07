@@ -218,6 +218,7 @@ var tm = {
         var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
         $("#searchSpeciesList").append(ul).hide();
         for(var i=0; i<tm.speciesData.length;i++) {
+            if (tm.speciesData[i].count == 0) {continue;}
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
             ul.append("<li id='" + tm.speciesData[i].symbol + "' class='" + c + "'>" + tm.speciesData[i].cname + " [" + tm.speciesData[i].sname + "]</li>")

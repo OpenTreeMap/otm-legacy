@@ -17,7 +17,7 @@
 			{% for image in leaf.nodeimage_set.all %}
 				<div class="leaf-image">
 					<a href="/treekey/node/{{ leaf.id }}/">
-						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
 				</div>
 			{% endfor %}
@@ -34,7 +34,7 @@
 			{% for image in leaf.nodeimage_set.all %}
 				<div class="leaf-image">
 					<a href="/treekey/leaf/{{ leaf.id }}/">
-						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
 				</div>
 			{% endfor %}

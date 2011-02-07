@@ -7,7 +7,7 @@
 	</div>
 	{% for species in leaf.species.all %}
 		<div class="leaf-choice">
-			<div class="leaf-image"><a href="/treekey/species/{{ species.id }}/"><img src="{{ species.first_image_url }}" /></a></div>
+			<div class="leaf-image"><a href="/treekey/species/{{ species.id }}/"><img src="/static/{{ species.first_image_url }}" /></a></div>
 			<div class="leaf-info">
 				<div class="leaf-species-name">
 					<a href="/treekey/species/{{ species.id }}/">{{ species }}</a>

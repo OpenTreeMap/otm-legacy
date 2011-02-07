@@ -50,7 +50,7 @@
 	<div class="species-images">
 	{% for image in species.speciesimage_set.all %}
 		<div class="species-image">
-			<img src="{{ image.image.url }}" alt="{{ image }}" />
+			<img src="/static/{{ image.image.url }}" alt="{{ image }}" />
 			<div class="species-image-caption">
 				{{ image.caption }}
 			</div>

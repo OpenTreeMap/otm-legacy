@@ -214,7 +214,8 @@ def species(request, selection='all', format='html'):
                  "cname":str(x.common_name or ''),
                  "cultivar":str(x.cultivar_name or ''),
                  "sname":str(x.scientific_name or x.genus),
-                 "id": int(x.id)} for x in species]
+                 "id": int(x.id),
+                 "count": int(x.tree_count)} for x in species]
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
         
     if format == 'csv':
