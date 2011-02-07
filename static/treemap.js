@@ -187,9 +187,6 @@ var tm = {
         $("#species_go").unbind('click');
         $("#species_go").click(function(evt) {
             if ($("#species_search_input")[0].value) {
-                $("#species_search_id").val("");
-                $("#species_search_input").val("All trees");
-                delete tm.searchParams['species'];
                 tm.updateSearch();
             }    
         });
@@ -363,7 +360,10 @@ var tm = {
         $("#advanced").click(function() {
             tm.advancedClick = true;
             triggerSearch();
-            });    
+            });   
+            
+            
+        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     },    
     dateString: function(dateObj) {
         var d = (dateObj.getYear()+1900) + "-" +
@@ -1430,7 +1430,7 @@ var tm = {
                     tm.updateSpeciesFields('species_search',$.address.parameter(key), cultivar);
                 } 
                 if (key == "location") {
-                    tm.updateLocationFields($.address.parameter(key));
+                    tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
                 }    
             }    
         }
