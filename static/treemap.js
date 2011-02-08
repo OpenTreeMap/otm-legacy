@@ -278,7 +278,7 @@ var tm = {
             //var loc = $.address.parameter("location");
             //tm.updateLocationFields(loc);
         });
-        jQuery.getJSON('/neighborhoods/', {format:'json'}, function(nbhoods){
+        jQuery.getJSON('/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
             tm.locations = nbhoods;
             tm.setupLocationList();
         });
@@ -517,7 +517,7 @@ var tm = {
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 11);
+            , 13);
             
         tm.map.events.register("click", tm.map, function (e) {
             if (tm.add_vector_layer.features.length > 0) {
@@ -629,7 +629,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 15);
+        tm.map.setCenter(olPoint, 17);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
@@ -1039,24 +1039,19 @@ var tm = {
             address = jQuery('#searchInput').text();
         }
         
-        //TODO: check against neighborhood/zip list first and use centroid
-        
-        var address = address + ", pa";
-        
-        tm.geocoder.geocode({
-            address: address,
-            bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
-        }, function(results, status){
-            if (status == google.maps.GeocoderStatus.OK) {
-                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
-                var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
+        tm.geocode_address = address;
+                
+        jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+            if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                
+            if (nbhoods.features.length > 0) {
+                var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
+                var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                tm.map.zoomToExtent(bbox, true);
                 
                 var icon = tm.get_icon(tm_icons.marker,0);
-                tm.location_marker = new OpenLayers.Marker(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), icon);
-                
+                tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
                 tm.misc_markers.addMarker(tm.location_marker);
-                
                 tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
                     var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
                     popupPixel.y += this.icon.offset.y - 25;
@@ -1071,22 +1066,69 @@ var tm = {
                     tm.map.addPopup(tm.smallPopup);
                     tm.smallPopup.updateSize();
                 });
-
                 tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
                     tm.map.removePopup(tm.smallPopup);
                 });
                 
-                
-                if (callback) {
-                    callback(olPoint);
+                if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
+                    if (callback) {
+                        callback(null);
+                    }   
                 }
-                
-            } else {
-                alert("Geocode was not successful for the following reason: " + status);
-            }
+                else {                    
+                    if (callback) {
+                        callback(olPoint);
+                    }
+                }
 
-        });
-        
+            }
+            else {
+                var address = tm.geocode_address + ", pa";
+                        
+                tm.geocoder.geocode({
+                    address: address,
+                    bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
+                }, function(results, status){
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
+                        tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
+
+                        var icon = tm.get_icon(tm_icons.marker,0);
+                        tm.location_marker = new OpenLayers.Marker(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), icon);
+
+                        tm.misc_markers.addMarker(tm.location_marker);
+
+                        tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
+                            var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
+                            popupPixel.y += this.icon.offset.y - 25;
+                            tm.smallPopup = new OpenLayers.Popup("popup_address",
+                                       tm.map.getLonLatFromPixel(popupPixel),
+                                       null,
+                                       $("#location_search_input").val(),
+                                       false);
+                            tm.smallPopup.minSize = new OpenLayers.Size(20,25);
+                            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+                            tm.smallPopup.border = "1px solid Black";
+                            tm.map.addPopup(tm.smallPopup);
+                            tm.smallPopup.updateSize();
+                        });
+
+                        tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
+                            tm.map.removePopup(tm.smallPopup);
+                        });
+
+
+                        if (callback) {
+                            callback(olPoint);
+                        }
+
+                    } else {
+                        alert("Geocode was not successful for the following reason: " + status);
+                    }
+                
+                });
+            }            
+        });        
     },
         
     setupEdit: function(field, model, id, options) {
@@ -1556,13 +1598,17 @@ var tm = {
             return false;
         });
     },
-
+    
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         tm.geocode(search, true, function(point) {
-            tm.geocoded_locations[search] = [point.lon, point.lat];
-            tm.searchParams['location'] = search;
+            if (point) {
+                tm.geocoded_locations[search] = [point.lon, point.lat];
+                tm.searchParams['location'] = search;                
+            } else {
+                delete tm.searchParams.location;
+            }
             tm.updateSearch();
         });
     },

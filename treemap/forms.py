@@ -2,6 +2,8 @@ from django import forms
 from models import Tree, Species, TreePhoto, Neighborhood, ZipCode
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
@@ -23,7 +25,7 @@ class TreeEditPhotoForm(forms.ModelForm):
         fields = ('title','photo',)
 
 class TreeAddForm(forms.Form):
-    edit_address_street = forms.CharField(required=False)
+    edit_address_street = forms.CharField(required=True)
     edit_address_city = forms.CharField(required=True)
     edit_address_zip = USZipCodeField(required=False)
     species_name = forms.CharField(max_length=200,required=False)
@@ -33,6 +35,18 @@ class TreeAddForm(forms.Form):
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
  
+    def clean(self):        
+        cleaned_data = self.cleaned_data  
+        try:
+            point = Point(cleaned_data.get('lon'),cleaned_data.get('lat'),srid=4326)        
+            nearby = Tree.objects.filter(geometry__distance_lte=(point, D(ft=5)))
+            if nearby.count() > 0:
+                raise forms.ValidationError("The selected location is too close to an existing tree. Please check that the tree you are trying to enter is not already in the system or specify a different location.")
+        except:
+            raise forms.ValidationError("Some information may be missing below. Please check the required fields before trying again.") 
+
+        return cleaned_data 
+        
     def save(self,request):
         from django.contrib.gis.geos import Point
         species = self.cleaned_data.get('species_id')
@@ -92,6 +106,13 @@ class _TreeAddForm(forms.ModelForm):
             user = User.objects.get(id=data)
             return user
         
+    def clean_geometry(self):
+        print self.cleaned_data['geometry']
+        print self.validate_proximity(False, 0)
+        if self.validate_proximity(False, 0) > 0:
+            raise forms.ValidationError("Too close to another tree.")
+    
+        return self.geometry
     
     def clean_species(self):
         """

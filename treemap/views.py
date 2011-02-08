@@ -1053,6 +1053,9 @@ def geographies(request, model, id=''):
     """
     format = request.GET.get('format','html')
     location = request.GET.get('location','')
+    name = request.GET.get('name', '')
+    list = request.GET.get('list', '')
+    print list
     
     ns = model.objects.all().order_by('name')
     
@@ -1063,8 +1066,11 @@ def geographies(request, model, id=''):
     
     if id:
         ns = ns.filter(id=id)
-    if format.lower() == 'json':
+    if name:
+        ns = ns.filter(name__iexact=name)
+    if list:        
         ns = ns.exclude(aggregates__total_trees=0)
+    if format.lower() == 'json':
         return render_to_geojson(ns, simplify=.0005)
     if id:
         if format.lower() == 'infowindow':
