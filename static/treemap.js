@@ -1049,33 +1049,32 @@ var tm = {
                 var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                 tm.map.zoomToExtent(bbox, true);
                 
-                var icon = tm.get_icon(tm_icons.marker,0);
-                tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
-                tm.misc_markers.addMarker(tm.location_marker);
-                tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
-                    var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
-                    popupPixel.y += this.icon.offset.y - 25;
-                    tm.smallPopup = new OpenLayers.Popup("popup_address",
-                               tm.map.getLonLatFromPixel(popupPixel),
-                               null,
-                               $("#location_search_input").val(),
-                               false);
-                    tm.smallPopup.minSize = new OpenLayers.Size(20,25);
-                    tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-                    tm.smallPopup.border = "1px solid Black";
-                    tm.map.addPopup(tm.smallPopup);
-                    tm.smallPopup.updateSize();
-                });
-                tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
-                    tm.map.removePopup(tm.smallPopup);
-                });
-                
                 if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
                     if (callback) {
                         callback(null);
                     }   
-                }
-                else {                    
+                }else {  
+                    var icon = tm.get_icon(tm_icons.marker,0);
+                    tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
+                    tm.misc_markers.addMarker(tm.location_marker);
+                    tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
+                        var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
+                        popupPixel.y += this.icon.offset.y - 25;
+                        tm.smallPopup = new OpenLayers.Popup("popup_address",
+                                   tm.map.getLonLatFromPixel(popupPixel),
+                                   null,
+                                   $("#location_search_input").val(),
+                                   false);
+                        tm.smallPopup.minSize = new OpenLayers.Size(20,25);
+                        tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+                        tm.smallPopup.border = "1px solid Black";
+                        tm.map.addPopup(tm.smallPopup);
+                        tm.smallPopup.updateSize();
+                    });
+                    tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
+                        tm.map.removePopup(tm.smallPopup);
+                    });
+                                  
                     if (callback) {
                         callback(olPoint);
                     }

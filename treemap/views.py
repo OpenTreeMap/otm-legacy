@@ -527,10 +527,10 @@ def update_users(request):
             user.groups.add(group)
             rep = Reputation.objects.reputation_for_user(user)
             #increase rep if now part of an 'admin' group and too low
-            if user.has_perm('django_reputation.change_reputation') and rep.reputation < 100:
+            if user.has_perm('django_reputation.change_reputation') and rep.reputation < 1000:
                 #rep_gain = 100 - rep.reputation
                 #Reputation.objects.log_reputation_action(user, request.user, 'Administrative Action', rep_gain, user)
-                user.reputation.reputation = 100
+                user.reputation.reputation = 1001
                 user.reputation.save()
                 response_dict['new_rep'] = user.reputation.reputation
                 response_dict['user_id'] = user.id
@@ -1283,7 +1283,13 @@ def view_flagged(request):
     flags = CommentFlag.objects.filter(comment__is_public=True)
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
     
+@login_required
+@permission_required('moderate_comments')
+def view_comments(request):
+    comments = Comment.objects.filter(is_public=True)
+    return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments}))
     
+   
 def hide_comment(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
