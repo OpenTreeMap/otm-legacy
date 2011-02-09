@@ -1004,7 +1004,13 @@ h2#pageHead {
 font-size: 27px;
 color: #3f2b27;
 margin-top: 0;
+margin-bottom:10px;
+}
 
+h3#pageHead {
+font-size: 18px;
+color: #666;
+margin-top: 0;
 }
 
 #tabcontainer {
@@ -1545,6 +1551,9 @@ ul#resultsContainer li#export {
 	border-top: 1px solid transparent;
 	vertical-align: top;
 /* 	white-space: nowrap; */
+}
+.box-table-a td.error, .box-table-a td span.error {
+	color: red;
 }
 .box-table-a tr:hover td {
 	background: transparent  /* replaced */;

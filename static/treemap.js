@@ -524,8 +524,8 @@ var tm = {
                 return false;
             }
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            var zoom = 15;
-            if (tm.map.getZoom() > 15) {zoom = tm.map.getZoom();}
+            var zoom = 17;
+            if (tm.map.getZoom() > 17) {zoom = tm.map.getZoom();}
             tm.map.setCenter(mapCoord, zoom);
             
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
@@ -1186,6 +1186,19 @@ var tm = {
             //  var dateVal = new Date(Date.parse(value));
             //  value = dateVal.getFullYear() + "-" + (dateVal.getMonth()+1) + "-" + dateVal.getDate()
             //}
+            
+            
+            //do some validation for height and canopy height
+            if (settings.fieldName == 'height' || settings.fieldName == 'canopy_height') {
+                if (value > 300) {
+                    $(this).addClass("error");
+                    return "Height is too large.";
+                }
+                else {
+                    $(this).removeClass("error");
+                }
+            }
+            
             if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus", "TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
@@ -1663,6 +1676,13 @@ var tm = {
             }
         }
         var total = Math.sqrt(sum);
+        
+        if (total > 100) {
+            $("#edit_dbh").append("<br/><span class='error'>Total diameter too large.</span>")
+            tm.editingDiameter = false;
+            return;
+        }
+        
         tm.currentTreeDiams = vals;
         var editableOptions = {
             submit: 'Save',

@@ -28,62 +28,45 @@
     <!-- Do we really need this header? -->
     <thead>
     	<tr>
-        	<th scope="col" colspan="4">Quick view</th>
+        	<th scope="col" colspan="4">
+        		{{ tree.scientific_name|default:"No Species Yet" }} <br/>
+        		<span style="font-size:smaller;">{{ tree.species.common_name }}</span>
+        	</th>
         </tr>
     </thead>
-    
+
     <tbody>
-    	<tr>
-        	<td class="col1">Species name</td>
-            <td><i>{{ tree.get_scientific_name }}</i></td>
-        </tr>
-        <tr>
-        	<td class="col1">Common name</td>
-            <td>{{ tree.species.common_name }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Tree number</td>
-            <td>#{{ tree.id }}</td>
-        </tr>
         <tr>
         	<td class="col1">Nearby address</td>
-            <td>{{ tree.address_street }}</td>
+            <td>{{ tree.address_street|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>
-            <td>{{ tree.current_dbh|default:"Unknown" }}</td>
+            <td>{{ tree.current_dbh|default:"Missing" }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Height</td>
+            <td>{{ tree.get_height|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1">Last updated</td>
             <td>{{ tree.last_updated|date }}</td>
         </tr>
+        {% if tree.treealert_set.all.count > 0 %}
         <tr>
         	<td class="col1">Alerts</td>
             <td>
-            {% if tree.treealert_set.all.count > 0 %}
                 <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
-            {% else %}
-                No Alerts
-            {% endif %}
             </td>
         </tr>
-{% comment %}
-        <tr>
-        	<td class="col1">Height</td>
-            <td>{{ tree.get_height|default:"Unknown" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Condition</td>
-            <td>{{ tree.get_condition|default:"Unknown" }}</td>
-        </tr>
-{% endcomment %}
+        {% endif %}
         <tr>
         	<td class="col1">Yearly eco impact</td>
             <td>{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</td>
         </tr>
     </tbody>
 </table>
-    
+
 {% endblock %}
 
 
