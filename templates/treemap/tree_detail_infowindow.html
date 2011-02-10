@@ -29,7 +29,7 @@
     <thead>
     	<tr>
         	<th scope="col" colspan="4">
-        		{{ tree.scientific_name|default:"No Species Yet" }} <br/>
+        		{{ tree.species.scientific_name|default:"No Species Yet" }} <br/>
         		<span style="font-size:smaller;">{{ tree.species.common_name }}</span>
         	</th>
         </tr>

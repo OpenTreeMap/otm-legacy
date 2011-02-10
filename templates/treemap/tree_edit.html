@@ -38,11 +38,6 @@
 						{{ field.value|default:"Species Not Yet Determined" }}
 						</h2>
 					{% endifequal %}
-					{% ifequal field.name "address_street" %}
-						<h3 id="pageHead">
-						{{ field.value|default:"No Address" }}
-						</h3>
-					{% endifequal %}
 				{% endfor %}
                         <div class="tab-content" id="tab-2">
 
