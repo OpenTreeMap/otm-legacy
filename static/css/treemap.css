@@ -49,12 +49,16 @@ margin:2px;
  padding-top:10px;
 }
 .comment_item{
- margin-top:8px;
- padding-top:8px;
- border-top: 1px dashed #ccc;
+ margin-bottom:8px;
+ padding-bottom:8px;
+ border-bottom: 1px dashed #ccc;
 }
 .comment_body{
  padding-left:6px;
+}
+
+#id_comment{
+    height:100px;
 }
 
 

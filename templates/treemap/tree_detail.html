@@ -3,6 +3,7 @@
 {% load thumbnail dynamic_attribute humanize %}
 {% load maths %}
 {% load comments %}
+{% load tree_tags %}
 
 {% get_comment_count for tree as comment_count %}
 
@@ -124,16 +125,16 @@
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.get_dbh|add:" inches"|default:"Missing"}}</td>
+            <td>{{tree.get_dbh|unit_or_missing:"inches"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree height</td>
-            <td>{{tree.get_height|add:" feet"|default:"Missing"}}</td>
+            <td>{{tree.get_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr><tr>
         	<td class="col1Wide">Canopy height</td>
-            <td>{{tree.get_canopy_height|add:" feet"|default:"Missing"}}</td>
+            <td>{{tree.get_canopy_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
         <tr>
@@ -201,7 +202,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|add:" ft x "|default:"Missing"}}{{tree.plot_length|add:" ft"|default:"" }} </td>
+            <td>{{tree.plot_width|unit_or_missing:"ft x "}}{{tree.plot_length|unit_or_missing:"ft" }} </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
@@ -373,6 +374,21 @@
 								<div class="wrap">
 									<h2>Comments</h2>
 								</div>
+								<div class="comment_list">
+								{% get_comment_list for tree as comment_list %}
+								{% for comment in comment_list %}
+									<div class="comment_item">
+										<div class="comment_head">
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+										</div>
+										<div class="comment_body">
+											{{ comment.comment }}
+										</div>
+									</div>
+								{% endfor %}
+								</div>
+
 								{% if user.is_authenticated %}
 									{% get_comment_form for tree as form %}
 									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
@@ -398,20 +414,6 @@
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}
-								<div class="comment_list">
-								{% get_comment_list for tree as comment_list %}
-								{% for comment in comment_list %}
-									<div class="comment_item">
-										<div class="comment_head">
-											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
-										</div>
-										<div class="comment_body">
-											{{ comment.comment }}
-										</div>
-									</div>
-								{% endfor %}
-								</div>
 
 							</div>
                         </div>
@@ -509,20 +511,35 @@
                     </ul>
                 </li>
             </ul>
-			
+
 			<ul id="progress">
                     <!-- TODO -->
                     <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
-                    
+
 					<li id="progressStatus">
 					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
 						<div class="progressText">{{ tree.percent_complete|floatformat }}%&nbsp;complete</div></li>
                     <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
 			</ul>
-			
+
             <ul id="message">
                 <li id="title">Your turn</li>
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
+            </ul>
+
+            <ul id="message">
+            	<li id="title">Recent Contributors</li>
+            	<li>
+					<ul class="optionItem">
+						{% for update in tree.history.all %}
+							{% if forloop.counter0 < 5 %}
+							<li>{{update.last_updated|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.last_updated_by}}" target="_blank">{{ update.last_updated_by }}</a></li>
+							{% endif %}
+						{% empty %}
+							<li>No edits yet!</li>
+						{% endfor %}
+					</ul>
+            	</li>
             </ul>
         </div>
 

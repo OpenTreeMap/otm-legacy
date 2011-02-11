@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_view_exempt
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
 from django_reputation.models import Reputation, Permission
-
+from registration.signals import user_activated
 # formsets
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
@@ -47,6 +47,11 @@ def render_to_json(j):
     response['Content-length'] = str(len(response.content))
     response['Content-Type'] = 'text/plain'
     return response
+
+def user_activated_callback(sender, **kwargs):    
+    rep = Reputation.objects.reputation_for_user(kwargs['user'])
+    print rep
+user_activated.connect(user_activated_callback)
 
 #@cache_page(60*5)
 # Static pages have user information in them, so caching them doesn't work.

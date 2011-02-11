@@ -52,3 +52,11 @@ def truncatewords_by_chars(value, arg):
     return truncate_words(value, lower)
   if len(value) < limit:
     return truncate_words(value, higher)
+
+@register.filter
+def unit_or_missing(value, unit=None):
+    if value:    
+        if unit:
+            return value.__str__() + " " + unit
+        return value
+    return "Missing" 

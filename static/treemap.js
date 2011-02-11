@@ -438,6 +438,7 @@ var tm = {
                 attribution: "(c) PhillyTreeMap.org"
             }
         );
+        tms.buffer = 0;
         baseLayer.buffer = 0;
         tm.map.addLayers([baseLayer, tms]);
     },
@@ -1647,7 +1648,11 @@ var tm = {
         $(field).html(html);
     },
     cancelDiameters: function() {
-        $("#edit_dbh").html(parseFloat(tm.currentDiameter).toFixed(1));
+        if (isNaN(parseFloat(tm.currentDiameter))) {
+            $("#edit_dbh").html("Click to edit");
+        } else {
+            $("#edit_dbh").html(parseFloat(tm.currentDiameter).toFixed(1));
+        }            
         tm.editingDiameter = false;
     },  
     addAnotherDiameter: function() {
