@@ -60,3 +60,11 @@ def unit_or_missing(value, unit=None):
             return value.__str__() + " " + unit
         return value
     return "Missing" 
+
+@register.filter
+def unit_or_empty(value, unit=None):
+    if value:    
+        if unit:
+            return value.__str__() + " " + unit
+        return value
+    return "" 

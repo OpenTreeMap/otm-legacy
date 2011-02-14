@@ -470,16 +470,6 @@ def tree_edit(request, tree_id = ''):
         sidewalk,
         condition,
         c_condition,
-        {'type':'actions',
-         'name': 'actions',
-         'label':"Actions",
-         'value': tree.treeaction_set.all()
-        },
-        {'type':'hazards',
-         'name': 'hazards',
-         'label':"Alerts",
-         'value': tree.treealert_set.filter(solved=False)
-        },
         {'type':'local',
          'name': 'local',
          'label':"Local",

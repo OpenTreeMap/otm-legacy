@@ -202,7 +202,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:"ft x "}}{{tree.plot_length|unit_or_missing:"ft" }} </td>
+            <td>{{tree.plot_width|unit_or_missing:"ft x "}}{{tree.plot_length|unit_or_empty:"ft" }} </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
@@ -234,52 +234,6 @@
         <tr>
 			<td class="col1Wide">Canopy condition</td>
 			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Alerts</td>
-            <td>{{tree.get_alert_count}} known</td>
-            <td>{% if tree.get_alert_count > 0 %}<a href="#" id="tree_alerts" onclick="$('#alerts').toggle();return false;">Details</a>{% endif %}</td>
-        </tr>
-        <tr id="alerts" style="display:none;">
-            <td colspan="5">
-                <table class="box-table-b" colspan="5">
-                    <tbody>
-                    	<tr>
-                        	<td class="col1Wide"><b>Alert</b></td>
-                            <td><b>Reported by</b></td>
-                        </tr>
-                        {% for a in tree.treealert_set.all %}
-                        <tr>
-                        	<td class="col1Wide">{{ a.get_key_display }}</td>
-                            <td>{{ a.reported_by }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Actions</td>
-            <td>{{tree.get_action_count}} known</td>
-            <td>{% if tree.get_action_count > 0 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">Details</a>{% endif %}</td>
-        </tr>
-        <tr id="actions" style="display:none;">
-            <td colspan="5">
-                <table class="box-table-b" colspan="5">
-                    <tbody>
-                    	<tr>
-                        	<td class="col1Wide"><b>Action taken</b></td>
-                            <td><b>Reported by</b></td>
-                        </tr>
-                        {% for a in tree.treeaction_set.all %}
-                        <tr>
-                        	<td class="col1Wide">{{ a.get_key_display }}</td>
-                            <td>{{ a.reported_by }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </td>
         </tr>
         <tr>
         	<td class="col1Wide">Local Flags</td>
@@ -367,7 +321,7 @@
                 {% block right_panel %}
                     <!-- start t2_right_panel  -->
                         <div class="aside">
-                            <div id="add_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
+                            <div id="edit_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
 							<div id="tree_comments">
@@ -386,6 +340,8 @@
 											{{ comment.comment }}
 										</div>
 									</div>
+								{% empty %}
+									<div class="comment_item">No comments yet!</div>
 								{% endfor %}
 								</div>
 

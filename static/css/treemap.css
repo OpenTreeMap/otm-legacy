@@ -83,24 +83,19 @@ border: 1px solid #ccc;
 position: relative;
 }
 
-#add_tree_map{
-height:240px;
+#edit_tree_map{
+height:300px;
 width:248px;
 border:1px solid #ccc;
 overflow: hidden;
 position:relative;
-
-
 }
-#register #add_tree_map {
+#add_tree_map {
 float:left;
 margin-left: 10px !important;
 margin-bottom: 15px !important;
-width: 284px;
-}
-.addMap{
-margin-left:210px;
-margin-bottom:15px;
+width: 484px;
+height:350px;
 }
 #static_map{
 height:40px;%

@@ -3,25 +3,11 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
-    <script type="text/javascript" src="/static/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
-   <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" media="screen" />
-
 <script type="text/javascript">
     jQuery().ready(function() {
         tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
         tm.init_tree_map(true);
         tm.currentTreeId = {{instance.id}};
-        // Custom submit function
-
-        $("#treekey").fancybox({
-        'width'        : 980,
-        'height'      : 600,
-        'autoScale'       : false,
-        'transitionIn'    : 'none',
-        'transitionOut'    : 'none',
-        'type'        : 'iframe'
-        });
-
     });
 </script>
 {% endblock %}
@@ -270,7 +256,7 @@
                         </ul>
                     </div>
                     <div class="editMap">
-                        <div id="add_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
+                        <div id="edit_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                         <div id="alternate_tree_div"></div>
                         <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                     </div>

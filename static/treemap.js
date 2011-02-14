@@ -520,6 +520,8 @@ var tm = {
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 13);
             
+        tm.geocoder = new google.maps.Geocoder();
+        
         tm.map.events.register("click", tm.map, function (e) {
             if (tm.add_vector_layer.features.length > 0) {
                 return false;
@@ -538,41 +540,9 @@ var tm = {
             
             jQuery('#id_lat').val(mapCoord.lat);
             jQuery('#id_lon').val(mapCoord.lon);
-        });
-                
-        tm.geocoder = new google.maps.Geocoder();
-    
-        //listen for change to address field to update map location //todo always?
-        
-        jQuery('#id_edit_address_street').change(function(nearby_field){
-            //console.log(nearby_field);
-            var new_addy = nearby_field.target.value;
-            //new_addy += ", ph";
-            if (!tm.tree_marker && new_addy){ //only add marker if it doesn't yet exist                
-                tm.geocoder.geocode({
-                        address: new_addy,
-                        bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
-                    }, 
-                    function(results, status) {
-                        if (status == google.maps.GeocoderStatus.OK) {
-                            var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                            tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
-         
-                            tm.load_nearby_trees(olPoint);
-                            tm.add_new_tree_marker(olPoint);
-
-                            tm.drag_control.activate();
-
-                            jQuery('#id_lat').val(olPoint.lat);
-                            jQuery('#id_lon').val(olPoint.lon);
-
-                        } else {
-                            alert("Geocode was not successful for the following reason: " + status);
-                        }
-
-                    }
-                );  
-            }        
+            
+            tm.reverse_geocode(mapCoord);
+                        
         });
     },
         
@@ -610,7 +580,7 @@ var tm = {
     // where a user just views, or moves, an existing tree
     // also it loads the streetview below the map
     init_tree_map : function(editable){
-        tm.init_base_map('add_tree_map');
+        tm.init_base_map('edit_tree_map');
         
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -727,6 +697,10 @@ var tm = {
             if (status == google.maps.GeocoderStatus.OK) {
                 var addy = results[0].address_components;
                 
+                if ($("#geocode_address")) {
+                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
+                }
+                
                 $.each(addy, function(index, value){
                     if ($.inArray('locality', value.types) > -1) {
                          if ($('#edit_address_city')) {
@@ -761,7 +735,12 @@ var tm = {
                 }
 
             } else {
-                alert("Geocode was not successful for the following reason: " + status);
+                if ($("#geocode_address")) {
+                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
+                }
+                else {
+                    alert("Reverse Geocode was not successful.");
+                }
             }
         
         });

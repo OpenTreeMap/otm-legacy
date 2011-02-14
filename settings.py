@@ -48,14 +48,6 @@ EMAIL_MANAGERS = False
 EMAIL_HOST = 'postoffice.dca.net'
 EMAIL_PORT = 25
 
-#reputation
-REPUTATION_ENABLED = True
-MAX_REPUTATION_LOSS_PER_DAY = 100
-BASE_REPUTATION = 0
-REPUTATION_REQUIRED_TEMPLATE = 'django_reputation/reputation_required.html'
-MAX_REPUTATION_GAIN_PER_DAY = 100
-
-
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
 
