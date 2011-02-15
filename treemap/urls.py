@@ -31,6 +31,7 @@ urlpatterns = patterns('',
     (r'^trees/(?P<tree_id>\d+)/ecosystem/$', trees),
     url(r'^trees/(?P<tree_id>\d+)/$', trees, name="treemap_tree_detail"),
     (r'^trees/location/$', tree_location_search),
+    (r'^trees/location/update/$', tree_location_update),
     
     
     url(r'^trees/favorites/create/(?P<pk>\d+)/$', create_favorite, name='treeemap_favorite_create'), 
@@ -53,6 +54,8 @@ urlpatterns = patterns('',
     (r'^check_username/$', check_username),
     (r'^users/$', edit_users),
     (r'^users/update/$', update_users),
+    (r'^users/ban/$', ban_user),
+    (r'^users/activate/$', unban_user),
     
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),

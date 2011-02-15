@@ -813,8 +813,37 @@ var tm = {
                 popup.autoSize = true;
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
-                jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
                 
+                if (!p.street_address) {
+                    latlng = new google.maps.LatLng(coords[1], coords[0])
+                    tm.geocoder.geocode({
+                        latLng: latlng
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            //TODO: add jsonString here for post
+                            var data = {
+                                'tree_id': p.id,
+                                'address': results[0].formatted_address.split(", ")[0],
+                                'city': results[0].formatted_address.split(", ")[1]
+                            };
+                            var jsonString = JSON.stringify(data);
+                            
+                            $.ajax({
+                                url: '/trees/location/update/',
+                                type: 'POST',
+                                data: jsonString,
+                                complete: function(xhr, textStatus) {
+                                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');                                    
+                                }
+                            });
+                        } else {
+                            jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                        }
+                    });
+                }
+                else {
+                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                }
             }
         }
     },
@@ -1742,6 +1771,49 @@ var tm = {
             alert("Error: " + err.status + "\nQuery: " + user_id + " " + group_id);
             }
         });
+    },
+    
+    banUser: function(user_id) {
+        var data = {
+            'user_id': user_id
+        };
+        var jsonString = JSON.stringify(data);
+
+        $.ajax({
+            url: '/users/ban/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $('#' + response.user_id).children("#rep").children("#ban").toggle();
+                $('#' + response.user_id).children("#rep").children("#activate").toggle();
+                $('#' + response.user_id).children("#active").html('Inactive');
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id);
+            }
+        });
+    },
+    activateUser: function(user_id) {
+            var data = {
+                'user_id': user_id
+            };
+            var jsonString = JSON.stringify(data);
+    
+            $.ajax({
+                url: '/users/activate/',
+                dataType: 'json',
+                data: jsonString,
+                type: 'POST',
+                success: function(response) {
+                    $('#' + response.user_id).children("#rep").children("#ban").toggle();
+                    $('#' + response.user_id).children("#rep").children("#activate").toggle();
+                    $('#' + response.user_id).children("#active").html('Active');
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + user_id);
+                }
+            });
     },
     
     hideComment: function(flag_id) {

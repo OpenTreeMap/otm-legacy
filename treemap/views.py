@@ -541,7 +541,41 @@ def update_users(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+
+@permission_required('change_user')
+def ban_user(request):
+    response_dict = {}
+    if request.method == 'POST':
+        post = simplejson.loads(request.raw_post_data)
+        user = User.objects.get(pk=post.get('user_id'))
+        user.is_active = False
+        user.save()
+        response_dict['user_id'] = user.id
+        
+    response_dict['success'] = True
+     
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
     
+@permission_required('change_user')
+def unban_user(request):
+    response_dict = {}
+    if request.method == 'POST':
+        post = simplejson.loads(request.raw_post_data)
+        user = User.objects.get(pk=post.get('user_id'))
+        user.is_active = True
+        user.save()
+        response_dict['user_id'] = user.id
+
+    response_dict['success'] = True
+
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+        
 
 # http://docs.djangoproject.com/en/dev/topics/db/transactions/
 # specific imports needed for the below view, keeping here in case
@@ -772,6 +806,21 @@ def object_update(request):
             #content_type = 'application/javascript; charset=utf8'
             content_type = 'text/plain'
             )
+
+def tree_location_update(request):
+    response_dict = {}
+    post = simplejson.loads(request.raw_post_data)
+    tree = Tree.objects.filter(pk=post.get('tree_id'))[0]
+    tree.address_street = post.get('address')
+    tree.address_city = post.get('city')
+    tree.save()
+    
+    response_dict['success'] = True
+    
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
 
 @login_required    
 def tree_add(request, tree_id = ''):

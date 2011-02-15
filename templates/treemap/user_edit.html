@@ -5,7 +5,7 @@
 
     <script type="text/javascript">
     $(document).ready(function() {
-        jQuery("#user_list_table").tablesorter({sortList: [[0,0]]})
+        jQuery("#user_list_table").tablesorter({sortList: [[0,0]], headers: {2:{sorter:'usLongDate'}}})
         });
 
     </script>
@@ -18,8 +18,10 @@
 		<table id="user_list_table">
 			<thead>
 				<tr>
-					<th>User Name</th>
-					<th>Active</th>
+					<th>Username</th>
+					<th>User</th>
+					<th>Last Login</th>
+					<th>Status</th>
 					<th>Group</th>
 					<th>Reputation</th>
 				</tr>
@@ -27,9 +29,10 @@
 			<tbody>
 				{% for u in users %}
 					<tr id="{{u.id}}">
-						<td>{{u.username}}</td>
-
-						<td>{{u.is_active}}</td>
+						<td><a href="/profile/{{u.username}}">{{u.username}}</a></td>
+						<td>{{u.get_full_name}} <br/>{{u.email}}</td>
+						<td>{{u.last_login|date:"M d, Y"}}</td>
+						<td id="active">{{u.is_active|yesno:"Active,Inactive"}}</td>
 						<td>
 							<select style="width:100%;" onChange="tm.updateGroup_Admin({{u.id}}, this.value);return false;">
 								<option>Public</option>
@@ -38,7 +41,16 @@
 							{% endfor %}
 							</select>
 						</td>
-						<td><input id='reputation_{{u.id}}' value='{{u.reputation.reputation}}' onChange="tm.updateReputation_Admin({{u.id}}, this.value);return false;"></td>
+						<td id="rep">
+							<input id='reputation_{{u.id}}' value='{{u.reputation.reputation}}' size=6 onChange="tm.updateReputation_Admin({{u.id}}, this.value);return false;">
+							{% if u.is_active %}
+								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
+								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
+							{% else %}
+								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
+								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
+							{% endif %}
+						</td>
 					</tr>
 				{% endfor %}
 			</tbody>
