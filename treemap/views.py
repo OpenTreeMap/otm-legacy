@@ -498,6 +498,7 @@ def edit_users(request):
     groups = Group.objects.all()
     return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users, 'groups': groups}))
 
+@permission_required('change_user')
 def update_users(request):
     response_dict = {}
     if request.method == 'POST':

@@ -3,22 +3,11 @@ import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-#local_settings
-GOOGLE_API_KEY = 'abcdf'
-GOOGLE_API_DEV_KEY = 'ghijk'
-
-# must end with trees/ because of odd tilecache deployment issue
-# will be populated with layer name /trees/{layername} dynamically
-# in javascript depending on the google base layer being used
-TC_URL = 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/'
-
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 
 ADMINS = (
-    ('Admin1', 'josh@umbrellaconsulting.com'),
+    ('Admin1', 'cbrittain@azavea.com'),
 )
-
-ROOT_URL = 'http://urbanforestmap.org'
 
 TILED_SEARCH_RESPONSE = False
 
@@ -31,8 +20,6 @@ MAPNIK_STYLESHEET = os.path.join(os.path.dirname(__file__), 'mapserver/styleshee
 # sorl thumbnail settings
 THUMBNAIL_DEBUG = True
 THUMBNAIL_SUBDIR = '_thumbs'
-#THUMBNAIL_EXTENSION = 'png'
-#THUMBNAIL_QUALITY = 95 # if not using png
 
 AUTH_PROFILE_MODULE = 'profiles.userprofile'
 
@@ -42,14 +29,14 @@ MANAGERS = ADMINS
 REGISTRATION_OPEN = True # defaults to True
 ACCOUNT_ACTIVATION_DAYS = 5
 
-DEFAULT_FROM_EMAIL= 'contact@urbanforestmap.org'
+DEFAULT_FROM_EMAIL= 'contact@phillytreemap.org'
 EMAIL_MANAGERS = False
 
 EMAIL_HOST = 'postoffice.dca.net'
 EMAIL_PORT = 25
 
 #http://sftrees.securemaps.com/ticket/236
-CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
+CONTACT_EMAILS = ['cbrittain@azavea.com']
 
 CACHE_BACKEND = 'file:///tmp/trees_cache'
 
@@ -69,7 +56,7 @@ DATABASES = {
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Vancouver'
+TIME_ZONE = 'America/New_York'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -85,6 +72,7 @@ USE_I18N = False
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'media/')
 ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'admin_media/')
+
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
@@ -102,15 +90,11 @@ SECRET_KEY = 'insecure'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source',
-
-#     'django.template.loaders.eggs.load_template_source',
 )
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 TEMPLATE_CONTEXT_PROCESSORS += (
      'django.core.context_processors.request',
-     'global_context.gkey',
-     'global_context.tc_url',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -122,7 +106,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django_reputation.middleware.ReputationMiddleware', 
-    #'middleware.ajax.AJAXSimpleExceptionResponse',
 )
 
 ROOT_URLCONF = 'urls'

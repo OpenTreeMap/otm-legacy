@@ -19,6 +19,7 @@
 					<a href="/treekey/node/{{ leaf.id }}/">
 						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
+					<div><a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
 				</div>
 			{% endfor %}
 
@@ -36,6 +37,7 @@
 					<a href="/treekey/leaf/{{ leaf.id }}/">
 						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
+					<div><a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
 				</div>
 			{% endfor %}
 
