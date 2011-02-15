@@ -1,4 +1,5 @@
 import os
+from operator import itemgetter
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -252,6 +253,22 @@ def trees(request, tree_id=''):
     if tree_id:
         trees = trees.filter(pk=tree_id)
     
+        # get the last 5 edits to each tree piece
+        history = trees[0].history.order_by('-last_updated')[:5]
+        status = TreeStatus.history.all().filter(tree=trees).order_by('-reported')[:5]
+        flags = TreeFlags.history.all().filter(tree=trees).order_by('-reported')[:5]
+        
+        # make a unified history
+        recent_edits = []
+        for h in history:
+            recent_edits.append((h.last_updated_by.username, h.last_updated))
+        for s in status:
+            recent_edits.append((s.reported_by, s.reported))
+        for f in flags:
+            recent_edits.append((f.reported_by, f.reported))    
+        # sort by the date descending
+        recent_edits = sorted(recent_edits, key=itemgetter(1), reverse=True)
+    
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
                 tree=trees).count() > 0
@@ -271,7 +288,7 @@ def trees(request, tree_id=''):
     if request.GET.get('format','') == 'eco_infowindow':
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
-        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first}))
+        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'recent': recent_edits}))
             
 @login_required    
 def tree_edit_choices(request, tree_id, type_):

@@ -459,11 +459,11 @@
                 <li class="optionItemLastContainer">
                     <ul class="optionItemLast">
                         <li>Username</li>
-                        <li class="editItem"><a href="/profiles/{{tree.last_updated_by}}/">{{tree.last_updated_by}}</a></li>
+                        <li class="editItem"><a href="/profiles/{{recent.0.0}}/">{{recent.0.0}}</a></li>
                     </ul>
                     <ul class="optionItemLast">
                         <li>Date</li>
-                        <li class="editItem">{{tree.last_updated|date}}</li>
+                        <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
                 </li>
             </ul>
@@ -487,9 +487,9 @@
             	<li id="title">Recent Contributors</li>
             	<li>
 					<ul class="optionItem">
-						{% for update in tree.history.all %}
-							{% if forloop.counter0 < 5 %}
-							<li>{{update.last_updated|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.last_updated_by}}" target="_blank">{{ update.last_updated_by }}</a></li>
+						{% for update in recent %}
+							{% if forloop.counter0 < 10 %}
+							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.0}}" target="_blank">{{ update.0 }}</a></li>
 							{% endif %}
 						{% empty %}
 							<li>No edits yet!</li>
