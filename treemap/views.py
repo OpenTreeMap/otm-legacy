@@ -493,8 +493,19 @@ from django.contrib.auth.decorators import permission_required
 
 @login_required
 @permission_required('change_user')
-def edit_users(request):
+def edit_users(request):        
     users = User.objects.all()
+    if 'username' in request.GET:
+        users = users.filter(username__icontains=request.GET['username'])
+    if 'user' in request.GET:
+        users = users.filter(Q(first_name__icontains=request.GET['user']) | Q(last_name__icontains=request.GET['user']) | Q(email__icontails=request.GET['user']))
+    if 'group' in request.GET:
+        g = Group.objects.filter(name__icontains=request.GET['group'])
+        if g.count() == 1:
+            users = users.filter(groups=g)
+        else:
+            users = users.filter(groups__in=g)
+    
     groups = Group.objects.all()
     return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users, 'groups': groups}))
 
@@ -1178,16 +1189,25 @@ def verify_edits(request, audit_type='tree'):
         return diff_clean    
         
     changes = []
-    trees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
-    newtrees = Tree.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
-    treestatus = TreeStatus.history.all().filter(_audit_user_rep__lt=2000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+    trees = Tree.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newtrees = Tree.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    treestatus = TreeStatus.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     treeactions = []
-    treealerts = []
-    treeflags = []
-    if (request.user.reputation.reputation >= 2000):
-        treeactions = TreeAction.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
-        treealerts = TreeAlert.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
-        treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+    if (request.user.reputation.reputation >= 1000):
+       treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+    
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        trees = trees.filter(last_updated_by__in=u)
+        newtrees = newtrees.filter(last_updated_by__in=u)
+        treestatus = treestatus.filter(tree__last_updated_by__in=u)
+        treeflags = treeflags.filter(tree__last_updated_by__in=u)
+    if 'address' in request.GET:
+        trees = trees.filter(address_street__icontains=request.GET['address'])
+        newtrees = newtrees.filter(address_street__icontains=request.GET['address'])
+        treestatus = treestatus.filter(tree__address_street__icontains=request.GET['address'])
+        treeflags = treeflags.filter(tree__address_street__icontains=request.GET['address'])
+    
     
     
     for tree in trees:
@@ -1237,34 +1257,6 @@ def verify_edits(request, audit_type='tree'):
             'change_description': diff_no_old,
             'change_id': status._audit_id,
             'type': 'status'
-        })
-    for actions in treeactions:
-        species = 'no species name'
-        if actions.tree.species:
-            species = actions.tree.species.common_name
-        changes.append({
-            'id': actions.tree.id,
-            'species': species,
-            'address_street': actions.tree.address_street,
-            'last_updated_by': actions.reported_by,
-            'last_updated': actions.reported,
-            'change_description': clean_diff(actions._audit_diff),
-            'change_id': actions._audit_id,
-            'type': 'action'
-        })
-    for alerts in treealerts:
-        species = 'no species name'
-        if alerts.tree.species:
-            species = alerts.tree.species.common_name
-        changes.append({
-            'id': alerts.tree.id,
-            'species': species,
-            'address_street': alerts.tree.address_street,
-            'last_updated_by': alerts.reported_by,
-            'last_updated': alerts.reported,
-            'change_description': clean_diff(alerts._audit_diff),
-            'change_id': alerts._audit_id,
-            'type': 'alert'
         })
     for flags in treeflags:
         species = 'no species name'
@@ -1326,12 +1318,25 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
 @permission_required('moderate_comments')
 def view_flagged(request):
     flags = CommentFlag.objects.filter(comment__is_public=True)
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        flags = flags.filter(user__in=u)
+    if 'text' in request.GET:
+        flags = flags.filter(comment__icontains=request.GET['text'])
+        
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
     
 @login_required
 @permission_required('moderate_comments')
 def view_comments(request):
     comments = Comment.objects.filter(is_public=True)
+    
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        comments = comments.filter(user__in=u)
+    if 'text' in request.GET:
+        comments = comments.filter(comment__icontains=request.GET['text'])
+        
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments}))
     
    

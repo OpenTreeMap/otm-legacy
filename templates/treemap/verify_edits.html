@@ -4,9 +4,43 @@
     <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
-    $(document).ready(function() {
-        jQuery("#species_list_table").tablesorter({sortList: [[3,1]]})
-        });
+		$(document).ready(function() {
+			if (jQuery.urlParam('username')) {
+				jQuery("#s_username").val(jQuery.urlParam('username'));
+			}
+			if (jQuery.urlParam('address')) {
+				jQuery("#s_address").val(jQuery.urlParam('address'));
+			}
+			jQuery("#search input").keydown(function(evt) {
+				if (evt.keyCode == 13) {
+					jQuery("#filter").click();
+				}
+			});
+
+			jQuery("#filter").click(function(evt) {
+				var params = {};
+				var q = $.query.empty();
+				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
+				if (jQuery("#s_address").val()) {params["address"] = jQuery("#s_address").val();}
+
+				for (var key in params) {
+					if (!params[key]) {
+						continue;
+					}
+					var val = params[key];
+					q = q.set(key, val);
+				}
+				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
+
+				window.location = "/verify/" + qstr;
+
+			});
+			jQuery("#clear").click(function(evt) {
+				window.location = "/verify/"
+			});
+
+			jQuery("#species_list_table").tablesorter({sortList: [[3,1]], headers: {3:{sorter:'usLongDate'}}})
+		});
 
     </script>
 {% endblock %}
@@ -14,6 +48,12 @@
 {% block content %}
 
 <div class="content">
+	<h2>Recent Edits</h2>
+	<div id="search">
+		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
+		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
+		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+	</div>
 	{% if page %}
 		You are looking at changes {{page.start_index}} through {{page.end_index}} <br>
 		{% if page.has_previous %}<a href="./?page={{page.previous_page_number}}">previous</a>{% endif %}
@@ -38,7 +78,7 @@
 					<td><i>{{c.species}}</i><br><a href="/trees/{{c.id}}" target="_blank">View Record</a></td>
 					<td>{{c.address_street}}</td>
 					<td><a href="/profiles/{{c.last_updated_by.username}}" target="_blank">{{c.last_updated_by}}</a></td>
-					<td>{{c.last_updated|date:'DATETIME_FORMAT'}}</td>
+					<td>{{c.last_updated|date:"M d, Y"}}</td>
 					{% if c.change_description.key %}
 						<td><b>{{c.change_description.key}}</b> - {{c.change_description.value}}<br>
 						{% if c.change_description.old_value %}
