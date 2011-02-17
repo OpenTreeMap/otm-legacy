@@ -205,20 +205,20 @@
                     {% for tree in profile.recently_edited_trees %}
                     <tr>
                         <td class="fav">
-            		       <a href="/trees/{{ tree.id }}/">View</a><br>
+            		       <a href="/trees/{{ tree.3 }}/">View</a><br>
                            <!--<a href="#" class="favorite fav unfave" id="favorite_{{tree.id}}">Unfavorite</a><br>-->
                         </td>
                         <td class="species">
                             <span>Tree species</span>
-                            <em>{{ tree.species.common_name|default:"Unknown" }}</em>
+                            <em>{{ tree.0|default:"Unknown" }}</em>
                         </td>
                         <td class="planted">
                             <span>Date planted</span>
-                            <em>{{ tree.date_planted|date:"M d, Y"|default:"Unknown" }}</em>
+                            <em>{{ tree.1|date:"M d, Y"|default:"Unknown" }}</em>
                         </td>
                         <td class="added">
                             <span>Last Updated</span>
-                            <em>{{ tree.last_updated|date:"M d, Y"|default:"Unknown"  }}</em>
+                            <em>{{ tree.2|date:"M d, Y"|default:"Unknown"  }}</em>
                         </td>
 
 
@@ -330,5 +330,44 @@
 				{% else %}
 				   No changes yet!
 				{% endif %}
+			</div>
+			<div class="recent-photos">
+				<div class="wrap">
+					<h2>My Achievements</h2>
+				</div>
+				<table class="addet">
+					{% for badge in profile.badges %}
+						<tr>
+							<td class="title">
+								<span>Title</span>
+								<em>{{ badge.badge.title }}</em>
+							</td>
+							<td class="desc">
+								<span>Description</span>
+								<em>{{ badge.badge.description }}</em>
+							</td>
+							<td class="received">
+								<span>Completed</span>
+								<em>{{ badge.created|date:"M d, Y" }}</em>
+							</td>
+						</tr>
+					{% endfor %}
+					{% for badge in profile.badges_in_progress %}
+						<tr>
+							<td class="title">
+								<span>Title</span>
+								<em>{{ badge.0.title }}</em>
+							</td>
+							<td class="desc">
+								<span>Description</span>
+								<em>{{ badge.0.description }}</em>
+							</td>
+							<td class="received">
+								<span>Progress</span>
+								<em>{{ badge.1 }} of {{badge.0.meta_badge.progress_finish}}</em>
+							</td>
+						</tr>
+					{% endfor %}
+				</table>
 			</div>
 {% endblock %}

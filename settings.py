@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'classfaves',
     'qs_tiles',
     'treekey',
+    'badges',
 )
 
 try:

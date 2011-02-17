@@ -867,3 +867,5 @@ class AggregateSupervisorDistrict(AggregateSummaryModel):
 
 class AggregateZipCode(AggregateSummaryModel):
     location = models.OneToOneField(ZipCode, related_name='aggregates')
+    
+import meta_badges
