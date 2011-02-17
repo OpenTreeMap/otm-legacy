@@ -97,20 +97,28 @@ def result_map(request):
 
     # get enviro attributes for 'selected' trees
     min_year = 1970
-    planted_trees = Tree.objects.exclude(date_planted=None).order_by("date_planted")
+    planted_trees = Tree.objects.exclude(date_planted=None).exclude(present=False).order_by("date_planted")
     if planted_trees.count():
-        min_year = Tree.objects.exclude(date_planted=None).order_by("date_planted")[0].date_planted.year
+        min_year = Tree.objects.exclude(date_planted=None).exclude(present=False).order_by("date_planted")[0].date_planted.year
     current_year = datetime.now().year    
 
+    # TODO: Fix this to include updates to treestatus and treeflag objects
     min_updated = 0
     max_updated = 0 
-    updated = Tree.objects.exclude(last_updated=None).order_by("last_updated")
+    updated = Tree.objects.exclude(last_updated=None, present=False).order_by("last_updated")
     if updated.exists():
         min_updated = mktime(updated[0].last_updated.timetuple())
         max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
-    latest_trees = Tree.objects.order_by("-last_updated")[0:3]
-    latest_photos = TreePhoto.objects.order_by("-reported")[0:8]
+    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_status = TreeStatus.objects.filter(tree__present=True).order_by("-reported")[0:3]
+    recent_flags = TreeFlags.objects.filter(tree__present=True).order_by("-reported")[0:3]
+
+    recent_edits = unified_history(recent_trees, recent_status, recent_flags)
+
+    #TODO return the recent_edits instead
+    latest_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
 
     return render_to_response('treemap/results.html',RequestContext(request,{
         #'top_species' : top_species,
@@ -247,27 +255,22 @@ def favorites(request, username):
     return render_to_json(js)
     
 def trees(request, tree_id=''):
-    trees = Tree.objects.all()
+    trees = Tree.objects.filter(present=True)
     # testing - to match what you get in /location query and in map tiles.
     favorite = False
+    recent_edits = []
     if tree_id:
         trees = trees.filter(pk=tree_id)
-    
+        
+        if not trees.exists():
+            raise Http404
+        
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
         status = TreeStatus.history.all().filter(tree=trees).order_by('-reported')[:5]
         flags = TreeFlags.history.all().filter(tree=trees).order_by('-reported')[:5]
         
-        # make a unified history
-        recent_edits = []
-        for h in history:
-            recent_edits.append((h.last_updated_by.username, h.last_updated))
-        for s in status:
-            recent_edits.append((s.reported_by, s.reported))
-        for f in flags:
-            recent_edits.append((f.reported_by, f.reported))    
-        # sort by the date descending
-        recent_edits = sorted(recent_edits, key=itemgetter(1), reverse=True)
+        recent_edits = unified_history(history, status, flags)
     
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
@@ -289,7 +292,19 @@ def trees(request, tree_id=''):
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
         return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'recent': recent_edits}))
-            
+     
+
+def unified_history(trees, status, flags):
+    recent_edits = []
+    for t in trees:
+        recent_edits.append((t.last_updated_by.username, t.last_updated))
+    for s in status:
+        recent_edits.append((s.reported_by, s.reported))
+    for f in flags:
+        recent_edits.append((f.reported_by, f.reported))    
+    # sort by the date descending
+    return sorted(recent_edits, key=itemgetter(1), reverse=True)
+
 @login_required    
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
@@ -354,7 +369,7 @@ def batch_edit(request):
 @login_required
 def tree_edit(request, tree_id = ''):
     
-    tree = get_object_or_404(Tree, pk=tree_id)
+    tree = get_object_or_404(Tree, pk=tree_id, present=True)
     #if not request.user in (tree.data_owner, tree.tree_owner) and not request.user.is_superuser:
     #    return render_to_response("not_allowed.html", {'user' : request.user, "error_message":"You are not the owner of this tree."})
     
@@ -505,6 +520,16 @@ def tree_edit(request, tree_id = ''):
 
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree, 'data': data}))           
+
+def tree_delete(request, tree_id):
+    tree = Tree.objects.get(pk=tree_id)
+    tree.present = False
+    tree.save()
+    
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
 
 from django.contrib.auth.decorators import permission_required
 
@@ -891,9 +916,9 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None)|(Q(geocoded_accuracy=-1) & Q(owner_geometry__isnull=False)) )
+        trees = Tree.objects.filter(present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None)|(Q(geocoded_accuracy=-1) & Q(owner_geometry__isnull=False)) )
     else:
-        trees = Tree.objects.filter(species__in=species).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None))
+        trees = Tree.objects.filter(species__in=species, present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None))
     #filter by nhbd or zipcode if location was specified
 
     geog_obj = None
@@ -1217,8 +1242,8 @@ def verify_edits(request, audit_type='tree'):
         u = User.objects.filter(username__icontains=request.GET['username'])
         trees = trees.filter(last_updated_by__in=u)
         newtrees = newtrees.filter(last_updated_by__in=u)
-        treestatus = treestatus.filter(tree__last_updated_by__in=u)
-        treeflags = treeflags.filter(tree__last_updated_by__in=u)
+        treestatus = treestatus.filter(reported_by__in=u)
+        treeflags = treeflags.filter(reported_by__in=u)
     if 'address' in request.GET:
         trees = trees.filter(address_street__icontains=request.GET['address'])
         newtrees = newtrees.filter(address_street__icontains=request.GET['address'])

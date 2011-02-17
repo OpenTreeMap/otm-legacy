@@ -326,7 +326,7 @@ class Species(models.Model):
     
     #tree_count should always be set on tree update..
     def save(self,*args,**kwargs):
-        self.tree_count = self.tree_set.all().count()
+        self.tree_count = self.tree_set.filter(present=True).count()
         if not self.scientific_name:
             if self.genus and self.species:
                 self.scientific_name = '%s %s' % (self.genus, self.species)

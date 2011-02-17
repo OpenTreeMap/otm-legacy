@@ -1657,7 +1657,7 @@ var tm = {
     },
     cancelDiameters: function() {
         if (isNaN(parseFloat(tm.currentDiameter))) {
-            $("#edit_dbh").html("Click to edit");
+            $("#edit_dbh").html("Click icon to edit");
         } else {
             $("#edit_dbh").html(parseFloat(tm.currentDiameter).toFixed(1));
         }            
@@ -1712,6 +1712,20 @@ var tm = {
         $("#edit_dbh").html(total.toFixed(1));
         tm.editingDiameter = false;
         
+    },
+    
+    deleteTree: function(tree_id) {
+        $.ajax({
+            url: '/trees/' + tree_id + '/delete/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                window.location = "/map/";
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+            }
+        });
     },
 
      updateSpeciesFromKey: function(tree_code, tree_cultivar)  {

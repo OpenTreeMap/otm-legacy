@@ -83,8 +83,8 @@
 {% endifequal %}
 {% ifequal field.type "diameter_field" %}
     	<tr>
-        	<td class="col1">{{field.label}} <a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
-            <td id="edit_{{field.name}}">{{ field.display|add:" in"|default:"Click to edit" }}</td>
+        	<td class="col1 activeEditRowLabel">{{field.label}} <a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+            <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.display|add:" in"|default:"Click icon to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_{{field.name}}', {{field.diams|safe}}); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
         </tr>
@@ -299,6 +299,12 @@
 {% endif %}
                 </li>
             </ul>
+            {% if perms.can_edit_condition %}
+            <ul id="message">
+				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this tree</a></li>
+				<li>Some warning text here about not undoing and lag time on map tiles</li>
+            </ul>
+            {% endif %}
             {% comment %}
             <ul id="message">
                 <li id="title"><a href="#">Flag this tree</a></li>
