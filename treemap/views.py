@@ -143,7 +143,7 @@ def tree_location_search(request):
     max_trees = request.GET.get('max_trees', 1)
     if max_trees > 500: max_trees = 500
     
-    trees = Tree.objects.all()
+    trees = Tree.objects.filter(present=True)
         #don't filter by geocode accuracy until we know why some new trees are getting -1
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
 
@@ -217,7 +217,7 @@ def species(request, selection='all', format='html'):
         coord = map(float,location.split(','))
         print coord
         pt = Point(coord[0], coord[1])
-        trees =  Tree.objects.filter(geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
+        trees =  Tree.objects.filter(present=True).filter(geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
         species = Species.objects.filter(tree__in=trees)
     
     if selection == 'all':
@@ -267,8 +267,8 @@ def trees(request, tree_id=''):
         
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
-        status = TreeStatus.history.all().filter(tree=trees).order_by('-reported')[:5]
-        flags = TreeFlags.history.all().filter(tree=trees).order_by('-reported')[:5]
+        status = TreeStatus.history.filter(tree=trees).order_by('-reported')[:5]
+        flags = TreeFlags.history.filter(tree=trees).order_by('-reported')[:5]
         
         recent_edits = unified_history(history, status, flags)
     
@@ -525,6 +525,10 @@ def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
     tree.present = False
     tree.save()
+    
+    for h in tree.history.all():
+        h.present = False
+        h.save()
     
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
@@ -1231,12 +1235,12 @@ def verify_edits(request, audit_type='tree'):
         return diff_clean    
         
     changes = []
-    trees = Tree.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
-    newtrees = Tree.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
-    treestatus = TreeStatus.history.all().filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    treestatus = TreeStatus.history.filter(tree__present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     treeactions = []
     if (request.user.reputation.reputation >= 1000):
-       treeflags = TreeFlags.history.all().filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
+       treeflags = TreeFlags.history.filter(tree__present=True).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
@@ -1322,32 +1326,32 @@ def verify_edits(request, audit_type='tree'):
 def verify_rep_change(request, change_type, change_id, rep_dir):
     #parse change type and retrieve change object
     if change_type == 'tree':
-        change = Tree.history.all().filter(_audit_id__exact=change_id)[0]
+        change = Tree.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.last_updated_by_id)
         obj = get_object_or_404(Tree, pk=change.id)
     elif change_type == 'status':
-        change = TreeStatus.history.all().filter(_audit_id__exact=change_id)[0]
+        change = TreeStatus.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
         obj = get_object_or_404(TreeStatus, pk=change.id)
     elif change_type == 'action':
-        change = TreeAction.history.all().filter(_audit_id__exact=change_id)[0]
+        change = TreeAction.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
         obj = get_object_or_404(TreeAction, pk=change.id)
     elif change_type == 'alert':
-        change = TreeAlert.history.all().filter(_audit_id__exact=change_id)[0]
+        change = TreeAlert.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
         obj = get_object_or_404(TreeAlert, pk=change.id)
     elif change_type == 'flag':
-        change = TreeFlags.history.all().filter(_audit_id__exact=change_id)[0]
+        change = TreeFlags.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
         obj = get_object_or_404(TreeFlags, pk=change.id)
     
         
     #do the rep adjustment
     if rep_dir == 'up':
-        rep_gain = 5    
+        rep_gain = 5
     elif rep_dir == 'down':
-        rep_gain= -5      
+        rep_gain= -10
     elif rep_dir == 'neutral':
         rep_gain = 1
     
