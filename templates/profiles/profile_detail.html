@@ -205,20 +205,20 @@
                     {% for tree in profile.recently_edited_trees %}
                     <tr>
                         <td class="fav">
-            		       <a href="/trees/{{ tree.id }}/">View</a><br>
+            		       <a href="/trees/{{ tree.3 }}/">View</a><br>
                            <!--<a href="#" class="favorite fav unfave" id="favorite_{{tree.id}}">Unfavorite</a><br>-->
                         </td>
                         <td class="species">
                             <span>Tree species</span>
-                            <em>{{ tree.species.common_name|default:"Unknown" }}</em>
+                            <em>{{ tree.0|default:"Unknown" }}</em>
                         </td>
                         <td class="planted">
                             <span>Date planted</span>
-                            <em>{{ tree.date_planted|date:"M d, Y"|default:"Unknown" }}</em>
+                            <em>{{ tree.1|date:"M d, Y"|default:"Unknown" }}</em>
                         </td>
                         <td class="added">
                             <span>Last Updated</span>
-                            <em>{{ tree.last_updated|date:"M d, Y"|default:"Unknown"  }}</em>
+                            <em>{{ tree.2|date:"M d, Y"|default:"Unknown"  }}</em>
                         </td>
 
 
