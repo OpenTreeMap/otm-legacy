@@ -327,10 +327,10 @@ var tm = {
                 triggerSearch();
         });
         $("#searchSpeciesBrowse").click(function(evt) {
-            $("#searchSpeciesList").toggle();
+            $("#searchSpeciesList").slideToggle();
         });
         $("#searchLocationBrowse").click(function(evt) {
-            $("#searchNBList").toggle();
+            $("#searchNBList").slideToggle();
         });
 
         // todo - clean this logic up...

@@ -352,6 +352,7 @@ margin-left: 9px;
 #searchBox{
 	margin-top: 30px;
 	float:right;
+	position: relative;
 }
 
 ul#searchTitles {
@@ -416,6 +417,53 @@ ul#searchBoxes .headerSearch {
 	color: #8a8a8a;
 	margin: 0 0 0 7px;
 	letter-spacing: -0.03em;
+}
+
+
+
+
+
+#searchBox .ac_results {
+background: #1d8f63; 
+border: none;
+display:none;
+position:absolute;
+width:320px;
+top:78px;
+padding: 0 15px 15px;
+-moz-border-radius: 0 0 5px 5px;
+-webkit-border-radius: 0 0 5px 5px;
+border-radius: 0 0 5px 5px;
+}
+
+#searchBox .ac_results li.ac_odd {
+background: #e9f6ef;
+}
+#searchBox .ac_results li.ac_over {
+background: #3fab82;
+cursor: pointer;
+}
+
+#searchBox .ac_results#searchNBList {left:0; z-index: 10}
+#searchBox .ac_results#searchSpeciesList {left:351px; z-index: 11;}
+
+
+#searchBox .ac_results  ul {
+background: #fff;
+display:block;
+border: 1px solid #c7c7c7;
+}
+
+#searchBox .ac_results a {
+margin: 3px 0 0 0;
+}
+
+#searchBox .ac_results  h2 {
+	color: #fff;
+	font-size: 12px;
+	margin: 4px 0 9px 0;
+	float:left;
+
 }
 
 ul#searchBoxes .go.buttonSmall {
