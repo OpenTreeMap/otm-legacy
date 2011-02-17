@@ -843,7 +843,8 @@ def object_update(request):
                     instance.save()
                     print "instance save"
                     Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
-                    instance.validate_all()
+                    if hasattr(instance, 'validate_all'):
+                        instance.validate_all()
                 if parent_instance:
                     pass
                     #parent_instance.save()

@@ -331,4 +331,43 @@
 				   No changes yet!
 				{% endif %}
 			</div>
+			<div class="recent-photos">
+				<div class="wrap">
+					<h2>My Achievements</h2>
+				</div>
+				<table class="addet">
+					{% for badge in profile.badges %}
+						<tr>
+							<td class="title">
+								<span>Title</span>
+								<em>{{ badge.badge.title }}</em>
+							</td>
+							<td class="desc">
+								<span>Description</span>
+								<em>{{ badge.badge.description }}</em>
+							</td>
+							<td class="received">
+								<span>Completed</span>
+								<em>{{ badge.created|date:"M d, Y" }}</em>
+							</td>
+						</tr>
+					{% endfor %}
+					{% for badge in profile.badges_in_progress %}
+						<tr>
+							<td class="title">
+								<span>Title</span>
+								<em>{{ badge.0.title }}</em>
+							</td>
+							<td class="desc">
+								<span>Description</span>
+								<em>{{ badge.0.description }}</em>
+							</td>
+							<td class="received">
+								<span>Progress</span>
+								<em>{{ badge.1 }} of {{badge.0.meta_badge.progress_finish}}</em>
+							</td>
+						</tr>
+					{% endfor %}
+				</table>
+			</div>
 {% endblock %}

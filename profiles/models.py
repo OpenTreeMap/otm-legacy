@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _ # internationalization t
 from django.contrib.gis.db import models
 from treemap.models import Tree, TreePhoto
 from django_reputation.models import UserReputationAction
+from badges.models import Badge, BadgeToUser
 
 import random
 
@@ -41,6 +42,19 @@ class UserProfile(models.Model):
 
     def recently_changed_reputation(self):
         return UserReputationAction.objects.filter(user=self.user).order_by('-date_created')[:7]
+
+    def badges(self):
+        return BadgeToUser.objects.filter(user=self)
+
+    def badges_in_progress(self):
+        return_badges = []
+        for b in Badge.objects.all():
+            print b.meta_badge.progress_start
+            if b.meta_badge.get_progress(self.user) > b.meta_badge.progress_start:
+                if b.meta_badge.get_progress(self.user) < b.meta_badge.progress_finish:
+                    return_badges.append((b, b.meta_badge.get_progress(self.user)))
+        
+        return return_badges
 
     def made_edit(self):
         self.site_edits += 1
