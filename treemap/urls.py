@@ -11,6 +11,7 @@ user_favorites = UserFavorites(TreeFavorite, Tree, extra_filter=most_recent)
 
 urlpatterns = patterns('',
     (r'^$', static, {'template':'index.html'}),
+    (r'^home/$', static, {'template':'index.html'}),
     (r'^robots.txt/$', static, {'template':'robots.txt'}),
     
     
@@ -29,6 +30,7 @@ urlpatterns = patterns('',
     url(r'^trees/(?P<tree_id>\d+)/photos/$', tree_add_edit_photos, name="treemap_add_edit_photos"),
     (r'^trees/(?P<tree_id>\d+)/edit/choices/(?P<type_>[a-z_]*)/$', tree_edit_choices),
     (r'^trees/(?P<tree_id>\d+)/delete/$', tree_delete),
+    (r'^trees/(?P<tree_id>\d+)/deletephoto/(?P<photo_id>\d+)$', photo_delete),
     (r'^trees/(?P<tree_id>\d+)/ecosystem/$', trees),
     url(r'^trees/(?P<tree_id>\d+)/$', trees, name="treemap_tree_detail"),
     (r'^trees/location/$', tree_location_search),

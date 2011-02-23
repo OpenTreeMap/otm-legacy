@@ -162,7 +162,8 @@ def tree_location_search(request):
         # to allow clicking other trees still...
         if species_trees.exists():
             trees = species_trees
-    trees = trees[:max_trees]
+    if trees.exists():
+        trees = trees[:max_trees]
     return render_to_geojson(trees, 
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
@@ -534,6 +535,17 @@ def tree_delete(request, tree_id):
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+
+def photo_delete(request, tree_id, photo_id):    
+    tree = Tree.objects.get(pk=tree_id)
+    photo = TreePhoto.objects.get(pk=photo_id)
+    photo.delete()
+    
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+    
 
 from django.contrib.auth.decorators import permission_required
 

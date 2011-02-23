@@ -64,33 +64,44 @@
 
     <form action="." method="POST">
     <fieldset>
+	<div style="float:left;">
+	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1: Nearby address
+        <span class="small">Enter closest address</span>
+    </label>
+    {{ form.edit_address_street }}
+	</div>
+
+	<div style="float:left;">
+	<label class="required">Step 2: Specify placement
+    </label>
+    	<a style="margin: 0 20px 20px 10px;" href="javascript:void(0)" id="update_map" class="buttonSmall">View Map</a>
+
+	</div>
 
 	<div id="mapHolder">
-    <label class="required" style="width:484px; float:none; text-align:left;margin-left:10px;" {% if form.edit_address_zip.errors %}id="error"{% endif %}>Specify placement
-        <span class="small" style="width:inherit;text-align:left;" >Click the map to add a tree, click-and-drag to move it to the correct location.</span>
-    </label>
-	<div id="add_tree_map" class="addMap">
+        <span class="small" style="width:inherit;text-align:left;padding-left:10px;" >Click-and-drag the orange circle to move it to the correct location.</span>
+    <div id="add_tree_map" class="addMap">
 		<div class="shadowLeft"></div>
 		<div class="shadowTop"></div>
 	</div>
 	<div id="geocode_address" style="float:left;margin-left:10px;width:130px"></div>
 	</div>
 
-    <label {% if form.species_name.errors %}id="error"{% endif %}>Species name
+	<div style="float:left;">
+    <label {% if form.species_name.errors %}id="error"{% endif %}>Optional: Species name
         <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is?</a></span>
     </label>
     {{ form.species_name }}
-
+	</div>
 	<!-- Hidden fields -->
 
     {{ form.species_id }}
     {{ form.lat }}
     {{ form.lon }}
-    {{ form.edit_address_street }}
     {{ form.edit_address_city }}
     {{ form.edit_address_zip }}
 
-    <button type="submit">Add this tree!</button>
+    <button type="submit" style="float:left;">Add this tree!</button>
     </fieldset>
     </form>
     </div>
@@ -99,10 +110,8 @@
 
     {% block right_panel %}
        <div id="calloutContainer">
-            <h2 class="title-edit">Double check</h2>
-            <p>Are you sure the tree you want to add isn't already in our database? <br/><br/>
-			<a href="/map" class="buttonMed">Search for the tree first</a>.<br/><br/> Then, add it if we don't have it in our system.</p>
+            <h2 class="title-edit">Nearby Trees</h2>
+			<div id="nearby_trees"></div>
         </div>
-
     {% endblock right_panel %}
 

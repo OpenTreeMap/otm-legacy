@@ -59,29 +59,29 @@ var tm = {
         $.address.externalChange(tm.pageLoadSearch);
         $(".characteristics input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            tm.updateSearch(); 
+            //tm.updateSearch(); 
         });
         $(".project_trees input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            tm.updateSearch(); 
+            //tm.updateSearch(); 
         });
         $(".outstanding input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            tm.updateSearch(); 
+            //tm.updateSearch(); 
         });
         $("#species_search_id").change(function(evt) {
             if (this.value) {
                 tm.searchParams['species'] = this.value;
-                tm.updateSearch(); 
+                //tm.updateSearch(); 
             }
         });
         $("#species_search_id_cultivar").change(function(evt) {
             if (this.value) {
                 tm.searchParams['cultivar'] = this.value;
-                tm.updateSearch();
+                //tm.updateSearch();
             } else {
                 delete tm.searchParams['cultivar'];
-                tm.updateSearch();
+                //tm.updateSearch();
             }
         });    
         //$("#search_form").submit(function() { return false; });
@@ -100,7 +100,7 @@ var tm = {
                 $('#min_diam').html(min);
                 $('#max_diam').html(max);
                 tm.searchParams['diameter_range'] = min+'-'+max;
-                tm.updateSearch(); 
+                //tm.updateSearch(); 
             }
         });
         
@@ -109,18 +109,18 @@ var tm = {
             var max = $("#planted_slider").slider('values', 1)
             $('#min_planted').html(min);
             $('#max_planted').html(max);
-        }        
+        }
         $("#planted_slider").slider({'range': true, min: min_year, max: current_year,
             values: [min_year, current_year],
             slide: function() { 
                 $("#planted_slider")[0].updateDisplay();
-            },    
+            },
             change: function() {
                 $("#planted_slider")[0].updateDisplay();
                 var min = $("#planted_slider").slider('values', 0)
                 var max = $("#planted_slider").slider('values', 1)
                 tm.searchParams['planted_range'] = min+'-'+max;
-                tm.updateSearch(); 
+                //tm.updateSearch(); 
             }
         });
         $("#planted_slider")[0].updateDisplay();
@@ -144,7 +144,7 @@ var tm = {
                 var min = $("#updated_slider").slider('values', 0)
                 var max = $("#updated_slider").slider('values', 1)
                 tm.searchParams['updated_range'] = min+'-'+max;
-                tm.updateSearch(); 
+                //tm.updateSearch(); 
             }
         });    
         $("#updated_slider")[0].updateDisplay();
@@ -155,11 +155,11 @@ var tm = {
             } else {
                 $("#location_search_input").val("Philadelphia, PA");
                 delete tm.searchParams['location'];
-                tm.updateSearch();
+                //tm.updateSearch();
 
-                if (tm.cur_polygon){
-                    tm.map.removeOverlay(tm.cur_polygon);
-                }
+                //if (tm.cur_polygon){
+                //    tm.map.removeOverlay(tm.cur_polygon);
+                //}
             }    
         });
         $("#location_go").unbind('click');
@@ -181,7 +181,7 @@ var tm = {
                 $("#species_search_id").val("");
                 $(this).val("All trees");
                 delete tm.searchParams['species'];
-                tm.updateSearch();
+                //tm.updateSearch();
             }    
         });
         $("#species_go").unbind('click');
@@ -249,14 +249,14 @@ var tm = {
         }, function(evt) {
             $(this).removeClass("ac_over")
         }).click(function(evt) {
-            $('#location_search_input').val(this.innerHTML).change();
+            $('#location_search_input').val(this.innerHTML);
             $("#searchNBList").toggle();
         });
             
     },
     baseTemplatePageLoad:function() {
         $("#logo").click(function() {
-            location.href="http://207.245.89.214/";
+            location.href="/home";
         });        
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
@@ -313,12 +313,20 @@ var tm = {
             if (!this.value) {
                 $("#location_search_input").val("Philadelphia, PA");
             }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#location_go").click();
+            }
         });
         $("#species_search_input").blur(function(evt) {
             if (!this.value) {
                 $("#species_search_id").val("");
                 $(this).val("All trees");
             }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#species_go").click();
+            }
         });
         $("#location_go").click(function(evt) {
                 triggerSearch();
@@ -520,9 +528,14 @@ var tm = {
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 13);
             
+        jQuery("#mapHolder").hide();
+        jQuery("#calloutContainer").hide();
+        
         tm.geocoder = new google.maps.Geocoder();
         
         tm.map.events.register("click", tm.map, function (e) {
+            jQuery('#genError').hide();
+            
             if (tm.add_vector_layer.features.length > 0) {
                 return false;
             }
@@ -533,7 +546,7 @@ var tm = {
             
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             
-            tm.load_nearby_trees(mapCoord);
+            //tm.load_nearby_trees(mapCoord);
             tm.add_new_tree_marker(mapCoord);
             
             tm.drag_control.activate();
@@ -544,6 +557,50 @@ var tm = {
             tm.reverse_geocode(mapCoord);
                         
         });
+        
+        jQuery('#id_edit_address_street').keydown(function(evt){
+            if (evt.keyCode == 13) {                
+                evt.preventDefault();
+                evt.stopPropagation();
+                if (jQuery('#id_edit_address_street').val() != "") {
+                    jQuery('#update_map').click();
+                    jQuery('#genError').hide();
+                }
+            }
+        });
+        
+        jQuery('#update_map').click(function(evt) {
+            var address = jQuery('#id_edit_address_street').val();
+            if (!address) {return;}
+            tm.geocoder.geocode({
+                address: address,
+                bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
+            }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
+                    var zoom = 17;
+                    if (tm.map.getZoom() > 17) {zoom = tm.map.getZoom();}
+                    tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+                    
+                    if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+                    if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+                    
+                    //tm.load_nearby_trees(olPoint);
+                    tm.add_new_tree_marker(olPoint);
+                    
+                    tm.drag_control.activate();
+                    
+                    jQuery('#id_lat').val(olPoint.lat);
+                    jQuery('#id_lon').val(olPoint.lon);
+                    
+                    jQuery('#update_map').html("Update Map");
+                    jQuery("#mapHolder").show();
+                    jQuery("#calloutContainer").show();
+                    jQuery('#genError').hide();
+                }
+            });
+        });        
+        
     },
         
     //initializes map on the profile page; shows just favorited trees
@@ -700,6 +757,32 @@ var tm = {
                 if ($("#geocode_address")) {
                     $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
                 }
+                if ($('#nearby_trees')) {
+                    $('#nearby_trees').html("Loading...")
+                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
+                    $.getJSON(url, function(geojson){
+                        if (geojson.features.length == 0) {
+                            $('#nearby_trees').html("No other trees nearby.")
+                        }
+                        else {
+                            $('#nearby_trees').html("Found " + geojson.features.length + " tree(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                            $.each(geojson.features, function(i,f){
+                                var tree = $("<div id='nearby_tree'></div>").appendTo($('#nearby_trees'));
+                                tree.append("<a href='/trees/" + f.properties.id + "' target='_blank'>#" + f.properties.id + "</a>");
+                                if (f.properties.common_name){
+                                    tree.append("<div id='nearby_tree_info'>" + f.properties.common_name + " [" + f.properties.scientific_name + "]</div>");
+                                }
+                                else {
+                                    tree.append("<div id='nearby_tree_info'>No species information</div>")
+                                }
+                                if (f.properties.current_dbh){
+                                    tree.append("<div id='nearby_tree_info'>Diameter: " + f.properties.current_dbh + " inches</div>");
+                                }
+                                
+                            });
+                        }
+                    });
+                }
                 
                 $.each(addy, function(index, value){
                     if ($.inArray('locality', value.types) > -1) {
@@ -737,6 +820,13 @@ var tm = {
             } else {
                 if ($("#geocode_address")) {
                     $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
+                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
+                    $.getJSON(url, function(geojson){
+                        $.each(geojson.features, function(i,f){
+                            alert("trees");
+                            //TODO: add each tree to list
+                        });
+                    });
                 }
                 else {
                     alert("Reverse Geocode was not successful.");
@@ -814,36 +904,8 @@ var tm = {
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
                 
-                if (!p.street_address) {
-                    latlng = new google.maps.LatLng(coords[1], coords[0])
-                    tm.geocoder.geocode({
-                        latLng: latlng
-                    }, function(results, status){
-                        if (status == google.maps.GeocoderStatus.OK) {
-                            //TODO: add jsonString here for post
-                            var data = {
-                                'tree_id': p.id,
-                                'address': results[0].formatted_address.split(", ")[0],
-                                'city': results[0].formatted_address.split(", ")[1]
-                            };
-                            var jsonString = JSON.stringify(data);
-                            
-                            $.ajax({
-                                url: '/trees/location/update/',
-                                type: 'POST',
-                                data: jsonString,
-                                complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');                                    
-                                }
-                            });
-                        } else {
-                            jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
-                        }
-                    });
-                }
-                else {
-                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
-                }
+                jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                
             }
         }
     },
@@ -961,7 +1023,7 @@ var tm = {
     display_search_results : function(results){
         
         if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
-        if (tm.tree_layer) {tm.vector_layer.destroyFeatures();}
+        if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
         //{
@@ -1728,6 +1790,20 @@ var tm = {
         });
     },
 
+    deletePhoto: function(tree_id, photo_id) {
+        $.ajax({
+            url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                window.location.reload(true);
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+            }
+        });
+    },
+    
      updateSpeciesFromKey: function(tree_code, tree_cultivar)  {
        alert(tree_code);
      },
