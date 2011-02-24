@@ -7,6 +7,7 @@ Options:
 
 Input file fields:
 	
+	ID		 - number
 	POINT_X		 - EPSG:4326
 	POINT_Y		 - EPSG:4326
 	SCIENTIFIC	 - Genus species (ex: Tilia americana) must exist in database already, case insensitive

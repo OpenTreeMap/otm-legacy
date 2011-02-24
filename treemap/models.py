@@ -349,7 +349,9 @@ class GeocodeCache(models.Model):
     geometry = models.PointField(null=True, srid=4326)
     objects = models.GeoManager()
 
-
+class ImportEvent(models.Model):
+    file_name = models.CharField(max_length=256)
+    import_date = models.DateField(auto_now=True) 
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -399,12 +401,13 @@ class Tree(models.Model):
 
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
-    
-    
+        
     s_order = models.IntegerField(null=True, blank=True)
    
     objects = models.GeoManager()
     history = audit.AuditTrail()
+    
+    import_event = models.ForeignKey(ImportEvent)
     
     
     def has_common_attributes(self):
