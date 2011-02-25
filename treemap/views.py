@@ -28,7 +28,6 @@ from models import *
 from forms import *
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
 from spreadsheet import ExcelResponse
-from treemap.update_aggregates import cache_search_aggs
 import time
 from time import mktime, strptime
 
