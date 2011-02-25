@@ -35,14 +35,15 @@ class Command(BaseCommand):
         return rows
     
     def get_csv_rows(self, in_file):
-        reader = csv.DictReader(open(in_file, 'r' ))
+        reader = csv.DictReader(open(in_file, 'r' ), restval=123)
         print 'Opening input file: %s ' % in_file
-        reader.next()
-        self.headers = reader.fieldnames
-        print self.headers
-        self.err_writer.writerow(self.headers)
+
+        rows = list(reader)
                 
-        return list(reader)
+        self.headers = reader.fieldnames
+        self.err_writer.writerow(self.headers)        
+                
+        return rows
     
     def handle(self, *args, **options):
         try:    
@@ -97,15 +98,16 @@ class Command(BaseCommand):
         x = float(row.get('POINT_X', 0))
         y = float(row.get('POINT_Y', 0))
 
-        print x, y
         ok = x and y
         if not ok:
-            self.log_error("invalid coords", row)
+            self.log_error("  Invalid coords", row)
+        self.log_verbose("  Passed coordinate check")
         return (ok, x, y)
 
     def check_species(self, row):
         # locate the species and instanciate the tree instance
-        if not row["SCIENTIFIC"]:
+        if not row["SCIENTIFIC"]:            
+            self.log_verbose("  No species information")
             return (True, None)
 
         name = row['SCIENTIFIC']
@@ -123,31 +125,35 @@ class Command(BaseCommand):
     def check_proximity(self, tree, species, row):
         # check for nearby trees
         collisions = tree.validate_proximity(True, 0)
+        
         # if there are no collisions, then proceed as planned
         if not collisions:
+            self.log_verbose("  No collisions found")
             return (True, tree)
+        self.log_verbose("  Initial proximity test count: %d" % collisions.count())
         
         # exclude collisions from the same file we're working in
-        collisions = collisions.exclude(owner_additional_properties__icontains=self.file_name)
+        collisions = collisions.exclude(import_event=self.import_event)
         if not collisions:
-            return (True, tree)
-                
-        self.log_verbose("  Proximity test count: %d" % collisions.count())
+            self.log_verbose("  All collisions are for from this import file")
+            return (True, tree)                
+        self.log_verbose("  Secondary proximity test count: %d" % collisions.count())
         
         # if we have multiple collitions, check for same species or unknown species
         # and try to associate with one of them otherwise abort
         if collisions.count() > 1:
-            unk = collisions.filter(species=None)
-            same = collisions.filter(species=species[0])
-                
+            
             # Precedence: single same species, single unknown 
             # return false for all others and log
+            if species:                
+                same = collisions.filter(species=species[0])            
+                if same.count() == 1 and same[0].species == species[0]:
+                    self.log_verbose("  Using single nearby tree of same species")
+                    return (True, same[0])
             
-            if same.count() == 1 and same[0].species == species[0]:
-                self.log_verbose("  Using single nearby tree of same species")
-                return (True, same[0])
-            
-            if unk.count() == 1 and unk[0].species == species[0]:
+            unk = collisions.filter(species=None)
+                
+            if unk.count() == 1:
                 self.log_verbose("  Using single nearby tree of unknown species")
                 return (True, unk[0])
             
@@ -156,11 +162,12 @@ class Command(BaseCommand):
 
         # one nearby match found, use it as base
         tree = collisions[0]
-        self.log_verbose("  Found one tree nearby, using %d as base record" % tree.id)
+        self.log_verbose("  Found one tree nearby")
 
         # if neither have a species, then we're done and we need to use
         # the tree we collided with.
         if not tree.species and not species:
+            self.log_verbose("  No species info for either record, using %d as base record" % tree.id)
             return (True, tree)
 
         # if only the new one has a species, update the tree we collided
@@ -173,6 +180,7 @@ class Command(BaseCommand):
 
         # if only the collision tree has a species, we're done.
         if not species or species.count() == 0:
+            self.log_verbose("  No species info for import record, using %d as base record" % tree.id)
             return (True, tree)
 
         # in this case, both had a species. we should check to see if
@@ -181,8 +189,9 @@ class Command(BaseCommand):
             # now that we have a new species, we want to update the
             # collision tree's species and delete all the old status
             # information.
+            self.log_verbose("  Species do not match, using update file species: %s" % species[0])
             tree.set_species(species[0].id, False)
-            TreeStatus.objects.filter(tree=tree.id).delete()                            
+            TreeStatus.objects.filter(tree=tree.id).delete()
         return (True, tree) 
     
     def handle_row(self, row):
@@ -296,7 +305,7 @@ class Command(BaseCommand):
             #print ts, ts.value
             ts.save()
 
-        if row.get('CONDITION'):
+        if row.get('CONDITION') and row['CONDITION'] != tree.get_condition():
             for k, v in Choices().get_field_choices('condition'):
                 if v == row['CONDITION']:
                     ts = TreeStatus(
@@ -308,7 +317,7 @@ class Command(BaseCommand):
                     #print ts, ts.value
                     break;
         
-        if row.get('CANOPYCONDITION'):
+        if row.get('CANOPYCONDITION') and row['CANOPYCONDITION'] != tree.get_canopy_condition():
             for k, v in Choices().get_field_choices('canopy_condition'):
                 if v == row['CANOPYCONDITION']:
                     ts = TreeStatus(

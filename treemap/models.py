@@ -617,7 +617,7 @@ class Tree(models.Model):
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.geometry:
             return None
-        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=5)))
+        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=10.0)))
         if nearby.count() > max_count: 
             if return_trees:
                 return nearby 

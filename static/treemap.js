@@ -1885,43 +1885,62 @@ var tm = {
         });
     },
     activateUser: function(user_id) {
-            var data = {
-                'user_id': user_id
-            };
-            var jsonString = JSON.stringify(data);
+        var data = {
+            'user_id': user_id
+        };
+        var jsonString = JSON.stringify(data);
+
+        $.ajax({
+            url: '/users/activate/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $('#' + response.user_id).children("#rep").children("#ban").toggle();
+                $('#' + response.user_id).children("#rep").children("#activate").toggle();
+                $('#' + response.user_id).children("#active").html('Active');
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id);
+            }
+        });
+    },
     
-            $.ajax({
-                url: '/users/activate/',
-                dataType: 'json',
-                data: jsonString,
-                type: 'POST',
-                success: function(response) {
-                    $('#' + response.user_id).children("#rep").children("#ban").toggle();
-                    $('#' + response.user_id).children("#rep").children("#activate").toggle();
-                    $('#' + response.user_id).children("#active").html('Active');
-                },
-                error: function(err) {
-                alert("Error: " + err.status + "\nQuery: " + user_id);
-                }
-            });
+    validate_watch: function(watch_id){
+        var data = {
+            'watch_id': watch_id
+        };
+        var jsonString = JSON.stringify(data);      
+        $.ajax({
+            url: '/watch/validate/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $("#" + watch_id).fadeOut();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + watch_id );
+            }
+        });
     },
     
     hideComment: function(flag_id) {
-    var data = {
+        var data = {
             'flag_id': flag_id
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-        url: '/comments/hide/',
-        dataType: 'json',
-        data: jsonString,
-        type: 'POST',
-        success: function(response) {
-        $("#" + flag_id).fadeOut();
-        },
-        error: function(err) {
-        alert("Error: " + err.status + "\nQuery: " + flag_id );
-        }
+            url: '/comments/hide/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $("#" + flag_id).fadeOut();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + flag_id );
+            }
         });
     },
     removeFlag: function(flag_id) {

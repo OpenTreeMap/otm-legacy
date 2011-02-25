@@ -36,6 +36,8 @@ urlpatterns = patterns('',
     (r'^trees/location/$', tree_location_search),
     (r'^trees/location/update/$', tree_location_update),
     
+    (r'^trees/watch/$', watch_list),
+    (r'^watch/validate/$', validate_watch),
     
     url(r'^trees/favorites/create/(?P<pk>\d+)/$', create_favorite, name='treeemap_favorite_create'), 
     url(r'^trees/favorites/delete/(?P<pk>\d+)/$', delete_favorite, name='treeemap_favorite_delete'), 
