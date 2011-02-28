@@ -255,6 +255,7 @@ var tm = {
             
     },
     baseTemplatePageLoad:function() {
+        //document.namespaces;
         $("#logo").click(function() {
             location.href="/home";
         });        

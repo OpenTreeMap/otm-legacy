@@ -18,11 +18,6 @@
                 return false;
                 }).next().hide();
             });
-
-        tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
-        tm.currentTreeId = {{tree.id}};
-        tm.init_tree_map(false); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     });
 
 </script>
@@ -548,5 +543,12 @@
         </tr></table>
     </div>
 
-
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+		tm.currentTreeId = {{tree.id}};
+		tm.init_tree_map(false); //not editable
+		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+	</script>
+{% endblock endpage %}
 
