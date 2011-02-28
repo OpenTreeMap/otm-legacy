@@ -453,10 +453,10 @@ var tm = {
         
     init_map : function(div_id){
         tm.init_base_map(div_id);
-        
-        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
-        tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2')
-        tm.vector_layer = new OpenLayers.Layer.Vector('Vectors')
+
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
+        tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
+        tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
         
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
@@ -1960,7 +1960,7 @@ var tm = {
         alert("Error: " + err.status + "\nQuery: " + flag_id );
         }
     });
-    },
+    }
 }  
 $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {
@@ -1973,4 +1973,73 @@ $.editable.addInputType("autocomplete_species", {
         $(this).append(hiddenInput);
         return (hiddenInput);
     }
-});    
+});
+$.editable.addInputType('date', {
+    element : function(settings, original) {       
+        var monthselect = $('<select id="month_">');
+        var dayselect  = $('<select id="day_">');
+        var yearselect  = $('<select id="year_">');
+    
+        /* Month loop */
+        for (var month=1; month <= 12; month++) {
+            if (month < 10) {
+                month = '0' + month;
+            }
+            var option = $('<option>').val(month).append(month);
+            monthselect.append(option);
+        }
+        $(this).append(monthselect);
+
+        /* Day loop */
+        for (var day=1; day <= 31; day++) {
+            if (day < 10) {
+                day = '0' + day;
+            }
+            var option = $('<option>').val(day).append(day);
+            dayselect.append(option);
+        }
+        $(this).append(dayselect);
+            
+        /* Year loop */
+        thisyear = new Date().getFullYear()
+        for (var year=thisyear; year >= 1950; year--) {
+            var option = $('<option>').val(year).append(year);
+            yearselect.append(option);
+        }
+        $(this).append(yearselect);
+        
+        $(this).append("<br><span>MM</span><span style='padding-left:30px;'>DD</span><span style='padding-left:36px;'>YYYY</span><br>")
+        
+        /* Hidden input to store value which is submitted to server. */
+        var hidden = $('<input type="hidden">');
+        $(this).append(hidden);
+        return(hidden);
+    },
+    submit: function (settings, original) {
+        var value = $("#year_").val() + "-" + $("#month_").val() + "-" + $('#day_').val();
+        $("input", this).val(value);
+    },
+    content : function(string, settings, original) {
+        var pieces = string.split('-');
+        var year = pieces[0];
+        var month  = pieces[1];
+        var day  = pieces[2];
+        
+
+        $("#year_", this).children().each(function() {
+            if (year == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#month_", this).children().each(function() {
+            if (month == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#day_", this).children().each(function() {
+            if (day == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+    }
+});

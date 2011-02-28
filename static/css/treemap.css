@@ -214,7 +214,18 @@ input.button {
 }
 #hazardTable, #actionTable {
     font-size:12px;
+
 }
+#month_, #day_ {
+    width:50px;
+    padding-right:20x;
+    margin-right:10px;
+}
+#year_ {
+    width:65px;
+    padding-right:20x;
+}
+
 
 /* MAP MARKER HOVER */
 .olLayerDiv div {
