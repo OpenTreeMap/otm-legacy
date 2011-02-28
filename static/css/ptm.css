@@ -52,7 +52,7 @@ form, fieldset {
 
 .buttonMed {
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 16px;
+	font-size: 15px;
 	border: none;
 	background-color: #1b9668;
 	background-image: url(/static/images/ptm/button-med-sprite.png) ;
@@ -60,7 +60,7 @@ form, fieldset {
 	background-repeat: repeat-x;
 	height: 35px;
 	line-height: 34px;
-	padding: 0 10px;
+	padding: 0 15px;
 	font-weight:bold;
 	cursor:pointer;
 	color: #fff;
@@ -146,11 +146,11 @@ button::-moz-focus-inner {
 		padding: 0;
 		float:left;
 		list-style:none;
-		padding-right:12px;
 		margin-right: 10px;
 	}
 	
-		#headerNavLinks li.active {
+		#tree_add #headerNavLinks li#headerNavExplore,
+		#tree_add #headerNavLinks li#headerNavExplore{
 		background: #157199;
 		border-top: 1px solid #488aa8;
 		border-left: 1px solid #3a86a6;
@@ -165,6 +165,7 @@ button::-moz-focus-inner {
 		width: 127px;
 		height: 42px;
 		display: block;
+		padding-right:12px;
 	}
 
 	
