@@ -9,8 +9,8 @@
 
 	{% for leaf in node.child_set.all %}
 
-	<div class="leaf">
-		<div class="leaf-name">{{ leaf }}</div>
+	<div class="leaf {% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+		<div class="leaf-name "><a href="/treekey/node/{{ leaf.id }}/">{{ leaf }}</a></div>
 
 		{% if leaf.has_children %}
 
@@ -19,16 +19,16 @@
 					<a href="/treekey/node/{{ leaf.id }}/">
 						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
-					<div><a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% if image.attrib_text %}
+					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% endif %}
 				</div>
 			{% endfor %}
 
 			<div class="leaf-text">
 				{{ leaf.description }}
 			</div>
-			<div class="leaf-link">
-				<a href="/treekey/node/{{ leaf.id }}/">{{ leaf }}</a>
-			</div>
+
 
 		{% else %}
 
@@ -37,16 +37,16 @@
 					<a href="/treekey/leaf/{{ leaf.id }}/">
 						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
-					<div><a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% if image.attrib_text %}
+					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% endif %}
 				</div>
 			{% endfor %}
 
 			<div class="leaf-text">
 				{{ leaf.description }}
 			</div>
-			<div class="leaf-link">
-				<a href="/treekey/leaf/{{ leaf.id }}/">{{ leaf }}</a>
-			</div>
+
 
 		{% endif %}
 	</div>

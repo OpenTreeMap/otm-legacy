@@ -1,7 +1,7 @@
 <div class="trail">
-	<span class="crumb"><a href="/treekey/start">Start</a></span> >
+	<span class="crumb"><a href="/treekey/start">Tree Key</a></span> 
 	{% for crumb in trail %}
-
+		{% if forloop.first %} > {% endif %}
 		{% if forloop.last %}
 
 			<span class="crumb last-crumb">{{ crumb }}</span>
