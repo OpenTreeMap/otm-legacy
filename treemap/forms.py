@@ -25,10 +25,10 @@ class TreeEditPhotoForm(forms.ModelForm):
         fields = ('title','photo',)
 
 class TreeAddForm(forms.Form):
-    edit_address_street = forms.CharField(widget=forms.HiddenInput, required=True)
+    edit_address_street = forms.CharField(max_length=200, required=True)
     edit_address_city = forms.CharField(widget=forms.HiddenInput, required=True)
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
-    species_name = forms.CharField(max_length=200,required=False)
+    species_name = forms.CharField(required=False)
     #dbh = forms.FloatField(required=False)
     #species_id = forms.CharField(required=False)
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
@@ -39,13 +39,13 @@ class TreeAddForm(forms.Form):
         cleaned_data = self.cleaned_data  
         try:
             point = Point(cleaned_data.get('lon'),cleaned_data.get('lat'),srid=4326)  
-            nearby = Tree.objects.filter(geometry__distance_lte=(point, D(ft=10)))
+            #nearby = Tree.objects.filter(geometry__distance_lte=(point, D(ft=10)))
             nbhood = Neighborhood.objects.filter(geometry__contains=point)
         except:
             raise forms.ValidationError("This tree is missing a location. Click the map to add a location for this tree.") 
         
-        if nearby.count() > 0:
-            raise forms.ValidationError("The selected location is too close to an existing tree. Please check that the tree you are trying to enter is not already in the system or specify a different location.")
+        #if nearby.count() > 0:
+        #    raise forms.ValidationError("The selected location is too close to an existing tree. Please check that the tree you are trying to enter is not already in the system or specify a different location.")
         
         if nbhood.count() < 1:
             raise forms.ValidationError("The selected location is outside our area. Please specify a different location.")

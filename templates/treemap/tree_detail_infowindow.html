@@ -2,6 +2,18 @@
 
 {% block tophead %}
 <script type="text/javascript">
+	jQuery().ready(function() {
+		if (jQuery("#address").html() == "Missing") {
+			latlng = new google.maps.LatLng({{ tree.geometry.y }}, {{ tree.geometry.x }})
+			tm.geocoder.geocode({
+				latLng: latlng
+			}, function(results, status){
+				if (status == google.maps.GeocoderStatus.OK) {
+					jQuery("#address").html(results[0].formatted_address.split(", ")[0])
+				}
+			});
+		}
+	});
 	function fav_click(evt) {
 		var pk = $('a.favorite').attr('id').replace('favorite_', '');
 		var url = '/trees/favorites/create/' + pk + '/';
@@ -38,7 +50,7 @@
     <tbody>
         <tr>
         	<td class="col1">Nearby address</td>
-            <td>{{ tree.address_street|default:"Missing" }}</td>
+            <td id='address'>{{ tree.address_street|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>

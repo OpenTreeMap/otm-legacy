@@ -274,34 +274,40 @@
          <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>
-{% if instance.treephoto_set.count %}
-                            <a href="/media/{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
-                            <img src="/media/{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
-                            </a>
-                            <ul id="additionalImages">
-                            {% for item in instance.treephoto_set.all|slice:"1:4" %}
-                                    <li><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
-                            {% endfor %}
-                            </ul>
-                            <ul id="imageOptions">
-                                <li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a></li>
-							</ul>
-                            {% else %}
-                            <img src="/static/images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" />
-<!--
-                            <ul id="additionalImages">
-                                <li><a href="#"><img src="/static/images/es/image15.jpg" alt="image description" width="55" height="36" /></a></li>
-                                <li><a href="#"><img src="/static/images/es/image16.jpg" alt="image description" width="55" height="36" /></a></li>
-                                <li><a href="#"><img src="/static/images/es/image17.jpg" alt="image description" width="55" height="36" /></a></li>
-                            </ul>
--->
-                            <ul id="imageOptions">
-                                <li id="first"><a href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a></li>
-                            </ul>
-{% endif %}
+					{% if instance.treephoto_set.count %}
+						<a href="/media/{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
+							<img src="/media/{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+						</a>
+						{% if perms.can_delete_tree %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+						{% endif %}
+						{% if instance.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+						{% endif %}
+						<ul id="additionalImages">
+						{% for item in instance.treephoto_set.all|slice:"1:4" %}
+							<li><div><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a>
+								{% if perms.can_delete_tree %}
+									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ item.id }}); return false;">delete?</a></span>
+								{% endif %}
+								</div>
+							</li>
+						{% endfor %}
+						</ul>
+						<ul id="imageOptions">
+							<li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a>
+							</li>
+						</ul>
+					{% else %}
+						<img src="/static/images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" />
+
+						<ul id="imageOptions">
+							<li id="first"><a href="/trees/{{ instance.id }}/photos/">Add photos &raquo;</a></li>
+						</ul>
+					{% endif %}
                 </li>
             </ul>
-            {% if perms.can_edit_condition %}
+            {% if perms.can_delete_tree %}
             <ul id="message">
 				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this tree</a></li>
 				<li>Some warning text here about not undoing and lag time on map tiles</li>

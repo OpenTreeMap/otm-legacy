@@ -28,7 +28,6 @@ from models import *
 from forms import *
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
 from spreadsheet import ExcelResponse
-from treemap.update_aggregates import cache_search_aggs
 import time
 from time import mktime, strptime
 
@@ -162,7 +161,8 @@ def tree_location_search(request):
         # to allow clicking other trees still...
         if species_trees.exists():
             trees = species_trees
-    trees = trees[:max_trees]
+    if trees.exists():
+        trees = trees[:max_trees]
     return render_to_geojson(trees, 
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
@@ -433,6 +433,9 @@ def tree_edit(request, tree_id = ''):
         condition['value'] = conditions[0].value
         condition['display'] = conditions[0].display
     
+    perm = Permission.objects.get(name = 'can_edit_condition')
+    rep = Reputation.objects.reputation_for_user(request.user)
+    
     data = [
         {'type':'header',
          'text': "General tree information"
@@ -448,8 +451,16 @@ def tree_edit(request, tree_id = ''):
          'value': tree.species and tree.species.common_name
         },
         diam,
+    ]
+
+    height_data = [
         height,
         c_height,
+    ]
+    if rep.reputation >= perm.required_reputation or request.user.is_superuser:
+        data.extend(height_data)
+        
+    further_data = [
         {'type':'field',
          'name': 'address_street',
          'label':"Street",
@@ -493,7 +504,8 @@ def tree_edit(request, tree_id = ''):
          'label':"Is there a powerline overhead?",
          'value': tree.get_powerline_conflict_potential_display()
         },
-        ]
+    ]
+    data.extend(further_data)
     
     status_data = [  
         {'type':'header',
@@ -506,15 +518,9 @@ def tree_edit(request, tree_id = ''):
          'name': 'local',
          'label':"Local",
          'value': tree.treeflags_set.all()
-        },
-        #{'type':'header',
-        # 'text': "Location information"
-        #},
-        ] 
+        }
+    ] 
     
-    perm = Permission.objects.get(name = 'can_edit_condition')
-    rep = Reputation.objects.reputation_for_user(request.user)
-    print perm, rep
     if rep.reputation >= perm.required_reputation or request.user.is_superuser:
         data.extend(status_data)
 
@@ -534,6 +540,17 @@ def tree_delete(request, tree_id):
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+
+def photo_delete(request, tree_id, photo_id):    
+    tree = Tree.objects.get(pk=tree_id)
+    photo = TreePhoto.objects.get(pk=photo_id)
+    photo.delete()
+    
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+    
 
 from django.contrib.auth.decorators import permission_required
 
@@ -1322,6 +1339,43 @@ def verify_edits(request, audit_type='tree'):
         })
         
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
+
+@login_required
+@permission_required('change_user') #proxy for group users
+def watch_list(request):    
+    watch_failures = TreeWatch.objects.filter(valid=False)
+    print watch_failures.count()
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        watch_failures = watch_failures.filter(tree__last_updated_by=u)
+    if 'address' in request.GET:
+        watch_failures = watch_failures.filter(tree__address_street__icontains=request.GET['address'])
+    if 'test' in request.GET: 
+        for watch in watch_choices.iteritems():
+            print watch[0]
+            if watch[0] == request.GET['test']: 
+                key = watch[1]
+                watch_failures = watch_failures.filter(key=key)
+                break;
+    
+    return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures}))
+
+@login_required
+@permission_required('change_user') #proxy for group users
+def validate_watch(request):
+    if request.method == 'POST':
+        post = simplejson.loads(request.raw_post_data)
+    watch_id = post.get('watch_id')
+    watch = TreeWatch.objects.get(pk=watch_id)
+    watch.valid = True
+    watch.save()
+    
+    response_dict = {}
+    response_dict['success'] = True
+    return HttpResponse(
+        simplejson.dumps(response_dict, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
 
 @login_required 
 def verify_rep_change(request, change_type, change_id, rep_dir):

@@ -349,7 +349,9 @@ class GeocodeCache(models.Model):
     geometry = models.PointField(null=True, srid=4326)
     objects = models.GeoManager()
 
-
+class ImportEvent(models.Model):
+    file_name = models.CharField(max_length=256)
+    import_date = models.DateField(auto_now=True) 
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -399,12 +401,13 @@ class Tree(models.Model):
 
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
-    
-    
+        
     s_order = models.IntegerField(null=True, blank=True)
    
     objects = models.GeoManager()
     history = audit.AuditTrail()
+    
+    import_event = models.ForeignKey(ImportEvent)
     
     
     def has_common_attributes(self):
@@ -614,7 +617,7 @@ class Tree(models.Model):
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.geometry:
             return None
-        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=5)))
+        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=10.0)))
         if nearby.count() > max_count: 
             if return_trees:
                 return nearby 
