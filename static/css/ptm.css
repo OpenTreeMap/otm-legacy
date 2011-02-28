@@ -149,8 +149,8 @@ button::-moz-focus-inner {
 		margin-right: 10px;
 	}
 	
-		#tree_add #headerNavLinks li#headerNavExplore,
-		#tree_add #headerNavLinks li#headerNavExplore{
+		#tree_add #headerNavLinks li#headerNavAdd,
+		#results #headerNavLinks li#headerNavExplore{
 		background: #157199;
 		border-top: 1px solid #488aa8;
 		border-left: 1px solid #3a86a6;
@@ -615,8 +615,7 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	padding: 23px 28px 28px;
 	margin:0 auto 20px;
 	overflow:hidden;
-
-	background-color: #E8F4F1;
+	background-color: #eff7f7;
 	-moz-box-shadow: 3px 3px 4px #2e7f94;
 	-webkit-box-shadow: 3px 3px 4px #2e7f94;
 	box-shadow: 3px 3px 4px #2e7f94;
