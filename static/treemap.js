@@ -658,7 +658,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 17);
+        tm.map.setCenter(olPoint, 15);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);

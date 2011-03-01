@@ -94,7 +94,11 @@ TEMPLATE_LOADERS = (
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
+    "django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    'django.core.context_processors.request',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -106,6 +110,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django_reputation.middleware.ReputationMiddleware', 
+    'pagination.middleware.PaginationMiddleware',
+    'django_sorting.middleware.SortingMiddleware',
+
 )
 
 ROOT_URLCONF = 'urls'
@@ -139,6 +146,8 @@ INSTALLED_APPS = (
     'qs_tiles',
     'treekey',
     'badges',
+    'pagination',
+    'django_sorting',
 )
 
 try:

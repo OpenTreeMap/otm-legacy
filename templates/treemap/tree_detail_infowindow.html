@@ -1,5 +1,7 @@
 {% extends "infowindow.html" %}
 
+{% load tree_tags %}
+
 {% block tophead %}
 <script type="text/javascript">
 	jQuery().ready(function() {
@@ -54,11 +56,11 @@
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>
-            <td>{{ tree.current_dbh|default:"Missing" }}</td>
+            <td>{{ tree.current_dbh|unit_or_missing:"in" }}</td>
         </tr>
         <tr>
         	<td class="col1">Height</td>
-            <td>{{ tree.get_height|default:"Missing" }}</td>
+            <td>{{ tree.get_height|unit_or_missing:"ft" }}</td>
         </tr>
         <tr>
         	<td class="col1">Last updated</td>

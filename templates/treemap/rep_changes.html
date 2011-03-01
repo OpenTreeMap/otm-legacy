@@ -2,7 +2,6 @@
 
 {% load pagination_tags %}
 {% load sorting_tags %}
-
 {% block extrahead %}
     <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
 
@@ -60,8 +59,8 @@
 
 {% block content %}
 
-{% autosort users %}
-{% autopaginate users 20 %}
+{% autosort rep %}
+{% autopaginate rep 20 %}
 
 <div class="content">
 	<h2>Users</h2>
@@ -76,39 +75,23 @@
 		<table id="user_list_table">
 			<thead>
 				<tr>
-					<th>{% anchor username Username %}</th>
-					<th>{% anchor first_name User %}</th>
-					<th>{% anchor last_login 'Last Login' %}</th>
-					<th>{% anchor is_active Status %}</th>
-					<th>{% anchor groups__name Group %}</th>
-					<th>{% anchor reputation__reputation Reputation %}</th>
+					<th>{% anchor user Username %}</th>
+					<th>{% anchor date Date %}</th>
+					<th>{% anchor new 'New Trees' %}</th>
+					<th>{% anchor update 'Tree Updates' %}</th>
+					<th>{% anchor status 'New Status' %}</th>
+					<th>{% anchor flags 'New Flags' %}</th>
 				</tr>
 			</thead>
 			<tbody>
-				{% for u in users %}
-					<tr id="{{u.id}}">
-						<td><a href="/profiles/{{u.username}}">{{u.username}}</a></td>
-						<td>{{u.get_full_name}} <br/>{{u.email}}</td>
-						<td>{{u.last_login|date:"M d, Y"}}</td>
-						<td id="active">{{u.is_active|yesno:"Active,Inactive"}}</td>
-						<td>
-							<select style="width:100%;" onChange="tm.updateGroup_Admin({{u.id}}, this.value);return false;">
-								<option>Public</option>
-							{% for g in groups.all %}
-								<option {%if g in u.groups.all%}selected='true'{%endif%} value='{{g.id}}'>{{g.name}}</option>
-							{% endfor %}
-							</select>
-						</td>
-						<td id="rep">
-							<input id='reputation_{{u.id}}' value='{{u.reputation.reputation}}' size=6 onChange="tm.updateReputation_Admin({{u.id}}, this.value);return false;">
-							{% if u.is_active %}
-								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
-								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
-							{% else %}
-								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
-								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
-							{% endif %}
-						</td>
+				{% for u in rep %}
+					<tr>
+						<td>{{ u.user }}</td>
+						<td>{{ u.date|date:"M d, Y" }}</td>
+						<td>{{ u.new }}</td>
+						<td>{{ u.update }}</td>
+						<td>{{ u.status }}</td>
+						<td>{{ u.flags }}</td>
 					</tr>
 				{% endfor %}
 			</tbody>
@@ -119,4 +102,3 @@
 
 
 {% endblock %}
-
