@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto, Neighborhood, ZipCode
+from models import Tree, Species, TreePhoto, Neighborhood, ZipCode, ImportEvent
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
@@ -74,7 +74,10 @@ class TreeAddForm(forms.Form):
         zip_ = self.cleaned_data.get('edit_address_zip')
         if zip_:
             new_tree.address_zip = zip_
-            
+        
+        import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
+        new_tree.import_event = import_event
+        
         #import pdb;pdb.set_trace()
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
         new_tree.geometry = pnt
