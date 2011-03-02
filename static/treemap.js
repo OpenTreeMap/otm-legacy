@@ -2037,7 +2037,7 @@ $.editable.addInputType('date', {
         }
         $(this).append(yearselect);
         
-        $(this).append("<br><span>MM</span><span style='padding-left:30px;'>DD</span><span style='padding-left:36px;'>YYYY</span><br>")
+        $(this).append("<br><span>MM</span><span style='padding-left:30px;'>DD</span><span style='padding-left:36px;'>YYYY</span><br><div style='color:red;' id='dateplanted_error'/>")
         
         /* Hidden input to store value which is submitted to server. */
         var hidden = $('<input type="hidden">');
@@ -2045,6 +2045,12 @@ $.editable.addInputType('date', {
         return(hidden);
     },
     submit: function (settings, original) {
+        var vdate = new Date($("#year_").val(), parseInt($("#month_").val())-1, $('#day_').val());
+        if (vdate.getTime() > new Date().getTime()) {
+            $("#dateplanted_error").html("Enter a past date")
+            return false;
+        }
+        
         var value = $("#year_").val() + "-" + $("#month_").val() + "-" + $('#day_').val();
         $("input", this).val(value);
     },

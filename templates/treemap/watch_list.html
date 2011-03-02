@@ -73,6 +73,7 @@
 		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	{% paginate %}
+	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. These trees have failed a data validation check. If the data is valid, click the Validate link in the Change column. If the data is not valid, visit the tree record to fix the data.</div>
 	<div id="species_list">
 		<table id="species_list_table">
 			<thead>
@@ -87,7 +88,7 @@
 			<tbody>
 				{% for w in watches %}
 				<tr id="{{w.id}}">
-					<td><i>{{w.tree.species}}</i><br><a href="/trees/{{w.tree.id}}" target="_blank">View Record</a></td>
+					<td><i>{{w.tree.species}}</i><br><a href="/trees/{{w.tree.id}}/edit" target="_blank">View Record</a></td>
 					<td>{{w.tree.address_street}}</td>
 					<td>{{w.tree.last_updated|date:"M d, Y"}}
 						<br/><a href="/profiles/{{w.tree.last_updated_by.username}}" target="_blank">{{w.tree.last_updated_by}}</a>
