@@ -7,6 +7,7 @@ class Species(models.Model):
     species = models.CharField(max_length=200, blank=True)
     variety = models.CharField(max_length=200, blank=True)
     common_name = models.CharField(max_length=200)
+    symbol = models.CharField(max_length=10, blank=True)
     feature = models.CharField(max_length=500)
     type = models.CharField(max_length=200, blank=True)
     form = models.CharField(max_length=500, blank=True)

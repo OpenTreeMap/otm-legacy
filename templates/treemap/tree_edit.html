@@ -4,34 +4,22 @@
 
 {% block body_id %}id="tree_edit"{% endblock %}
 
-{% block extrahead %}
-<script type="text/javascript">
-    jQuery().ready(function() {
-        tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
-        tm.init_tree_map(true);
-        tm.currentTreeId = {{instance.id}};
-    });
-</script>
+{% block content_body_top %}
+
+	<!-- start contentbody -->
+		<div id="contentbody">
+		<a href="../" class="buttonMed floatRight"><span class="icon"></span><span class="label">Full Tree Detail</span></a>
+	{% for field in data %}
+		{% ifequal field.name "species" %}
+
+			<h2 id="pageHead">
+			{{ field.value|default:"Species Not Yet Determined" }}
+			</h2>
+		{% endifequal %}
+	{% endfor %}
+			<div class="tab-content" id="tab-2">
+				<div class="wrap">
 {% endblock %}
-
-            {% block content_body_top %}
-
-                <!-- start contentbody -->
-                    <div id="contentbody">
-					<a href="../" class="buttonMed floatRight"><span class="icon"></span><span class="label">Full Tree Detail</span></a>
-				{% for field in data %}
-					{% ifequal field.name "species" %}
-
-						<h2 id="pageHead">
-						{{ field.value|default:"Species Not Yet Determined" }}
-						</h2>
-					{% endifequal %}
-
-				{% endfor %}
-                        <div class="tab-content" id="tab-2">
-
-                            <div class="wrap">
-                {% endblock %}
 
 
   {% block middle_panel %}
@@ -105,7 +93,7 @@
         	<td class="col1 activeEditRowLabel">{{field.label}}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"Click to edit"}}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {type: 'date'});</script>
         </tr>
 {% endifequal %}
 {% ifequal field.type "field_choices" %}
@@ -326,3 +314,11 @@
             </ul>
         </div>
     {% endblock %}
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
+		tm.init_tree_map(true);
+        tm.currentTreeId = {{instance.id}};
+	</script>
+{% endblock endpage %}
+

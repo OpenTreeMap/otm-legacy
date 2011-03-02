@@ -18,11 +18,6 @@
                 return false;
                 }).next().hide();
             });
-
-        tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
-        tm.currentTreeId = {{tree.id}};
-        tm.init_tree_map(false); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     });
 
 </script>
@@ -299,8 +294,8 @@
             <td></td>
         </tr>
         <tr>
-        	<td class="col1Wide">Data owner</td>
-            <td>{{tree.data_owner}}</td>
+        	<td class="col1Wide">Data Source</td>
+            <td>{{tree.data_owner.groups.all.0|default:"Added by the Public"}}</td>
             <td></td>
         </tr>
 
@@ -548,5 +543,12 @@
         </tr></table>
     </div>
 
-
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+		tm.currentTreeId = {{tree.id}};
+		tm.init_tree_map(false); //not editable
+		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+	</script>
+{% endblock endpage %}
 

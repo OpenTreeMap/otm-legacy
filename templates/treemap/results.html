@@ -3,16 +3,8 @@
 
 {%block body_class%}inner{%endblock %}
 
+
 {% block body_id %}id="results"{% endblock %}
-
-    {% block extrahead %}
-        <script type="text/javascript">
-        jQuery().ready(function() {
-            tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}});
-        });
-        </script>
-    {% endblock %}
-
 
 
 
@@ -187,4 +179,10 @@
             -->
         </div>
         {% endblock bottom_right_panel %}
-
+{% block endpage %}
+	<script type="text/javascript">
+		//jQuery().ready(function() {
+			tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}});
+		//});
+	</script>
+{% endblock endpage %}
