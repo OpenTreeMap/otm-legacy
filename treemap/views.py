@@ -14,7 +14,7 @@ from django.db.models import Count, Sum, Q
 from django.views.decorators.csrf import csrf_view_exempt
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
-from django_reputation.models import Reputation, Permission
+from django_reputation.models import Reputation, Permission, UserReputationAction
 from registration.signals import user_activated
 # formsets
 from django.forms.formsets import formset_factory
@@ -1282,7 +1282,7 @@ def verify_edits(request, audit_type='tree'):
             'id': tree.id,
             'species': species,
             'address_street': tree.address_street,
-            'last_updated_by': tree.last_updated_by,
+            'last_updated_by': tree.last_updated_by.username,
             'last_updated': tree.last_updated,
             'change_description': clean_key_names(tree._audit_diff),
             'change_id': tree._audit_id,
@@ -1344,7 +1344,6 @@ def verify_edits(request, audit_type='tree'):
 @permission_required('change_user') #proxy for group users
 def watch_list(request):    
     watch_failures = TreeWatch.objects.filter(valid=False)
-    print watch_failures.count()
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         watch_failures = watch_failures.filter(tree__last_updated_by=u)
@@ -1352,7 +1351,6 @@ def watch_list(request):
         watch_failures = watch_failures.filter(tree__address_street__icontains=request.GET['address'])
     if 'test' in request.GET: 
         for watch in watch_choices.iteritems():
-            print watch[0]
             if watch[0] == request.GET['test']: 
                 key = watch[1]
                 watch_failures = watch_failures.filter(key=key)
@@ -1376,6 +1374,33 @@ def validate_watch(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+@login_required
+@permission_required('change_user')
+def user_rep_changes(request):  
+    aggs = []
+    distinct_dates = UserReputationAction.objects.dates('date_created', 'day', order='DESC')
+    for date in distinct_dates.iterator():
+        start_time = date.replace(hour = 0, minute = 0, second = 0)
+        end_time = date.replace(hour = 23, minute = 59, second = 59)
+        
+        date_users = UserReputationAction.objects.filter(date_created__range=(start_time, end_time)).values('user').distinct('user')
+        for user_id in date_users:
+            user = User.objects.get(pk=user_id['user'])
+            user_date_newtrees = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='I', _audit_timestamp__range=(start_time, end_time))
+            user_date_treeupdate = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='U', _audit_timestamp__range=(start_time, end_time)).exclude(_audit_diff__exact='')
+            user_date_treestatusupdate = TreeStatus.history.filter(tree__present=True, reported_by=user, _audit_change_type__exact='U',_audit_timestamp__range=(start_time, end_time))
+            user_date_treeflagsupdate = TreeFlags.history.filter(tree__present=True, reported_by=user, _audit_change_type__exact='U', _audit_timestamp__range=(start_time, end_time))
+
+            aggs.append({
+                'user':user.username, 
+                'new':user_date_newtrees.count(), 
+                'update': user_date_treeupdate.count(), 
+                'status': user_date_treestatusupdate.count(),
+                'flags': user_date_treeflagsupdate.count(),
+                'date':date
+            })
+    return render_to_response('treemap/rep_changes.html',RequestContext(request,{'rep':aggs}))
+    
 
 @login_required 
 def verify_rep_change(request, change_type, change_id, rep_dir):
@@ -1467,3 +1492,8 @@ def remove_flag(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+
+@login_required
+@permission_required('change_user') #proxy for group users
+def build_admin_panel(request):
+    return render_to_response('treemap/admin.html',RequestContext(request))
