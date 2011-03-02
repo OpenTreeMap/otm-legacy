@@ -200,7 +200,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 		float:left;
 		background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
-		width: 189px;
+		width: 181px;
 		height: 25px;
 		display: block;
 		padding-right:12px;
@@ -1876,6 +1876,7 @@ font-size: 12px; color: #888; margin-bottom: 10px;
 	background:transparent  /* replaced */ url(/static/images/es/ico-favorite.gif) no-repeat top left;
 	margin:0 0 5px 0;
 	font-weight:bold;
+	font-size: 14px;
 }
 #popupContainer  ul#optionList li#email {
 	padding:0 0 0 20px;
@@ -3645,6 +3646,7 @@ padding: 15px 0 0 0;
 	font-size: 20px;
 	float:left;
 	padding-left: 7px;
+	margin-top: 5px;
 }	
 	
 #register label.required{
@@ -3655,7 +3657,7 @@ padding: 15px 0 0 0;
 }
 #register button {margin-left: 210px;}
 #register.add button {margin-left:0}
-#register.add .small {width: 400px; clear: left; margin: 3px 0 0 26px;}
+#register.add .small {width: 400px; clear: left; margin: 3px 0 0 75px; text-align:left;}
 #register .small{
 	color:#666666;
 	display:block;
@@ -3746,7 +3748,6 @@ padding: 15px 0 0 0;
 	background-color:transparent  /* replaced */;
 }
 #mapHolder {
-	display:none;
 	clear:both;
 	margin-top:7px
 }
@@ -3760,6 +3761,10 @@ font-size: 12px;
 	padding-left:20px;
 	
 }
+
+#add_tree_nearby  .nearby_tree_info {margin-bottom:10px; font-weight:bold}
+#add_tree_nearby .nearby_tree_info a {font-size: 14px;}
+
 
 
 /* MISC
