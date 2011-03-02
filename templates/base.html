@@ -274,16 +274,14 @@
 						<li><a href="/faq/">FAQ</a></li>
                         <li><a href="/resources/">Resources</a></li>
                         <li><a href="/contact/">Contact</a></li>
+                            {% if perms.can_change_user %}
+							    <li><a href="/admin/">Admin Portal</a></li>
+                            {% endif %}
 						    {% if user.is_superuser %}
-                               	<li><a href="/_admin_/">Admin</a></li>
+                               	<li><a href="/_admin_/">Site Admin</a></li>
                             {% endif %}
                             {% if user.is_staff %}
                                	<li><a href="/editor/flatpages/flatpage/">Edit Content</a></li>
-                            {% endif %}
-                            {% if perms.can_change_user %}
-							    <li><a href="/users/">Manage Users</a></li>
-							    <li><a href="/comments/moderate">Manage Comments</a></li>
-							    <li><a href="/trees/watch">Watch List</a></li>
                             {% endif %}
                             {% if perms.can_edit_condition %}
                             	<li><a href="/verify/">Recent Edits</a></li>

@@ -61,6 +61,7 @@ urlpatterns = patterns('',
     (r'^users/update/$', update_users),
     (r'^users/ban/$', ban_user),
     (r'^users/activate/$', unban_user),
+    (r'^users/activity/$', user_rep_changes),
     
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
@@ -71,9 +72,9 @@ urlpatterns = patterns('',
     (r'^contact/thanks/$', static, {'template':'contact_thanks.html'}),
 
     url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
-    url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change)
-    #TODO: add filters for other verifyable objects
-    #url(r'^verify/(?P<audit_type>(tree|other))/$', verify_edits, name='treemap_verify_by_type'),
+    url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),
+    
+    (r'^admin/$', build_admin_panel),
     
 )
     

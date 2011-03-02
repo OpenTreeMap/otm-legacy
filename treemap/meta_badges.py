@@ -21,8 +21,9 @@ class TrustedUser(badges.MetaBadge):
         return user.reputation.reputation
         
     def check_reputation(self, instance):
-        if instance.reputation.reputation > 999:
-            return True
+        if hasattr(instance, 'reputation'):
+            if instance.reputation.reputation > 999:
+                return True
         return False
 
 class ProfileComplete(badges.MetaBadge):
@@ -50,7 +51,7 @@ class ProfileComplete(badges.MetaBadge):
         return photo + f_name + l_name + zip + email
     
     def check_photo(self, instance):
-        return get_profile().photo
+        return instance.photo
     
     def check_name(self, user):
         return user.first_name and user.last_name

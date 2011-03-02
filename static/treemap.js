@@ -430,7 +430,7 @@ var tm = {
             }
         );
         
-        var baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
+        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
             "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
             {
                 sphericalMercator: true
@@ -448,8 +448,8 @@ var tm = {
             }
         );
         tms.buffer = 0;
-        baseLayer.buffer = 0;
-        tm.map.addLayers([baseLayer, tms]);
+        tm.baseLayer.buffer = 0;
+        tm.map.addLayers([tm.baseLayer, tms]);
     },
         
     init_map : function(div_id){
@@ -459,7 +459,22 @@ var tm = {
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
         
-        tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+        tm.roads = new OpenLayers.Layer.XYZ("ArcOnlineRoads", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true, isBaseLayer:false, visibility:false
+            }
+        );
+        
+        tm.satellite_base = new OpenLayers.Layer.XYZ("ArcOnline", 
+            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg", 
+            {
+                sphericalMercator: true,
+                
+            }
+        );
+        
+        tm.map.addLayers([tm.satellite_base, tm.roads, tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 11);
@@ -490,6 +505,19 @@ var tm = {
         } 
 
         tm.geocoder = new google.maps.Geocoder();
+
+        $(".mapToggle").click(function(evt) {
+            if ($(".mapToggle").html() == 'Satellite View') {
+                tm.map.setBaseLayer(tm.satellite_base);
+                tm.roads.setVisibility(true);
+                $(".mapToggle").html('Street View')
+            }
+            else if ($(".mapToggle").html() == 'Street View') {
+                tm.map.setBaseLayer(tm.baseLayer);
+                tm.roads.setVisibility(false);
+                $(".mapToggle").html('Satellite View')
+            }
+        });
 
     },
             

@@ -77,7 +77,8 @@
 			<thead>
 				<tr>
 					<th>{% anchor username Username %}</th>
-					<th>{% anchor first_name User %}</th>
+					<th>{% anchor first_name Name %}</th>
+					<th>{% anchor email Email %}</th>
 					<th>{% anchor last_login 'Last Login' %}</th>
 					<th>{% anchor is_active Status %}</th>
 					<th>{% anchor groups__name Group %}</th>
@@ -88,7 +89,8 @@
 				{% for u in users %}
 					<tr id="{{u.id}}">
 						<td><a href="/profiles/{{u.username}}">{{u.username}}</a></td>
-						<td>{{u.get_full_name}} <br/>{{u.email}}</td>
+						<td>{{u.get_full_name}} </td>
+						<td>{{u.email}}</td>
 						<td>{{u.last_login|date:"M d, Y"}}</td>
 						<td id="active">{{u.is_active|yesno:"Active,Inactive"}}</td>
 						<td>

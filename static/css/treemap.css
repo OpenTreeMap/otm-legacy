@@ -23,6 +23,13 @@ height:370px;
     z-index: 1000;
 }
 
+.mapToggle {
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index: 1000;
+}
+
 /* Tree Detail */
 .tree_detail_item{
 width:400px;
