@@ -49,9 +49,9 @@
 
 {% block left_panel %}
 
-<div id="register">
+<div id="register" class="add">
 
-    <h1>Add a new tree <span class="note">(If it's bold it's required)</span></h1>
+    <h1>Add a new tree <span class="note"></span></h1>
 
     {% if form.errors %}
     <div id="genError"><b>Oops!</b> There was a problem.<br />
@@ -64,35 +64,47 @@
 
     <form action="." method="POST">
     <fieldset>
-	<div style="float:left;">
-	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1: Nearby address
-        <span class="small">Enter closest address</span>
+	<div id="step1">
+	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
+	<a href="javascript:void(0)" id="update_map" class="buttonMed">View Map</a>
 	</div>
 
-	<div style="float:left;">
-	<label class="required">Step 2: Specify placement
-    </label>
-    	<a style="margin: 0 20px 20px 10px;" href="javascript:void(0)" id="update_map" class="buttonSmall">View Map</a>
 
-	</div>
 
 	<div id="mapHolder">
-        <span class="small" style="width:inherit;text-align:left;padding-left:10px;" >Click-and-drag the orange circle to move it to the correct location.</span>
+
+	<div class="clearLeft" id="step2">
+		<label class="required">Step 2</label>
+		<span class="value">Specify Placement</span>
+		<div class="clearLeft"></div>
+	</div>
+	
+        <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
     <div id="add_tree_map" class="addMap">
+		<div id="geocode_address"></div>
 		<div class="shadowLeft"></div>
 		<div class="shadowTop"></div>
 	</div>
-	<div id="geocode_address" style="float:left;margin-left:10px;width:130px"></div>
+	<div id="add_tree_nearby">
+		<h1 class="title-edit">Nearby Trees</h1>
+		<div id="nearby_trees"></div>
 	</div>
-
-	<div style="float:left;">
-    <label {% if form.species_name.errors %}id="error"{% endif %}>Optional: Species name
-        <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is?</a></span>
+	
+	<div class="clearLeft" id="step3">
+    <label {% if form.species_name.errors %}id="error"{% endif %}>Step 3 <br/><span class="note">Optional</span>
+        
     </label>
     {{ form.species_name }}
+	<button type="submit" class="buttonMed">Add this tree!</button>
+	<br/>
+	<span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Philly Tree Key</a></span>
 	</div>
+	
+	</div>
+
+
 	<!-- Hidden fields -->
 
     {{ form.species_id }}
@@ -101,7 +113,7 @@
     {{ form.edit_address_city }}
     {{ form.edit_address_zip }}
 
-    <button type="submit" style="float:left;">Add this tree!</button>
+
     </fieldset>
     </form>
     </div>
@@ -109,9 +121,6 @@
     {% endblock %}
 
     {% block right_panel %}
-       <div id="calloutContainer">
-            <h2 class="title-edit">Nearby Trees</h2>
-			<div id="nearby_trees"></div>
-        </div>
+
     {% endblock right_panel %}
 

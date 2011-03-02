@@ -44,8 +44,8 @@ a img {border:0px;}
 .leaf {float:left; width:282px; position:relative; margin:15px 30px 15px 0;padding:15px;
 	border:1px solid #ccc; background-color:#fff;-moz-border-radius: 8px; -webkit-border-radius: 8px; border-radius: 8px;}
 .leaf.even {margin-right:0}
-.leaf-text {font-size:.9em; color:#3E5D00;}
-.leaf-link {position:absolute; bottom:5px; right:5px;}
+.leaf-text {font-size:.9em; color:#3E5D00; line-height: 1.4em;  margin-top: 3px;}
+.leaf-link {position:absolute; bottom:5px; right:5px;  }
 
 .leaf-choice {position:relative; margin:15px 0;padding:20px 15px 20px 15px;
 	border:1px solid #ccc; background-color:#fff; clear:both; -moz-border-radius: 8px; -webkit-border-radius: 8px; border-radius: 8px;}

@@ -1,0 +1,62 @@
+{% block global_footer %}
+
+     <!-- Start Global footer -->
+            <div id="footer"> 
+                <div class="footer-holder"> 
+                    <div class="ad">
+                        <h2>Our Partners</h2>
+                        <ul>
+                            <li><a href="http://www.pennsylvaniahorticulturalsociety.org/"><img src="/static/images/ptm/logo-phs.png" alt="The Pennsylvania Horticultural Society" /></a></li>
+                            <li><a href="hhttp://www.phila.gov/"><img src="/static/images/ptm/logo-city-phl.png" alt="The City of Philadelphia" /></a></li>
+                            <li><a href="http://www.lowermerion.org/"><img src="/static/images/ptm/logo-lower-marion.png" alt="The City of Lower Merion" /></a></li>
+                            <li class="clearLeft"><a href="http://www.azavea.com/"><img src="/static/images/ptm/logo-azavea.png" alt="Azavea" /></a></li>
+                            <li><a href="http://www.dvrpc.org/"><img src="/static/images/ptm/logo-dvrpc.png" alt="The Delaware County Regional Planning Commission" /></a></li>
+						</ul>
+                    </div>
+					<div class="site-descrip">
+						<p>PhillyTreeMap is a collaboration of government, nonprofits, businesses and you to build an inventory of Philadelphia's urban forest.</p>
+						<p><a href="/about/">Learn more about PhillyTreeMap &raquo;</a></p>
+						<p style="font-size:12px;line-height:14px;font-weight:normal;"><a href="http://www.urbanforestmap.org" target="_blank">Code contributed by UrbanForestMap</a></p>
+					</div>
+                    <ul class="footer-nav">
+                        <li><a href="/about/">About</a></li>
+						<li><a href="/faq/">FAQ</a></li>
+                        <li><a href="/resources/">Resources</a></li>
+                        <li><a href="/contact/">Contact</a></li>
+						    {% if user.is_superuser %}
+                               	<li><a href="/_admin_/">Admin</a></li>
+                            {% endif %}
+                            {% if user.is_staff %}
+                               	<li><a href="/editor/flatpages/flatpage/">Edit Content</a></li>
+                            {% endif %}
+                            {% if perms.can_change_user %}
+							    <li><a href="/users/">Manage Users</a></li>
+							    <li><a href="/comments/moderate">Manage Comments</a></li>
+							    <li><a href="/trees/watch">Watch List</a></li>
+                            {% endif %}
+                            {% if perms.can_edit_condition %}
+                            	<li><a href="/verify/">Recent Edits</a></li>
+                            {% endif %}
+                    </ul>
+                </div>
+                <!-- <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>. -->
+            </div>
+            <!-- End Global footer -->
+{% endblock global_footer %}
+			<script type="text/javascript">
+			//var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+			//document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
+			</script>
+
+			<script type="text/javascript">
+			try {
+			//var pageTracker = _gat._getTracker("UA-13228685-1");
+			//pageTracker._setDomainName("none");
+			//pageTracker._setAllowLinker(true);
+			//pageTracker._trackPageview();
+			} catch(err) {}
+			</script>
+
+			<script type="text/javascript">
+			//var is_ssl = ("https:" == document.location.protocol); var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/"; document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E"));
+			</script>

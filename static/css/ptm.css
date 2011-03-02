@@ -112,7 +112,7 @@ form, fieldset {
 	
 }
 /* firefox button padding fix*/
-button::-moz-focus-inner { 
+button::-moz-focus-inner, input::-moz-focus-inner { 
     border: 0;
     padding: 0;
 }
@@ -149,6 +149,10 @@ button::-moz-focus-inner {
 		margin-right: 10px;
 	}
 	
+
+	
+
+	
 		#tree_add #headerNavLinks li#headerNavAdd,
 		#results #headerNavLinks li#headerNavExplore{
 		background: #157199;
@@ -174,26 +178,39 @@ button::-moz-focus-inner {
 		width: 111px;
 		height: 42px;
 		display: block;
+		padding-right:12px;
 	}
 	#headerNavUpdate a {
 		background: url(/static/images/ptm/header-button-update.png) 0 0 no-repeat; 
 		width: 143px;
 		height: 42px;
 		display: block;
-	}
-	#headerNavSupport a{
-		background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
-		width: 174px;
-		height: 42px;
-		display: block;
+		padding-right:12px;
 	}
 	
-#loginlogout {float:right; margin-top: 11px; color:#fff}
+
+	
+
+	
+#loginlogout {float:right; margin-top: 11px; color:#fff; text-align:right}
 #loginlogout a {text-decoration: underline; color: #fff}	
+
+
+	#headerNavSupport{
+	
+		float:left;
+		background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
+		width: 189px;
+		height: 25px;
+		display: block;
+		padding-right:12px;
+		margin-right: 10px;
+		border-right: 1px solid #836b5e;
+	}
 
 #loginlogout .buttonSmall {
 background-color: #366294;
-margin-left: 5px;
+margin-left: 8px;
 text-decoration: none;
 }
 
@@ -630,7 +647,7 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	width:915px;
 	margin:-20px;
 	position:absolute;
-	height:400px;
+	height:440px;
 	z-index:9999;
 	padding-top:200px;
 	padding-left:0;
@@ -641,10 +658,17 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 }
 #displayResults p {
 	margin-top:15px;
-	font-size:20px;
+	font-size:28px;
 	font-weight:bold;
 	color:#666;
+	letter-spacing: -0.05em
 }
+#displayResults img {
+	width: 60px;
+	height: 60px;
+}
+
+
 ul#promoList {
 	width:340px;
 	display:block; 
@@ -1051,11 +1075,11 @@ h2#pageHead {
 font-size: 27px;
 color: #3f2b27;
 margin-top: 0;
-margin-bottom:10px;
+margin-bottom:5px;
 }
 
 h3#pageHead {
-font-size: 18px;
+font-size: 20px;
 color: #666;
 margin-top: 0;
 }
@@ -1543,6 +1567,15 @@ ul#resultsContainer li#totals ul li .notrees {
     font-weight: bold;
 	font-size:	18px;
 }
+ul#resultsContainer li#totals ul li#first .reset_search  {
+    font-size: 18px;
+	color: #999;
+}
+ul#resultsContainer li#totals ul li#first .reset_search  a {
+	color: #999;
+	text-decoration: underline;
+}
+
 ul#resultsContainer li#export {
 	float:right;
 	width:300px;
@@ -1585,11 +1618,11 @@ ul#resultsContainer li#export {
 
 .box-table-a {
 	font-size: 14px;
-	margin: 10px 0 0 0;
+	margin: 15px 0 0 0;
 	width: 388px;
 	text-align: left;
 	border-collapse: collapse;
-	border-top:1px dashed #ccc;
+	background: url(/static/images/ptm/divider-horz.png) repeat-x;
 }
 .box-table-a th {
 	font-size: 14px;
@@ -1599,9 +1632,7 @@ ul#resultsContainer li#export {
 }
 .box-table-a td {
 	padding: 6px 8px 6px 12px;
-	border-bottom: 1px solid #fff;
 	color: #666;
-	border-top: 1px solid transparent;
 	vertical-align: top;
 /* 	white-space: nowrap; */
 }
@@ -1745,6 +1776,9 @@ ul#resultsContainer li#export {
 ** _____________________________________________________________________________
 */
 
+
+.olFramedCloudPopupContent {overflow:hidden !important}
+
 #popupContainer {
 	float:left;
 	width:390px;
@@ -1752,11 +1786,23 @@ ul#resultsContainer li#export {
 	padding:0;
 	background:transparent  /* replaced */;
 }
+
+#popupContainer .infoWindowCommonName {
+font-size: 21px;
+color: #333;
+}
+
+#popupContainer .infoWindowSpecies{
+font-size: 16px;
+color: #999;
+}
+
 #popupContainer ul {
 	float:left;
 	width:390px;
-	margin:0;
+	margin:0 0 0 5px;
 	padding:0;
+	
 }
 #popupContainer ul li {
 	display:inline;
@@ -1766,13 +1812,13 @@ ul#resultsContainer li#export {
 }
 #popupContainer ul li#details {
 	float:left;
-	width:250px;
 	margin:0;
 	padding:0;
 }
 #popupContainer ul li#details table {
 	margin:0;
 	padding:0;
+	float:right;
 }
 #popupContainer ul li#options {
 	float:right;
@@ -1780,50 +1826,63 @@ ul#resultsContainer li#export {
 	margin:0;
 	padding:0;
 }
-#popupContainer ul li#options ul#optionList {
+#popupContainer  ul#optionList {
 	width:130px;
-	margin:5px 0 0 0;
+	margin:0;
 	padding:0;
 }
-#popupContainer ul li#options ul#optionList li {
+#popupContainer  ul#optionList li {
 	width:110px;
 	list-style-type: none;
 	display: block;
 	margin:0;
 	padding:0;
 }
-#popupContainer ul li#options ul#optionList li#details {
+#popupContainer  ul#optionList li#details {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
 	background:transparent  /* replaced */ url(/static/images/es/ico-details.gif) no-repeat center left;
-	margin:10px 0 2px 0;
+	margin:9px 0 2px 0;
 }
-#popupContainer ul li#options ul#optionList li#edit {
+#popupContainer  ul#optionList li#edit {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
 	background:transparent  /* replaced */ url(/static/images/edit.png) no-repeat center left;
 	margin:10px 0 2px 0;
 }
+#popupContainer .infoWindowDetails {
+float:right;
+margin: 10px 0 0 15px;
+}
+#popupContainer .infoWindowDetails .infoLabel {
+font-size: 12px; font-weight: bold; color: #555; margin-bottom: 3px;
+}
+#popupContainer .infoWindowDetails .infoValue {
+font-size: 12px; color: #888; margin-bottom: 10px;
+}
+#popupContainer .infoWindowDetails .col1 {float: left; margin-right: 6px; width: 100px;}
+#popupContainer .infoWindowDetails .col2 {float: left;}
 
-#popupContainer ul li#options ul#optionList li#note {
+#popupContainer ul#optionList li#note {
 	font-size:12px;
 	color:#999;
 	padding:0 0 0 20px;
 	margin:0 0 15px 0;
 }
-#popupContainer ul li#options ul#optionList li#fav {
+#popupContainer  ul#optionList li#fav {
 	padding:0 0 0 20px;
-	background:transparent  /* replaced */ url(/static/images/es/ico-favorite.gif) no-repeat bottom left;
+	background:transparent  /* replaced */ url(/static/images/es/ico-favorite.gif) no-repeat top left;
 	margin:0 0 5px 0;
+	font-weight:bold;
 }
-#popupContainer ul li#options ul#optionList li#email {
+#popupContainer  ul#optionList li#email {
 	padding:0 0 0 20px;
 	background:transparent  /* replaced */ url(/static/images/es/ico-email.gif) no-repeat center left;
 	margin:0 0 5px 0;
 }
-#popupContainer ul li#options ul#optionList li#twitter {
+#popupContainer ul#optionList li#twitter {
 	padding:0 0 0 20px;
 	background:transparent  /* replaced */ url(/static/images/es/ico-twitter.gif) no-repeat center left;
 	margin:0 0 5px 0;
@@ -3548,6 +3607,14 @@ width:944px;
 	margin-top:0;
 	margin-right:20px;
 }
+#register.add {
+	float:none;
+	width: auto;
+	margin-right:0
+}
+#register.add #step3 {
+padding: 15px 0 0 0;
+}
 #register h1 {
 	clear:both;
 	font-size:20px;
@@ -3568,6 +3635,18 @@ width:944px;
 	width:200px;
 	float:left;
 }
+#register.add label {
+	width: 65px;
+	text-align:left;
+	font-size: 20px;
+	margin-top:5px;
+}
+#register.add .value {
+	font-size: 20px;
+	float:left;
+	padding-left: 7px;
+}	
+	
 #register label.required{
 	font-weight:bold;
 }
@@ -3575,6 +3654,8 @@ width:944px;
 	color:red;
 }
 #register button {margin-left: 210px;}
+#register.add button {margin-left:0}
+#register.add .small {width: 400px; clear: left; margin: 3px 0 0 26px;}
 #register .small{
 	color:#666666;
 	display:block;
@@ -3583,6 +3664,7 @@ width:944px;
 	text-align:right;
 	width:200px;
 }
+
 #register input{
 	float:left;
 	font-size:16px;
@@ -3593,6 +3675,17 @@ width:944px;
 	width:280px;
 	margin:0 20px 20px 10px;
 }
+
+#register.add input#id_edit_address_street {
+	width: 434px;
+	}
+#register.add input#id_species_name {
+	width: 408px;
+	margin-bottom: 0;
+}
+
+
+
 #register input#id_photo {
 	float:left;
 	font-size:16px;
@@ -3653,7 +3746,13 @@ width:944px;
 	background-color:transparent  /* replaced */;
 }
 #mapHolder {
+	display:none;
 	clear:both;
+	margin-top:7px
+}
+#mapHolderDirections {
+padding: 5px 0;
+font-size: 12px;
 }
 #register p.addNote {
 	font-size:14px;

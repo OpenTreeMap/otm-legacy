@@ -899,7 +899,7 @@ var tm = {
                    tm.tree_detail_marker.icon,
                    true);
                 popup.minSize = new OpenLayers.Size(400,200);
-                popup.maxSize = new OpenLayers.Size(500,500);
+                popup.maxSize = new OpenLayers.Size(400,450);
                 popup.autoSize = true;
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
