@@ -3,7 +3,8 @@
 {% block right_panel %}
 <div class="species">
 	<div class="species-name">
-		{{ species.common_name }}
+		{{ species.common_name }} 
+		<a href="/map/#?species={{species.symbol}}" class="floatRight buttonMed">Show on a Map</a>
 	</div>
 	<div class="species-scientific">
 		{{ species.genus }} {{ species.species }}

@@ -336,10 +336,10 @@ var tm = {
                 triggerSearch();
         });
         $("#searchSpeciesBrowse").click(function(evt) {
-            $("#searchSpeciesList").toggle();
+            $("#searchSpeciesList").slideToggle();
         });
         $("#searchLocationBrowse").click(function(evt) {
-            $("#searchNBList").toggle();
+            $("#searchNBList").slideToggle();
         });
 
         // todo - clean this logic up...
@@ -796,16 +796,16 @@ var tm = {
                         else {
                             $('#nearby_trees').html("Found " + geojson.features.length + " tree(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
                             $.each(geojson.features, function(i,f){
-                                var tree = $("<div id='nearby_tree'></div>").appendTo($('#nearby_trees'));
-                                tree.append("<a href='/trees/" + f.properties.id + "' target='_blank'>#" + f.properties.id + "</a>");
+								tree.append("<h1 class='title-edit'>Nearby Trees</h1>")
+                                var tree = $("<div class='nearby_tree'></div>").appendTo($('#nearby_trees'));
                                 if (f.properties.common_name){
-                                    tree.append("<div id='nearby_tree_info'>" + f.properties.common_name + " [" + f.properties.scientific_name + "]</div>");
+                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                                 }
                                 else {
-                                    tree.append("<div id='nearby_tree_info'>No species information</div>")
+                                    tree.append("<div class='nearby_tree_info'>No species information</div>")
                                 }
                                 if (f.properties.current_dbh){
-                                    tree.append("<div id='nearby_tree_info'>Diameter: " + f.properties.current_dbh + " inches</div>");
+                                    tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
                                 }
                                 
                             });
@@ -928,7 +928,7 @@ var tm = {
                    tm.tree_detail_marker.icon,
                    true);
                 popup.minSize = new OpenLayers.Size(400,200);
-                popup.maxSize = new OpenLayers.Size(500,500);
+                popup.maxSize = new OpenLayers.Size(400,450);
                 popup.autoSize = true;
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);

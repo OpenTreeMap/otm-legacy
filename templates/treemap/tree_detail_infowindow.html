@@ -37,54 +37,13 @@
 </script>
 {% endblock %}
 
+
+
 {% block left_panel %}
-<table class="box-table-c">
-    <!-- Do we really need this header? -->
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">
-        		{{ tree.species.scientific_name|default:"No Species Yet" }} <br/>
-        		<span style="font-size:smaller;">{{ tree.species.common_name }}</span>
-        	</th>
-        </tr>
-    </thead>
 
-    <tbody>
-        <tr>
-        	<td class="col1">Nearby address</td>
-            <td id='address'>{{ tree.address_street|default:"Missing" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Trunk diameter</td>
-            <td>{{ tree.current_dbh|unit_or_missing:"in" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Height</td>
-            <td>{{ tree.get_height|unit_or_missing:"ft" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Last updated</td>
-            <td>{{ tree.last_updated|date }}</td>
-        </tr>
-        {% if tree.treealert_set.all.count > 0 %}
-        <tr>
-        	<td class="col1">Alerts</td>
-            <td>
-                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
-            </td>
-        </tr>
-        {% endif %}
-        <tr>
-        	<td class="col1">Yearly eco impact</td>
-            <td>{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</td>
-        </tr>
-    </tbody>
-</table>
-
-{% endblock %}
-
-
-{% block right_panel %}
+<div class="infoWindowCommonName">{{ tree.species.common_name }}</div>
+<div class="infoWindowSpecies">{{ tree.species.scientific_name|default:"No Species Yet" }}</div>
+        
 
 <ul id="optionList">
 	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
@@ -108,12 +67,61 @@
         {% endif %}
 
     </li>
-    {% endif %}
+	{% endif %}
+	
+</ul>	
+	
+
+
+<div class="infoWindowDetails">
+<div class="infoLabel">Nearby address</div>
+<div class="infoValue">{{ tree.address_street|default:"Missing" }}</div>
+
+<div class="col1">
+  <div class="infoLabel">Trunk diameter</div>
+  <div class="infoValue">{{ tree.current_dbh|unit_or_missing:"in" }}</div>
+</div>
+
+<div class="col2">
+	<div class="infoLabel">Height</div>
+	<div class="infoValue">{{ tree.get_height|unit_or_missing:"ft" }}</div>	
+</div>
+        
+<div class="col1 clearLeft">
+	<div class="infoLabel">Last updated</div>
+	<div class="infoValue">{{ tree.last_updated|date }}</div>
+</div>
+  
+<div class="col2">
+	<div class="infoLabel">Yearly eco impact</div>
+	<div class="infoValue">{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</div>
+</div>
+	
+
+	
+	        {% if tree.treealert_set.all.count > 0 %}
+        <tr>
+        	<td class="col1">Alerts</td>
+            <td>
+                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
+            </td>
+        </tr>
+        {% endif %}
+	
+</div>	
+	
 	<!-- TODO -->
 	<!--
 	<li id="email"><a href="#">Email to a friend</a></li>
 	<li id="twitter"><a href="#">Tweet this tree</a></li>
 	-->
-</ul>
+
+{% endblock %}
+
+{% block right_panel %}
+
+
+
+
 
 {% endblock %}
