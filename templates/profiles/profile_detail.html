@@ -2,6 +2,8 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
+	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
+
 <script type="text/javascript">
     jQuery().ready(function() {
         var favorite_trees = '{{favorite_trees}}';

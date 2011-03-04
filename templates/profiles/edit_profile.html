@@ -1,35 +1,37 @@
-{% extends "profiles/base.html" %}     
+{% extends "profiles/base.html" %}
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
+	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
+
 <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_favorite_map('{{ profile.user.username }}'); //not editable
         tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
 
     });
-    
+
 </script>
 {% endblock %}
 
-        
+
         {% block content_body_top %}
         <!-- start contentbody -->
         <div id="contentbody">
-        
-            <div id="tabcontainer"> 
-                <ul id="tablist"> 
-                    <li class="first"><a href="/profiles/{{ user.username }}/" >Profile</a></li> 
+
+            <div id="tabcontainer">
+                <ul id="tablist">
+                    <li class="first"><a href="/profiles/{{ user.username }}/" >Profile</a></li>
                     {% if profile.user = user %}<li><a href="/profiles/edit/" id="current">Edit profile</a></li>{% endif %}
-                </ul> 
-            </div> 
-        
+                </ul>
+            </div>
+
             <div class="tab-content" id="tab-1">
 
         <div class="wrap">
         {% endblock %}
-        
-        
+
+
 {% block left_panel %}
 
         <div id="t2_top_left_panel">

@@ -436,6 +436,14 @@ var tm = {
                 sphericalMercator: true
             }
         );
+        
+        tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
+            type: VEMapStyle.Hybrid,            
+            sphericalMercator: true,
+            animationEnabled: false, 
+            numZoomLevels: 18 
+        });
+        
         tms = new OpenLayers.Layer.TMS('TreeLayer', 
             tm_urls.tc_url,
             {
@@ -449,7 +457,9 @@ var tm = {
         );
         tms.buffer = 0;
         tm.baseLayer.buffer = 0;
-        tm.map.addLayers([tm.baseLayer, tms]);
+        tm.aerial.buffer = 0;
+        tm.map.addLayers([tm.aerial, tm.baseLayer, tms]);
+        tm.map.setBaseLayer(tm.baseLayer);
     },
         
     init_map : function(div_id){
@@ -459,16 +469,7 @@ var tm = {
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
         
-        tm.satellite_base = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-            type: VEMapStyle.Hybrid,            
-            sphericalMercator: true,
-            animationEnabled: false, 
-            numZoomLevels: 18 
-        });
-
-        tm.satellite_base.buffer = 0;
-        
-        tm.map.addLayers([tm.satellite_base, tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+        tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 11);
@@ -502,7 +503,7 @@ var tm = {
 
         $(".mapToggle").click(function(evt) {
             if ($(".mapToggle").html() == 'Satellite View') {
-                tm.map.setBaseLayer(tm.satellite_base);
+                tm.map.setBaseLayer(tm.aerial);
                 $(".mapToggle").html('Street View')
             }
             else if ($(".mapToggle").html() == 'Street View') {
@@ -519,12 +520,6 @@ var tm = {
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
         
-        arial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-            type: VEMapStyle.Hybrid,            
-            sphericalMercator: true,
-            animationEnabled: false, 
-            numZoomLevels: 18 
-        });
         
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -538,8 +533,8 @@ var tm = {
             jQuery('#id_lon').val(mapCoord.lon);
         }
 
-        tm.map.addLayers([arial, tm.add_vector_layer, tm.tree_layer]);
-        tm.map.setBaseLayer(arial);
+        tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+        tm.map.setBaseLayer(tm.aerial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
@@ -670,11 +665,12 @@ var tm = {
         
         tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
         tm.map.addControl(tm.drag_control);
+        tm.map.setBaseLayer(tm.aerial);
         
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 15);
+        tm.map.setCenter(olPoint, 17);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
