@@ -53,11 +53,11 @@ class ProfileComplete(badges.MetaBadge):
     def check_photo(self, instance):
         return instance.photo
     
-    def check_name(self, user):
-        return user.first_name and user.last_name
+    def check_name(self, instance):
+        return instance.first_name and instance.last_name
     
-    def check_zip(self, user):
-        return user.get_profile().zip_code
+    def check_zip(self, instance):
+        return instance.zip_code
     
-    def check_email(self, user):
-        return user.email
+    def check_email(self, instance):
+        return instance.email

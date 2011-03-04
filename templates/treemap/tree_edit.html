@@ -269,9 +269,10 @@
 						</a>
 						{% if perms.can_delete_tree %}
 							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
-						{% endif %}
-						{% if instance.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
+						{% else %}
+							{% if instance.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
 							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+							{% endif %}
 						{% endif %}
 						<ul id="additionalImages">
 						{% for item in instance.treephoto_set.all|slice:"1:4" %}
@@ -301,6 +302,14 @@
 				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this tree</a></li>
 				<li>Some warning text here about not undoing and lag time on map tiles</li>
             </ul>
+				{% if instance.treewatch_set.count > 0 %}
+				<ul id="message">
+					<li id="title">Watch List</li>
+					{% for w in instance.treewatch_set.all %}
+						<li>{{w.key}} - {{w.value}}  {{w.is_valid|yesno:"Valid,"}}</li>
+					{% endfor %}
+				</ul>
+				{% endif %}
             {% endif %}
             {% comment %}
             <ul id="message">

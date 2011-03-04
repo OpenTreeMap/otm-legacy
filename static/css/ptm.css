@@ -3794,3 +3794,42 @@ div.clearer {
 	}
 
 #flatcontent .floatRight {margin: 5px 0 20px 20px;}
+
+#tree_image_list {
+    float:left;
+    margin-right:20px;
+    margin-top:0;
+    padding:0;
+    width:640px;
+}
+#profile_image_list {
+    float:right;
+    margin-top:0
+    padding:0 10px;
+    width:220px;
+}
+#tree_image_list ul, #profile_image_list ul {
+    margin:0;
+    padding:0;
+    list-style-type: none;
+}
+#tree_image_list ul li, #profile_image_list ul li {
+    margin:0;
+    padding:0;
+    display:inline;
+    height:100px;
+    position:relative;
+}
+#tree_image_list ul li img, #profile_image_list ul li img{
+    padding:4px;
+}
+#tree_image_list ul li img, #profile_image_list ul li img{
+    padding:4px;
+}
+#tree_image_list ul li a, #profile_image_list ul li a{
+    position:absolute;
+    right:8px;
+    bottom:6px;
+    color:red;
+    font-weight:bold;
+}

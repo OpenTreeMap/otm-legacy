@@ -459,22 +459,16 @@ var tm = {
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
         
-        tm.roads = new OpenLayers.Layer.XYZ("ArcOnlineRoads", 
-            "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/${z}/${y}/${x}.jpg", 
-            {
-                sphericalMercator: true, isBaseLayer:false, visibility:false
-            }
-        );
+        tm.satellite_base = new OpenLayers.Layer.VirtualEarth("Hybrid", {
+            type: VEMapStyle.Hybrid,            
+            sphericalMercator: true,
+            animationEnabled: false, 
+            numZoomLevels: 18 
+        });
+
+        tm.satellite_base.buffer = 0;
         
-        tm.satellite_base = new OpenLayers.Layer.XYZ("ArcOnline", 
-            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg", 
-            {
-                sphericalMercator: true,
-                
-            }
-        );
-        
-        tm.map.addLayers([tm.satellite_base, tm.roads, tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+        tm.map.addLayers([tm.satellite_base, tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
             new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , 11);
@@ -509,14 +503,14 @@ var tm = {
         $(".mapToggle").click(function(evt) {
             if ($(".mapToggle").html() == 'Satellite View') {
                 tm.map.setBaseLayer(tm.satellite_base);
-                tm.roads.setVisibility(true);
                 $(".mapToggle").html('Street View')
             }
             else if ($(".mapToggle").html() == 'Street View') {
                 tm.map.setBaseLayer(tm.baseLayer);
-                tm.roads.setVisibility(false);
                 $(".mapToggle").html('Satellite View')
             }
+            evt.preventDefault();
+            evt.stopPropagation();
         });
 
     },
@@ -525,18 +519,12 @@ var tm = {
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
         
-        var arial = new OpenLayers.Layer.XYZ("ArcOnlineArial", 
-            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg", 
-            {
-                sphericalMercator: true
-            }
-        );
-        var roads = new OpenLayers.Layer.XYZ("ArcOnlineRoads", 
-            "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/${z}/${y}/${x}.jpg", 
-            {
-                sphericalMercator: true, isBaseLayer:false
-            }
-        );
+        arial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
+            type: VEMapStyle.Hybrid,            
+            sphericalMercator: true,
+            animationEnabled: false, 
+            numZoomLevels: 18 
+        });
         
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -550,7 +538,7 @@ var tm = {
             jQuery('#id_lon').val(mapCoord.lon);
         }
 
-        tm.map.addLayers([arial, roads, tm.add_vector_layer, tm.tree_layer]);
+        tm.map.addLayers([arial, tm.add_vector_layer, tm.tree_layer]);
         tm.map.setBaseLayer(arial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
@@ -796,13 +784,12 @@ var tm = {
                         else {
                             $('#nearby_trees').html("Found " + geojson.features.length + " tree(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
                             $.each(geojson.features, function(i,f){
-								tree.append("<h1 class='title-edit'>Nearby Trees</h1>")
-                                var tree = $("<div class='nearby_tree'></div>").appendTo($('#nearby_trees'));
+                                var tree = $('#nearby_trees');
                                 if (f.properties.common_name){
                                     tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                                 }
                                 else {
-                                    tree.append("<div class='nearby_tree_info'>No species information</div>")
+                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
                                 }
                                 if (f.properties.current_dbh){
                                     tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
@@ -933,8 +920,36 @@ var tm = {
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
                 
-                jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
-                
+                if (!p.street_address) {
+                    latlng = new google.maps.LatLng(coords[1], coords[0])
+                    tm.geocoder.geocode({
+                        latLng: latlng
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            //TODO: add jsonString here for post
+                            var data = {
+                                'tree_id': p.id,
+                                'address': results[0].formatted_address.split(", ")[0],
+                                'city': results[0].formatted_address.split(", ")[1]
+                            };
+                            var jsonString = JSON.stringify(data);
+
+                            $.ajax({
+                                url: '/trees/location/update/',
+                                type: 'POST',
+                                data: jsonString,
+                                complete: function(xhr, textStatus) {
+                                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                                }
+                            });
+                        } else {
+                            jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                        }
+                    });
+                }
+                else {
+                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                }
             }
         }
     },
@@ -959,6 +974,8 @@ var tm = {
             // todo.. http://sftrees.securemaps.com/ticket/148
             jQuery(".notrees").html("No results? Try changing the filters above.");
             //jQuery(".tree_count").css('font-size',20);
+        } else if (summaries.total_trees > 1000) {
+            jQuery(".notrees").html("Too many trees to display, try narrowing your search.");
         } else {
             jQuery(".notrees").html("");
         }
@@ -1822,6 +1839,20 @@ var tm = {
     deletePhoto: function(tree_id, photo_id) {
         $.ajax({
             url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                window.location.reload(true);
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+            }
+        });
+    },
+    
+    deleteUserPhoto: function(username) {
+        $.ajax({
+            url: '/profiles/' + username + '/deletephoto/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {

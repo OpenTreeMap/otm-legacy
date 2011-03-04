@@ -26,6 +26,7 @@ import simplejson
 
 from models import *
 from forms import *
+from profiles.models import UserProfile
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
 from spreadsheet import ExcelResponse
 import time
@@ -551,6 +552,15 @@ def photo_delete(request, tree_id, photo_id):
         content_type = 'text/plain'
     )
     
+def userphoto_delete(request, username):
+    profile = UserProfile.objects.get(user__username=username)
+    profile.photo = ""
+    profile.save()
+    
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
 
 from django.contrib.auth.decorators import permission_required
 
@@ -1497,3 +1507,10 @@ def remove_flag(request):
 @permission_required('change_user') #proxy for group users
 def build_admin_panel(request):
     return render_to_response('treemap/admin.html',RequestContext(request))
+
+@login_required
+@permission_required('change_user') #proxy for group users
+def view_images(request):
+    user_images = UserProfile.objects.exclude(photo="").order_by("-user__last_login")
+    tree_images = TreePhoto.objects.all().order_by("-reported")
+    return render_to_response('treemap/images.html',RequestContext(request, {'user_images':user_images, 'tree_images':tree_images}))

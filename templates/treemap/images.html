@@ -1,0 +1,34 @@
+{% extends "template_3.html" %}
+
+{% load thumbnail dynamic_attribute %}
+{% block body_id %}id="images"{% endblock %}
+
+{% block left_panel %}
+	<div id="tree_image_list">
+		<h2>Tree Photos</h2>
+		<ul>
+		{% for image in tree_images %}
+			<li><img src="/media/{% thumbnail image.photo '100x100' upscale  %}" />
+			<a href="javascript:void(0)" onclick="tm.deletePhoto({{ image.tree.id }}, {{ image.id }}); return false;">delete</a>
+			</li>
+		{% empty %}
+			<li>No Tree Images</li>
+		{% endfor %}
+		</ul>
+	</div>
+{% endblock %}
+
+{% block right_panel %}
+	<div id="profile_image_list">
+		<h2>User Photos</h2>
+		<ul>
+		{% for image in user_images %}
+			<li><img src="/media/{% thumbnail image.photo '100x100' bw upscale  %}" />
+			<a href="javascript:void(0)" onclick="tm.deleteUserPhoto('{{ image.user.username }}'); return false;">delete</a>
+			</li>
+		{% empty %}
+			<li>No User Images</li>
+		{% endfor %}
+		<ul>
+	</div>
+{% endblock %}

@@ -656,7 +656,7 @@ class Tree(models.Model):
         #print hd_ratio        
         if hd_ratio < 100:
             return None
-        return hd_ratio.__str__()
+        return round(hd_ratio, 2).__str__()
     
     def validate_max_dbh(self):
         if not self.get_dbh() or not self.species or not self.species.v_max_dbh:
