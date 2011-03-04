@@ -23,6 +23,7 @@
 				<th style="padding:2px;">Common Name</th>
 				<th style="padding:2px;">Scientific Name</th>
 				<th style="padding:2px;">Distinguishing Feature</th>
+				<th style="padding:2px;"> </th>
 			</tr>
 			</thead>
 			<tbody>
@@ -31,6 +32,7 @@
 				<td><a href="/treekey/species/{{s.id}}">{{s.common_name}}</a></td>
 				<td>{{s.genus}} {{s.species}}</td>
 				<td>{{s.feature}}</td>
+				<td><a target="_blank" href="/map/#?species={{s.symbol}}">Map</a></td>
 			</tr>
 			{% endfor %}
 		</table>

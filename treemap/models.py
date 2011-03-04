@@ -205,7 +205,7 @@ class Resource(models.Model):
         """
         return how far along we are along the dbh_list, and interpolated %
         """
-        dbh_list = [7.60,50.20,30.50,45.70,61.00,76.20,91.40,106.70,150.00]
+        dbh_list = [7.60,15.20,30.50,45.70,61.00,76.20,91.40,106.70,150.00]
         #convert from cm to inches
         dbh_list = [d * 0.393700787 for d in dbh_list]
 

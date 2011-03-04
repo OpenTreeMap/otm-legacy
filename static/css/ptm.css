@@ -1565,11 +1565,16 @@ ul#resultsContainer li#totals ul li#first .tree_count {
 ul#resultsContainer li#totals ul li .notrees {
     color: red;
     font-weight: bold;
-	font-size:	18px;
+    font-size:	18px;
+}
+ul#resultsContainer li#totals ul li .moretrees {
+    color: #999;
+    font-weight: bold;
+    font-size:	14px;
 }
 ul#resultsContainer li#totals ul li#first .reset_search  {
     font-size: 18px;
-	color: #999;
+    color: #999;
 }
 ul#resultsContainer li#totals ul li#first .reset_search  a {
 	color: #999;

@@ -971,7 +971,7 @@ var tm = {
             jQuery(".notrees").html("No results? Try changing the filters above.");
             //jQuery(".tree_count").css('font-size',20);
         } else if (summaries.total_trees > 1000) {
-            jQuery(".notrees").html("Too many trees to display, try narrowing your search.");
+            jQuery(".moretrees").html("Too many trees to display. Please narrow your search.");
         } else {
             jQuery(".notrees").html("");
         }
@@ -2072,7 +2072,7 @@ $.editable.addInputType('date', {
         return(hidden);
     },
     submit: function (settings, original) {
-        var vdate = new Date($("#year_").val(), parseInt($("#month_").val())-1, $('#day_').val());
+        var vdate = new Date($("#year_").val(), $("#month_").val()-1, $('#day_').val());
         if (vdate.getTime() > new Date().getTime()) {
             $("#dateplanted_error").html("Enter a past date")
             return false;
