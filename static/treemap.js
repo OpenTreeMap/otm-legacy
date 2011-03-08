@@ -411,7 +411,9 @@ var tm = {
             type: VEMapStyle.Hybrid,            
             sphericalMercator: true,
             animationEnabled: false, 
-            numZoomLevels: 18 
+            numZoomLevels: 18,
+            MAX_ZOOM_LEVEL: 18,
+            MIN_ZOOM_LEVEL: 0
         });
         
         tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
