@@ -48,6 +48,147 @@ var tm = {
         'geocoded_address' : true,
         'site_type' : true
         },
+    trackEvent: function(category, action, label, value) {
+        if (pageTracker && pageTracker != null)
+        {
+            _gaq.push(['_trackEvent', category, action, label, value]);
+        }
+    },
+    baseTemplatePageLoad:function() {
+        //document.namespaces;
+        $("#logo").click(function() {
+            location.href="/home";
+        });        
+        jQuery.getJSON('/species/json/', function(species){
+            tm.speciesData = species;
+            tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
+                $("#species_search_id").val(item.symbol).change(); 
+                if (item.cultivar) {
+                    $("#species_search_id_cultivar").val(item.cultivar).change(); 
+                } else {
+                    $("#species_search_id_cultivar").val("").change();
+                }    
+            });
+            tm.setupSpeciesList();
+            var spec = $.address.parameter("species");
+            var cultivar = $.address.parameter("cultivar");
+            tm.updateSpeciesFields("search_species",spec, cultivar);
+            for (var i = 0; i < tm.speciesDataListeners.length; i++) {
+                tm.speciesDataListeners[i]();
+            }    
+        });
+        jQuery.getJSON('/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+            tm.locations = nbhoods;
+            tm.setupLocationList();
+        });
+        var adv_active = false;
+        $('#advanced').click(function() {
+            if (!adv_active) {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideDown('slow');
+                }
+                adv_active = true;
+                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
+                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
+            }    
+            else {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideUp('slow');
+                }
+                adv_active = false;
+                $('#arrow').attr('src','/static/images/v2/arrow1.gif');
+                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
+            }
+            return false;
+        });
+        
+        $("#location_search_input").blur(function(evt) {
+            if (!this.value) {
+                $("#location_search_input").val("Philadelphia, PA");
+            }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#location_go").click();
+            }
+        });
+        
+        $("#species_search_input").blur(function(evt) {
+            if (!this.value) {
+                $("#species_search_id").val("");
+                $(this).val("All trees");
+            }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#species_go").click();
+            }
+        });
+        $("#species_search_id").change(function(evt) {
+            if (this.value) {
+                tm.searchParams['species'] = this.value;
+            }
+        });
+        $("#location_go").click(function(evt) {
+            if ($('body').id == "results") {
+                if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
+                    tm.handleSearchLocation($("#location_search_input")[0].value);
+                } else {
+                    $("#location_search_input").val("Philadelphia, PA");
+                    delete tm.searchParams['location'];
+                    tm.updateSearch();
+                } 
+            } else {
+                triggerSearch();
+            }
+        });
+        
+        $("#species_go").click(function(evt) {
+            if ($('body').id == "results") {
+                if ($("#species_search_input")[0].value) {
+                tm.updateSearch();
+                }
+            } else {
+                triggerSearch();
+            }
+        });
+        $("#searchSpeciesBrowse").click(function(evt) {
+            $("#searchSpeciesList").slideToggle();
+        });
+        $("#searchLocationBrowse").click(function(evt) {
+            $("#searchNBList").slideToggle();
+        });
+
+        // todo - clean this logic up...
+        if (jQuery.urlParam('diameter') || jQuery.urlParam('date') || jQuery.urlParam('characteristics') ||  jQuery.urlParam('advanced') )
+        {
+            //TODO: might be causing duplicate search
+            jQuery('#advanced').click();
+        }
+        function triggerSearch() {
+            var q = $.query.empty();
+            if ($("#location_search_input").val() != "Philadelphia, PA") { 
+                q = q.set("location", $("#location_search_input").val());
+            }
+            if ($("#species_search_id").val()) {
+                q = q.set("species", $("#species_search_id").val());
+            }
+            if ($("#species_search_id_cultivar").val()) {
+                q = q.set("cultivar", $("#species_search_id_cultivar").val());
+            }
+            if (tm.advancedClick) {
+                q = q.set('advanced', 'open');
+            }    
+            window.location.href = "/map/#" + decodeURIComponent(q.toString());
+            return false;
+        }
+        //$("#search_form").submit(triggerSearch);    
+        $("#advanced").click(function() {
+            tm.advancedClick = true;
+            triggerSearch();
+            });   
+            
+            
+        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+    },    
     resultsTemplatePageLoad: function(min_year, current_year, min_updated, max_updated) {    
         tm.init_map('results_map');
 
@@ -59,32 +200,13 @@ var tm = {
         $.address.externalChange(tm.pageLoadSearch);
         $(".characteristics input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            //tm.updateSearch(); 
         });
         $(".project_trees input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            //tm.updateSearch(); 
         });
         $(".outstanding input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
-            //tm.updateSearch(); 
         });
-        $("#species_search_id").change(function(evt) {
-            if (this.value) {
-                tm.searchParams['species'] = this.value;
-                //tm.updateSearch(); 
-            }
-        });
-        $("#species_search_id_cultivar").change(function(evt) {
-            if (this.value) {
-                tm.searchParams['cultivar'] = this.value;
-                //tm.updateSearch();
-            } else {
-                delete tm.searchParams['cultivar'];
-                //tm.updateSearch();
-            }
-        });    
-        //$("#search_form").submit(function() { return false; });
         var curmin = 0;
         var curmax = 50;
         $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [curmin, curmax],
@@ -100,7 +222,6 @@ var tm = {
                 $('#min_diam').html(min);
                 $('#max_diam').html(max);
                 tm.searchParams['diameter_range'] = min+'-'+max;
-                //tm.updateSearch(); 
             }
         });
         
@@ -120,7 +241,6 @@ var tm = {
                 var min = $("#planted_slider").slider('values', 0)
                 var max = $("#planted_slider").slider('values', 1)
                 tm.searchParams['planted_range'] = min+'-'+max;
-                //tm.updateSearch(); 
             }
         });
         $("#planted_slider")[0].updateDisplay();
@@ -144,50 +264,16 @@ var tm = {
                 var min = $("#updated_slider").slider('values', 0)
                 var max = $("#updated_slider").slider('values', 1)
                 tm.searchParams['updated_range'] = min+'-'+max;
-                //tm.updateSearch(); 
             }
         });    
         $("#updated_slider")[0].updateDisplay();
         
-        $("#location_search_input").change(function(evt) {
-            if (this.value) {
-                tm.handleSearchLocation(this.value);
-            } else {
-                $("#location_search_input").val("Philadelphia, PA");
-                delete tm.searchParams['location'];
-                //tm.updateSearch();
-
-                //if (tm.cur_polygon){
-                //    tm.map.removeOverlay(tm.cur_polygon);
-                //}
-            }    
-        });
-        $("#location_go").unbind('click');
-        $("#location_go").click(function(evt) {
-            if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
-                tm.handleSearchLocation($("#location_search_input")[0].value);
-            } else {
-                $("#location_search_input").val("Philadelphia, PA");
-                delete tm.searchParams['location'];
-                tm.updateSearch();
-
-                if (tm.cur_polygon){
-                    tm.map.removeOverlay(tm.cur_polygon);
-                }
-            }    
-        });
+        
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
                 $("#species_search_id").val("");
                 $(this).val("All trees");
                 delete tm.searchParams['species'];
-                //tm.updateSearch();
-            }    
-        });
-        $("#species_go").unbind('click');
-        $("#species_go").click(function(evt) {
-            if ($("#species_search_input")[0].value) {
-                tm.updateSearch();
             }    
         });
 
@@ -205,10 +291,7 @@ var tm = {
             }
             $("#options_form input:checked").attr('checked', false)
             tm.updateSearch()
-
-        });
-        
-        //tm.updateSearch();
+        });        
     },    
     
     setupSpeciesList: function() {
@@ -252,128 +335,15 @@ var tm = {
             $('#location_search_input').val(this.innerHTML);
             $("#searchNBList").toggle();
         });
-            
-    },
-    baseTemplatePageLoad:function() {
-        //document.namespaces;
-        $("#logo").click(function() {
-            location.href="/home";
-        });        
-        jQuery.getJSON('/species/json/', function(species){
-            tm.speciesData = species;
-            tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
-                $("#species_search_id").val(item.symbol).change(); 
-                if (item.cultivar) {
-                    $("#species_search_id_cultivar").val(item.cultivar).change(); 
-                } else {
-                    $("#species_search_id_cultivar").val("").change();
-                }    
-            });
-            tm.setupSpeciesList();
-            var spec = $.address.parameter("species");
-            var cultivar = $.address.parameter("cultivar");
-            tm.updateSpeciesFields("search_species",spec, cultivar);
-            for (var i = 0; i < tm.speciesDataListeners.length; i++) {
-                tm.speciesDataListeners[i]();
-            }    
-            //var loc = $.address.parameter("location");
-            //tm.updateLocationFields(loc);
-        });
-        jQuery.getJSON('/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
-            tm.locations = nbhoods;
-            tm.setupLocationList();
-        });
-        $("#species_search_form").submit(function() {
-            if (location.href.substr(0,4) != "/map") {
-                location.href="/map/#/?species=" + $("#species_search_id").val();
-            }
-            return false;
-        });
-        var adv_active = false;
-        $('#advanced').click(function() {
-            if (!adv_active) {
-                if (location.pathname == "/map/") {
-                    $('.filter-box').slideDown('slow');
-                }
-                adv_active = true;
-                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
-                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
-            }    
-            else {
-                if (location.pathname == "/map/") {
-                    $('.filter-box').slideUp('slow');
-                }
-                adv_active = false;
-                $('#arrow').attr('src','/static/images/v2/arrow1.gif');
-                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
-            }
-            return false;
-        });
         
-        $("#location_search_input").blur(function(evt) {
-            if (!this.value) {
-                $("#location_search_input").val("Philadelphia, PA");
-            }    
-        }).keydown(function(evt) {
-            if (evt.keyCode == 13) {
-                $("#location_go").click();
+        if ($("#s_nhood")) {
+            select_nh = $("#s_nhood");
+            for(var i=0; i<tm.locations.features.length;i++) {
+                var feature = tm.locations.features[i];
+                select_nh.append("<option value='" + feature.properties.name + "' >" + feature.properties.name + "</option>")
             }
-        });
-        $("#species_search_input").blur(function(evt) {
-            if (!this.value) {
-                $("#species_search_id").val("");
-                $(this).val("All trees");
-            }    
-        }).keydown(function(evt) {
-            if (evt.keyCode == 13) {
-                $("#species_go").click();
-            }
-        });
-        $("#location_go").click(function(evt) {
-                triggerSearch();
-        });
-        $("#species_go").click(function(evt) {            
-                triggerSearch();
-        });
-        $("#searchSpeciesBrowse").click(function(evt) {
-            $("#searchSpeciesList").slideToggle();
-        });
-        $("#searchLocationBrowse").click(function(evt) {
-            $("#searchNBList").slideToggle();
-        });
-
-        // todo - clean this logic up...
-        if (jQuery.urlParam('diameter') || jQuery.urlParam('date') || jQuery.urlParam('characteristics') ||  jQuery.urlParam('advanced') )
-        {
-            //TODO: might be causing duplicate search
-            jQuery('#advanced').click();
-        }
-        function triggerSearch() {
-            var q = $.query.empty();
-            if ($("#location_search_input").val() != "Philadelphia, PA") { 
-                q = q.set("location", $("#location_search_input").val());
-            }
-            if ($("#species_search_id").val()) {
-                q = q.set("species", $("#species_search_id").val());
-            }
-            if ($("#species_search_id_cultivar").val()) {
-                q = q.set("cultivar", $("#species_search_id_cultivar").val());
-            }
-            if (tm.advancedClick) {
-                q = q.set('advanced', 'open');
-            }    
-            window.location.href = "/map/#" + decodeURIComponent(q.toString());
-            return false;
-        }
-        $("#search_form").submit(triggerSearch);    
-        $("#advanced").click(function() {
-            tm.advancedClick = true;
-            triggerSearch();
-            });   
-            
-            
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
-    },    
+        }    
+    },
     dateString: function(dateObj) {
         var d = (dateObj.getYear()+1900) + "-" +
             ((""+(dateObj.getMonth() + 1)).length > 1 ?  (dateObj.getMonth()+1) : "0"+(dateObj.getMonth()+1)) + "-" + 
@@ -444,7 +414,7 @@ var tm = {
             numZoomLevels: 18 
         });
         
-        tms = new OpenLayers.Layer.TMS('TreeLayer', 
+        tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
             tm_urls.tc_url,
             {
                 layername: 'Map',
@@ -455,10 +425,10 @@ var tm = {
                 attribution: "(c) PhillyTreeMap.org"
             }
         );
-        tms.buffer = 0;
+        tm.tms.buffer = 0;
         tm.baseLayer.buffer = 0;
         tm.aerial.buffer = 0;
-        tm.map.addLayers([tm.aerial, tm.baseLayer, tms]);
+        tm.map.addLayers([tm.aerial, tm.baseLayer, tm.tms]);
         tm.map.setBaseLayer(tm.baseLayer);
     },
         
@@ -729,12 +699,10 @@ var tm = {
             if (t.cmplt) { var icon = tm.get_icon(tm_icons.small_trees_complete, 13);}
             else { var icon = tm.get_icon(tm_icons.small_trees, 13);}
             var marker = new OpenLayers.Marker(ll, icon);
-          } else {
+        } else {
             var icon = tm.get_icon(tm_icons.focus_tree, 19);
             var marker = new OpenLayers.Marker(ll, icon);
-                        
-          }
-          
+        }
         return marker
     },        
         
@@ -756,6 +724,60 @@ var tm = {
         tm.reverse_geocode(ll);
         
         },
+        
+    add_location_marker: function (ll) {
+        var icon = tm.get_icon(tm_icons.marker,0);
+        tm.location_marker = new OpenLayers.Marker(ll, icon);
+        tm.misc_markers.addMarker(tm.location_marker);
+        tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
+            var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
+            popupPixel.y += this.icon.offset.y - 25;
+            tm.smallPopup = new OpenLayers.Popup("popup_address",
+                       tm.map.getLonLatFromPixel(popupPixel),
+                       null,
+                       $("#location_search_input").val(),
+                       false);
+            tm.smallPopup.minSize = new OpenLayers.Size(20,25);
+            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+            tm.smallPopup.border = "1px solid Black";
+            tm.map.addPopup(tm.smallPopup);
+            tm.smallPopup.updateSize();
+        });
+        tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
+            tm.map.removePopup(tm.smallPopup);
+        });
+    },
+    
+
+    geocode : function(address, display_local_summary, callback){
+        if (!address){
+            address = jQuery('#searchInput').text();
+        }
+
+        tm.geocode_address = address + ", pa";
+
+        tm.geocoder.geocode({
+            address: tm.geocode_address,
+            bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
+        }, function(results, status){
+            if (status == google.maps.GeocoderStatus.OK) {
+                var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
+                var llpoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                tm.map.setCenter(llpoint, 15);
+
+                tm.add_location_marker(llpoint);
+
+                if (callback) {
+                    callback(olPoint);
+                }
+
+            } else {
+                alert("Geocode was not successful for the following reason: " + status);
+            }
+
+        });
+                 
+    },
         
         
     //pass in a GLatLng and get back closest address
@@ -843,13 +865,9 @@ var tm = {
                 else {
                     alert("Reverse Geocode was not successful.");
                 }
-            }
-        
-        });
-    
-        
-        },
-    
+            }        
+        });        
+    },    
         
     /*
     load up streetview pointing at specified GLatLng, into specified div
@@ -857,9 +875,8 @@ var tm = {
     load_streetview : function(ll, div){
           div = document.getElementById(div);
           panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
-          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition});
-          
-        },
+          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition});          
+    },
         
                 
     highlight_geography : function(geometry, geog_type){
@@ -878,7 +895,7 @@ var tm = {
             strokeOpacity: 0.7
         });
         tm.vector_layer.addFeatures(feature);
-        },
+    },
         
     display_tree_details : function(json){
         if (json) {
@@ -1073,6 +1090,9 @@ var tm = {
         //}
         if (results) {
             tm.display_summaries(results.summaries);
+            if (results.initial_tree_count <= 1000) {
+                tm.overlay_trees(results.trees);
+            }
             if (results.geography) {
                 var geog = results.geography;
                 $('#summary_subset_val').html(geog.name);
@@ -1137,102 +1157,6 @@ var tm = {
         return true;
     },
     
-    geocode : function(address, display_local_summary, callback){
-        if (!address){
-            address = jQuery('#searchInput').text();
-        }
-        
-        tm.geocode_address = address;
-                
-        jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
-            if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
-                
-            if (nbhoods.features.length > 0) {
-                var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
-                var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                tm.map.zoomToExtent(bbox, true);
-                
-                if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
-                    if (callback) {
-                        callback(null);
-                    }   
-                }else {  
-                    var icon = tm.get_icon(tm_icons.marker,0);
-                    tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
-                    tm.misc_markers.addMarker(tm.location_marker);
-                    tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
-                        var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
-                        popupPixel.y += this.icon.offset.y - 25;
-                        tm.smallPopup = new OpenLayers.Popup("popup_address",
-                                   tm.map.getLonLatFromPixel(popupPixel),
-                                   null,
-                                   $("#location_search_input").val(),
-                                   false);
-                        tm.smallPopup.minSize = new OpenLayers.Size(20,25);
-                        tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-                        tm.smallPopup.border = "1px solid Black";
-                        tm.map.addPopup(tm.smallPopup);
-                        tm.smallPopup.updateSize();
-                    });
-                    tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
-                        tm.map.removePopup(tm.smallPopup);
-                    });
-                                  
-                    if (callback) {
-                        callback(olPoint);
-                    }
-                }
-
-            }
-            else {
-                var address = tm.geocode_address + ", pa";
-                        
-                tm.geocoder.geocode({
-                    address: address,
-                    bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
-                }, function(results, status){
-                    if (status == google.maps.GeocoderStatus.OK) {
-                        var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                        tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), 15);
-
-                        var icon = tm.get_icon(tm_icons.marker,0);
-                        tm.location_marker = new OpenLayers.Marker(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), icon);
-
-                        tm.misc_markers.addMarker(tm.location_marker);
-
-                        tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
-                            var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
-                            popupPixel.y += this.icon.offset.y - 25;
-                            tm.smallPopup = new OpenLayers.Popup("popup_address",
-                                       tm.map.getLonLatFromPixel(popupPixel),
-                                       null,
-                                       $("#location_search_input").val(),
-                                       false);
-                            tm.smallPopup.minSize = new OpenLayers.Size(20,25);
-                            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-                            tm.smallPopup.border = "1px solid Black";
-                            tm.map.addPopup(tm.smallPopup);
-                            tm.smallPopup.updateSize();
-                        });
-
-                        tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
-                            tm.map.removePopup(tm.smallPopup);
-                        });
-
-
-                        if (callback) {
-                            callback(olPoint);
-                        }
-
-                    } else {
-                        alert("Geocode was not successful for the following reason: " + status);
-                    }
-                
-                });
-            }            
-        });        
-    },
-        
     setupEdit: function(field, model, id, options) {
         var editableOptions = {
             submit: 'Save',
@@ -1633,7 +1557,6 @@ var tm = {
     
     updateSearch: function() {
         if (tm.loadingSearch) { return; }
-        //tm.tree_layer.clearMarkers();
         var qs = tm.serializeSearchParams();
         if (qs === false) { return; }
         jQuery('#displayResults').show();
@@ -1723,8 +1646,8 @@ var tm = {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         //possible zipcode 
+        tm.geocode_address = search;
         if (tm.isNumber(search)) {
-            tm.geocode_address = search;
             jQuery.getJSON('/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
                 if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
                             
@@ -1735,47 +1658,45 @@ var tm = {
 
                     if (zips.features[0].properties.name == 'Philadelphia'){                    
                         delete tm.searchParams.location;
-                        tm.updateSearch();
                     }else {  
-                        var icon = tm.get_icon(tm_icons.marker,0);
-                        tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
-                        tm.misc_markers.addMarker(tm.location_marker);
-                        tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
-                            var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
-                            popupPixel.y += this.icon.offset.y - 25;
-                            tm.smallPopup = new OpenLayers.Popup("popup_address",
-                                       tm.map.getLonLatFromPixel(popupPixel),
-                                       null,
-                                       $("#location_search_input").val(),
-                                       false);
-                            tm.smallPopup.minSize = new OpenLayers.Size(20,25);
-                            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-                            tm.smallPopup.border = "1px solid Black";
-                            tm.map.addPopup(tm.smallPopup);
-                            tm.smallPopup.updateSize();
-                        });
-                        tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
-                            tm.map.removePopup(tm.smallPopup);
-                        });
-
+                        tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
                         tm.searchParams['location'] = tm.geocode_address;  
-                        tm.updateSearch();
                     }
+                    tm.updateSearch();
                 }
                 
             });
         }
         else
         {
-            tm.geocode(search, true, function(point) {
-                if (point) {
-                    tm.geocoded_locations[search] = [point.lon, point.lat];
-                    tm.searchParams['location'] = search;                
-                } else {
-                    delete tm.searchParams.location;
+            jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+
+                if (nbhoods.features.length > 0) {
+                    var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
+                    var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                    tm.map.zoomToExtent(bbox, true);
+
+                    if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
+                        delete tm.searchParams.location; 
+                    } else {  
+                        tm.add_location_marker(bbox.getCenterLonLat());
+                        tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
+                        tm.searchParams['location'] = tm.geocode_address;
+                    }
+                    tm.updateSearch();
+                } else {                
+                    tm.geocode(search, true, function(point) {
+                        if (point) {
+                            tm.geocoded_locations[search] = [point.lon, point.lat];
+                            tm.searchParams['location'] = search;                
+                        } else {
+                            delete tm.searchParams.location;
+                        }
+                        tm.updateSearch();
+                    });
                 }
-                tm.updateSearch();
             });
         }
     },
