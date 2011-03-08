@@ -19,8 +19,8 @@ urlpatterns = patterns('',
     
     (r'^neighborhoods/$', geographies, {'model' : Neighborhood}),
     (r'^neighborhoods/(?P<id>\d+)/$', geographies, {'model' : Neighborhood}),
-    (r'^zipcodes/$', geographies, {'model' : ZipCode}),
-    (r'^zipcodes/(?P<id>\d+)/$', geographies, {'model' : ZipCode}),
+    (r'^zipcodes/$', zips),
+    (r'^zipcodes/(?P<id>\d+)/$', zips),
     
     (r'^update/$', object_update),
     (r'^trees/$', trees),

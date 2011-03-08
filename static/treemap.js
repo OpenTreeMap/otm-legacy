@@ -1085,16 +1085,6 @@ var tm = {
             } else {
                 $('#summary_subset_val').html('Philadelphia');
             }
-            if (results.tile_query){
-                tm.selected_tile_query = results.tile_query;
-                tm.set_selected_tile_overlay();
-            }
-            else 
-            {
-                if (results.trees.length){
-                    tm.overlay_trees(results.trees);
-                }
-            }
         }
         
     },
@@ -1627,7 +1617,12 @@ var tm = {
             {
                 return false;
             }
-            q.SET('location', coords.join(','));
+            if (coords.join) {
+                q.SET('location', coords.join(','));
+            }
+            else {
+                q.SET('location', coords);
+            }
             qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         }
         $("#kml_link").attr('href',"/search/kml/"+qstr);
@@ -1727,15 +1722,62 @@ var tm = {
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
-        tm.geocode(search, true, function(point) {
-            if (point) {
-                tm.geocoded_locations[search] = [point.lon, point.lat];
-                tm.searchParams['location'] = search;                
-            } else {
-                delete tm.searchParams.location;
-            }
-            tm.updateSearch();
-        });
+        //possible zipcode 
+        if (tm.isNumber(search)) {
+            tm.geocode_address = search;
+            jQuery.getJSON('/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
+                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                            
+                if (zips.features.length > 0) {
+                    var olPoint = OpenLayers.Bounds.fromArray(zips.bbox).getCenterLonLat();
+                    var bbox = OpenLayers.Bounds.fromArray(zips.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                    tm.map.zoomToExtent(bbox, true);
+
+                    if (zips.features[0].properties.name == 'Philadelphia'){                    
+                        delete tm.searchParams.location;
+                        tm.updateSearch();
+                    }else {  
+                        var icon = tm.get_icon(tm_icons.marker,0);
+                        tm.location_marker = new OpenLayers.Marker(bbox.getCenterLonLat(), icon);
+                        tm.misc_markers.addMarker(tm.location_marker);
+                        tm.location_marker.events.register("mouseover", tm.location_marker, function(e){
+                            var popupPixel = tm.map.getViewPortPxFromLonLat(this.lonlat);
+                            popupPixel.y += this.icon.offset.y - 25;
+                            tm.smallPopup = new OpenLayers.Popup("popup_address",
+                                       tm.map.getLonLatFromPixel(popupPixel),
+                                       null,
+                                       $("#location_search_input").val(),
+                                       false);
+                            tm.smallPopup.minSize = new OpenLayers.Size(20,25);
+                            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+                            tm.smallPopup.border = "1px solid Black";
+                            tm.map.addPopup(tm.smallPopup);
+                            tm.smallPopup.updateSize();
+                        });
+                        tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
+                            tm.map.removePopup(tm.smallPopup);
+                        });
+
+                        tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
+                        tm.searchParams['location'] = tm.geocode_address;  
+                        tm.updateSearch();
+                    }
+                }
+                
+            });
+        }
+        else
+        {
+            tm.geocode(search, true, function(point) {
+                if (point) {
+                    tm.geocoded_locations[search] = [point.lon, point.lat];
+                    tm.searchParams['location'] = search;                
+                } else {
+                    delete tm.searchParams.location;
+                }
+                tm.updateSearch();
+            });
+        }
     },
     editDiameter: function(field, diams) {
         tm.editingDiameter = true;
@@ -2002,20 +2044,23 @@ var tm = {
     removeFlag: function(flag_id) {
         var data = {
         'flag_id': flag_id
-    };
-    var jsonString = JSON.stringify(data);      
-    $.ajax({
-        url: '/comments/unflag/',
-        dataType: 'json',
-        data: jsonString,
-        type: 'POST',
-        success: function(response) {
-        $("#" + flag_id).fadeOut();
-        },
-        error: function(err) {
-        alert("Error: " + err.status + "\nQuery: " + flag_id );
-        }
-    });
+        };
+        var jsonString = JSON.stringify(data);      
+        $.ajax({
+            url: '/comments/unflag/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+            $("#" + flag_id).fadeOut();
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + flag_id );
+            }
+        });
+    },
+    isNumber: function (o) {
+      return ! isNaN (o-0);
     }
 }  
 $.editable.addInputType("autocomplete_species", {

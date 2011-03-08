@@ -1209,6 +1209,21 @@ def geographies(request, model, id=''):
     return render_to_response('treemap/geography.html',RequestContext(request,{'objects':ns}))
 #make some atom feeds
 
+@cache_page(60*5)    
+def zips(request):
+    """
+    return list of nhbds and resource attrs, possibly in json format
+    """
+    name = request.GET.get('name', '')
+    list = request.GET.get('list', '')
+    print list
+    
+    ns = ZipCode.objects.all()
+    
+    if name:
+        ns = ns.filter(zip__iexact=name)
+    return render_to_geojson(ns, simplify=.0005)
+    
 def contact(request):
     if request.method == 'POST': 
         form = ContactForm(request.POST) 
