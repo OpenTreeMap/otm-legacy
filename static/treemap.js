@@ -1109,7 +1109,7 @@ var tm = {
         //tm.tree_marker.enableDragging();
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans-green.gif" width="12" class="icon" /> Stop editing and save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },

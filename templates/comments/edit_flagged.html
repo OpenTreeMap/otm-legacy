@@ -54,12 +54,16 @@
 
 {% autosort flags %}
 {% autopaginate flags 20 %}
-<div class="content">
-	<h2>Flagged Comments</h2>
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Flagged Comments</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
 	<div id="search">
 		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
 		<div id="search_comment"><label for="s_comment">Comment Text: </label><input id="s_comment" /></div>
-		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The Hide Comment
 		action will hide the comment from all users. The Remove Flag action will un-flag the comment.</div>

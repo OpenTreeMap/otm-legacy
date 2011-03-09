@@ -1,5 +1,5 @@
 html {
-	background:#fff;
+	background:#DCECE5;
 }
 /*html,body {height: 100%;}*/
 body {
@@ -192,21 +192,21 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 
 	
-#loginlogout {float:right; margin-top: 11px; color:#fff; text-align:right}
+#loginlogout {float:right; margin-top: 16px; color:#fff; text-align:right}
 #loginlogout a {text-decoration: underline; color: #fff}	
 
 
-	#headerNavSupport{
-	
-		float:left;
-		background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
-		width: 181px;
-		height: 25px;
-		display: block;
-		padding-right:12px;
-		margin-right: 10px;
-		border-right: 1px solid #836b5e;
-	}
+#headerNavSupport{
+
+	float:left;
+	background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
+	width: 168px;
+	height: 25px;
+	display: block;
+	padding-right:12px;
+	margin-right: 10px;
+	border-right: 1px solid #836b5e;
+}
 
 #loginlogout .buttonSmall {
 background-color: #366294;
@@ -917,9 +917,13 @@ margin: 40px 0 -25px 28px;
     padding:0;
 }
 #t2_top_left_panel #userImage .mainImage {
+	border: 1px solid #ccc;
 	display:block; 
 	margin-left:auto; 
 	margin-right:auto; 
+}
+#t2_top_left_panel #userImage .mainImage#sample {
+	border:none;
 }
 #t2_top_left_panel #userImage .wrap {
     clear:both;
@@ -1901,7 +1905,9 @@ font-size: 12px; color: #888; margin-bottom: 10px;
 */
 
 #tree_streetview {
-    margin-top:20px;
+    font-size: 10px;
+    margin-top: 20px;
+    text-align: right;
 }
 
 
@@ -3301,13 +3307,17 @@ color: #673f14
 	padding-left:16px;
 }
 #footer .footer-nav{
-	float:right;
-	list-style:none;
-	margin:0;
-	padding:0;
-	width: 125px;
+    border-right: 1px solid #CCCCCC;
+    float: right;
+    list-style: none outside none;
+    margin: 0;
+    padding: 0 8px 25px 0;
+    width: 104px;
 }
-.footer-nav li{
+#footer .footer-nav#footer-admin a{
+	color: #846340;
+	}
+#footer .footer-nav li{
 /* 	background: url(/static/images/es/separator01.gif) no-repeat 100% 2px; */
 	padding:0 6px;
 	margin:5px 0 0 4px;
@@ -3316,36 +3326,40 @@ color: #673f14
 	color:#888;
 	text-align: right;
 }
-.ad{float:left;}
-.ad strong{
-	font-size:12px;
-	float:left;
-}
-.ad ul{
-	list-style:none;
-	margin:0;
-	padding:0;
-	float:left;
-	clear:left;
-}
-.ad ul li{margin: 0 20px 15px 0;}
-.ad ul li,
-.ad ul a,
-.ad ul img{float:left;}
-.ad h2 {margin-top: 0;color: #1b9170;}
 
-.site-descrip {
-    border-left: 1px solid #CEDDD6;
-    border-right: 1px solid #CEDDD6;
-    color: #1B9170;
-    float: left;
-    font-size: 15px;
-    font-weight: bold;
-    line-height: 20px;
-    padding: 0 23px 27px;
-    width: 456px;
-	margin-left: 15px;
+#footer .partners {
+	width: 683px;
+	float: left;
+	color: #1B9170;
+	font-weight:bold;
+	line-height: 19px;
+	font-size: 12px;
 }
+
+#footer .partners p {
+	margin-top: 0;
+}
+
+#footer .partners ul {
+	margin: 30px 0 0 0;
+	padding: 0;
+}
+
+#footer .partners li {
+	list-style: none;
+	float:left;
+	margin: 0 15px 0 0;
+	padding: 0;	
+}
+#footer .partners li#logo-ptm {
+margin-top: -10px;
+}
+
+#footer .partners li img {
+	vertical-align:middle;
+}
+
+
 
 
 
@@ -3838,4 +3852,69 @@ div.clearer {
     bottom:6px;
     color:red;
     font-weight:bold;
+}
+
+.admin .admin-header {
+	background: url(/static/images/ptm/divider-horz.png) 0 100% repeat-x;
+	margin-bottom:20px;
+	padding-bottom:12px;
+}
+.admin h2 {
+	float:left;
+	font-size:20px;
+	font-weight:bold;
+	color:#666;
+	padding: 0;
+	margin: 0;
+}
+
+.admin #search  label {
+	width: 90px;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+
+.admin #search input {
+	border: 1px solid #ccc;
+	font-size: 14px;
+	height: 21px;
+}
+
+.admin #search button {
+	margin: 5px 0;
+}
+
+.admin .button_group {
+	padding-left: 90px;
+	margin: 0 0 10px 0;
+}
+
+.admin table {
+border-collapse: collapse;
+border: 1px solid #ccc;
+}
+
+.admin table input {
+border: 1px solid #ccc 
+}
+
+.admin  select {border: 1px solid #ccc;}
+
+.admin table td, .admin table th {
+border: 1px solid #ccc;
+}
+
+.admin .pagination {
+margin-top: 10px;
+}
+
+.admin .admin_nav {
+	float: right;
+}
+
+.admin .admin_nav li {
+	float:left;
+	list-style:none;
+	margin-left: 20px;
+	font-weight: bold;
 }

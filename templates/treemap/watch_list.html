@@ -53,12 +53,19 @@
 
 {% block body_id %}id="verify_edit"{% endblock %}
 
+
 {% block content %}
 
 {% autosort watches %}
 {% autopaginate watches 20 %}
-<div class="content">
-	<h2>Tree Watch List</h2>
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Tree Watch List</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
+
+	
 	<div id="search">
 		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
@@ -70,7 +77,7 @@
 				{% endfor %}
 			</select>
 		</div>
-		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	{% paginate %}
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. These trees have failed a data validation check. If the data is valid, click the Validate link in the Change column. If the data is not valid, visit the tree record to fix the data.</div>

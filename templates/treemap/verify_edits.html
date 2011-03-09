@@ -53,12 +53,16 @@
 
 {% autosort changes %}
 {% autopaginate changes 20 %}
-<div class="content">
-	<h2>Recent Edits</h2>
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Recent Edits</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
 	<div id="search">
 		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
-		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	{% paginate %}
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The user who submitted an edit will gain or lose reputation if you thumbs-up or thumbs-down an edit. This action cannot be undone! Please consider the change carefully before affecting your fellow user's reputation. If a user has added several edits to a tree, or an edit is very minor, use the neutral reputation action to remove edits from this list without awarding full points to the submitter.</div>
@@ -98,9 +102,12 @@
 							<td>{{c.change_description}}</td>
 						{% endif %}
 					{% endif %}
-					<td> <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'up');return false;">U</a>
-						 <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'neutral');return false;">N</a>
-						 <a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'down');return false;">D</a> </td>
+					<td>
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'down');return false;"><img src="/static/images/es/ico-thumbs-down.gif" width="17" height="17" alt="Down"></a> 
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'neutral');return false;"><img src="/static/images/es/ico-neutral.gif" width="17" height="17" alt="Neutral"></a>
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'up');return false;"><img src="/static/images/es/ico-thumbs-up.gif" width="17" height="17" alt="Up"></a>
+						
+					</td>
 				</tr>
 				{% endfor %}
 			</tbody>
