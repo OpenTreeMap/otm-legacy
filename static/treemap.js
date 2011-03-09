@@ -54,6 +54,12 @@ var tm = {
             _gaq.push(['_trackEvent', category, action, label, value]);
         }
     },
+    trackPageview: function(url) {
+        if (pageTracker && pageTracker != null)
+        {
+            _gaq.push(['_trackPageview', url]);
+        }
+    },
     baseTemplatePageLoad:function() {
         //document.namespaces;
         $("#logo").click(function() {
@@ -152,9 +158,11 @@ var tm = {
         });
         $("#searchSpeciesBrowse").click(function(evt) {
             $("#searchSpeciesList").slideToggle();
+            tm.trackEvent('Search', 'List Species');
         });
         $("#searchLocationBrowse").click(function(evt) {
             $("#searchNBList").slideToggle();
+            tm.trackEvent('Search', 'List Location');
         });
 
         // todo - clean this logic up...
@@ -289,8 +297,9 @@ var tm = {
             for(var i=0;i<checks.length;i++) {
                 delete tm.searchParams[checks[i].id];
             }
-            $("#options_form input:checked").attr('checked', false)
-            tm.updateSearch()
+            $("#options_form input:checked").attr('checked', false)  
+            tm.updateSearch();
+            tm.trackEvent('Search', 'Reset Advanced');
         });        
     },    
     
@@ -581,10 +590,10 @@ var tm = {
                     jQuery("#mapHolder").show();
                     jQuery("#calloutContainer").show();
                     jQuery('#genError').hide();
+                    tm.trackEvent('Add', 'View Map');
                 }
             });
-        });        
-        
+        });
     },
         
     //initializes map on the profile page; shows just favorited trees
@@ -607,15 +616,7 @@ var tm = {
             var bounds = tm.tree_layer.getDataExtent();
             tm.map.zoomToExtent(bounds, true);
         });
-            
-        //TODO: get this working
-        //GEvent.addListener(tm.map,"click", function(overlay, ll){
-        //    if (overlay && overlay.tid){
-        //        var html = '<a href="/trees/' + overlay.tid + '">Tree #' + overlay.tid + '</a>';
-        //        $('#alternate_tree_div').html(html);
-        //        }
-        //    });
-        },
+    },
         
     //initializes the map on the detail/edit page, 
     // where a user just views, or moves, an existing tree
@@ -935,6 +936,8 @@ var tm = {
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
                 
+                tm.trackEvent('Search', 'Map Detail', 'Tree', p.id);
+                
                 if (!p.street_address) {
                     latlng = new google.maps.LatLng(coords[1], coords[0])
                     tm.geocoder.geocode({
@@ -1131,6 +1134,7 @@ var tm = {
         //tm.tree_marker.enableDragging();
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
+        tm.trackEvent('Edit', 'Location', 'Start');
         var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
@@ -1139,6 +1143,7 @@ var tm = {
     saveTreeLocation : function(){
         //tm.tree_marker.disableDragging();     
         tm.drag_control.activate();
+        tm.trackEvent('Edit', 'Location', 'Save');
         var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
@@ -1561,6 +1566,7 @@ var tm = {
         if (tm.loadingSearch) { return; }
         var qs = tm.serializeSearchParams();
         if (qs === false) { return; }
+        tm.trackPageview('/search/' + qs);
         jQuery('#displayResults').show();
         $.ajax({
             url: '/search/'+qs,
@@ -1632,6 +1638,7 @@ var tm = {
             $.getJSON(url, function(data, textStatus) {
                 $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
             });
+            tm.trackEvent('Favorite', 'Add Favorite', 'Tree', pk);
             return false;
         });
         $('a.favorite.unfave').live('click', function(e) {
@@ -1640,6 +1647,7 @@ var tm = {
             $.getJSON(url, function(data, textStatus) {
                 $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
             });
+            tm.trackEvent('Favorite', 'Remove Favorite', 'Tree', pk);
             return false;
         });
     },
@@ -1789,6 +1797,7 @@ var tm = {
             dataType: 'json',
             type: 'POST',
             success: function(response) {
+                tm.trackEvent('Edit', 'Delete');
                 window.location = "/map/";
             },
             error: function(err) {
@@ -1835,6 +1844,7 @@ var tm = {
         dataType: 'json',
         success: function(response) {
             $("#" + response.change_type + "_" + response.change_id).fadeOut();
+            tm.trackEvent("Reputation", rep_dir)
         },
         error: function(err) {
         alert("Error: " + err.status + "\nQuery: " + change_type + " " + change_id + " " + rep_dir);

@@ -24,6 +24,9 @@
                 $("#id_species_id").val(item.symbol).change();
             });
         });
+        jQuery("#addTree").submit(function(evt) {
+        	tm.trackEvent("Add", "Add Tree")
+        });
     });
 </script>
 {% endblock %}
@@ -62,7 +65,7 @@
         {% endif %}
     {% endif %}
 
-    <form action="." method="POST">
+    <form id="addTree" action="." method="POST">
     <fieldset>
 	<div id="step1">
 	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
