@@ -430,16 +430,29 @@ ul#searchBoxes .headerSearch {
 	width: 215px;
 	height: 24px;
 	padding-top: 7px;
+	padding-left: 7px;
+	padding-bottom:3px;
 	line-height: 30px;
 	font-size: 14px;
 	font-weight: bold;
 	color: #8a8a8a;
-	margin: 0 0 0 7px;
+	margin: 0 0 0 0;
 	letter-spacing: -0.03em;
 }
 
 
 
+
+.ac_results{
+    border-color: #ccc;
+}
+.ac_results li.ac_odd {
+    background: #e9f6ef;
+}
+.ac_results li.ac_over {
+    background: #3fab82;
+    cursor: pointer;
+}
 
 
 #searchBox .ac_results {

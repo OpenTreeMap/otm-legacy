@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{% block title %}Philly Tree Map{% endblock %}</title>
+    <title>Philly Tree Map{% block title %}{% endblock %}</title>
 
         {% block tophead %}
         {% endblock %}
@@ -27,9 +27,9 @@
         <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
         <script type="text/javascript" src="/static/treemap.js"></script>
         <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/css/ptm.css" media="all" />
         <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
 		<link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/ptm.css" media="all" />
         <link rel="shortcut icon" href="/static/images/favicon.ico" />
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
 
@@ -87,6 +87,24 @@
 {% block endpage %}
 
 {% endblock endpage %}
+
+<script type="text/javascript">
+	//var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	//document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+	var pageTracker;
+	//var pageTracker = _gat._getTracker("UA-xxxxxx-x");
+	//pageTracker._setDomainName("none");
+	//pageTracker._trackPageview();
+</script>
+
+<!-- tracking sample
+if (pageTracker && pageTracker != null)
+{
+	_gaq.push(['_trackEvent', 'Dialog', 'Print Map']);
+}
+-->
 
 </body>
 </html>
