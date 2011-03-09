@@ -166,7 +166,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 
 	#headerNavExplore a{
 		background: url(/static/images/ptm/header-button-explore.png) 0 0 no-repeat; 
-		width: 127px;
+		width: 137px;
 		height: 42px;
 		display: block;
 		padding-right:12px;
@@ -175,7 +175,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 	#headerNavAdd a{
 		background: url(/static/images/ptm/header-button-add.png) 0 0 no-repeat; 
-		width: 111px;
+		width: 118px;
 		height: 42px;
 		display: block;
 		padding-right:12px;
