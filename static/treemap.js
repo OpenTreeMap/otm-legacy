@@ -49,16 +49,12 @@ var tm = {
         'site_type' : true
         },
     trackEvent: function(category, action, label, value) {
-        if (pageTracker && pageTracker != null)
-        {
-            _gaq.push(['_trackEvent', category, action, label, value]);
-        }
+       
+        //_gaq.push(['_trackEvent', category, action, label, value]);
+        
     },
-    trackPageview: function(url) {
-        if (pageTracker && pageTracker != null)
-        {
-            _gaq.push(['_trackPageview', url]);
-        }
+    trackPageview: function(url) {        
+        //_gaq.push(['_trackPageview', url]);        
     },
     baseTemplatePageLoad:function() {
         //document.namespaces;
@@ -990,11 +986,14 @@ var tm = {
         if (summaries.total_trees == '0')
         {
             // todo.. http://sftrees.securemaps.com/ticket/148
+            jQuery(".moretrees").html("");
             jQuery(".notrees").html("No results? Try changing the filters above.");
             //jQuery(".tree_count").css('font-size',20);
         } else if (summaries.total_trees > 1000) {
+            jQuery(".notrees").html("");
             jQuery(".moretrees").html("Too many trees to display. Please narrow your search.");
         } else {
+            jQuery(".moretrees").html("");
             jQuery(".notrees").html("");
         }
         
