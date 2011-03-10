@@ -13,6 +13,9 @@
 			if (jQuery.urlParam('address')) {
 				jQuery("#s_address").val(jQuery.urlParam('address'));
 			}
+			if (jQuery.urlParam('nhood')) {
+				jQuery("#s_nhood").val(jQuery.urlParam('nhood'));
+			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
 					jQuery("#filter").click();
@@ -24,6 +27,7 @@
 				var q = $.query.empty();
 				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
 				if (jQuery("#s_address").val()) {params["address"] = jQuery("#s_address").val();}
+				if (jQuery("#s_nhood").val()) {params["nhood"] = jQuery("#s_nhood").val();}
 
 				for (var key in params) {
 					if (!params[key]) {
@@ -58,6 +62,7 @@
 	<div id="search">
 		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
+		<div id="search_neighborhood"><label for="s_nhood">Neighborhood: </label><select id="s_nhood"><option value="" selected></option></select></div>
 		<div><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	{% paginate %}
