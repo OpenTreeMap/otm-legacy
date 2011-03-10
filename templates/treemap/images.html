@@ -2,10 +2,18 @@
 
 {% load thumbnail dynamic_attribute %}
 {% block body_id %}id="images"{% endblock %}
-
+{% block content %}
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Recent Images</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
 {% block left_panel %}
+
+	
 	<div id="tree_image_list">
-		<h2>Tree Photos</h2>
+		<h3>Tree Photos</h3>
 		<ul>
 		{% for image in tree_images %}
 			<li><img src="/media/{% thumbnail image.photo '100x100' upscale  %}" />
@@ -20,7 +28,7 @@
 
 {% block right_panel %}
 	<div id="profile_image_list">
-		<h2>User Photos</h2>
+		<h3>User Photos</h3>
 		<ul>
 		{% for image in user_images %}
 			<li><img src="/media/{% thumbnail image.photo '100x100' bw upscale  %}" />
@@ -31,4 +39,6 @@
 		{% endfor %}
 		<ul>
 	</div>
+{% endblock %}
+</div>
 {% endblock %}
