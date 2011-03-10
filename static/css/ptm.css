@@ -82,7 +82,9 @@ form, fieldset {
 	margin-right: 5px
 	}
 	
-.icon.iconUpdate {width: 26px; height: 25px; background: url(/static/images/ptm/icon-update.png) 0 0 no-repeat;}
+.icon.iconUpdate {width: 28px; height: 23px; background: url(/static/images/ptm/ico-edit-record.png) 0 0 no-repeat;}
+.icon.iconAdd {width: 19px; height: 26px; margin-left: -3px; background: url(/static/images/ptm/ico-add-tree.png) 0 0 no-repeat;}
+.icon.iconTreeDetail{width: 21px; height: 23px; background: url(/static/images/ptm/ico-record.png) 0 0 no-repeat;}
 	
 .buttonMed .label {
 	display:inline-block;
@@ -98,7 +100,7 @@ form, fieldset {
 	background-image: url(/static/images/ptm/button-small-sprite.png) ;
 	background-position: 0 0;
 	background-repeat: repeat-x;
-	height: 28px;
+	height: 26px;
 	line-height: 24px;
 	padding: 0 10px;
 	font-weight:bold;
@@ -192,7 +194,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 
 	
-#loginlogout {float:right; margin-top: 16px; color:#fff; text-align:right}
+#loginlogout {float:right; margin-top: 14px; color:#fff; text-align:right}
 #loginlogout a {text-decoration: underline; color: #fff}	
 
 
@@ -3324,7 +3326,7 @@ color: #673f14
     float: right;
     list-style: none outside none;
     margin: 0;
-    padding: 0 8px 25px 0;
+    padding: 0 8px 0 0;
     width: 104px;
 }
 #footer .footer-nav#footer-admin a{
@@ -3795,8 +3797,8 @@ font-size: 12px;
 	
 }
 
-#add_tree_nearby  .nearby_tree_info {margin-bottom:10px; font-weight:bold}
-#add_tree_nearby .nearby_tree_info a {font-size: 14px;}
+#add_tree_nearby  .nearby_tree_info {margin-top:10px; font-weight:bold}
+#add_tree_nearby .nearby_tree_info a {font-size: 12px;}
 
 
 
@@ -3931,3 +3933,23 @@ margin-top: 10px;
 	margin-left: 20px;
 	font-weight: bold;
 }
+
+/* edit tree header */
+
+#edit-tree-header {
+    background: url("/static/images/ptm/divider-horz.png") repeat-x 0 100% #C7E3CC;
+    height: 53px;
+    margin: -22px -28px 14px;
+	padding: 18px 28px 0; 
+	-moz-border-radius: 13px 13px 0 0;
+	-webkit-border-radius: 13px 13px 0 0;
+	border-radius: 13px 13px 0 0;	
+}
+
+#edit-tree-header h1 {
+	margin-top: 0;
+	font-size: 28px;
+	color: #0b4932;
+}
+
+#edit-tree-header  .buttonMed {

@@ -23,11 +23,13 @@ height:370px;
     z-index: 1000;
 }
 
-.mapToggle {
+.content .buttonSmall.mapToggle {
     position:absolute;
     top:10px;
     right:10px;
     z-index: 1000;
+	background-color: #333333;
+    font-size: 11px;
 }
 
 /* Tree Detail */
@@ -98,6 +100,18 @@ border:1px solid #ccc;
 overflow: hidden;
 position:relative;
 }
+#alternate_tree_div {
+	background: none repeat scroll 0 0 #B8E0D2;
+    font-weight: bold;
+    padding: 3px;
+    text-align: center;
+	border:1px solid #ccc;
+	border-top: none;
+}
+#alternate_tree_div a {
+ color: #128D60
+}
+
 #add_tree_map {
 float:left;
 width: 630px;
