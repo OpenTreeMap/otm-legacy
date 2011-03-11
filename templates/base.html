@@ -42,7 +42,14 @@
 
         {% block extrahead %}
         {% endblock %}
-
+		<script type="text/javascript">
+			//var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+			//document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+			//_gaq.push(['_setAccount', 'UA-XXXXX-X']);
+			//_gaq.push(['_trackPageview']);
+		</script>
 </head>
 
 <body {% block body_load %}{% endblock %} {% block body_id %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
@@ -87,24 +94,6 @@
 {% block endpage %}
 
 {% endblock endpage %}
-
-<script type="text/javascript">
-	//var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-	//document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-	var pageTracker;
-	//var pageTracker = _gat._getTracker("UA-xxxxxx-x");
-	//pageTracker._setDomainName("none");
-	//pageTracker._trackPageview();
-</script>
-
-<!-- tracking sample
-if (pageTracker && pageTracker != null)
-{
-	_gaq.push(['_trackEvent', 'Dialog', 'Print Map']);
-}
--->
 
 </body>
 </html>
