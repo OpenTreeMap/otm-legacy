@@ -64,8 +64,9 @@
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
-	{% paginate %}
+
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The user who submitted an edit will gain or lose reputation if you thumbs-up or thumbs-down an edit. This action cannot be undone! Please consider the change carefully before affecting your fellow user's reputation. If a user has added several edits to a tree, or an edit is very minor, use the neutral reputation action to remove edits from this list without awarding full points to the submitter.</div>
+	{% paginate %}
 	<div id="species_list">
 		<table id="species_list_table">
 			<thead>
@@ -113,7 +114,7 @@
 			</tbody>
 		</table>
 	</div>
-
+	{% paginate %}
 </div>
 
 

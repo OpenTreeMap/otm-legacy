@@ -53,16 +53,18 @@
     {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 
-    <li id="fav">
+
 
         {% if favorite %}
-            Favorited (<a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
-             class="favorite fav unfave">Unfavorite</a>)
+            <li id="fav">Favorited (<a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
+             class="favorite fav unfave">Unfavorite</a>)</li>
         {% else %}
+		    <li id="fav">
             <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
              class="favorite fav fave">Add as favorite</a>
+			 </li>
             {% if tree.treefavorite_set.all.count %}
-                ({{tree.treefavorite_set.all.count}} others have)
+             <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
             {% endif %}
         {% endif %}
 

@@ -194,12 +194,11 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 
 	
-#loginlogout {float:right; margin-top: 14px; color:#fff; text-align:right}
+#loginlogout {float:right; margin-top: 14px; color:#fff; text-align:right; position:relative}
 #loginlogout a {text-decoration: underline; color: #fff}	
 
 
 #headerNavSupport{
-
 	float:left;
 	background: url(/static/images/ptm/header-button-support.png) 0 0 no-repeat; 
 	width: 168px;
@@ -374,6 +373,7 @@ margin-left: 9px;
 	margin-top: 30px;
 	float:right;
 	position: relative;
+	z-index: 11;
 }
 
 ul#searchTitles {
@@ -431,6 +431,7 @@ ul#searchBoxes .headerSearch {
 	border:none;
 	width: 215px;
 	height: 24px;
+	float:left;
 	padding-top: 7px;
 	padding-left: 7px;
 	padding-bottom:3px;
@@ -1502,10 +1503,12 @@ ul#progress li {
 #results_aside.aside ul.messageStats li.impactStat {
     padding:0 0 0 28px;
     margin:-5px 0 0 0;
-/*     line-height:105%; */
     font-size:18px;
     color:#333;
+	float:left;
+	clear:left;
     font-weight:bold;
+	height: 48px; /* needed for IE7*/
 }
 #results_aside.aside ul.messageStats li.impactStat .subnote {
     font-size:13px;
@@ -1533,8 +1536,8 @@ ul#progress li {
 ul#resultsContainer {
 	float:left;
     background: transparent  /* replaced */;
-    margin:0 0 15px 0;
-    padding:0 15px 0 0;
+    margin:0;
+    padding:0 15px 15px 0;
 }
 ul#resultsContainer li#totals {
     float:left;
@@ -1878,7 +1881,7 @@ color: #999;
 	margin:10px 0 2px 0;
 }
 #popupContainer .infoWindowDetails {
-float:right;
+float:left;
 margin: 10px 0 0 15px;
 }
 #popupContainer .infoWindowDetails .infoLabel {
@@ -1888,7 +1891,7 @@ font-size: 12px; font-weight: bold; color: #555; margin-bottom: 3px;
 font-size: 12px; color: #888; margin-bottom: 10px;
 }
 #popupContainer .infoWindowDetails .col1 {float: left; margin-right: 6px; width: 100px;}
-#popupContainer .infoWindowDetails .col2 {float: left;}
+#popupContainer .infoWindowDetails .col2 {float: left; width: 110px;}
 
 #popupContainer ul#optionList li#note {
 	font-size:12px;
@@ -2517,7 +2520,6 @@ font-size: 12px; color: #888; margin-bottom: 10px;
 }
 
 .tab-content .aside #editOptionContainer {
-    float:left;
     margin:0;
     padding:0;
 	border: 1px solid #ccc;
@@ -2531,7 +2533,6 @@ font-size: 12px; color: #888; margin-bottom: 10px;
 }
 
 .tab-content .aside #editOptionContainer ul {
-    float:left;
     padding:10px 20px 10px 10px;
     margin:0;
     background:transparent  /* replaced */;
@@ -3690,7 +3691,7 @@ padding: 15px 0 0 0;
 #register label#error {
 	color:red;
 }
-#register button {margin-left: 210px;}
+#register button {margin-left: 210px; clear:left;}
 #register.add button {margin-left:0}
 #register.add .small {width: 400px; clear: left; margin: 3px 0 0 75px; text-align:left;}
 #register .small{
@@ -3919,8 +3920,8 @@ border: 1px solid #ccc
 border: 1px solid #ccc;
 }
 
-.admin .pagination {
-margin-top: 10px;
+.admin #instructions {
+margin-bottom: 15px;
 }
 
 .admin .admin_nav {
