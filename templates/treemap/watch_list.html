@@ -16,6 +16,10 @@
 			if (jQuery.urlParam('test')) {
 				jQuery("#s_test").val(jQuery.urlParam('test'));
 			}
+			if (jQuery.urlParam('nhood')) {
+				var nhood = jQuery.urlParam('nhood');
+				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
 					jQuery("#filter").click();
@@ -28,6 +32,7 @@
 				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
 				if (jQuery("#s_address").val()) {params["address"] = jQuery("#s_address").val();}
 				if (jQuery("#s_test").val() && jQuery("#s_test").val() != "All Tests") {params["test"] = jQuery("#s_test").val();}
+				if (jQuery("#s_nhood").val()) {params["nhood"] = jQuery("#s_nhood").val();}
 
 				for (var key in params) {
 					if (!params[key]) {
@@ -75,6 +80,11 @@
 				{% for test in test_names %}
 					<option value="{{test.0}}">{{test.1}}</option>
 				{% endfor %}
+			</select>
+		</div>
+		<div id="nbhood"><label for="s_nhood">Neighborhood: </label>
+			<select id="s_nhood">
+				<option value=""></option>
 			</select>
 		</div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
