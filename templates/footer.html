@@ -21,9 +21,6 @@
                         <li><a href="/contact/">Contact</a></li>
                     </ul>
 					<ul id="footer-admin" class="footer-nav">
-							{% if perms.can_change_user %}
-							    <li><a href="/admin/">Admin Portal</a></li>
-                            {% endif %}
 						    {% if user.is_superuser %}
                                	<li><a href="/_admin_/">Site Admin</a></li>
                             {% endif %}
@@ -33,7 +30,7 @@
                             {% if perms.can_edit_condition %}
                             	<li><a href="/verify/">Recent Edits</a></li>
                             {% endif %}
-					</ul>					
+					</ul>
                 </div>
                 <!-- <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>. -->
             </div>

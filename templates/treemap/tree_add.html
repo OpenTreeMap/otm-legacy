@@ -25,7 +25,17 @@
             });
         });
         jQuery("#addTree").submit(function(evt) {
-        	tm.trackEvent("Add", "Add Tree")
+        	tm.trackEvent("Add", "Add Tree");
+        });
+        jQuery("#id_edit_address_street").focus(function() {
+        	if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
+        		jQuery("#id_edit_address_street")[0].value = "";
+        	}
+        });
+        jQuery("#id_species_name").focus(function() {
+        	if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
+        		jQuery("#id_species_name")[0].value = "";
+        	}
         });
     });
 </script>

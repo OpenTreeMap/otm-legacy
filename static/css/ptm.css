@@ -3848,7 +3848,7 @@ div.clearer {
 }
 #tree_image_list ul li, #profile_image_list ul li {
     margin:0;
-    padding:0;
+    padding:0 0 8px;
     display:inline;
     height:100px;
     position:relative;
@@ -3856,13 +3856,17 @@ div.clearer {
 #tree_image_list ul li img, #profile_image_list ul li img{
     padding:4px;
 }
-#tree_image_list ul li img, #profile_image_list ul li img{
-    padding:4px;
-}
 #tree_image_list ul li a, #profile_image_list ul li a{
     position:absolute;
+}
+#tree_image_list .view {
+    left:6px;
+    bottom:0px;
+}
+
+#tree_image_list .delete {
     right:8px;
-    bottom:6px;
+    bottom:0px;
     color:red;
     font-weight:bold;
 }

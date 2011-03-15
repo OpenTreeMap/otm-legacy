@@ -11,13 +11,14 @@
 	</div>
 {% block left_panel %}
 
-	
+
 	<div id="tree_image_list">
 		<h3>Tree Photos</h3>
 		<ul>
 		{% for image in tree_images %}
 			<li><img src="/media/{% thumbnail image.photo '100x100' upscale  %}" />
-			<a href="javascript:void(0)" onclick="tm.deletePhoto({{ image.tree.id }}, {{ image.id }}); return false;">delete</a>
+			<a class="view" href="/trees/{{image.tree.id}}" >View</a>
+			<a class="delete" href="javascript:void(0)" onclick="tm.deletePhoto({{ image.tree.id }}, {{ image.id }}); return false;">X</a>
 			</li>
 		{% empty %}
 			<li>No Tree Images</li>
@@ -32,7 +33,8 @@
 		<ul>
 		{% for image in user_images %}
 			<li><img src="/media/{% thumbnail image.photo '100x100' bw upscale  %}" />
-			<a href="javascript:void(0)" onclick="tm.deleteUserPhoto('{{ image.user.username }}'); return false;">delete</a>
+			<a class="view" href="/profiles/{{image.user.username}}" >View</a>
+			<a class="delete" href="javascript:void(0)" onclick="tm.deleteUserPhoto('{{ image.user.username }}'); return false;">X</a>
 			</li>
 		{% empty %}
 			<li>No User Images</li>

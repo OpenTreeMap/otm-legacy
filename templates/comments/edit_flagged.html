@@ -14,7 +14,10 @@
 			if (jQuery.urlParam('text')) {
 				jQuery("#s_comment").val(jQuery.urlParam('text'));
 			}
-
+			if (jQuery.urlParam('nhood')) {
+				var nhood = jQuery.urlParam('nhood');
+				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
 					jQuery("#filter").click();
@@ -26,6 +29,7 @@
 				var q = $.query.empty();
 				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
 				if (jQuery("#s_comment").val()) {params["text"] = jQuery("#s_comment").val();}
+				if (jQuery("#s_nhood").val()) {params["nhood"] = jQuery("#s_nhood").val();}
 
 				for (var key in params) {
 					if (!params[key]) {
@@ -63,6 +67,11 @@
 	<div id="search">
 		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
 		<div id="search_comment"><label for="s_comment">Comment Text: </label><input id="s_comment" /></div>
+		<div id="nbhood"><label for="s_nhood">Neighborhood: </label>
+			<select id="s_nhood">
+				<option value=""></option>
+			</select>
+		</div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The Hide Comment

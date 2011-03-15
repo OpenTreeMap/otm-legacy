@@ -32,8 +32,7 @@
 				<td><a href="/treekey/species/{{s.id}}">{{s.common_name}}</a></td>
 				<td>{{s.genus}} {{s.species}}</td>
 				<td>{{s.feature}}</td>
-				<td><a target="_blank" <!--onclick="_gaq.push(['TreeKey', 'Browse Map Button', 'Species', {{species.id}}]);" -->
-				  href="/map/#?species={{s.symbol}}">Map</a></td>
+				<td><a target="_blank" onclick="_gaq.push(['TreeKey', 'Browse Map Button', 'Species', {{species.id}}]);" href="/map/#?species={{s.symbol}}">Map</a></td>
 			</tr>
 			{% endfor %}
 		</table>

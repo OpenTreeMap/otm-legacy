@@ -13,6 +13,10 @@
 			if (jQuery.urlParam('address')) {
 				jQuery("#s_address").val(jQuery.urlParam('address'));
 			}
+			if (jQuery.urlParam('nhood')) {
+				var nhood = jQuery.urlParam('nhood');
+				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
 					jQuery("#filter").click();
@@ -24,6 +28,7 @@
 				var q = $.query.empty();
 				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
 				if (jQuery("#s_address").val()) {params["address"] = jQuery("#s_address").val();}
+				if (jQuery("#s_nhood").val()) {params["nhood"] = jQuery("#s_nhood").val();}
 
 				for (var key in params) {
 					if (!params[key]) {
@@ -56,12 +61,15 @@
 <div class="content admin">
 	<div class="admin-header">
 		<h2>Recent Edits</h2>
-		{% include "treemap/admin_nav.html" %}
+		{% if perms.can_edit_user %}
+			{% include "treemap/admin_nav.html" %}
+		{% endif %}
 		<div class="clearBoth"></div>
 	</div>
 	<div id="search">
 		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
+		<div id="nbhood"><label for="s_nhood">Neighborhood: </label><select id="s_nhood"><option value=""></option></select></div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
 	{% paginate %}

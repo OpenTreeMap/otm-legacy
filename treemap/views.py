@@ -869,7 +869,8 @@ def object_update(request):
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
                     print "instance save"
-                    Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
+                    if post['model'] == "Tree":
+                        Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:
@@ -1385,6 +1386,9 @@ def watch_list(request):
                 key = watch[1]
                 watch_failures = watch_failures.filter(key=key)
                 break;
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        watch_failures = watch_failures.filter(tree__neighborhood=n)
     
     return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures}))
 
@@ -1479,6 +1483,13 @@ def view_flagged(request):
         flags = flags.filter(user__in=u)
     if 'text' in request.GET:
         flags = flags.filter(comment__icontains=request.GET['text'])
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        f_list = list(flags)
+        for f in f_list:            
+            if Tree.objects.filter(pk=f.comment.object_pk, neighborhood=n).count() == 0:
+                f_list.remove(f)
+        return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':f_list}))
         
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
     
@@ -1492,6 +1503,13 @@ def view_comments(request):
         comments = comments.filter(user__in=u)
     if 'text' in request.GET:
         comments = comments.filter(comment__icontains=request.GET['text'])
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        c_list = list(comments)
+        for c in c_list:            
+            if Tree.objects.filter(pk=c.object_pk, neighborhood=n).count() == 0:
+                c_list.remove(c)
+        return render_to_response('comments/edit.html',RequestContext(request,{'comments':c_list}))
         
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments}))
     

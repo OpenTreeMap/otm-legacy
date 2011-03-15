@@ -387,11 +387,12 @@ var tm = {
         });
     },
     
-    init_base_map: function(div_id){
+    init_base_map: function(div_id, controls){
         if (!div_id) {
             div_id = "map";
         };
-        tm.map = new OpenLayers.Map(div_id, {
+        if (!controls) {
+            tm.map = new OpenLayers.Map(div_id, {
                 maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
                 restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4717730.118866,-8187275.141121,5011248.307428), 
                 units: 'm',
@@ -402,8 +403,18 @@ var tm = {
                            new OpenLayers.Control.ArgParser(),
                            new OpenLayers.Control.PanPanel(),
                            new OpenLayers.Control.ZoomPanel()]
-            }
-        );
+            });
+        }
+        else {
+            tm.map = new OpenLayers.Map(div_id, {
+                maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
+                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4717730.118866,-8187275.141121,5011248.307428), 
+                units: 'm',
+                projection: new OpenLayers.Projection("EPSG:102100"),
+                displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                controls: controls
+            });
+        }
         
         tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
             "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
@@ -618,7 +629,11 @@ var tm = {
     // where a user just views, or moves, an existing tree
     // also it loads the streetview below the map
     init_tree_map : function(editable){
-        tm.init_base_map('edit_tree_map');
+        var controls = [new OpenLayers.Control.Attribution(),
+               new OpenLayers.Control.Navigation(),
+               new OpenLayers.Control.ArgParser(),
+               new OpenLayers.Control.ZoomPanel()];
+        tm.init_base_map('edit_tree_map', controls);
         
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -643,7 +658,7 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint);
-        tm.load_nearby_trees(currentPoint);
+        //tm.load_nearby_trees(currentPoint);
         
         //if (editable) { tm.drag_control.activate(); }
         
@@ -1273,6 +1288,7 @@ var tm = {
                             }    
                         }
                         settings.obj.innerHTML = value 
+                        tm.trackEvent("Edit", settings.fieldName)
                     }
                 }});
             return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
@@ -1719,7 +1735,7 @@ var tm = {
             if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
             html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
             if (i == 0) {
-                html += "<input type='checkbox' id='circum' name='circum' /> <small>Circumference?</small>"
+                html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
             }
             html += "<br />";
         }
