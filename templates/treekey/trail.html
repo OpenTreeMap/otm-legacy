@@ -1,4 +1,5 @@
 <div class="trail">
+	<div class="browse"><a href="/treekey/browse">Browse</a></div>
 	<span class="crumb"><a href="/treekey/start">Tree Key</a></span> 
 	{% for crumb in trail %}
 		{% if forloop.first %} > {% endif %}
@@ -19,5 +20,5 @@
 		{% endif %}
 
 	{% endfor %}
-	<div class="browse"><a href="/treekey/browse">Browse</a></div>
+
 </div>

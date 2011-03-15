@@ -9,10 +9,10 @@
 {% endblock %}
 
 {% block content_body_top %}
+<div id="edit-tree-header"><h1 class="floatLeft">Edit Tree Info</h1><a href="../" class="buttonMed floatRight"><span class="icon iconTreeDetail"></span><span class="label">View Full Tree Detail</span></a></div>
 
 	<!-- start contentbody -->
 		<div id="contentbody">
-		<a href="../" class="buttonMed floatRight"><span class="icon"></span><span class="label">Full Tree Detail</span></a>
 	{% for field in data %}
 		{% ifequal field.name "species" %}
 

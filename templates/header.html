@@ -9,13 +9,17 @@
 				<div id="loginlogout"> 
 						<a href="/about/" id="headerNavSupport"></a> 
 						 {% if user.is_authenticated %}
+							<div class="floatRight">
+								<a href="/accounts/logout/?next=/" id="logout" class="buttonSmall floatRight">Logout</a>
 								Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
-								<div id="logout" style="float:right;"> <a href="/accounts/logout/?next=/" id="logout" class="buttonSmall">Logout</a></div>
 								<br/>{{user.reputation.reputation}} rep
+							</div>
 						{% else %}
-							<a href="/accounts/login/" class="buttonSmall">Login</a> or <a href="/accounts/register/" class="buttonSmall">Sign up</a>
+							<div class="floatRight">
+								<a href="/accounts/login/" class="buttonSmall">Login</a>&nbsp; or <a href="/accounts/register/" class="buttonSmall">Sign up</a>
+							</div>
 						{% endif %}
-						
+
 				</div>
 			</div>
 		</div>

@@ -3,8 +3,10 @@
 {% block right_panel %}
 <div class="species">
 	<div class="species-name">
-		{{ species.common_name }}
-		<a href="/map/#?species={{species.symbol}}" onclick="_gaq.push(['TreeKey', 'Species Map Button', 'Species', {{species.id}}]);"  class="floatRight buttonMed">Show on a Map</a>
+
+		<a href="/map/#?species={{species.symbol}}" <!--onclick="_gaq.push(['TreeKey', 'Species Map Button', 'Species', {{species.id}}]);" --> class="floatRight buttonMed">Show on a Map</a>
+		{{ species.common_name }} 
+
 	</div>
 	<div class="species-scientific">
 		{{ species.genus }} {{ species.species }}

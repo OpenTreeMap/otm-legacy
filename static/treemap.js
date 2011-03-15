@@ -490,13 +490,13 @@ var tm = {
         tm.geocoder = new google.maps.Geocoder();
 
         $(".mapToggle").click(function(evt) {
-            if ($(".mapToggle").html() == 'Satellite View') {
+            if ($(".mapToggle").html() == 'View Satellite') {
                 tm.map.setBaseLayer(tm.aerial);
-                $(".mapToggle").html('Street View')
+                $(".mapToggle").html('View Streets')
             }
-            else if ($(".mapToggle").html() == 'Street View') {
+            else if ($(".mapToggle").html() == 'View Streets') {
                 tm.map.setBaseLayer(tm.baseLayer);
-                $(".mapToggle").html('Satellite View')
+                $(".mapToggle").html('View Satellite')
             }
             evt.preventDefault();
             evt.stopPropagation();
