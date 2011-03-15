@@ -495,7 +495,7 @@ class Tree(models.Model):
     def get_eco_impact(self):
         tr =  TreeResource.objects.filter(tree=self)
         if tr:
-            return tr[0].total_benefit()
+            return "%0.2f" % tr[0].total_benefit()
             
     def get_action_count(self):
         return len(self.treeaction_set.all())
@@ -560,15 +560,51 @@ class Tree(models.Model):
             self.save()
 
     def save(self,*args,**kwargs):
+        #save new neighborhood/zip connections if needed
+        pnt = self.geometry
+        n = Neighborhood.objects.filter(geometry__contains=pnt)
+        z = ZipCode.objects.filter(geometry__contains=pnt)
+        oldn = self.neighborhood
+        oldz = self.zipcode
+        
+        if n: self.neighborhood = n[0]
+        else: self.neighborhood = None
+        if z: self.zipcode = z[0]
+        else: self.zipcode = None
+        
         super(Tree, self).save(*args,**kwargs) 
+        
+        if n: self.update_aggregate(AggregateNeighborhood, n[0])
+        if z: self.update_aggregate(AggregateZipCode, z[0])
+        if oldn: self.update_aggregate(AggregateNeighborhood, oldn)
+        if oldz: self.update_aggregate(AggregateZipCode, oldz)
+        
         self.set_environmental_summaries()
         #set new species counts
         if hasattr(self,'old_species') and self.old_species:
             self.old_species.save()
         if hasattr(self,'species') and self.species:
             self.species.save()
+    
+    def update_aggregate(self, ag_model, location):        
+        agg =  ag_model.objects.filter(location=location)
+        if agg:
+            agg = agg[0]
+        else:
+            agg = ag_model(location=location)
+        summaries = []        
+        trees = Tree.objects.filter(geometry__within=location.geometry)
+        agg.total_trees = len(trees)
+        agg.distinct_species = len(trees.values("species"))
+        #TODO figure out how to summarize diff stratum stuff
+        field_names = [x.name for x in ResourceSummaryModel._meta.fields 
+            if not x.name == 'id']
+        for f in field_names:
+            fn = 'treeresource__' + f
+            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            setattr(agg,f,s)
+        agg.save()
         
-
     def percent_complete(self):
         has = 0
         desired = 6

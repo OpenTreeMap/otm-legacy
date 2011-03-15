@@ -27,7 +27,7 @@
                             {% if user.is_staff %}
                                	<li><a href="/editor/flatpages/flatpage/">Edit Content</a></li>
                             {% endif %}
-                            {% if perms.can_edit_condition %}
+                            {% if user.reputation.reputation > 1000 %}
                             	<li><a href="/verify/">Recent Edits</a></li>
                             {% endif %}
 					</ul>

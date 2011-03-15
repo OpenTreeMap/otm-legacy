@@ -86,21 +86,21 @@
 
 <div class="col2">
 	<div class="infoLabel">Height</div>
-	<div class="infoValue">{{ tree.get_height|unit_or_missing:"ft" }}</div>	
+	<div class="infoValue">{{ tree.get_height|unit_or_missing:"ft" }}</div>
 </div>
-        
+
 <div class="col1 clearLeft">
 	<div class="infoLabel">Last updated</div>
 	<div class="infoValue">{{ tree.last_updated|date }}</div>
 </div>
-  
+
 <div class="col2">
 	<div class="infoLabel">Yearly eco impact</div>
-	<div class="infoValue">{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</div>
+	<div class="infoValue">{% if tree.get_eco_impact %}${{ tree.get_eco_impact }}{% else %}Not Available{% endif %}</div>
 </div>
-	
 
-	
+
+
 	        {% if tree.treealert_set.all.count > 0 %}
         <tr>
         	<td class="col1">Alerts</td>
@@ -109,9 +109,9 @@
             </td>
         </tr>
         {% endif %}
-	
-</div>	
-	
+
+</div>
+
 	<!-- TODO -->
 	<!--
 	<li id="email"><a href="#">Email to a friend</a></li>

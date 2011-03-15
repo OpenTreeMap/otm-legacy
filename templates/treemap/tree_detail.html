@@ -211,11 +211,12 @@
         	<td class="col1Wide">Powerlines overhead</td>
             <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
+        {% if tree.data_owner.id != 11 %}
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
             <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
-
+		{% endif %}
     </tbody>
 </table>
 
@@ -226,6 +227,7 @@
         </tr>
     </thead>
     <tbody>
+    	{% if tree.data_owner.id != 11 %}
     	<tr>
         	<td class="col1Wide">Tree status</td>
             <td>{{tree.get_condition|default:"Missing"}}</td>
@@ -234,8 +236,9 @@
 			<td class="col1Wide">Canopy condition</td>
 			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
         </tr>
+        {% endif %}
         <tr>
-        	<td class="col1Wide">Local Flags</td>
+        	<td class="col1Wide">Local Projects</td>
             <td>{{tree.get_flag_count}} known</td>
             <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">Details</a>{% endif %}</td>
         </tr>
@@ -257,29 +260,6 @@
                 </table>
             </td>
         </tr>
-    </tbody>
-</table>
-
-<table class="box-table-a">
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">Details</th>
-        </tr>
-    </thead>
-    <tbody>
-    	<tr>
-        	<td class="col1Wide">Flowering</td>
-            <td>{{tree.species.flower_conspicuous|default:"Missing"}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Edible (fruits/nuts)</td>
-            <td>{{ tree.species.palatable_human|default:"Missing" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Native to area</td>
-            <td>{{ tree.species.native_status|default:"Missing" }}</td>
-        </tr>
-
     </tbody>
 </table>
 
@@ -317,6 +297,7 @@
                             <div id="edit_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
+							{% if tree.data_owner.id != 11 %}
 							<div id="tree_comments">
 								<div class="wrap">
 									<h2>Comments</h2>
@@ -365,6 +346,7 @@
 								{% endif %}
 
 							</div>
+							{% endif %}
                         </div>
                         <!-- end t2_right_panel  -->
                 {% endblock right_panel %}

@@ -508,19 +508,24 @@ def tree_edit(request, tree_id = ''):
     ]
     data.extend(further_data)
     
-    status_data = [  
-        {'type':'header',
-         'text': "Status"
-        },      
+    optional_data = [
         sidewalk,
         condition,
         c_condition,
-        {'type':'local',
-         'name': 'local',
-         'label':"Local",
-         'value': tree.treeflags_set.all()
-        }
-    ] 
+    ]    
+    status_data = [  
+        {'type':'header',
+         'text': "Status"
+        },
+    ]
+    if not tree.data_owner or tree.data_owner.id != 11:
+        status_data.extend(optional_data)    
+    status_data.append({
+        'type':'local',
+        'name': 'local',
+        'label':"Local",
+        'value': tree.treeflags_set.all()
+    })
     
     if rep.reputation >= perm.required_reputation or request.user.is_superuser:
         data.extend(status_data)
