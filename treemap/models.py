@@ -4,6 +4,7 @@ from decimal import *
 from datetime import datetime
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Sum
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
 from sorl.thumbnail.fields import ImageWithThumbnailsField
