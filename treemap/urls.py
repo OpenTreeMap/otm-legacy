@@ -10,8 +10,9 @@ user_favorites = UserFavorites(TreeFavorite, Tree, extra_filter=most_recent)
 
 
 urlpatterns = patterns('',
-    (r'^$', static, {'template':'index.html'}),
-    (r'^home/$', static, {'template':'index.html'}),
+    (r'^$', home_feeds),
+    (r'^home/$', home_feeds),
+    (r'^home/feeds/$', home_feeds),
     (r'^robots.txt/$', static, {'template':'robots.txt'}),
     
     

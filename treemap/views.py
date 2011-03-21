@@ -70,7 +70,23 @@ def static(request, template, subdir="treemap"):
 
 def location_map(request):
     pass
+
+def home_feeds(request):
+    feeds = {}
+    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_status = TreeStatus.objects.filter(tree__present=True).order_by("-reported")[0:3]
+    recent_flags = TreeFlags.objects.filter(tree__present=True).order_by("-reported")[0:3]
     
+    feeds['recent_edits'] = unified_history(recent_trees, recent_status, recent_flags)
+    feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
+    feeds['species'] = Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
+    
+    #TODO: change from most populated neighborhood to most updates in neighborhood
+    nhoods = Tree.objects.filter(present=True).aggregate(Sum('neighborhood'))
+    feeds['active_nhoods'] = sorted(nhoods, key=itemgetter(1), reverse=True)[0:4]
+    
+    return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
+
 #@cache_page(60*1)
 def result_map(request):
     #top_species = Species.objects.all().annotate(
