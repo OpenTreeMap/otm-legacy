@@ -913,7 +913,7 @@ def object_update(request):
             #content_type = 'application/javascript; charset=utf8'
             content_type = 'text/plain'
             )
-
+#for auto reverse-geocode saving of new address, from search page map click
 def tree_location_update(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)

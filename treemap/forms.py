@@ -81,12 +81,6 @@ class TreeAddForm(forms.Form):
         #import pdb;pdb.set_trace()
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
         new_tree.geometry = pnt
-        n = Neighborhood.objects.filter(geometry__contains=pnt)
-        z = ZipCode.objects.filter(geometry__contains=pnt)
-        if n: new_tree.neighborhood = n[0]
-        else: new_tree.neighborhood = None
-        if z: new_tree.zipcode = z[0]
-        else: new_tree.zipcode = None
         new_tree.last_updated_by = request.user
         new_tree.save()
         dbh = self.cleaned_data.get('dbh')

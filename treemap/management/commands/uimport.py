@@ -275,7 +275,7 @@ class Command(BaseCommand):
         if row.get('DATEPLANTED'):
             tree.date_planted = str(row['DATEPLANTED'])
 
-        tree.save()
+        tree.quick_save()
 
         # add associated objects as needed; skip if no change
         if row.get('DIAMETER') and row['DIAMETER'] != tree.current_dbh: 

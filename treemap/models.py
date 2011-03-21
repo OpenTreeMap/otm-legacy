@@ -587,6 +587,15 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
     
+    def quick_save(self,*args,**kwargs):
+        super(Tree, self).save(*args,**kwargs) 
+        self.set_environmental_summaries()
+        #set new species counts
+        if hasattr(self,'old_species') and self.old_species:
+            self.old_species.save()
+        if hasattr(self,'species') and self.species:
+            self.species.save()
+    
     def update_aggregate(self, ag_model, location):        
         agg =  ag_model.objects.filter(location=location)
         if agg:
