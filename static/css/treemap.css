@@ -332,6 +332,11 @@ cursor:pointer;
     top: 54px !important;
 }
 
+#tree_detail .olControlZoomPanel, #tree_edit .olControlZoomPanel {
+    left: 19px !important;
+    top: 19px !important;
+}
+
 .olControlZoomPanel div {
 	background-image: url("/static/images/ptm/zoom-sprite.png") !important;
 	background-repeat: no-repeat;

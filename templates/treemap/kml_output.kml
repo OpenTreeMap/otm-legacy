@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://earth.google.com/kml/{% block kml_version %}2.1{% endblock %}">
 <Document>{% block name %}{% endblock %}
-  <name>Urban Forest Map</name>
+  <name>PhillyTreeMap</name>
   <Style id="highlightPlacemark">
     <IconStyle>
     <Icon>
-      <href>http://urbanforestmap.org/static/images/map_icons/v2/UFM_Tree_Icon_size5.png</href>
+      <href>{{ root_url }}/static/images/map_icons/v4/marker-selected.png</href>
     </Icon>
     </IconStyle>
   </Style>
   <Style id="normalPlacemark">
     <IconStyle>
     <Icon>
-      <href>http://urbanforestmap.org/static/images/map_icons/v2/UFM_Tree_Icon_size3.png</href>
+      <href>{{ root_url }}/static/images/map_icons/v4/zoom5.png</href>
     </Icon>
     </IconStyle>
   </Style>

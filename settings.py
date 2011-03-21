@@ -63,6 +63,7 @@ TIME_ZONE = 'America/New_York'
 LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
+ROOT_URL = "http://207.245.89.214"
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.

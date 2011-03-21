@@ -2033,7 +2033,7 @@ var tm = {
     isNumber: function (o) {
       return ! isNaN (o-0);
     }
-}  
+};  
 $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {
         var hiddenInput = $('<input type="hidden" class="hide">');
