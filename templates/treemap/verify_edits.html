@@ -66,14 +66,32 @@
 		{% endif %}
 		<div class="clearBoth"></div>
 	</div>
-	<div id="search">
+	<div id="search" style="position:relative;">
 		<div id="search_username"><label for="s_username">Updated By: </label><input id="s_username" /></div>
 		<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
 		<div id="nbhood"><label for="s_nhood">Neighborhood: </label><select id="s_nhood"><option value=""></option></select></div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+
+		<div id="legend" style="position:absolute;top:0;right:20px;width:auto;border:1px solid #ccc; padding:6px 10px;">
+			+25 points - Adding a tree  <br/>
+			+5 points - Editing a tree <br/>
+			+5 points - Receiving a thumbs-up on your edit <br/>
+			+1 point - Receiving a neutral reaction to your edit <br/>
+			-5 points - Receiving a thumbs-down on your edit <br/>
+			@1,000 points - Users achieve advanced user status <br/>
+			Users cannot gain or lose more than 100 points per day
+		</div>
 	</div>
 
-	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The user who submitted an edit will gain or lose reputation if you thumbs-up or thumbs-down an edit. This action cannot be undone! Please consider the change carefully before affecting your fellow user's reputation. If a user has added several edits to a tree, or an edit is very minor, use the neutral reputation action to remove edits from this list without awarding full points to the submitter.</div>
+	<div id='instructions'><b>Instructions:</b>
+		Click the thumbs-up icon to respond positively to a user's edit. Click the thumbs-down icon
+		to respond negatively to a user's edit. If an edit is minor, use the neutral response
+		(the circle icon) to respond to the edit. Responding to an edit cannot be undone so please
+		consider the change carefully. Responding negatively to an edit does not remove the edit
+		from the record. You must edit the record directly to return it to its original state.
+		Once an advanced user has responded to a recent edit, that edit will no longer be visible
+		on this page. More information is available in the <a href="/faq/">FAQ</a>.
+	</div>
 	{% paginate %}
 	<div id="species_list">
 		<table id="species_list_table">

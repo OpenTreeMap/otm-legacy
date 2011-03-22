@@ -53,7 +53,7 @@
     <div class="data">
 
         <div class="wrap">
-            <h2>Common attributes</h2>
+            <h2>Common Attributes</h2>
             <ul class="attributes">
             {% if tree.has_common_attributes %}
                 {% if tree.species.flower_conspicuous %}
@@ -103,7 +103,7 @@
 <table class="box-table-a">
     <thead>
     	<tr>
-        	<th scope="col" colspan="4">General tree information</th>
+        	<th scope="col" colspan="4">General Tree Information</th>
         </tr>
     </thead>
     <tbody>
@@ -147,7 +147,7 @@
 <table class="box-table-a">
     <thead>
     	<tr>
-        	<th scope="col" colspan="2">Yearly ecosystem services</th>
+        	<th scope="col" colspan="2">Yearly Ecosystem Services</th>
         	<th scope="col">Value</th>
         </tr>
     </thead>
@@ -238,7 +238,7 @@
         </tr>
         {% endif %}
         <tr>
-        	<td class="col1Wide">Local Projects</td>
+        	<td class="col1Wide">Local projects</td>
             <td>{{tree.get_flag_count}} known</td>
             <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">Details</a>{% endif %}</td>
         </tr>
@@ -276,7 +276,7 @@
             <td></td>
         </tr>
         <tr>
-        	<td class="col1Wide">Data Source</td>
+        	<td class="col1Wide">Data source</td>
             <td>{{tree.data_owner.groups.all.0|default:"Added by the Public"}}</td>
             <td></td>
         </tr>
@@ -430,7 +430,7 @@
             </ul>
 
             <ul id="message">
-                <li id="title">Latest update <div class="Info note"></div></li>
+                <li id="title">Latest Update <div class="Info note"></div></li>
                 <li class="optionItemLastContainer">
                     <ul class="optionItemLast">
                         <li>Username</li>
@@ -454,7 +454,7 @@
 			</ul>
 
             <ul id="message">
-                <li id="title">Your turn</li>
+                <li id="title">Your Turn</li>
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
             </ul>
 

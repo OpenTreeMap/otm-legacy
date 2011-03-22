@@ -64,7 +64,7 @@
 
 <div id="register" class="add">
 
-    <h1>Add a new tree <span class="note"></span></h1>
+    <h1>Add a New Tree <span class="note"></span></h1>
 
     {% if form.errors %}
     <div id="genError"><b>Oops!</b> There was a problem.<br />
@@ -93,7 +93,7 @@
 		<span class="value">Specify Placement</span>
 		<div class="clearLeft"></div>
 	</div>
-	
+
         <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
     <div id="add_tree_map" class="addMap">
 		<div id="geocode_address"></div>
@@ -104,17 +104,17 @@
 		<h1 class="title-edit">Nearby Trees</h1>
 		<div id="nearby_trees"></div>
 	</div>
-	
+
 	<div class="clearLeft" id="step3">
     <label {% if form.species_name.errors %}id="error"{% endif %}>Step 3 <br/><span class="note">Optional</span>
-        
+
     </label>
     {{ form.species_name }}
-	<button type="submit" class="buttonMed">Add this tree!</button>
+	<button type="submit" class="buttonMed">Add this Tree!</button>
 	<br/>
 	<span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Philly Tree Key</a></span>
 	</div>
-	
+
 	</div>
 
 

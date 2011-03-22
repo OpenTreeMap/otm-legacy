@@ -455,7 +455,7 @@ def tree_edit(request, tree_id = ''):
     
     data = [
         {'type':'header',
-         'text': "General tree information"
+         'text': "General Tree Information"
         },
         {'type':'species_field',
          'name': 'species_id',
@@ -495,7 +495,7 @@ def tree_edit(request, tree_id = ''):
         },
         {'type':'date_field',
          'name': 'date_planted',
-         'label':"Date Planted",
+         'label':"Date planted",
          'value': tree.date_planted
         },
         {'type':'header',
@@ -1091,12 +1091,13 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, geog_obj = _build_tree_search_result(request)
-    
+    print "here"
     #todo missing geometry
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        return ShpResponder(trees,geo_field='geometry')()
+        print 'shp for %s trees' % len(trees)
+        return ShpResponder(trees,geo_field='geometry')
     elif format == "kml":
         print 'kml for %s trees' % len(trees)
         trees = trees.kml()

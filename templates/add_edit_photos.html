@@ -1,10 +1,10 @@
 {% extends "template_3.html" %}
 
 {% block left_panel %}
-    
+
 <div id="register">
 
-    <h1>Add a photo <span class="note">(If it's bold it's required)</span></h1>
+    <h1>Add a Photo </h1>
 
     {% if form.errors %}
     <div id="genError"><b>Oops!</b> There was a problem.<br />
@@ -38,9 +38,9 @@
                 {% endif %}
             </label>
             {{ form.title }}
-            
+
         {% endif %}
-    
+
         <label {% if form.photo.errors %}id="error"{% endif %}>Photo
             {% if form.title.errors %}
                  {% for error in form.photo.errors %}
@@ -51,13 +51,13 @@
             {% endif %}
         </label>
         {{ form.photo }}
-        
-        <button type="submit">Submit photo</button>
+
+        <button type="submit">Submit Photo</button>
     </fieldset>
     </form>
 
 </div>
-    
+
 {% endblock %}
 
 {% block right_panel %}

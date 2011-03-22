@@ -78,7 +78,7 @@
 {% endifequal %}
 {% ifequal field.type "diameter_field" %}
     	<tr>
-        	<td class="col1 activeEditRowLabel">{{field.label}} <a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+        	<td class="col1 activeEditRowLabel">{{field.label}} <a href="/faq/#measure" title="Not sure how to measure this?" target="_blank">(?)</a></td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.display|add:" in"|default:"Click icon to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_{{field.name}}', {{field.diams|safe}}); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
@@ -245,9 +245,9 @@
                 <div class="aside">
                     <div id="editOptionContainer">
                         <ul>
-                            <li id="title">Edit the tree location</li>
+                            <li id="title">Edit the Tree Location</li>
                             <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
-                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a></span></li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Tree Location</a></span></li>
                         </ul>
                     </div>
                     <div class="editMap">
@@ -303,8 +303,12 @@
             </ul>
             {% if perms.can_delete_tree %}
             <ul id="message">
-				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this tree</a></li>
-				<li>Some warning text here about not undoing and lag time on map tiles</li>
+				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this Tree</a></li>
+				<li>Trees may be deleted only by administrative users. Deleting this tree will remove
+					it permanently from the database. Please do not delete this tree unless you are
+					sure that it is a duplicate tree or should otherwise not be in the system.
+					Due to caching of the map tiles, the tree may not immediately be deleted from
+					the map search page. </li>
             </ul>
 				{% if instance.treewatch_set.count > 0 %}
 				<ul id="message">
