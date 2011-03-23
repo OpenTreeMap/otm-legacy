@@ -1830,46 +1830,57 @@ var tm = {
     },
     
     deleteTree: function(tree_id) {
-        $.ajax({
-            url: '/trees/' + tree_id + '/delete/',
-            dataType: 'json',
-            type: 'POST',
-            success: function(response) {
-                tm.trackEvent('Edit', 'Delete');
-                window.location = "/map/";
-            },
-            error: function(err) {
-            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
-            }
-        });
+        if (window.confirm("Are you sure you want to delete this tree permanently from the system?"))
+        {
+            $.ajax({
+                url: '/trees/' + tree_id + '/delete/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    tm.trackEvent('Edit', 'Delete');
+                    window.location = "/map/";
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                }
+            });
+        }
+        
+        
     },
 
     deletePhoto: function(tree_id, photo_id) {
-        $.ajax({
-            url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
-            dataType: 'json',
-            type: 'POST',
-            success: function(response) {
-                window.location.reload(true);
-            },
-            error: function(err) {
-            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
-            }
-        });
+        if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
+        {
+            $.ajax({
+                url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    window.location.reload(true);
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                }
+            });
+        }
     },
     
     deleteUserPhoto: function(username) {
-        $.ajax({
-            url: '/profiles/' + username + '/deletephoto/',
-            dataType: 'json',
-            type: 'POST',
-            success: function(response) {
-                window.location.reload(true);
-            },
-            error: function(err) {
-            alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
-            }
-        });
+        if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
+        {
+            $.ajax({
+                url: '/profiles/' + username + '/deletephoto/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    window.location.reload(true);
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                }
+            });
+        }
     },
     
      updateSpeciesFromKey: function(tree_code, tree_cultivar)  {
