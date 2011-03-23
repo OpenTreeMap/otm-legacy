@@ -37,29 +37,29 @@
                                 window.location = url;
                               }
                           }
-                        
+
                         function display_availability(json)
                         {
                               if (json)
                               {
                                   $('#taken')[0].innerHTML = json.status;
-                              }                        
+                              }
                         }
-                        
+
                         function check_username(val)
-                          {                              
+                          {
                                 $.ajax({
                                     url: '/check_username/?u='+val,
                                     dataType: 'json',
                                     success: display_availability
                                     //error: function(err) { }
                                 });
-                              
+
                           }
                     </script>
 
-                    <h1>Sign up or log in <span class="note">(If it's bold it's required)</span></h1>
-            
+                    <h1>Sign Up or Log In <span class="note">(If it's bold, it's required)</span></h1>
+
                     {% if not user.is_authenticated %}
 
                     {% if form.errors %}
