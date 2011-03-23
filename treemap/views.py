@@ -488,7 +488,7 @@ def tree_edit(request, tree_id = ''):
          'label':"City",
          'value': tree.address_city
         },
-        {'type':'field',
+        {'type':'field_noedit',
          'name': 'address_zip',
          'label':"Zip code",
          'value': tree.address_zip
@@ -877,7 +877,7 @@ def object_update(request):
                             if response_dict['update'].has_key('old_value'):
                                 history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
                                 if history.count() == 0:
-                                    history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="I").order_by('-reported')
+                                    history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="I").order_by('reported')
                                 if history.count() > 0:
                                     if isinstance(history[0].value, datetime):
                                         response_dict['update']['old_value'] = history[0].value.strftime("%b %d %Y")

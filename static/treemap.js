@@ -570,14 +570,14 @@ var tm = {
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             
             //tm.load_nearby_trees(mapCoord);
-            tm.add_new_tree_marker(mapCoord);
+            tm.add_new_tree_marker(mapCoord,true);
             
             tm.drag_control.activate();
             
             jQuery('#id_lat').val(mapCoord.lat);
             jQuery('#id_lon').val(mapCoord.lon);
             
-            tm.reverse_geocode(mapCoord);
+            //tm.reverse_geocode(mapCoord);
                         
         });
         
@@ -609,7 +609,7 @@ var tm = {
                     if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
                     
                     //tm.load_nearby_trees(olPoint);
-                    tm.add_new_tree_marker(olPoint);
+                    tm.add_new_tree_marker(olPoint, true);
                     
                     tm.drag_control.activate();
                     
@@ -666,6 +666,7 @@ var tm = {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
+            tm.reverse_geocode(mapCoord);
             //tm.updateEditableLocation();
             
         }
@@ -680,7 +681,7 @@ var tm = {
         tm.map.setCenter(olPoint, 17);
         
         tm.geocoder = new google.maps.Geocoder();
-        tm.add_new_tree_marker(currentPoint);
+        tm.add_new_tree_marker(currentPoint, false);
         //tm.load_nearby_trees(currentPoint);
         
         //if (editable) { tm.drag_control.activate(); }
@@ -750,7 +751,7 @@ var tm = {
         return marker
         },
         
-    add_new_tree_marker : function(ll){
+    add_new_tree_marker : function(ll, do_reverse_geocode){
         if (tm.add_vector_layer) {
             tm.add_vector_layer.destroyFeatures();
         }
@@ -758,7 +759,9 @@ var tm = {
         var tree_vector = new OpenLayers.Feature.Vector(tree_marker)
         
         tm.add_vector_layer.addFeatures([tree_vector])
-        tm.reverse_geocode(ll);
+        if (do_reverse_geocode) {
+            tm.reverse_geocode(ll);
+        }
         
         },
         
@@ -1320,7 +1323,7 @@ var tm = {
     updateEditableLocation: function() {
         var street = jQuery('#edit_address_street')[0].innerHTML;
         var city = jQuery('#edit_address_city')[0].innerHTML;
-        var zip = ('#edit_address_zip')[0].innerHTML;
+        var zip = jQuery('#edit_address_zip')[0].innerHTML;
         
         var wkt = jQuery('#id_geometry').val();
         var data = {
