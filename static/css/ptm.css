@@ -136,7 +136,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	margin: 0 auto;
 	width: 940px;
 }
-
+#index #headerNavLinks {display:none}
 #headerNavLinks {
 	float: left;
 	padding:0;
@@ -865,7 +865,10 @@ ul#promoMap li#promoMapEmbed {
 
 .home {
 
-margin: 40px 0 -25px 28px;
+margin: 44px 0 -60px 0;
+background: url(/static/images/ptm/home-bg.png) center bottom no-repeat;
+padding-bottom: 90px;
+padding-left: 10px;
 }
 #t4_top_content {
 
