@@ -6,7 +6,7 @@ body {
 	margin:0 auto;
 	font:12px Arial, Helvetica, sans-serif;
 	color:#666;
-	background: #3b9fb8 url(/static/images/ptm/header-wrap-bg.png) 0 51px repeat-x; 
+	background: #9ad0c8 url(/static/images/ptm/header-wrap-bg.png) 0 51px repeat-x; 
 }
 a {
 	text-decoration:none;
@@ -128,7 +128,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 */
 
 #headerNavWrap {
-	background: #5a3a29 url(/static/images/ptm/header-bg.png) 0 0 repeat-x;
+	background: #2b858c url(/static/images/ptm/header-bg.png) 0 90% repeat-x;
 	height: 51px;
 }
 
@@ -136,7 +136,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	margin: 0 auto;
 	width: 940px;
 }
-
+#index #headerNavLinks {display:none}
 #headerNavLinks {
 	float: left;
 	padding:0;
@@ -157,7 +157,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	
 		#tree_add #headerNavLinks li#headerNavAdd,
 		#results #headerNavLinks li#headerNavExplore{
-		background: #157199;
+		background: #5ab3bb;
 		border-top: 1px solid #488aa8;
 		border-left: 1px solid #3a86a6;
 		border-right: 1px solid #3a86a6;
@@ -206,7 +206,7 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	display: block;
 	padding-right:12px;
 	margin-right: 10px;
-	border-right: 1px solid #836b5e;
+	border-right: 1px solid #60a4a9;
 }
 
 #loginlogout .buttonSmall {
@@ -384,14 +384,14 @@ ul#searchTitles {
 }
 
 ul#searchBoxes {
-	background: #189a6b url(/static/images/ptm/search-panel-bg.png) 0 0 repeat-x;
+	background: #40a28e url(/static/images/ptm/search-panel-bg.png) 0 0 repeat-x;
 	padding:0;
 	margin:0;
 	height:80px;
 	clear:both;
-	-moz-box-shadow: 3px 3px 4px #2e7f94;
-	-webkit-box-shadow: 3px 3px 4px #2e7f94;
-	box-shadow: 3px 3px 4px #2e7f94;
+	-moz-box-shadow: 3px 3px 4px rgba(0,0,0,.15);
+	-webkit-box-shadow: 3px 3px 4px rgba(0,0,0,.15);
+	box-shadow: 3px 3px 4px rgba(0,0,0,.15);
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
@@ -459,7 +459,7 @@ ul#searchBoxes .headerSearch {
 
 
 #searchBox .ac_results {
-background: #1d8f63; 
+background: #3c9e8a; 
 border: none;
 display:none;
 position:absolute;
@@ -649,10 +649,10 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	padding: 23px 28px 28px;
 	margin:0 auto 20px;
 	overflow:hidden;
-	background-color: #eff7f7;
-	-moz-box-shadow: 3px 3px 4px #2e7f94;
-	-webkit-box-shadow: 3px 3px 4px #2e7f94;
-	box-shadow: 3px 3px 4px #2e7f94;
+	background-color: #fff;
+	-moz-box-shadow: 3px 3px 4px rgba(0,0,0,.15);
+	-webkit-box-shadow: 3px 3px 4px rgba(0,0,0,.15);
+	box-shadow: 3px 3px 4px rgba(0,0,0,.15);
 	-moz-border-radius: 12px;
 	-webkit-border-radius: 12px;
 	border-radius: 12px;
@@ -865,7 +865,10 @@ ul#promoMap li#promoMapEmbed {
 
 .home {
 
-margin: 40px 0 -25px 28px;
+margin: 44px 0 -60px 0;
+background: url(/static/images/ptm/home-bg.png) center bottom no-repeat;
+padding-bottom: 90px;
+padding-left: 10px;
 }
 #t4_top_content {
 
