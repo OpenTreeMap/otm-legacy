@@ -892,7 +892,7 @@ def object_update(request):
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
                     print "instance save"
-                    if post['model'] == "Tree":
+                    if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeFlags"] :
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
