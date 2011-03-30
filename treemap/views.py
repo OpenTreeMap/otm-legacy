@@ -922,7 +922,7 @@ def tree_location_update(request):
     tree = Tree.objects.filter(pk=post.get('tree_id'))[0]
     tree.address_street = post.get('address')
     tree.address_city = post.get('city')
-    tree.save()
+    tree.quick_save()
     
     response_dict['success'] = True
     
