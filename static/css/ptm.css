@@ -471,8 +471,15 @@ padding: 0 15px 15px;
 border-radius: 0 0 5px 5px;
 }
 
+#searchBox .ac_results li.header {
+font-weight:bold;
+}
+#searchBox .ac_results li.ac-even {
+padding-left:10px;
+}
 #searchBox .ac_results li.ac_odd {
 background: #e9f6ef;
+padding-left:10px;
 }
 #searchBox .ac_results li.ac_over {
 background: #3fab82;

@@ -347,12 +347,26 @@ var tm = {
     setupLocationList: function() {
         var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
         $("#searchNBList").append(ul).hide();
+        var states = {}
         for(var i=0; i<tm.locations.features.length;i++) {
-            var c = "ac_odd";
-            if (i%2 == 0) {c = 'ac-even';}
             var feature = tm.locations.features[i];
-            var name = feature.properties.name;
-            ul.append("<li id='" + feature.properties.name + "' class='" + c + "'>" + name + "</li>")
+            var st_co = feature.properties.state + "-" + feature.properties.county;
+            if (!states[st_co])
+            {
+                states[st_co] = []
+            }
+            states[st_co].push(feature);
+        }
+
+        for(var state in states) {
+            ul.append("<li class='header'>" + state + " County</li>")
+            var entries = states[state];
+            for(i=0;i<entries.length;i++) {
+                var c = "ac_odd";
+                if (i%2 == 0) {c = 'ac-even';}
+                var name = entries[i].properties.name;
+                ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
+            }
         }
 
         $("#n_list > li").hover(function(evt) {
@@ -360,6 +374,7 @@ var tm = {
         }, function(evt) {
             $(this).removeClass("ac_over")
         }).click(function(evt) {
+            if ($(this).hasClass("header")) {return;}
             $('#location_search_input').val(this.innerHTML);
             $("#searchNBList").toggle();
         });

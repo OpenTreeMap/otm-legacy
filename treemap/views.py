@@ -1212,7 +1212,7 @@ def geographies(request, model, id=''):
     list = request.GET.get('list', '')
     print list
     
-    ns = model.objects.all().order_by('name')
+    ns = model.objects.all().order_by('state','county','name')
     
     if location:
         coords = map(float,location.split(','))

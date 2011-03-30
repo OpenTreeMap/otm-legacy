@@ -133,6 +133,8 @@ class Neighborhood(models.Model):
     name = models.CharField(max_length=255)
     region_id = models.IntegerField()
     city = models.CharField(max_length=255)
+    county = models.CharField(max_length=255)
+    state = models.CharField(max_length=2)
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
