@@ -31,7 +31,7 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 
 var tm_urls = {
     eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://sajara01:8080/tilecache/tilecache.cgi/',
+    tc_url : 'http://207.245.89.214:8080/tilecache/tilecache.py/',
     //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
     };
@@ -82,7 +82,7 @@ var tm = {
     baseTemplatePageLoad:function() {
         //document.namespaces;
         $("#logo").click(function() {
-            location.href="/home";
+        //    location.href="/home";
         });        
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
@@ -454,13 +454,22 @@ var tm = {
             });
         }
         
-        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
-            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
-            {
-                sphericalMercator: true
-            }
-        );
-        
+//        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
+//            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
+//           {
+//              sphericalMercator: true
+//            }
+//        );
+
+          tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
+            type: VEMapStyle.Shaded,
+            sphericalMercator: true,
+            animationEnabled: false,
+            numZoomLevels: 18,
+            MAX_ZOOM_LEVEL: 18,
+            MIN_ZOOM_LEVEL: 0
+        });
+      
         tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
             type: VEMapStyle.Hybrid,            
             sphericalMercator: true,
