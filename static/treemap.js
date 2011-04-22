@@ -1733,6 +1733,7 @@ var tm = {
 
                     if (zips.features[0].properties.name == 'Philadelphia'){                    
                         delete tm.searchParams.location;
+                        delete tm.searchParams.geoName;
                     }else {  
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
@@ -1756,6 +1757,7 @@ var tm = {
 
                     if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
                         delete tm.searchParams.location; 
+                        delete tm.searchParams.geoName;
                     } else {  
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
@@ -1767,9 +1769,11 @@ var tm = {
                     tm.geocode(search, true, function(point) {
                         if (point) {
                             tm.geocoded_locations[search] = [point.lon, point.lat];
-                            tm.searchParams['location'] = search;                
+                            tm.searchParams['location'] = search;   
+                            delete tm.searchParams.geoName;             
                         } else {
                             delete tm.searchParams.location;
+                            delete tm.searchParams.geoName;
                         }
                         tm.updateSearch();
                     });
