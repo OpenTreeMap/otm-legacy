@@ -982,9 +982,13 @@ def _build_tree_search_result(request):
         loc = request.GET['location']
         if "," in loc:
             ns = Neighborhood.objects.all().order_by('id')
-            coords = map(float,loc.split(','))
-            pt = Point(coords)
-            ns = ns.filter(geometry__contains=pt)
+            if 'geoName' in request.GET:
+                geoname = request.GET['geoName']
+                ns = ns.filter(name__icontains=geoname)
+            else:   
+                coords = map(float,loc.split(','))
+                pt = Point(coords)
+                ns = ns.filter(geometry__contains=pt)
             if ns.count():
                 trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
@@ -1078,6 +1082,7 @@ def advanced_search(request, format='json'):
     """
     urlparams:
      - location
+     - geoName if zip or neighborhood found
      - species
      # todo:  lat/lng (should be separate from search location 
      # what type of geography to return in case of zero or too many trees)
@@ -1210,7 +1215,6 @@ def geographies(request, model, id=''):
     location = request.GET.get('location','')
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
-    print list
     
     ns = model.objects.all().order_by('state','county','name')
     
@@ -1222,10 +1226,12 @@ def geographies(request, model, id=''):
     if id:
         ns = ns.filter(id=id)
     if name:
-        ns = ns.filter(name__iexact=name)
+        ns = ns.filter(name__iexact=name)[:1]
+        print ns
     if list:        
         ns = ns.exclude(aggregates__total_trees=0)
     if format.lower() == 'json':
+        print ns
         return render_to_geojson(ns, simplify=.0005)
     if id:
         if format.lower() == 'infowindow':

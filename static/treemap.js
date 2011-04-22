@@ -432,7 +432,7 @@ var tm = {
         if (!controls) {
             tm.map = new OpenLayers.Map(div_id, {
                 maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4717730.118866,-8187275.141121,5011248.307428), 
+                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
                 units: 'm',
                 projection: new OpenLayers.Projection("EPSG:102100"),
                 displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -446,7 +446,7 @@ var tm = {
         else {
             tm.map = new OpenLayers.Map(div_id, {
                 maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4717730.118866,-8187275.141121,5011248.307428), 
+                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
                 units: 'm',
                 projection: new OpenLayers.Projection("EPSG:102100"),
                 displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -809,7 +809,7 @@ var tm = {
             address = jQuery('#searchInput').text();
         }
 
-        tm.geocode_address = address + ", pa";
+        tm.geocode_address = address;
 
         tm.geocoder.geocode({
             address: tm.geocode_address,
@@ -1728,6 +1728,7 @@ var tm = {
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
                         tm.searchParams['location'] = tm.geocode_address;  
+                        tm.searchParams['geoName'] = zips.features[0].properties.name;
                     }
                     tm.updateSearch();
                 }
@@ -1750,6 +1751,7 @@ var tm = {
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
                         tm.searchParams['location'] = tm.geocode_address;
+                        tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
                     }
                     tm.updateSearch();
                 } else {                
