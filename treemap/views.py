@@ -984,13 +984,16 @@ def _build_tree_search_result(request):
             ns = Neighborhood.objects.all().order_by('id')
             if 'geoName' in request.GET:
                 geoname = request.GET['geoName']
-                ns = ns.filter(name__icontains=geoname)
+                ns = ns.filter(name=geoname)
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
                 ns = ns.filter(geometry__contains=pt)
             if ns.count():
-                trees = trees.filter(neighborhood = ns[0])
+                if ns[0].name == 'Philadelphia':
+                    trees = trees.filter(geometry__intersects=ns[0].geometry)
+                else:                 
+                    trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
         else:
             z = ZipCode.objects.filter(zip=loc)
@@ -1098,7 +1101,7 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, geog_obj = _build_tree_search_result(request)
-    print "here"
+    #print "here"
     #todo missing geometry
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})

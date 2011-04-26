@@ -129,7 +129,7 @@ var tm = {
         
         $("#location_search_input").blur(function(evt) {
             if (!this.value) {
-                $("#location_search_input").val("Philadelphia, PA");
+                $("#location_search_input").val("All locations");
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
@@ -154,10 +154,11 @@ var tm = {
         });
         $("#location_go").click(function(evt) {
             if ($('body').id == "results") {
-                if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
+                //if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
+                if ($("#location_search_input")[0].value ) {
                     tm.handleSearchLocation($("#location_search_input")[0].value);
                 } else {
-                    $("#location_search_input").val("Philadelphia, PA");
+                    $("#location_search_input").val("All locations");
                     delete tm.searchParams['location'];
                     tm.updateSearch();
                 } 
@@ -192,7 +193,7 @@ var tm = {
         }
         function triggerSearch() {
             var q = $.query.empty();
-            if ($("#location_search_input").val() != "Philadelphia, PA") { 
+            if ($("#location_search_input").val() != "All locations") { 
                 q = q.set("location", $("#location_search_input").val());
             }
             if ($("#species_search_id").val()) {
@@ -381,9 +382,13 @@ var tm = {
         
         if ($("#s_nhood")) {
             select_nh = $("#s_nhood");
-            for(var i=0; i<tm.locations.features.length;i++) {
-                var feature = tm.locations.features[i];
-                select_nh.append("<option value='" + feature.properties.name + "' >" + feature.properties.name + "</option>")
+            for(var state in states) {
+                select_nh.append("<option class='header' disabled='disabled'>" + state + " County</li>")
+                var entries = states[state];
+                for(i=0;i<entries.length;i++) {
+                    var name = entries[i].properties.name;
+                    select_nh.append("<option value='" + name + "' >" + name + "</li>")
+                }
             }
         }    
     },
@@ -474,8 +479,8 @@ var tm = {
             type: VEMapStyle.Hybrid,            
             sphericalMercator: true,
             animationEnabled: false, 
-            numZoomLevels: 18,
-            MAX_ZOOM_LEVEL: 18,
+            numZoomLevels: 19,
+            MAX_ZOOM_LEVEL: 19,
             MIN_ZOOM_LEVEL: 0
         });
         
@@ -587,8 +592,8 @@ var tm = {
                 return false;
             }
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            var zoom = 17;
-            if (tm.map.getZoom() > 17) {zoom = tm.map.getZoom();}
+            var zoom = 18;
+            if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
             tm.map.setCenter(mapCoord, zoom);
             
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
@@ -625,8 +630,8 @@ var tm = {
             }, function(results, status){
                 if (status == google.maps.GeocoderStatus.OK) {
                     var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                    var zoom = 17;
-                    if (tm.map.getZoom() > 17) {zoom = tm.map.getZoom();}
+                    var zoom = 18;
+                    if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
                     tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
                     
                     if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
@@ -702,7 +707,7 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 17);
+        tm.map.setCenter(olPoint, 18);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
@@ -1172,7 +1177,7 @@ var tm = {
                     //ew.html(addy + ' in ' + geog.name);
                     }
             } else {
-                $('#summary_subset_val').html('Philadelphia');
+                $('#summary_subset_val').html('the region');
             }
         }
         
@@ -1731,15 +1736,15 @@ var tm = {
                     var bbox = OpenLayers.Bounds.fromArray(zips.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                     tm.map.zoomToExtent(bbox, true);
 
-                    if (zips.features[0].properties.name == 'Philadelphia'){                    
-                        delete tm.searchParams.location;
-                        delete tm.searchParams.geoName;
-                    }else {  
+                   // if (zips.features[0].properties.name == 'Philadelphia'){                    
+                   //     delete tm.searchParams.location;
+                   //     delete tm.searchParams.geoName;
+                    //}else {  
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
                         tm.searchParams['location'] = tm.geocode_address;  
                         tm.searchParams['geoName'] = zips.features[0].properties.name;
-                    }
+                    //}
                     tm.updateSearch();
                 }
                 
@@ -1755,15 +1760,15 @@ var tm = {
                     var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                     tm.map.zoomToExtent(bbox, true);
 
-                    if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
-                        delete tm.searchParams.location; 
-                        delete tm.searchParams.geoName;
-                    } else {  
+                    //if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
+                    //    delete tm.searchParams.location; 
+                    //    delete tm.searchParams.geoName;
+                    //} else {  
                         tm.add_location_marker(bbox.getCenterLonLat());
                         tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
                         tm.searchParams['location'] = tm.geocode_address;
                         tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
-                    }
+                    //}
                     tm.updateSearch();
                 } else {                
                     tm.geocode(search, true, function(point) {

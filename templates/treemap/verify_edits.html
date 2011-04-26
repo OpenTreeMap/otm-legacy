@@ -14,7 +14,7 @@
 				jQuery("#s_address").val(jQuery.urlParam('address'));
 			}
 			if (jQuery.urlParam('nhood')) {
-				var nhood = jQuery.urlParam('nhood');
+				var nhood = decodeURI(jQuery.urlParam('nhood'));
 				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
 			}
 			jQuery("#search input").keydown(function(evt) {
