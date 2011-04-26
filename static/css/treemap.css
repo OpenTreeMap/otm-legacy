@@ -72,6 +72,10 @@ margin:2px;
 	border: 1px solid #ccc;
 }
 
+#comment_disclaimer {
+    padding-top:10px;
+    line-height:1.3em;
+}
 
 /* MAP */
 
