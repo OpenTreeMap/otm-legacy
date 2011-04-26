@@ -24,9 +24,6 @@
 						    {% if user.is_superuser %}
                                	<li><a href="/_admin_/">Site Admin</a></li>
                             {% endif %}
-                            {% if user.is_staff %}
-                               	<li><a href="/editor/flatpages/flatpage/">Edit Content</a></li>
-                            {% endif %}
                             {% if user.reputation.reputation > 1000 %}
                             	<li><a href="/verify/">Recent Edits</a></li>
                             {% endif %}
