@@ -893,7 +893,9 @@ def object_update(request):
                     print "instance save"
                     if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeFlags"] :
                         print save_value
+                        print request.user.reputation.reputation
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
+                        print request.user.reputation.reputation
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:
@@ -1230,11 +1232,11 @@ def geographies(request, model, id=''):
         ns = ns.filter(id=id)
     if name:
         ns = ns.filter(name__iexact=name)[:1]
-        print ns
+        #print ns
     if list:        
         ns = ns.exclude(aggregates__total_trees=0)
     if format.lower() == 'json':
-        print ns
+        #print ns
         return render_to_geojson(ns, simplify=.0005)
     if id:
         if format.lower() == 'infowindow':
@@ -1250,7 +1252,7 @@ def zips(request):
     """
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
-    print list
+    #print list
     
     ns = ZipCode.objects.all()
     
