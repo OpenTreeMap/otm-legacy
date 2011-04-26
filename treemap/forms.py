@@ -26,7 +26,7 @@ class TreeEditPhotoForm(forms.ModelForm):
 
 class TreeAddForm(forms.Form):
     edit_address_street = forms.CharField(max_length=200, required=True, initial="Enter an Address or Intersection")
-    edit_address_city = forms.CharField(widget=forms.HiddenInput, required=True)
+    edit_address_city = forms.CharField(widget=forms.HiddenInput, required=False)
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     #dbh = forms.FloatField(required=False)

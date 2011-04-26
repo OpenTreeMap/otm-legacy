@@ -944,7 +944,7 @@ def tree_add(request, tree_id = ''):
             return HttpResponseRedirect('/trees/%s/edit/' % new_tree.id)
     else:
         form = TreeAddForm()
-
+    
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
         'user' : request.user, 
         'form' : form }))

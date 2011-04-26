@@ -57,14 +57,14 @@ def truncatewords_by_chars(value, arg):
 def unit_or_missing(value, unit=None):
     if value:    
         if unit:
-            return value.__str__() + " " + unit
-        return value
+            return round(value, 2).__str__() + " " + unit
+        return round(value, 2)
     return "Missing" 
 
 @register.filter
 def unit_or_empty(value, unit=None):
     if value:    
         if unit:
-            return value.__str__() + " " + unit
-        return value
+            return round(value, 2).__str__() + " " + unit
+        return round(value, 2)
     return "" 
