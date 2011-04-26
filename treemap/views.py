@@ -1316,6 +1316,7 @@ def verify_edits(request, audit_type='tree'):
     newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     treestatus = TreeStatus.history.filter(tree__present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     treeactions = []
+    treeflags = []
     if (request.user.reputation.reputation >= 1000):
        treeflags = TreeFlags.history.filter(tree__present=True).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     
