@@ -42,9 +42,9 @@ CACHE_BACKEND = 'file:///tmp/trees_cache'
 
 DATABASES = {
     'default': {
-        'NAME': 'sftrees',
+        'NAME': 'phillytreemap',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'USER': 'treekeyuser',                      # Not used with sqlite3.
+        'USER': 'phillytreemap',                      # Not used with sqlite3.
         'PASSWORD': '12345',                  # Not used with sqlite3.
         'HOST': 'sajara01',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',
