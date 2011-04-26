@@ -82,8 +82,7 @@ def home_feeds(request):
     feeds['species'] = Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
     
     #TODO: change from most populated neighborhood to most updates in neighborhood
-    nhoods = Tree.objects.filter(present=True).aggregate(Sum('neighborhood'))
-    feeds['active_nhoods'] = sorted(nhoods, key=itemgetter(1), reverse=True)[0:4]
+    feeds['active_nhoods'] = Neighborhood.objects.annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
     
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 
@@ -893,6 +892,7 @@ def object_update(request):
                     instance.save()
                     print "instance save"
                     if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeFlags"] :
+                        print save_value
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()

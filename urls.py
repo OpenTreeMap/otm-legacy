@@ -11,7 +11,6 @@ from registration.views import register
 
 urlpatterns = patterns('',
     (r'^_admin_/', include(admin.site.urls)),
-    (r'^editor/(.*)', include(admin.site.urls)),
     (r'^databrowse/(.*)', databrowse.site.root),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
