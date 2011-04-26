@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 
+{% load thumbnail %} 
+
+
 {% block body_load %} {% endblock %}
 
 {% block tophead %}
@@ -22,6 +25,22 @@
 {% block content %}
     
         <div class="home">
+        
+            {% for trees in feeds.species %}
+              {{trees}}
+              {{trees.num_trees}}  
+            {% endfor %}
+            
+            {% for photo in feeds.recent_photos %}
+              <img src="/media/{% thumbnail photo.photo  181x119 crop upscale %}">	   
+            {% endfor %}    
+            
+            
+            {% for nhood in feeds.active_nhoods %}
+              {{nhood}} 
+            {% endfor %}        
+            
+            
         	<div id="t4_top_content">
 	            {% block top_content %}
 	                <div id="t4_top_left_panel">
