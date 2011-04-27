@@ -78,11 +78,11 @@ def home_feeds(request):
     recent_flags = TreeFlags.objects.filter(tree__present=True).order_by("-reported")[0:3]
     
     feeds['recent_edits'] = unified_history(recent_trees, recent_status, recent_flags)
-    feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
+    feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
     feeds['species'] = Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
     
     #TODO: change from most populated neighborhood to most updates in neighborhood
-    feeds['active_nhoods'] = Neighborhood.objects.annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
+    feeds['active_nhoods'] = Neighborhood.objects.annotate(num_trees=Count('tree')).order_by('-num_trees')[0:6]
     
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 

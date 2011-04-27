@@ -24,35 +24,61 @@
 
 {% block content %}
     
-        <div class="home">
-        
-            {% for trees in feeds.species %}
-              {{trees}}
-              {{trees.num_trees}}  
-            {% endfor %}
-            
-            {% for photo in feeds.recent_photos %}
-              <img src="/media/{% thumbnail photo.photo  181x119 crop upscale %}">	   
-            {% endfor %}    
-            
-            
-            {% for nhood in feeds.active_nhoods %}
-              {{nhood}} 
-            {% endfor %}        
-            
-            
+        <div id="home">
+ 
         	<div id="t4_top_content">
-	            {% block top_content %}
-	                <div id="t4_top_left_panel">
-	                    {% block top_left_panel %}
-	                    {% endblock top_left_panel %}
-	                </div>
-	                
-	                <div id="t4_top_right_panel">
-	                    {% block top_right_panel %}
-	                    {% endblock top_right_panel %}
-	                </div>
-	            {% endblock top_content %}
+          
+
+            
+          <div id="home_content">  
+            <h1>Mapping Philly's trees and growing a green future together</h1>
+            
+            <h2>PhillyTreeMap is a web-based map database of trees in the greater <a class="highlight" href="http ://www.plantonemillion.org" target="_blank">13-county, 3-state Philadelphia region.</a></h2>
+            
+            <div id="home_site_links">
+              <a href="/map/#" id="home_explore">Explore Trees</a>
+              <a href="/trees/add/" id="home_add">Add a Tree</a>
+            </div>
+            
+            <div id="home_recent_additions">
+              <h3>Recent Additions</h3>
+              {% for photo in feeds.recent_photos %}
+              <a href="{% url treemap_tree_detail photo.id %}"><img src="/media/{% thumbnail photo.photo 60x65 crop upscale %}"></a>
+              {% endfor %}       
+              
+            </div>      
+
+             <div id="home_promo">
+                <a href="http://www.plantonemillion.org" target="_blank" class="home_plantonemil_logo"></a>
+                <p>PhillyTreeMap is proud to support Plant One Million, an ambitious multi-state tree-planting campaign, encompassing 13 counties in southeastern Pennsylvania and parts of New Jersey and Delaware.</p>
+                <p><a href="http://www.plantonemillion.org" target="_blank" class="highlight">Learn More</a>
+                </p>
+              </div>             
+                
+          </div>
+          
+              <div id="home_callouts">
+                  <div id="home_tree_stats" class="home_container">
+                    <h3>Most Common Trees</h3>
+                      {% for trees in feeds.species %}
+                      <div class="tree_stat_group">
+                        <a class="tree_link" href="/map/#?species={{trees.symbol}}">{{trees}}&nbsp;&raquo;</a>
+                        <a class="tree_stat" href="/map/#?species={{trees.symbol}}">{{trees.num_trees}} </a>
+                      </div>
+                      {% endfor %}
+                  </div>    
+                  
+                  <div id="home_tree_hoods" class="home_container">
+                    <h3>Active Neighborhoods</h3>
+                      <div id="hood_list">
+                    {% for nhood in feeds.active_nhoods %}
+                        <a class="tree_link" href="/map/#/?location={{nhood}}">{{nhood}}&nbsp;&raquo;</a>
+                    {% endfor %}     
+                    </div>
+                  </div>
+             </div>
+
+          <div class="clear_both"></div>
 			</div>
 		</div>
 		
