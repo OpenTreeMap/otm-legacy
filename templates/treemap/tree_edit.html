@@ -102,7 +102,7 @@
 {% endifequal %}
 {% ifequal field.type "field_choices" %}
     	<tr>
-        	<td class="col1 activeEditRowLabel">{{field.label}}</td>
+        	<td class="col1 activeEditRowLabel">{{field.label}} {% if field.name == 'plot_type' %}<a  href="/faq/#plot_type" title="What are plot types?" target="_blank">(?)</a>{% endif %}</td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"Click to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/{{field.name}}/'});</script>

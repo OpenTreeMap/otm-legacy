@@ -993,7 +993,7 @@ def _build_tree_search_result(request):
                 ns = ns.filter(geometry__contains=pt)
             if ns.count():
                 if ns[0].name == 'Philadelphia':
-                    trees = trees.filter(geometry__intersects=ns[0].geometry)
+                    trees = trees.filter(neighborhood__city='Philadelphia')
                 else:                 
                     trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
