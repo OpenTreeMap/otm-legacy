@@ -1,0 +1,3 @@
+.buttonMed , .buttonSmall {
+  filter: Shadow(Color=#333333, Direction=135, Strength=5);
+}
