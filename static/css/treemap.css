@@ -203,7 +203,7 @@ color:#555;
 .activeEdit {
     margin: 0;
     padding: 0;
-    width: 90%;
+    width: 150px;
 /*
     background-color: #ccc;
     border: 1px solid red;
@@ -220,11 +220,17 @@ ul.edit .activeEdit button, input.button {
 	width:50px;
 	
 } 
-.activeEdit button, input.button {
+input.button {
 	clear:both;
 	margin:7px 10px 7px -6px;
 	cursor: pointer;
 }
+.activeEdit button {
+  clear:none;
+	margin:7px 10px 7px -6px;
+	cursor: pointer;
+}
+
 input.button {
     margin-top:-2px;
 }

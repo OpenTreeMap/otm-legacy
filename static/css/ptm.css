@@ -856,11 +856,11 @@ ul#promoMap li#promoMapEmbed {
 
 
 
-#home {font-family: "museo-sans-rounded-1","museo-sans-rounded-2","arial","helvetica",sans-serif;
+#home {font-family: "museo-sans-1","museo-sans-2","arial","helvetica",sans-serif;
 background: url(/static/images/ptm/home-bg.png) center bottom no-repeat;
 overflow:hidden;
-margin-bottom: -50px;'
-
+padding-bottom: 20px;
+margin-bottom: -50px;
 }
 
 #home_content {float:left; width: 605px; }
@@ -1804,6 +1804,7 @@ ul#resultsContainer li#export {
 	font-weight: bold;
 	padding: 10px 8px 4px 10px;
 	color:#333;
+  text-align:left;
 }
 .box-table-a td {
 	padding: 6px 8px 6px 12px;
@@ -1852,6 +1853,8 @@ ul#resultsContainer li#export {
 	background: #ffffd3;
 }
 */
+
+
 #dropSpace {
     margin:0;
     padding:0;

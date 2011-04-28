@@ -767,7 +767,7 @@ var tm = {
             else { var icon = tm.get_icon(tm_icons.small_trees, 13);}
             var marker = new OpenLayers.Marker(ll, icon);
         } else {
-            var icon = tm.get_icon(tm_icons.focus_tree, 19);
+            var icon = tm.get_icon(tm_icons.focus_tree, 13);
             var marker = new OpenLayers.Marker(ll, icon);
         }
         return marker
@@ -775,7 +775,7 @@ var tm = {
         
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-        var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
+        var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 13));
 
         return marker
         },

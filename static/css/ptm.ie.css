@@ -1,3 +1,9 @@
-.buttonMed , .buttonSmall {
-  filter: Shadow(Color=#333333, Direction=135, Strength=5);
+.home_container, .content {
+  border: 1px solid #74aeb1;
 }
+
+#searchBox {
+  filter:progid:DXImageTransform.Microsoft.Shadow(color='#60abaf', Direction=135, Strength=3);
+}
+
+ul#searchBoxes .headerSearch {padding-top: 5px;}
