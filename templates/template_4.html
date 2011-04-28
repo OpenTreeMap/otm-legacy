@@ -43,7 +43,7 @@
             <div id="home_recent_additions">
               <h3>Recent Additions</h3>
               {% for photo in feeds.recent_photos %}
-              <a href="{% url treemap_tree_detail photo.id %}"><img src="/media/{% thumbnail photo.photo 60x65 crop upscale %}"></a>
+              <a href="{% url treemap_tree_detail photo.tree.id %}"><img src="/media/{% thumbnail photo.photo 60x65 crop upscale %}"></a>
               {% endfor %}       
               
             </div>      

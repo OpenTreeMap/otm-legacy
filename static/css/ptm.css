@@ -859,7 +859,8 @@ ul#promoMap li#promoMapEmbed {
 #home {font-family: "museo-sans-rounded-1","museo-sans-rounded-2","arial","helvetica",sans-serif;
 background: url(/static/images/ptm/home-bg.png) center bottom no-repeat;
 overflow:hidden;
-margin-bottom: -50px;
+margin-bottom: -50px;'
+
 }
 
 #home_content {float:left; width: 605px; }
@@ -917,7 +918,7 @@ margin-bottom: 0;
 
 #home_recent_additions a {
  border: 1px solid #feeed6;
- margin-right: 15px;
+ margin-right: 13px;
  display:block;
  float:left;
  -moz-box-shadow: 5px 5px 5px rgba(0,0,0,.3);
@@ -4102,4 +4103,4 @@ margin-bottom: 15px;
 	color: #0b4932;
 }
 
-#edit-tree-header  .buttonMed {
+
