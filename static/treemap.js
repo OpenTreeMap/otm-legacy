@@ -113,7 +113,7 @@ var tm = {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
-                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
+                $('#arrow').attr('src','/static/zimages/v2/arrow2.gif');
                 //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
