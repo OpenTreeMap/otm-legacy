@@ -1,0 +1,383 @@
+div #results_aside{
+height:370px;
+}
+
+
+.shadowLeft {
+    background: url("/static/images/ptm/map-shadow-left.png") no-repeat scroll -2px -2px transparent;
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 11px;
+    z-index: 1000;
+}
+
+.shadowTop {
+    background: url("/static/images/ptm/map-shadow-top.png") repeat-x scroll -2px -2px transparent;
+    height: 11px;
+    left: 9px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.content .buttonSmall.mapToggle {
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index: 1000;
+	background-color: #333333;
+    font-size: 11px;
+}
+
+/* Tree Detail */
+.tree_detail_item{
+width:400px;
+margin:2px;
+}
+
+.tree_detail_key{
+  width:140px; display:inline;
+}
+.tree_detail_val{
+ width:200px; display:inline;
+ float:right;
+}
+
+/* Tree Detail Comments */
+#tree_comments{
+ padding-top:10px;
+}
+
+.comment_field{
+ padding-bottom:4px;
+}
+.comment_list{
+ padding-top:10px;
+ clear:left;
+}
+.comment_item{
+ margin-bottom:8px;
+ padding-bottom:8px;
+ border-bottom: 1px dashed #ccc;
+}
+.comment_body{
+ padding-left:6px;
+}
+
+#id_comment{
+    height:100px;
+	border: 1px solid #ccc;
+}
+
+#comment_disclaimer {
+    padding-top:10px;
+    line-height:1.3em;
+}
+
+/* MAP */
+
+#map{
+height:382px;
+}
+#index_map{
+border:10px solid #eef5d8;
+height:400px;
+}
+#results_map{
+position:relative;
+height:524px;
+clear:both;
+border:1px solid #ccc;
+}
+#favorite_tree_map{
+height:250px;
+border: 1px solid #ccc;
+position: relative;
+}
+
+#edit_tree_map{
+height:220px;
+width:248px;
+border:1px solid #ccc;
+overflow: hidden;
+position:relative;
+}
+#alternate_tree_div {
+	background: none repeat scroll 0 0 #B8E0D2;
+    font-weight: bold;
+    padding: 3px;
+    text-align: center;
+	border:1px solid #ccc;
+	border-top: none;
+}
+#alternate_tree_div a {
+ color: #128D60
+}
+
+#add_tree_map {
+float:left;
+width: 630px;
+height:350px;
+position: relative;
+border: 1px solid #ccc;
+}
+
+#add_tree_map #geocode_address {
+position: absolute;
+right: 10px;
+top: 10px;
+z-index: 1000;
+padding: 10px;
+text-align:right;
+background: #000;
+color: #fff;
+-moz-border-radius: 4px;
+-webkit-border-radius: 4px;
+border-radius: 4px;
+opacity: .9;
+filter: alpha(opacity=90);
+}
+#add_tree_nearby {
+float:left;
+background: #fff;
+border: 1px solid #ccc;
+min-height: 320px;
+margin-left: 15px;
+padding: 15px;
+width: 205px;
+}
+#static_map{
+height:40px;%
+width:40px;
+}
+
+#tree_streetview{
+height:220px;
+width:248px;
+border:1px solid #ccc;
+padding-top:0;
+margin-top:0;
+}
+#add_tree_streetview{
+height:180px;
+width:270px;
+}
+#max_tree_infowindow{
+width:390px;
+min-height:170px;
+background: #fff;
+margin:0;
+padding:0;
+}
+
+#infowindow{
+color:#555;
+}
+#infowindow_left{
+    float:left;
+    width:210px;
+    border-right:1px solid #E25A00;
+}
+#infowindow_right{
+    width:150px;
+    float:right;
+}
+.activeEditRowValue {
+    margin:0;
+    padding:0;
+}
+.activeEditTable tr th {
+    font-weight: normal;
+}
+.activeEditTable tr td {
+    font-weight: bold;
+}    
+.activeEditRowLabel {
+    text-align: left;
+    width: 30%;
+    font-weight: normal; 
+}
+.activeEdit {
+    margin: 0;
+    padding: 0;
+    width: 150px;
+/*
+    background-color: #ccc;
+    border: 1px solid red;
+*/
+} 
+ul.edit .activeEdit input {
+	width:150px;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+    margin-left:0px;
+}
+ul.edit .activeEdit button, input.button {
+	float:left;
+	width:50px;
+	
+} 
+input.button {
+	clear:both;
+	margin:7px 10px 7px -6px;
+	cursor: pointer;
+}
+.activeEdit button {
+  clear:none;
+	margin:7px 10px 7px -6px;
+	cursor: pointer;
+}
+
+input.button {
+    margin-top:-2px;
+}
+.activeEdit button:hover {
+
+}    
+.activeEdit input, .activeEdit select {
+/*     display: block; */
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+	line-height:10px;
+    padding:3px 0 3px 5px;
+    margin:-4px 0 0 -7px;
+/*     width: 50%; */
+}
+#edit_dbh {
+	display:block;
+	margin-top:1px;
+	padding-bottom:22px;
+	border-bottom:1px solid #eef5d8;
+}
+.activeEdit input.hide {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+.activeEdit select {
+    width:195px;
+}
+#actionTypeSelection select, #hazardTypeSelection select {
+    width:125px;
+}
+#actionTypeSelection option, #hazardTypeSelection option, .activeEdit option {
+    font-size:12px;
+    padding:0
+    margin:0;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+}
+#hazardTable, #actionTable {
+    font-size:12px;
+
+}
+#month_, #day_ {
+    width:50px;
+    padding-right:20x;
+    margin-right:10px;
+}
+#year_ {
+    width:65px;
+    padding-right:20x;
+}
+
+
+/* MAP MARKER HOVER */
+.olLayerDiv div {
+cursor:pointer;
+}
+
+/* OPEN LAYERS CONTROLS */
+
+.olControlPanPanel {
+    left: 10px !important;
+    top: 10px !important;
+}
+.olControlPanPanel div {
+    background-image: url("/static/images/ptm/pan-sprite.png") !important;
+	position:absolute
+}
+.olControlPanPanel .olControlPanNorthItemInactive {
+    height: 13px !important;
+    left: 0 !important;
+    width: 38px !important;
+}
+.olControlPanPanel .olControlPanNorthItemInactive:hover {
+    background-position: -37px 0 !important;
+}
+.olControlPanPanel .olControlPanSouthItemInactive {
+    background-position: 0 -25px !important;
+    height: 13px !important;
+    left: 0 !important;
+    top: 25px !important;
+    width: 38px !important;
+}
+.olControlPanPanel .olControlPanSouthItemInactive:hover {
+    background-position: -37px -25px !important;
+}
+.olControlPanPanel .olControlPanWestItemInactive {
+    background-position: 0 -13px !important;
+    height: 12px !important;
+    top: 13px !important;
+    width: 19px !important;
+}
+.olControlPanPanel .olControlPanWestItemInactive:hover {
+    background-position: -37px -13px !important;
+}
+.olControlPanPanel .olControlPanEastItemInactive {
+    background-position: -19px -13px !important;
+    height: 12px !important;
+    left: 19px !important;
+    top: 13px !important;
+    width: 18px !important;
+}
+.olControlPanPanel .olControlPanEastItemInactive:hover {
+    background-position: -56px -13px !important;
+}
+.olControlZoomPanel {
+    left: 19px !important;
+    top: 54px !important;
+}
+
+#tree_detail .olControlZoomPanel, #tree_edit .olControlZoomPanel {
+    left: 19px !important;
+    top: 19px !important;
+}
+
+.olControlZoomPanel div {
+	background-image: url("/static/images/ptm/zoom-sprite.png") !important;
+	background-repeat: no-repeat;
+	position:absolute
+}
+
+.olControlZoomPanel .olControlZoomInItemInactive {
+	background-position: 0 0 !important;
+    height: 16px !important;
+    width: 19px !important;
+}
+.olControlZoomPanel .olControlZoomInItemInactive:hover {
+	background-position: -19px 0 !important;
+}
+.olControlZoomPanel .olControlZoomToMaxExtentItemInactive {
+	background-position: 0 -15px !important;
+    height: 15px !important;
+	width: 19px !important;
+    top: 16px !important;
+}
+.olControlZoomPanel .olControlZoomToMaxExtentItemInactive:hover {
+	background-position: -19px -15px !important;
+}
+.olControlZoomPanel .olControlZoomOutItemInactive {
+    height: 16px !important;
+    width: 19px !important;
+	top: 31px !important;
+	background-position: 0 -32px !important;
+}
+.olControlZoomPanel .olControlZoomOutItemInactive:hover {
+	background-position: -19px -32px !important;
+}
+
+.olControlAttribution {bottom: 0 !important}

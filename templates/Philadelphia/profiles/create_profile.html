@@ -1,0 +1,44 @@
+{% extends "profiles/base.html" %}
+
+{% load i18n %}
+
+{% block middle_panel %}
+
+    Create your profile:
+
+    {% if form.errors %}
+    <p class="errorlist">{% trans "Sorry there are corrections needed in your form below:" %} {{ form.non_field_errors }}</p>
+    {% endif %}
+    {% if form.is_multipart %}
+    <form enctype="multipart/form-data" method="post" action=".">
+    {% else %}
+    <form method="post" action=".">
+   {% endif %}
+
+    <p>
+      <label for="id_zip_code">{{ form.zip_code.label_tag }}:</label>
+      {{ form.zip_code }}      
+      {% if form.zip_code.errors %}asdfasdf
+        <span class="error">{{ form.zip_code.errors.as_text }}</span>
+      {% endif %}
+    </p>    
+
+    <p>
+      <label for="id_updates">{{ form.updates.label_tag }}</label>
+      {{ form.updates }}      
+      {% if form.updates.errors %}asdfasdf
+        <span class="error">{{ form.updates.errors.as_text }}</span>
+      {% endif %}
+    </p>    
+
+    <p>
+      <label for="id_photo">Change {{ form.photo.label_tag }}:</label>
+      {{ form.photo }}
+      {% if form.photo.errors %}asdfasdf
+        <span class="error">{{ form.photo.errors.as_text }}</span>
+      {% endif %}
+    </p>   
+    
+   <input type="submit" value="Post" />
+   </form>
+{% endblock %}

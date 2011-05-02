@@ -1,0 +1,56 @@
+{% extends "treekey/base.html" %}
+
+{% block right_panel %}
+
+
+	<div class="node-description">
+		{{ node.question }}
+	</div>
+
+	{% for leaf in node.child_set.all %}
+
+	<div class="leaf {% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %}">
+		<div class="leaf-name "><a href="/treekey/node/{{ leaf.id }}/">{{ leaf }}</a></div>
+
+		{% if leaf.has_children %}
+
+			{% for image in leaf.nodeimage_set.all %}
+				<div class="leaf-image">
+					<a href="/treekey/node/{{ leaf.id }}/">
+						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+					</a>
+					{% if image.attrib_text %}
+					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% endif %}
+				</div>
+			{% endfor %}
+
+			<div class="leaf-text">
+				{{ leaf.description }}
+			</div>
+
+
+		{% else %}
+
+			{% for image in leaf.nodeimage_set.all %}
+				<div class="leaf-image">
+					<a href="/treekey/leaf/{{ leaf.id }}/">
+						<img src="/static/{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+					</a>
+					{% if image.attrib_text %}
+					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
+					{% endif %}
+				</div>
+			{% endfor %}
+
+			<div class="leaf-text">
+				{{ leaf.description }}
+			</div>
+
+
+		{% endif %}
+	</div>
+
+	{% endfor %}
+
+{% endblock right_panel %}

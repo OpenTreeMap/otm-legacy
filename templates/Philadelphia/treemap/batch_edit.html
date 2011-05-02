@@ -1,0 +1,97 @@
+{% extends "ntemplate_1.html" %}
+{% load maths dynamic_attribute thumbnail %}
+
+{%block body_class%}inner{%endblock %}
+
+{% block body_id %}id="batch_edit"{% endblock %}
+
+  {% block extrahead %}
+      <script type="text/javascript">
+      jQuery().ready(function() {
+        TM.gmap.initialize()
+          //tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}});
+      });
+      </script>
+  {% endblock %}
+
+          {% block heading %}
+              <div class="heading">
+                  <div class="holder">
+                      holder
+                  </div>
+              </div>
+          {% endblock heading %}
+
+
+
+
+      {% block top_left_panel %}
+
+     top left panel
+      {% endblock %}
+
+      {% block top_right_panel %}
+          <div class="wrap">
+              <div id="large_map"></div>
+          </div>
+      {% endblock %}
+
+
+{% block bottom_left_panel %}
+      <div class="box-1">
+      <h2>Recent updates</h2>
+      <p>Our database of trees comes from public records and citizen foresters like you.
+          Your help will make it better. <!--<a href="#">Find out how to add and edit trees near you!</a>-->
+      </p>
+      <table width="100%">
+      {% for tree in latest_trees %}
+          <tr>
+              <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
+
+              {% if tree.last_updated_by.get_profile.photo %}
+                  <img src="/media/{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
+                      alt="image description" width="33" height="32" /></td>
+              {% else %}
+                  <img src="/static/images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>
+              {% endif %}
+
+              {% comment %}
+              {% if tree.treephoto_set.count %}
+                  <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
+                      alt="image description" width="33" height="32" /></td>
+              {% else %}
+                  <img src="/static/images/es/image10.gif" alt="image description" width="33" height="32" /></a></td>
+              {% endif %}
+              {% endcomment %}
+              <td>
+                  <span>Neighborhood</span>  <br />
+
+                  {{tree.sanfranciscotree.neighborhood}}
+              </td>
+              <td>
+                  <span>Tree species</span>  <br />
+
+                  <em>{{tree.species.common_name}}</em>
+              </td>
+              <td>
+                  <span>Updated by</span>  <br />
+
+                  <a href="/profiles/{{tree.last_updated_by.username}}/">{{ tree.last_updated_by.username }}</a>
+              </td>
+          </tr>
+     {% endfor %}
+      </table>
+  </div>
+
+{% endblock bottom_left_panel %}
+
+{% block bottom_right_panel %}
+
+      <div class="box-2">
+          <div class="title">
+              <h2>Recent photos from users</h2>
+<!--                           <a href="#">Upload your own</a>  -->
+          </div>
+      </div>
+      {% endblock bottom_right_panel %}
+

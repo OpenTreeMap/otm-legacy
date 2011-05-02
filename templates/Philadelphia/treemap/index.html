@@ -1,0 +1,47 @@
+{% extends "template_4.html" %}
+{% load feeds %}
+{% load tree_tags %}
+{% load cache %}
+
+{% block body_id %}id="index"{% endblock %}
+
+    {% block extra_onready %}
+        //tm.init_map('index_map');
+        //todo less js on the homepage (eg no gmaps stuff?)
+
+    {% endblock %}
+        {% block top_left_panel %}
+
+        {% endblock %}
+
+        {% block top_right_panel %}
+        {% endblock %}
+
+
+        {% block xcallout %}
+        <!--Start Callout  -->
+
+            <!--End Callout  -->
+        {% endblock xcallout %}
+
+
+
+
+        {% block bottom_left_panel %}
+        {% endblock bottom_left_panel %}
+
+        {% block bottom_right_panel %}
+        {% endblock %}
+
+
+
+        {% block sub_footer %}
+
+<!-- start: subfooter -->
+
+
+{% comment %}
+<!-- end: subfooter -->
+{% endcomment %}
+
+        {% endblock %}

@@ -1,0 +1,14 @@
+{% extends "registration/base.html" %}
+{% load humanize %}
+  
+{% block title %}{% if account %}
+Account activated{% else %}Activation problem occurred
+{% endif %}{% endblock %}
+
+{% block left_panel %}{% if account %}
+  <h1>Account activated.</h1>
+    <p>Thanks for signing up! You can now log in.
+{% else %}
+  <h1>Activation problem occurred</h1>
+    <p>Sorry, a problem occured. Either your activation link was incorrect, or the activation key for your account has expired; activation keys are only valid for {{ expiration_days|apnumber }} days after registration.</p>
+{% endif %}{% endblock %}

@@ -1,0 +1,497 @@
+	{% extends "template_2.html" %}
+
+{% load thumbnail dynamic_attribute humanize %}
+{% load maths %}
+
+{% block extrahead %}
+<script type="text/javascript">
+    jQuery().ready(function() {
+        jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
+            jQuery(s).click(function() {
+                $(this).next().toggle('slow');
+                return false;
+                }).next().hide();
+            });
+            
+        tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+        tm.currentTreeId = {{tree.id}};
+        tm.init_tree_map(false); //not editable
+        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+    });
+    
+</script>
+{% endblock %}
+
+        {% block content_body_top %}
+        <!-- start contentbody -->
+        
+        <div id="contentbody">
+             <div id="tabcontainer"> 
+                <ul id="tablist"> 
+                    <li class="first"><a href="../{{ tree.id }}" id="current">Tree info</a></li> 
+                    <li><a href="./edit">Edit tree</a></li> 
+                </ul> 
+            </div> 
+            <div class="tab-content" id="tab-1">
+                <ul id="progress">
+                    <!-- TODO -->
+                    <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
+                    <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
+                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
+                </ul>
+                <div class="wrap">
+        {% endblock %}
+
+
+            {% block middle_panel %}
+    <!-- start t2_middle_panel  -->
+    <div class="data">
+
+        <div class="wrap">
+            <h2>Common attributes</h2>
+            <ul class="attributes">
+            {% if tree.has_common_attributes %}
+                {% if tree.species.flower_conspicuous %}
+                <li><img src="/static/images/v2/icon_flower.gif" alt="Flowering" title="Flowering" width="20" /></li>
+                {% endif %}
+                {% if tree.species.fall_conspicuous %}
+                <li><img src="/static/images/v2/icon_fall.gif" alt="Fall color" title="Fall color" width="20" /></li>
+                {% endif %}
+                {% if tree.species.palatable_human %}
+                <li><img src="/static/images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
+                {% endif %}
+                {% if tree.species.native_status %}
+                <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
+                {% endif %}
+                    {% comment %}
+                    {% if tree.species. %}
+                    <li><img src="/static/images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
+                    {% endif %}
+                    {% endcomment %}
+                {% if tree.sanfranciscotree.sf_local_carbon_fund %}
+                <li><img src="/static/images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
+                {% endif %}
+                {% if tree.sanfranciscotree.sf_fruit_gleaning_project %}
+                <li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
+                {% endif %}
+                {% if tree.sanfranciscotree.sf_landmark %}
+                <li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
+                {% endif %}
+                
+                <!-- ALSO sf significant??? -->
+                
+            {% else %}
+            <li>None at this time</li>
+            {% endif %}
+
+            </ul>
+        </div>
+                        
+                        
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">General tree information</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Tree number</td>
+            <td>{{tree.id}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Scientific name</td>
+            <td><i>{{tree.get_scientific_name}}</i></td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Common name</td>
+            <td>{{tree.get_common_name}}</td>
+            <td></td>
+        </tr>
+    	<tr>
+        	<td class="col1Wide">Trunk diameter</td>
+            <td>{{tree.current_dbh|floatformat:1}} inches</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Tree height</td>
+            <td>{{tree.get_height}} feet</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Nearby address</td>
+            <td>{{tree.address_street}}</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="2">Yearly ecosystem services</th>
+        	<th scope="col">Value</th>
+        </tr>
+    </thead>
+    <tbody>
+{% if tree.species %} {% if tree.current_dbh %}
+    	<tr>
+        	<td class="col1Wide">Stormwater intercepted</td>
+            <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
+            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Energy conserved</td>
+            <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
+            <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Air pollutants removed</td>
+            <td>{{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs</td>
+            <td>${{tree.treeresource.benefits.air_quality|floatformat:2}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Carbon dioxide reduced</td>
+            <td>{{tree.treeresource.annual_co2_reduced|floatformat:0}} lbs</td>
+            <td>${{tree.treeresource.benefits.co2_reduced|floatformat:2}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Total Co2 stored to date</td>
+            <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
+            <td>${{tree.treeresource.benefits.co2_stored|floatformat:2}}</td>
+        </tr>
+{% else %}
+        <tr>
+            <td colspan="3"><span class="note">Data is not available. The trunk diameter is needed to calculate the environmental resources for this tree. <a href="edit/">Add the diameter &raquo;</a></span></td>
+        </tr>
+{% endif %}
+{% else %}
+        <tr>
+            <td colspan="3">Data is not available. The trunk species is needed to calculate the environmental resources for this tree. <a href="edit/">Add the species >></a></td>
+        </tr>
+{% endif %}
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Environment</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+        	<td class="col1Wide">Plot size</td>
+            <td>{{tree.plot_width}} / {{tree.plot_length }} ft/ft</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Plot type</td>
+            <td>{{ tree.get_plot_type_display }}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Powerlines overhead</td>
+            <td>{{ tree.get_powerline_conflict_potential_display }}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Sidewalk damage</td>
+            <td>{{ tree.get_sidewalk_damage_display }}</td>
+        </tr>
+
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+            <th scope="col" colspan="4" id="status">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Tree status</td>
+            <td>{{tree.get_condition}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Alerts</td>
+            <td>{{tree.get_alert_count}} known</td>
+            <td>{% if tree.get_alert_count > 0 %}<a href="#" id="tree_alerts" onclick="$('#alerts').toggle();return false;">Details</a>{% endif %}</td>
+        </tr>
+        <tr id="alerts" style="display:none;">
+            <td colspan="5">
+                <table class="box-table-b" colspan="5">
+                    <tbody>
+                    	<tr>
+                        	<td class="col1Wide"><b>Alert</b></td>
+                            <td><b>Reported by</b></td>
+                        </tr>
+                        {% for a in tree.treealert_set.all %}
+                        <tr>
+                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                            <td>{{ a.reported_by }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Actions</td>
+            <td>{{tree.get_action_count}} known</td>
+            <td>{% if tree.get_action_count > 1 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">Details</a>{% endif %}</td>
+        </tr>
+        <tr id="actions" style="display:none;">
+            <td colspan="5">
+                <table class="box-table-b" colspan="5">
+                    <tbody>
+                    	<tr>
+                        	<td class="col1Wide"><b>Action taken</b></td>
+                            <td><b>Reported by</b></td>
+                        </tr>
+                        {% for a in tree.treeaction_set.all %}
+                        <tr>
+                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                            <td>{{ a.reported_by }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Details</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Flowering</td>
+            <td>{{tree.species.flower_conspicuous}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Edible (fruits/nuts)</td>
+            <td>{{ tree.species.fruit_seed_abundance }}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Native to area</td>
+            <td>{{ tree.species.native_status }}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Landmark tree</td>
+            <td>{{ tree.sanfranciscotree.get_sf_landmark_display}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Fruit Gleaning Project tree</td>
+            <td>{{ tree.sanfranciscotree.get_sf_fruit_gleaning_project_display}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Carbon Fund tree</td>
+            <td>{{ tree.sanfranciscotree.get_sf_local_carbon_fund_display}}</td>
+        </tr>
+
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">History</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Date planted</td>
+            <td>{{tree.date_planted|date}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Tree steward</td>
+            <td>{{tree.steward_name}}</td>
+            <td></td>
+        </tr>
+<!--
+        <tr>
+        	<td class="col1Wide">Data owner</td>
+            <td>{{tree.data_owner}}</td>
+            <td></td>
+        </tr>
+-->
+    </tbody>
+</table>
+
+                    </div>
+                    <!-- end t2_middle_panel  -->
+
+                {% endblock %}
+
+    
+    
+                {% block right_panel %}
+                    <!-- start t2_right_panel  -->
+                        <div class="aside">
+                            <div id="add_tree_map"></div>
+                            <div id="alternate_tree_div"></div>
+                            <div id="tree_streetview"></div>
+
+                        </div>
+                        <!-- end t2_right_panel  -->
+                {% endblock right_panel %}
+                
+                
+                {% block content_body_bottom %}
+                                </div>      <!-- end wrap -->
+                            </div>
+                        </div>
+                        <!-- end contentbody -->
+                {% endblock %}
+
+                
+
+                {% block left_panel %}
+                <!-- start t2_left_panel  -->
+                
+         <div id="t2_top_left_panel">
+            <ul id="userImage">
+                <li>
+                {% if tree.treephoto_set.count %}
+                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                    </a>
+                    <ul id="additionalImages">
+                    {% for item in tree.treephoto_set.all|slice:"1:4" %}
+                            <li><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                    {% endfor %}
+                    </ul>
+                    <ul id="imageOptions">
+                        <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+                    </ul>
+{% else %}
+                    <img src="/static/images/es/image14.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" />
+                    <ul id="imageOptions">
+                        <li id="first"><a href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+					</ul>
+                {% endif %}
+                </li>
+            </ul>
+            <ul id="message">
+                <li id="title">Tools <div class="Info note"></div></li>
+                <li>
+                {% if user.is_authenticated %}
+                    <ul class="optionItem">
+                    <li>
+                    {% if favorite %}
+                        Favorited (<a href="#" id="favorite_{{ tree.id }}" class="favorite fav unfave">Unfavorite</a>)
+                    {% else %}
+                        <a href="#" id="favorite_{{ tree.id }}"
+                         class="favorite fav fave">Add as favorite</a>
+                        {% if tree.treefavorite_set.all.count %}
+                            ({{tree.treefavorite_set.all.count}} others have)
+                        {% endif %}
+                    {% endif %}
+                    </li>
+                    </ul>
+                {% else %}
+                    <li>
+                    <a href="#" class="fav" id="favorite_{{ tree.id }}" class="favorite">Add as favorite</a>
+                    </li>
+                    <!-- needed? -->
+                    <!--<li class="editItem"><a href="#">Edit</a>
+                    </li>
+                    </ul>-->
+                {% endif %}
+                    <!-- todo -->
+                    <!--
+                    <ul class="optionItem">
+                        <li><a href="#">Email to a friend</a></li>
+                    </ul>
+                    <ul class="optionItem">
+                        <li><a href="#">Print</a></li>
+                    </ul>
+                    <ul class="optionItem">
+                        <li><a href="#">Tweet this page</a></li>
+                    </ul>
+                    -->
+                    
+                </li>
+            </ul>
+
+            <ul id="message">
+                <li id="title">Latest update <div class="Info note"></div></li>
+                <li class="optionItemLastContainer">
+                    <ul class="optionItemLast">
+                        <li>Username</li>
+                        <li class="editItem"><a href="/profiles/{{tree.last_updated_by}}/">{{tree.last_updated_by}}</a></li>
+                    </ul>
+                    <ul class="optionItemLast">
+                        <li>Date</li>
+                        <li class="editItem">{{tree.last_updated|date}}</li>
+                    </ul>
+                </li>
+            </ul>
+            <ul id="message">
+                <li id="title">Your turn</li>
+                <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
+            </ul>
+        </div>
+                
+                
+                 <!-- end t2_left_panel  -->
+
+            {% endblock left_panel %}
+
+                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Actions</div>
+                    <div class="tree_detail_val">
+                    {{tree.get_action_count}} known <a href="#" id="tree_actions"> See Details</a>
+                        <div>
+                            {% for a in tree.treeaction_set.all %}
+                                {{a.key}} ({{a.reported_by}})<br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Alerts</div>
+                    <div class="tree_detail_val">
+                    {{tree.get_alert_count}} known <a href="#" id="tree_alerts"> See Details</a>
+                      <div>
+                        {% for a in tree.treealert_set.all %}
+                            {{a.key}} : {{a.value|date}}<br>
+                        {% endfor %}
+                      </div>
+                    </div>
+                </div>
+                 <h5>History</h5>
+                 <div class="tree_detail_item">
+                     <div class="tree_detail_key">Added By</div>
+                     <div class="tree_detail_val">{{tree.data_owner}}</div>
+                 </div>
+                 <div class="tree_detail_item">
+                     <div class="tree_detail_key">Date planted</div>
+                     <div class="tree_detail_val">{{tree.date_planted|date}}</div>
+                 </div>
+                 <div class="tree_detail_item">
+                     <div class="tree_detail_key">Planted by</div>
+                     <div class="tree_detail_val">{{tree.get_planter}}</div>
+                 </div>
+                 <div class="tree_detail_item">
+                     <div class="tree_detail_key">Tree steward</div>
+                     <div class="tree_detail_val">{{tree.steward}}</div>
+                 </div>
+                <h5>Environmental</h5>
+               
+            </td>
+            <td>
+            static map<br><br><br>
+            What do i share?<br>
+            
+            </td>
+        </tr></table>
+    </div>   
+
+
+

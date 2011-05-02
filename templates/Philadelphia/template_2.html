@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block body_load %}  {% endblock %}
+
+{% block tophead %}
+	<script type="text/javascript" src="/static/openlayers/proj4js-compressed.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG900913.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
+	<script type="text/javascript" src="/static/openlayers/OpenLayers.js"></script>
+	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="content">
+    {% block t2_content %}
+
+
+
+
+
+                        {% block content_body_top %}
+
+                        {% endblock %}
+
+                                    <div id="t2_middle_panel">
+                                        {% block middle_panel %}
+                                        {% endblock middle_panel %}
+                                    </div>
+
+                                     <div id="t2_right_panel">
+                                        {% block right_panel %}
+                                        {% endblock right_panel %}
+                                    </div>
+
+                        {% block content_body_bottom %}
+                                        </div>      <!-- end wrap -->
+                                    </div>
+                                </div>
+                                <!-- end contentbody -->
+                        {% endblock %}
+
+                    <div id="">
+                        {% block left_panel %}
+                        {% endblock left_panel %}
+                    </div>
+                    </div>
+
+
+    <!-- end content -->
+
+    {% endblock t2_content %}
+    </div>
+
+{% endblock %}
+
+

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% block body_id %}id="not_allowed"{% endblock %}
+
+Oops!  You tried to do something you're not allowed to, and the server said:<br><br>
+<i><b>{{error_message}}</b></i>
+<br><br>
+{% endblock %}
+
