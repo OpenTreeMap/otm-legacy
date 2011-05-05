@@ -2,6 +2,14 @@ import os
 
 SITE_LOCATION = 'SanFrancisco'
 
+#local_settings
+GOOGLE_API_KEY = 'abcdf'
+
+# must end with trees/ because of odd tilecache deployment issue
+# will be populated with layer name /trees/{layername} dynamically
+# in javascript depending on the google base layer being used
+TC_URL = 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/'
+
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 
 ADMINS = (
@@ -24,7 +32,6 @@ THUMBNAIL_SUBDIR = '_thumbs'
 #THUMBNAIL_EXTENSION = 'png'
 #THUMBNAIL_QUALITY = 95 # if not using png
 
-
 MANAGERS = ADMINS
 
 # django-registration
@@ -37,6 +44,7 @@ EMAIL_MANAGERS = False
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
 
+CACHE_BACKEND = 'file:///tmp/trees_cache'
 
 DATABASES = {
     'default': {
@@ -53,10 +61,6 @@ DATABASES = {
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
 TIME_ZONE = 'America/Vancouver'
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
 
@@ -77,15 +81,8 @@ ADMIN_MEDIA_PREFIX = '/admin_media/'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'insecure'
 
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
-TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
-     'global_context.gkey',
-     'global_context.tc_url',
-)
-
-
 TEMPLATE_DIRS = (
-    os.path.join(os.path.dirname(__file__), 'templates'),
+    os.path.join(os.path.dirname(__file__), 'templates/SanFrancisco'),
 )
+
 
