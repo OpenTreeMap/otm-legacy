@@ -39,7 +39,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ tree.address_street|default:"No Address" }}
+			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.state}}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -369,18 +369,18 @@
             <ul id="userImage">
                 <li>
                 {% if tree.treephoto_set.count %}
-                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}" target="_blank">
                     <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
-                            <li><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="/media/{{ item.photo.url }}" target="_blank"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
                     {% endfor %}
                     </ul>
                     <ul id="imageOptions">
                         <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
                     </ul>
-{% else %}
+                {% else %}
                     <img src="/static/images/es/image14.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" id="sample" />
                     <ul id="imageOptions">
                         <li id="first"><a href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>

@@ -61,7 +61,7 @@
 <div class="content admin">
 	<div class="admin-header">
 		<h2>Recent Edits</h2>
-		{% if perms.can_edit_user %}
+		{% if perms.auth.change_user %}
 			{% include "treemap/admin_nav.html" %}
 		{% endif %}
 		<div class="clearBoth"></div>

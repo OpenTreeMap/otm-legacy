@@ -73,11 +73,11 @@ var tm = {
         },
     trackEvent: function(category, action, label, value) {
        
-        //_gaq.push(['_trackEvent', category, action, label, value]);
+        _gaq.push(['_trackEvent', category, action, label, value]);
         
     },
     trackPageview: function(url) {        
-        //_gaq.push(['_trackPageview', url]);        
+        _gaq.push(['_trackPageview', url]);        
     },
     baseTemplatePageLoad:function() {
         //document.namespaces;
@@ -113,7 +113,7 @@ var tm = {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
-                $('#arrow').attr('src','/static/zimages/v2/arrow2.gif');
+                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
                 //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
@@ -129,7 +129,8 @@ var tm = {
         
         $("#location_search_input").blur(function(evt) {
             if (!this.value) {
-                $("#location_search_input").val("All locations");
+                $("#location_search_input").val("");
+                $(this).val("Address, City, State");
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
@@ -158,7 +159,7 @@ var tm = {
                 if ($("#location_search_input")[0].value ) {
                     tm.handleSearchLocation($("#location_search_input")[0].value);
                 } else {
-                    $("#location_search_input").val("All locations");
+                    $("#location_search_input").val("Address, City, State");
                     delete tm.searchParams['location'];
                     tm.updateSearch();
                 } 
@@ -193,7 +194,7 @@ var tm = {
         }
         function triggerSearch() {
             var q = $.query.empty();
-            if ($("#location_search_input").val() != "All locations") { 
+            if ($("#location_search_input").val() != "Address, City, State") { 
                 q = q.set("location", $("#location_search_input").val());
             }
             if ($("#species_search_id").val()) {
@@ -1042,11 +1043,17 @@ var tm = {
     display_benefits : function(benefits){
         //console.log(benefits);
         jQuery('#results_wrapper').show();
+        jQuery("#no_results").hide();
         jQuery.each(benefits, function(k,v){
             //console.log(k,v)
             jQuery('#benefits_' + k).html(tm.addCommas(parseInt(v)));
-            });
-        },
+        });
+        if (benefits['total'] == 0.0)
+        {
+            jQuery("#no_results").show();
+            //alert("here");
+        }   
+    },
         
     display_summaries : function(summaries){
         //var callout = ['You selected ', summaries.total_trees, ' trees'].join('');

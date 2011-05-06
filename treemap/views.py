@@ -585,7 +585,7 @@ def userphoto_delete(request, username):
 from django.contrib.auth.decorators import permission_required
 
 @login_required
-@permission_required('change_user')
+@permission_required('auth.change_user')
 def edit_users(request):        
     users = User.objects.all()
     if 'username' in request.GET:
@@ -602,7 +602,7 @@ def edit_users(request):
     groups = Group.objects.all()
     return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users, 'groups': groups}))
 
-@permission_required('change_user')
+@permission_required('auth.change_user')
 def update_users(request):
     response_dict = {}
     if request.method == 'POST':
@@ -646,7 +646,7 @@ def update_users(request):
         content_type = 'text/plain'
     )
 
-@permission_required('change_user')
+@permission_required('auth.change_user')
 def ban_user(request):
     response_dict = {}
     if request.method == 'POST':
@@ -663,7 +663,7 @@ def ban_user(request):
         content_type = 'text/plain'
     )
     
-@permission_required('change_user')
+@permission_required('auth.change_user')
 def unban_user(request):
     response_dict = {}
     if request.method == 'POST':
@@ -1408,7 +1408,7 @@ def verify_edits(request, audit_type='tree'):
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
 
 @login_required
-@permission_required('change_user') #proxy for group users
+@permission_required('auth.change_user') #proxy for group users
 def watch_list(request):    
     watch_failures = TreeWatch.objects.filter(valid=False)
     if 'username' in request.GET:
@@ -1429,7 +1429,7 @@ def watch_list(request):
     return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures}))
 
 @login_required
-@permission_required('change_user') #proxy for group users
+@permission_required('auth.change_user') #proxy for group users
 def validate_watch(request):
     if request.method == 'POST':
         post = simplejson.loads(request.raw_post_data)
@@ -1445,7 +1445,7 @@ def validate_watch(request):
         content_type = 'text/plain'
     )
 @login_required
-@permission_required('change_user')
+@permission_required('auth.change_user')
 def user_rep_changes(request):  
     aggs = []
     distinct_dates = UserReputationAction.objects.dates('date_created', 'day', order='DESC')
@@ -1511,7 +1511,7 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     return render_to_json({'change_type': change_type, 'change_id': change_id})
     
 @login_required
-@permission_required('moderate_comments')
+@permission_required('comments.can_moderate')
 def view_flagged(request):
     flags = CommentFlag.objects.filter(comment__is_public=True)
     if 'username' in request.GET:
@@ -1530,7 +1530,7 @@ def view_flagged(request):
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
     
 @login_required
-@permission_required('moderate_comments')
+@permission_required('comments.can_moderate')
 def view_comments(request):
     comments = Comment.objects.filter(is_public=True)
     
@@ -1578,12 +1578,12 @@ def remove_flag(request):
     )
 
 @login_required
-@permission_required('change_user') #proxy for group users
+@permission_required('auth.change_user') #proxy for group users
 def build_admin_panel(request):
     return render_to_response('treemap/admin.html',RequestContext(request))
 
 @login_required
-@permission_required('change_user') #proxy for group users
+@permission_required('auth.change_user') #proxy for group users
 def view_images(request):
     user_images = UserProfile.objects.exclude(photo="").order_by("-user__last_login")
     tree_images = TreePhoto.objects.all().order_by("-reported")
