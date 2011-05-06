@@ -94,24 +94,26 @@ class Choices(models.Model):
     def get_field_choices(self, fieldName):
         li = {}
         for c in Choices.objects.filter(field__exact=fieldName):
-            key = self.resolve_type(c)
+
+            if c.key_type == 'int':
+                key =  int(c.key)
+            elif c.key_type == 'bool':
+                if c.key == 'True':
+                    key = True
+                else:
+                    key = False
+            elif c.key_type == 'str':
+                key =  c.key
+            elif c.key_type == 'none':
+                key =  None
+            else:
+                raise Exception("Invalid key type %r" % c.key_type)
+
             #TODO: Figure out why we need both! The 2. works for status, 1. for all else
             li[c.key] = c.value
             if key is not None:
                 li[key] = c.value
         return li.items()
-    
-    def resolve_type(self, choice):
-        if choice.key_type == 'int':
-            return int(choice.key)
-        elif choice.key_type == 'bool':
-            return bool(choice.key)
-        elif choice.key_type == 'str':
-            return choice.key
-        elif choice.key_type == 'none':
-            return None
-        else:
-            raise Exception("Invalid key type %r" % choice.key_type)
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
