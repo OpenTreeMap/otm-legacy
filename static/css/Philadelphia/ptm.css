@@ -4011,12 +4011,12 @@ div.clearer {
 #tree_image_list ul li a, #profile_image_list ul li a{
     position:absolute;
 }
-#tree_image_list .view {
+#tree_image_list .view, #profile_image_list .view {
     left:6px;
     bottom:0px;
 }
 
-#tree_image_list .delete {
+#tree_image_list .delete, #profile_image_list .delete {
     right:8px;
     bottom:0px;
     color:red;

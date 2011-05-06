@@ -1554,7 +1554,10 @@ def hide_comment(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
     flag_id = post.get('flag_id')
-    comment = CommentFlag.objects.get(id=flag_id).comment
+    try:
+        comment = CommentFlag.objects.get(id=flag_id).comment
+    except:
+        comment = Comment.objects.get(id=flag_id)
     comment.is_public = False
     comment.save()
     response_dict['success'] = True
