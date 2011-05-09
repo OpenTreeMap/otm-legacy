@@ -154,13 +154,14 @@ var tm = {
             }
         });
         $("#location_go").click(function(evt) {
-            if ($('body').id == "results") {
-                //if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Philadelphia, PA") {
-                if ($("#location_search_input")[0].value ) {
+            if ($('body')[0].id == "results") {
+                if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Address, City, State") {
+                //if ($("#location_search_input")[0].value ) {
                     tm.handleSearchLocation($("#location_search_input")[0].value);
                 } else {
                     $("#location_search_input").val("Address, City, State");
                     delete tm.searchParams['location'];
+                    delete tm.searchParams['geoName']
                     tm.updateSearch();
                 } 
             } else {
@@ -169,7 +170,7 @@ var tm = {
         });
         
         $("#species_go").click(function(evt) {
-            if ($('body').id == "results") {
+            if ($('body')[0].id == "results") {
                 if ($("#species_search_input")[0].value) {
                 tm.updateSearch();
                 }
@@ -1161,7 +1162,7 @@ var tm = {
     },
             
     display_search_results : function(results){
-        
+        $("#export").hide();
         if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
@@ -1173,6 +1174,9 @@ var tm = {
             tm.display_summaries(results.summaries);
             if (results.initial_tree_count <= 1000) {
                 tm.overlay_trees(results.trees);
+            }
+            if (results.initial_tree_count <= 5000) {
+                $("#export").show();
             }
             if (results.geography) {
                 var geog = results.geography;
@@ -1777,15 +1781,14 @@ var tm = {
                         tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
                     //}
                     tm.updateSearch();
-                } else {                
+                } else {                 
+                    delete tm.searchParams.geoName;        
                     tm.geocode(search, true, function(point) {
                         if (point) {
                             tm.geocoded_locations[search] = [point.lon, point.lat];
-                            tm.searchParams['location'] = search;   
-                            delete tm.searchParams.geoName;             
+                            tm.searchParams['location'] = search;       
                         } else {
                             delete tm.searchParams.location;
-                            delete tm.searchParams.geoName;
                         }
                         tm.updateSearch();
                     });
