@@ -1,0 +1,24 @@
+<div class="trail">
+	<div class="browse"><a href="/treekey/browse">Browse</a></div>
+	<span class="crumb"><a href="/treekey/start">Tree Key</a></span> 
+	{% for crumb in trail %}
+		{% if forloop.first %} > {% endif %}
+		{% if forloop.last %}
+
+			<span class="crumb last-crumb">{{ crumb }}</span>
+
+		{% else %}
+
+			{% if crumb.has_children %}
+				<span class="crumb"><a href="/treekey/node/{{ crumb.id }}">{{ crumb }}</a></span>
+				<span class="crumb-sep"> > </span>
+			{% else %}
+				<span class="crumb"><a href="/treekey/node/{{ crumb.id }}">{{ crumb }}</a></span>
+				<span class="crumb-sep"> > </span>
+			{% endif %}
+
+		{% endif %}
+
+	{% endfor %}
+
+</div>

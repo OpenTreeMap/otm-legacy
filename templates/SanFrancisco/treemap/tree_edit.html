@@ -3,9 +3,6 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
-    <script type="text/javascript" src="/static/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
-   <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" media="screen" />
-
 <script type="text/javascript">
     jQuery().ready(function() {
         tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
@@ -13,15 +10,7 @@
         tm.currentTreeId = {{instance.id}};
         // Custom submit function
 
-        $("#treekey").fancybox({
-        'width'        : 980,
-        'height'      : 600,
-        'autoScale'       : false,
-        'transitionIn'    : 'none',
-        'transitionOut'    : 'none',
-        'type'        : 'iframe'
-        });
-
+       
     });
 </script>
 {% endblock %}
@@ -74,7 +63,7 @@
 {% endifequal %}
 {% ifequal field.type "species_field" %}   
     	<tr>
-        	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/key/What-kind-of-leaves-does-the-tree-have/#start" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
+        	<td class="col1 activeEditRowLabel">{{field.label}} <a id="treekey" href="/treekey/start" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
             <td class="activeEditRowValue" id="edit_{{field.name}}">{{ field.value|default:"" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_{{field.name}}').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("{{field.name}}", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
@@ -218,7 +207,7 @@
                         </ul>
                     </div>
                     <div class="editMap">
-                        <div id="add_tree_map"></div>
+                        <div id="edit_tree_map"></div>
                         <div id="alternate_tree_div"></div>
                         <div id="tree_streetview"></div>
                     </div>

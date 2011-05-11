@@ -111,8 +111,8 @@ class Choices(models.Model):
 
             #TODO: Figure out why we need both! The 2. works for status, 1. for all else
             li[c.key] = c.value
-            if key is not None:
-                li[key] = c.value
+            #if key is not None:
+                #li[key] = c.value
         return li.items()
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)

@@ -48,8 +48,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:    
             self.file_name = args[0]
-            in_file = dirname(__file__) + "\\" + self.file_name
-            err_file = dirname(__file__) + "\\" + self.file_name + ".err"
+            in_file = dirname(__file__) + "/" + self.file_name
+            err_file = dirname(__file__) + "/" + self.file_name + ".err"
             self.verbose = options.get('verbose')
             self.user_id = args[1]
         except:

@@ -13,7 +13,7 @@ TC_URL = 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/'
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 
 ADMINS = (
-    ('Admin1', 'josh@umbrellaconsulting.com'),
+    ('Admin1', 'cbrittain@azavea.com'),
 )
 
 ROOT_URL = 'http://urbanforestmap.org'
@@ -42,7 +42,7 @@ DEFAULT_FROM_EMAIL= 'contact@urbanforestmap.org'
 EMAIL_MANAGERS = False
 
 #http://sftrees.securemaps.com/ticket/236
-CONTACT_EMAILS = ['kelaine@urbanforestmap.org','josh@umbrellaconsulting.com']#,'admins@urbanforestmap.org']
+CONTACT_EMAILS = ['cbrittain@azavea.com']#,'admins@urbanforestmap.org']
 
 CACHE_BACKEND = 'file:///tmp/trees_cache'
 
@@ -51,7 +51,9 @@ DATABASES = {
         'NAME': 'sftrees',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'USER': 'sftrees',
-        'PASSWORD': ''
+        'PASSWORD': '12345',
+        'HOST': 'sajara01',
+        'PORT': '5432',
     }
 }
 
@@ -77,6 +79,7 @@ MEDIA_URL = ''
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/admin_media/'
+ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'admin_media/')
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'insecure'

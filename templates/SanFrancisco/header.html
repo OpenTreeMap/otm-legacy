@@ -1,41 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{% block title %}Urban Forest Map{% endblock %}</title>
-        
-        {% block tophead %}
-        {% endblock %}
-
-        <script type="text/javascript" src="/static/all_misc.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
-        <script type="text/javascript" src="/static/treemap.js"></script>
-        <script type="text/javascript" src="/static/js/map.js"></script>
-        <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/css/ufmp1.1.css" media="all" />
-        <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
-        <link rel="shortcut icon" href="/static/images/favicon.ico" />
-        <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
-        
-                
-        {% block js_ready %}
-        <script type="text/javascript">
-            jQuery().ready(tm.baseTemplatePageLoad);
-        </script>
-        {% endblock %}
-
-        {% block extrahead %}
-        {% endblock %}
-
-</head>
-
-<body {% block body_load %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
-    <div id="wrapper">
-        
-<!-- start: header -->
-    	<div id="announceHeader">
+<div id="announceHeader">
     		<b>We're in beta!</b> Please <a href="http://www.surveymonkey.com/s/HS8JFV6" target="_new">fill out our survey</a> or use our feedback button.
     	</div>
     	<div id="header">
@@ -58,8 +21,8 @@
         <div id="searchBox">
             <div id="searchBoxContainer">
                 <ul id="searchTitles">
-                    <li id="searchSpecies"><img src="/static/images/v2/search_species.gif" width="300" alt="Species or common name" /></li>
-                    <li id="searchLocation"><img src="/static/images/v2/search_location.gif" width="120" alt="Location" /></li>
+                    <li id="searchSpecies"><img src="/static/images/SanFrancisco/v2/search_species.gif" width="300" alt="Species or common name" /></li>
+                    <li id="searchLocation"><img src="/static/images/SanFrancisco/v2/search_location.gif" width="120" alt="Location" /></li>
                 </ul>
                 <ul id="searchBoxes">
                 <form method="get" action="/map/" name="address" class="address" id="search_form">
@@ -89,7 +52,7 @@
                         <a onclick='$("#location_search_input").val("North Beach"); $("#location_search_input").change(); return false;' href="#">North Beach</a>,
                         <a onclick='$("#location_search_input").val("94133"); $("#location_search_input").change(); return false;' href="#">94133</a>
                     </li>
-                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
+                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/SanFrancisco/v2/arrow1.gif" /></a> </li>
                 </ul>
             </div>
         </div>
@@ -195,111 +158,3 @@
                         </form> 
                     </div> 
                 </div> 
-          
-            <!-- end search-box -->
-            {% block content %}
-                main content goes here
-            {% endblock content %}
-            {% block callout %}
-                <div id="callout">
-                    {% block callout_content %}
-                        
-                    {% endblock callout_content %}
-                </div>
-            <!--end callout-->    
-            {% endblock callout %}
-            
-            {% block sub_footer %}
-                <div class="content"> 
-                <div id="subfooterContainer">
-                    <div class="threecolumns"> 
-                        <h2>How you can help</h2> 
-                        <div class="box"> 
-                            <span class="number">1</span> 
-                            <p><span class="mark"><a href="/map/">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="/map" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                        <div class="box"> 
-                            <span class="number">2</span> 
-                            <p><span class="mark"><a href="/trees/add/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="/trees/add/" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                        <div class="box" id="boxLast"> 
-                            <span class="number">3</span> 
-                            <p><span class="mark"><a href="/map/">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="/map/" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                    </div> 
-                </div>
-                </div>
-                <div id="cityFade"></div>    
-             {% endblock %}    
-            
-            
-            
-           {% block global_footer %}
-            <!-- Start Global footer --> 
-            <div id="footer"> 
-                <div class="footer-holder"> 
-                    <div class="ad"> 
-                        <strong>Our Partners</strong> 
-                        <ul> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
-                            <li><a href="http://www.fire.ca.gov/"><img src="/static/images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
-                            <li><a href="http://www.sfgov.org/"><img src="/static/images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
-                        </ul> 
-                    </div> 
-                    <ul class="footer-nav"> 
-                        <li><a href="/trees/add/">Add a tree</a></li> 
-                        <li><a href="/about/">About</a></li> 
-                        <li><a href="/resources/">Resources</a></li> 
-                        <li><a href="http://blog.urbanforestmap.org/">Blog</a></li>
-                        <li><a href="/contact/">Contact</a></li> 
-                        <li><a href="/donate/">Donate</a></li> 
-                        {% if user.is_authenticated %}
-                           <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
-                           <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
-                           {% if user.is_superuser %}
-                               <li><a href="/_admin_/">Admin</a></li>
-                           {% endif %}
-                           {% if user.reputation.reputation > 1000 %}
-                               <li><a href="/verify/">Recent Changes</a></li>
-                           {% endif %}
-                        {% else %}
-                            <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
-                        {% endif %}
-                    </ul> 
-                </div> 
-                <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>.
-            </div> 
-            <!-- End Global footer --> 
-            {% endblock global_footer %}
-            
-        </div>
-
-
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
-</script>
-
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-13228685-1");
-pageTracker._setDomainName("none");
-pageTracker._setAllowLinker(true);
-pageTracker._trackPageview();
-} catch(err) {}
-</script>
-
-<script type="text/javascript">
-var is_ssl = ("https:" == document.location.protocol); var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/"; document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E")); 
-</script> 
-
-
-<script type="text/javascript"> 
-try {
-var feedback_widget_options = {}; feedback_widget_options.display = "overlay"; feedback_widget_options.company = "urban_forest_map"; feedback_widget_options.placement = "left"; feedback_widget_options.color = "#222"; feedback_widget_options.style = "idea"; var feedback_widget = new GSFN.feedback_widget(feedback_widget_options); 
-} catch(err) {}
-</script>
-
-</body>
-</html>

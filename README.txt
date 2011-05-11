@@ -39,7 +39,7 @@ Required libraries from the web
 	wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
 	wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
 	wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
-
+    git clone git://github.com/miracle2k/webassets.git
 
 Patches:
     Fix to proj to deal with spherical mercator

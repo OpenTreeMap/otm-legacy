@@ -3,55 +3,45 @@
 {% block body_load %}class="contact"{% endblock %}
 
 {% block tophead %}
-    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={{ GKEY }}"></script>
-    <script type="text/javascript" src="/static/marker_mgr_light_compress.js"></script>
-    <!--
-    <script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
-    -->
+	<script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
+    <script type="text/javascript" src="/static/openlayers/proj4js-compressed.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG102100.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
+	<script type="text/javascript" src="/static/openlayers/OpenLayers.js"></script>
+	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+
 {% endblock %}
 
+{% block body_id %}id="tree_add"{% endblock %}
 
 {% block extrahead %}
-    <script type="text/javascript" src="/static/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
-    <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" media="screen" />
-<script type="text/javascript">
+    <script type="text/javascript">
     jQuery().ready(function() {
-        
-        //tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
-        //tm.init_tree_map(true);
-        //tm.currentTreeId = {{instance.id}};
-
         tm.init_add_map();
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                //if (item.sname)
-                //{
-                    //$('#common_name')[0].innerHTML = item.sname;
-                //}
-                $("#id_species_id").val(item.symbol).change(); 
+                $("#id_species_id").val(item.symbol).change();
             });
-            //var spec = $.address.parameter("species");
-            //tm.updateSpeciesFields("search_species2",spec);
-            //$("#species_search2_form").submit(function() {
-            //    console.log('yes');
-                /*if (location.href.substr(0,4) != "/map") {
-                    location.href="/map/#/?species="+$("#species_search_id").val();
-                }
-                return false;
-                */
-            //});
         });
-
-$("#treekey").fancybox({
-'width'        : 980,
-'height'      : 600,
-'autoScale'       : false,
-'transitionIn'    : 'none',
-'transitionOut'    : 'none',
-'type'        : 'iframe'
-});
-
+        jQuery("#addTree").submit(function(evt) {
+        	tm.trackEvent("Add", "Add Tree");
+        });
+        jQuery("#id_edit_address_street").focus(function() {
+        	if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
+        		jQuery("#id_edit_address_street")[0].value = "";
+        	}
+        });
+        jQuery("#id_edit_address_city").focus(function() {
+        	if(jQuery("#id_edit_address_city")[0].value == "Enter a City") {
+        		jQuery("#id_edit_address_city")[0].value = "";
+        	}
+        });
+        jQuery("#id_species_name").focus(function() {
+        	if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
+        		jQuery("#id_species_name")[0].value = "";
+        	}
+        });
     });
 </script>
 {% endblock %}
@@ -60,7 +50,7 @@ $("#treekey").fancybox({
 
 {% comment %}
 {% block content_body_top %}
-   
+
     <!-- start contentbody -->
         <div id="contentbody">
             <div class="tabset-holder">
@@ -76,10 +66,10 @@ $("#treekey").fancybox({
 {% endcomment %}
 
 {% block left_panel %}
-    
-<div id="register">
 
-    <h1>Add a new tree <span class="note">(If it's bold it's required)</span></h1>
+<div id="register" class="add">
+
+    <h1>Add a New Tree <span class="note"></span></h1>
 
     {% if form.errors %}
     <div id="genError"><b>Oops!</b> There was a problem.<br />
@@ -90,106 +80,89 @@ $("#treekey").fancybox({
         {% endif %}
     {% endif %}
 
-    <form action="." method="POST">
+    <form id="addTree" action="." method="POST">
     <fieldset>
-      
-
-    <label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Nearby address
-        {% if form.edit_address_street.errors %}
-             {% for error in form.edit_address_street.errors %}
-                 <span class="small" id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small">Enter closest address</span>
-        {% endif %}
+	<div id="step1">
+	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
-    
-    <label class="required" {% if form.edit_address_city.errors %}id="error"{% endif %}>City
-        {% if form.edit_address_city.errors %}
-             {% for error in form.edit_address_city.errors %}
-                 <span class="small" id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small">Enter tree city</span>
-        {% endif %}
-    </label>
+    </div>
+    <div id="step1">
     {{ form.edit_address_city }}
-
-    <label class="required" {% if form.edit_address_zip.errors %}id="error"{% endif %}>Zip code
-        {% if form.edit_address_zip.errors %}
-             {% for error in form.edit_address_zip.errors %}
-                 <span class="small" id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small">Enter tree zip code</span>
-        {% endif %}
-    </label>
-    {{ form.edit_address_zip }}
-    
-	<div id="mapHolder">
-    <label class="required" {% if form.edit_address_zip.errors %}id="error"{% endif %}>Specify placement
-        <span class="small">Once you enter an address, grab the tree and move it to the correct location.</span>
-    </label>
-	<div id="add_tree_map" class="addMap"></div>
+	<a href="javascript:void(0)" id="update_map" class="buttonMed">View Map</a>
 	</div>
-            
-    <label class="required" {% if form.species_name.errors %}id="error"{% endif %}>Species name
-        {% if form.species_name.errors %}
-             {% for error in form.species_name.errors %}
-                 <span class="small" id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small"><a id="treekey" href="/treekey/key/What-kind-of-leaves-does-the-tree-have/#start" target="_blank">Not sure what kind of tree it is?</a></span>
-        {% endif %}
-    </label>
-    {{ form.species_name }}
 
-    <label {% if form.species_id.errors %}id="error"{% endif %}>
-        {% if form.species_id.errors %}
-             {% for error in form.species_id.errors %}
-                 <span id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small"><!-- hidden --></span>
-        {% endif %}
+
+
+	<div id="mapHolder">
+
+	    <div class="clearLeft" id="step2">
+		    <label class="required">Step 2</label>
+		    <span class="value">Specify Placement</span>
+		    <div class="clearLeft"></div>
+	    </div>
+
+            <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
+        <div id="add_tree_map" class="addMap">
+		    <div id="geocode_address"></div>
+		    <div class="shadowLeft"></div>
+		    <div class="shadowTop"></div>
+	    </div>
+	    <div id="add_tree_nearby">
+		    <h1 class="title-edit">Nearby Trees</h1>
+		    <div id="nearby_trees"></div>
+	    </div>
+
+	    <div class="clearLeft" id="step3">
+            <label class="required">Step 3 </label>
+	        <span class="value">Optional Fields</span><button type="submit" class="buttonMed">Add this Tree!</button>
+       
+            <div class="clearLeft"></div>
+            <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
+            <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.condition.label}}</label>{{ form.condition }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.status.label}}</label>{{ form.status }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.action.label}}</label>{{ form.action }}
+            <div class="clearLeft"></div>
+            <label class="opt_fields">{{form.alert.label}}</label>{{ form.alert }}
+
+        </div>
+
+	</div>
+
+
+	<!-- Hidden fields -->
+
     {{ form.species_id }}
-    </label>
-
-    <label {% if form.lat.errors %}id="error"{% endif %}>
-        {% if form.lat.errors %}
-             {% for error in form.lat.errors %}
-                 <span id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small"><!-- hidden --></span>
-        {% endif %}
     {{ form.lat }}
-    </label>
-
-    <label {% if form.lon.errors %}id="error"{% endif %}>
-        {% if form.lon.errors %}
-             {% for error in form.lon.errors %}
-                 <span id="smError2">{{ error }}</span>
-             {% endfor %}
-        {% else %}
-        <span class="small"><!-- hidden --></span>
-        {% endif %}
     {{ form.lon }}
-    </label>
+    {{ form.edit_address_zip }}
 
-    <button type="submit">Add this tree!</button>
+
     </fieldset>
     </form>
     </div>
 
     {% endblock %}
-    
+
     {% block right_panel %}
-       <div id="calloutContainer">
-            <h2 class="title-edit">Double check</h2>
-            <p>Are you sure the tree you want to add isn't already in our database? Make sure you <a href="/map">search for the tree first</a>. Then, add it if we don't have it in our system.</p>
-        </div>
-    
+
     {% endblock right_panel %}
 

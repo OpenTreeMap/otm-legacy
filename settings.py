@@ -1,7 +1,7 @@
 import os
 
-SITE_LOCATION = 'Philadelphia'
-from settings_philadelphia import *
+#from settings_philadelphia import *
+from settings_sanfrancisco import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

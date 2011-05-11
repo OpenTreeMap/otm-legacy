@@ -1,0 +1,71 @@
+{% extends "treekey/base.html" %}
+
+{% block right_panel %}
+<div class="species">
+	<div class="species-name">
+
+		<a href="/map/#?species={{species.symbol}}" onclick="_gaq.push(['TreeKey', 'Species Map Button', 'Species', {{species.id}}]);" class="floatRight buttonMed">Show on a Map</a>
+		{{ species.common_name }}
+
+	</div>
+	<div class="species-scientific">
+		{{ species.genus }} {{ species.species }}
+	</div>
+
+	{% if species.feature != None %}
+		<div class="species-feature">
+			<span class="label">Distinguishing Features:</span> <span class="feature">{{ species.feature }}</span>
+		</div>
+	{% endif %}
+
+	<div class="species-info">
+		<ul>
+			<li>
+				<span class="label">Type: </span><span class="info">{{ species.type }}</span>
+			</li>
+			<li>
+				<span class="label">Form at maturity: </span><span class="info">{{ species.form}}</span>
+			</li>
+			<li>
+				<span class="label">Leaf: </span><span class="info">{{ species.leaf }}</span>
+			</li>
+			<li>
+				<span class="label">Flower: </span><span class="info">{{ species.flower }}</span>
+			</li>
+			<li>
+				<span class="label">Bark: </span><span class="info">{{ species.bark }}</span>
+			</li>
+			<li>
+				<span class="label">Fruit or Seed: </span><span class="info">{{ species.fruit }}</span>
+			</li>
+			<li>
+				<span class="label">Other: </span><span class="info">{{ species.other }}</span>
+			</li>
+		</ul>
+	</div>
+
+	<div class="species-links">
+	{% for link in species.specieslink_set.all %}
+		<div class="link"><a href="{{link.url}}" target="_blank">{{link.text}}</a></div>
+	{% endfor %}
+	</div>
+
+	<div class="species-images">
+	{% for image in species.speciesimage_set.all %}
+		<div class="species-image">
+			<img src="/static/{{ image.image.url }}" alt="{{ image }}" />
+			<div class="species-image-caption">
+				{{ image.caption }}
+			</div>
+			<div class="species-image-attrib">
+				{% if image.attrib_link %}
+					<a href="{{image.attrib_link}}" target="_blank">{{ image.attrib_text }}</a>
+				{% else %}
+					{{ image.attrib_text }}
+				{% endif %}
+			</div>
+		</div>
+	{% endfor %}
+	</div>
+</div>
+{% endblock right_panel %}

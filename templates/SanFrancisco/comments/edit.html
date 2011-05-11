@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load pagination_tags %}
+{% load sorting_tags %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+
+    <script type="text/javascript">
+		$(document).ready(function() {
+			if (jQuery.urlParam('username')) {
+				jQuery("#s_username").val(jQuery.urlParam('username'));
+			}
+			if (jQuery.urlParam('text')) {
+				jQuery("#s_comment").val(jQuery.urlParam('text'));
+			}
+			if (jQuery.urlParam('nhood')) {
+				var nhood = jQuery.urlParam('nhood');
+				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+			}
+			jQuery("#search input").keydown(function(evt) {
+				if (evt.keyCode == 13) {
+					jQuery("#filter").click();
+				}
+			});
+
+			jQuery("#filter").click(function(evt) {
+				var params = {};
+				var q = $.query.empty();
+				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
+				if (jQuery("#s_comment").val()) {params["text"] = jQuery("#s_comment").val();}
+				if (jQuery("#s_nhood").val()) {params["nhood"] = jQuery("#s_nhood").val();}
+
+				for (var key in params) {
+					if (!params[key]) {
+						continue;
+					}
+					var val = params[key];
+					q = q.set(key, val);
+				}
+				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
+
+				window.location = "/comments/all/" + qstr;
+
+			});
+			jQuery("#clear").click(function(evt) {
+				window.location = "/comments/all/"
+			});
+
+			//jQuery("#comment_list_table").tablesorter({sortList: [[1,1]], headers: {1:{sorter:'usLongDate'}}})
+
+		});
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+{% autosort comments %}
+{% autopaginate comments 20 %}
+<div class="content admin">
+	<div class="admin-header">
+		<h2>All Comments</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
+	<div id="search">
+		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
+		<div id="search_comment"><label for="s_comment">Comment Text: </label><input id="s_comment" /></div>
+		<div id="nbhood"><label for="s_nhood">Neighborhood: </label>
+			<select id="s_nhood">
+				<option value=""></option>
+			</select>
+		</div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+	</div>
+	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The Hide Comment action will hide the comment from all users.</div>
+	{% paginate %}
+	<div><a href="/comments/moderate/">View flagged comments</a></div>
+	<div id="comment_list">
+		<table id="comment_list_table">
+			<thead>
+				<tr>
+					<th>{% anchor user__username 'Added By' %}</th>
+					<th>{% anchor submit_date Date %}</th>
+					<th>{% anchor object_pk Comment %}</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for c in comments %}
+				<tr id="{{c.id}}">
+					<td><a href="/profile/{{c.user.username}}" target="_blank">{{c.user.username}}</a></td>
+					<td>{{c.submit_date|date:"M d, Y"}}</td>
+					<td>
+						<a href="/trees/{{c.content_object.id}}" target="_blank">Tree #{{c.content_object.id}}</a> -
+						<br>{{c.comment}}</td>
+					<td>
+						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>
+				 	</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% paginate %}
+</div>
+
+{% endblock %}
+

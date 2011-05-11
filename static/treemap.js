@@ -29,12 +29,6 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 });
 
 
-var tm_urls = {
-    eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://207.245.89.214:8080/tilecache/tilecache.py/',
-    //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
-    qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
-    };
 
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
@@ -432,78 +426,7 @@ var tm = {
         });
     },
     
-    init_base_map: function(div_id, controls){
-        if (!div_id) {
-            div_id = "map";
-        };
-        if (!controls) {
-            tm.map = new OpenLayers.Map(div_id, {
-                maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
-                units: 'm',
-                projection: new OpenLayers.Projection("EPSG:102100"),
-                displayProjection: new OpenLayers.Projection("EPSG:4326"),
-                controls: [new OpenLayers.Control.Attribution(),
-                           new OpenLayers.Control.Navigation(),
-                           new OpenLayers.Control.ArgParser(),
-                           new OpenLayers.Control.PanPanel(),
-                           new OpenLayers.Control.ZoomPanel()]
-            });
-        }
-        else {
-            tm.map = new OpenLayers.Map(div_id, {
-                maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-                restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
-                units: 'm',
-                projection: new OpenLayers.Projection("EPSG:102100"),
-                displayProjection: new OpenLayers.Projection("EPSG:4326"),
-                controls: controls
-            });
-        }
-        
-//        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
-//            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
-//           {
-//              sphericalMercator: true
-//            }
-//        );
-
-          tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
-            type: VEMapStyle.Shaded,
-            sphericalMercator: true,
-            animationEnabled: false,
-            numZoomLevels: 18,
-            MAX_ZOOM_LEVEL: 18,
-            MIN_ZOOM_LEVEL: 0
-        });
-      
-        tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-            type: VEMapStyle.Hybrid,            
-            sphericalMercator: true,
-            animationEnabled: false, 
-            numZoomLevels: 19,
-            MAX_ZOOM_LEVEL: 19,
-            MIN_ZOOM_LEVEL: 0
-        });
-        
-        tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
-            tm_urls.tc_url,
-            {
-                layername: 'Map',
-                type: 'png',
-                isBaseLayer: false,
-                opacity:0.7,
-                wrapDateLine: true,
-                attribution: "(c) PhillyTreeMap.org"
-            }
-        );
-        tm.tms.buffer = 0;
-        tm.baseLayer.buffer = 0;
-        tm.aerial.buffer = 0;
-        tm.map.addLayers([tm.aerial, tm.baseLayer, tm.tms]);
-        tm.map.setBaseLayer(tm.baseLayer);
-    },
-        
+            
     init_map : function(div_id){
         tm.init_base_map(div_id);
 
@@ -513,8 +436,8 @@ var tm = {
         
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
-            new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 11);
+            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+            , tm.start_zoom);
             
         //check to see if coming for a bookmarked tree
         var bookmark_id = jQuery.urlParam('tree');
@@ -579,8 +502,8 @@ var tm = {
         tm.map.setBaseLayer(tm.aerial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
-            new OpenLayers.LonLat(-75.19, 39.99).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 13);
+            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+            , tm.add_zoom);
             
         jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
@@ -622,13 +545,25 @@ var tm = {
                 }
             }
         });
+        jQuery('#id_edit_address_city').keydown(function(evt){
+            if (evt.keyCode == 13) {                
+                evt.preventDefault();
+                evt.stopPropagation();
+                jQuery('#update_map').click();
+                jQuery('#genError').hide();
+            }
+        });
         
         jQuery('#update_map').click(function(evt) {
             var address = jQuery('#id_edit_address_street').val();
-            if (!address) {return;}
+            var city = jQuery('#id_edit_address_city').val();
+            if (city == "Enter a City") {
+               city = ""
+            }
+            if (!address || address == "Enter an Address or Intersection") {return;}
             tm.geocoder.geocode({
-                address: address,
-                bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
+                address: address + " " + city,
+                bounds: tm.google_bounds    
             }, function(results, status){
                 if (status == google.maps.GeocoderStatus.OK) {
                     var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
@@ -829,7 +764,7 @@ var tm = {
 
         tm.geocoder.geocode({
             address: tm.geocode_address,
-            bounds: new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5))    
+            bounds: tm.google_bounds  
         }, function(results, status){
             if (status == google.maps.GeocoderStatus.OK) {
                 var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
@@ -911,16 +846,6 @@ var tm = {
                     
                 });
                 
-                var street = results[0].formatted_address.split(',')[0];
-                
-                if ($('#edit_address_street')) {
-                    $('#edit_address_street').val(street);
-                    $('#edit_address_street').html(street);
-                }
-                
-                if ($('#id_edit_address_street') && street) {
-                    $('#id_edit_address_street').val(street);
-                }
 
             } else {
                 if ($("#geocode_address")) {

@@ -43,7 +43,11 @@ form, fieldset {
 	clear:both;
 }
 
-
+.floatRight {float:right}
+.floatLeft {float:left}
+.clearLeft{clear:left}
+.clearRight {clear:right}
+.clearBoth {clear:both}
 
 /* HEADER
 ** _____________________________________________________________________________
@@ -75,6 +79,33 @@ form, fieldset {
 	height:100%;
 	position:relative;
 }
+.buttonMed {
+	font-size: 17px;
+    border:2px solid #d8731a;
+    background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	
+	height: 30px;
+	line-height: 24px;
+	padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+	font-weight:bold;
+	cursor:pointer;
+	color: #fff;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.buttonMed:hover {
+	background:#e08a00;
+	text-decoration:none;
+}
+
+.buttonMed .icon {
+	display:inline-block;
+	vertical-align:middle;
+	margin-right: 5px
+}
+	
 .buttomSm { 
 	clear:both;
 	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
@@ -3200,6 +3231,14 @@ width:944px;
 	margin-top:0;
 	padding-top:0;
 }
+#register.add {
+	float:none;
+	width: auto;
+	margin-right:0
+}
+#register.add #step3 {
+padding: 15px 0 0 0;
+}
 #register label{
 	display:block;
 	font-size:14px;
@@ -3208,6 +3247,21 @@ width:944px;
 	width:200px;
 	float:left;
 }
+#register.add label {
+	width: 65px;
+	text-align:left;
+	font-size: 20px;
+	margin-top:5px;
+}
+#register.add label.opt_fields {
+    width:150px;
+}
+#register.add .value {
+	font-size: 20px;
+	float:left;
+	padding-left: 7px;
+	margin-top: 5px;
+}	
 #register label.required{
 	font-weight:bold;
 }
@@ -3222,7 +3276,18 @@ width:944px;
 	text-align:right;
 	width:200px;
 }
+#register.add .small {width: 400px; clear: left; margin: 3px 0 0 160px; text-align:left;}
 #register input{
+	float:left;
+	font-size:16px;
+	color:#666;
+	padding:8px 2px;
+	border:solid 1px #9ebd2e;
+	background-color:#fff;
+	width:280px;
+	margin:0 20px 20px 10px;
+}
+#register.add select{
 	float:left;
 	font-size:16px;
 	color:#666;

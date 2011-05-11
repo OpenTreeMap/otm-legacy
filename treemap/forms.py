@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto, Neighborhood, ZipCode, ImportEvent
+from models import Tree, Species, TreePhoto, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
@@ -25,16 +25,35 @@ class TreeEditPhotoForm(forms.ModelForm):
         fields = ('title','photo',)
 
 class TreeAddForm(forms.Form):
-    edit_address_street = forms.CharField(max_length=200, required=True, initial="Enter an Address or Intersection and City")
-    edit_address_city = forms.CharField(widget=forms.HiddenInput, required=False)
+    edit_address_street = forms.CharField(max_length=200, required=True, initial="Enter an Address or Intersection")
+    edit_address_city = forms.CharField(max_length=200, required=False, initial="Enter a City")
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
-    species_name = forms.CharField(required=False, initial="Enter a Species Name")
-    #dbh = forms.FloatField(required=False)
-    #species_id = forms.CharField(required=False)
-    species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
- 
+    species_name = forms.CharField(required=False, initial="Enter a Species Name")
+    species_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    dbh = forms.FloatField(required=False)
+    height = forms.FloatField(required=False)
+    plot_width = forms.IntegerField(required=False)
+    plot_length = forms.IntegerField(required=False)
+    plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot'), required=False)
+    power_lines = forms.ChoiceField(choices=Choices().get_field_choices('bool_set'), required=False)
+    sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
+    condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
+    action = forms.ChoiceField(choices=Choices().get_field_choices('action'),required=False)
+    alert = forms.ChoiceField(choices=Choices().get_field_choices('alert'), required=False)
+        
+    def __init__(self, *args, **kwargs):
+        super(TreeAddForm, self).__init__(*args, **kwargs)
+        if not self.fields['plot_type'].choices[0][0] == '':        
+            self.fields['plot_type'].choices.insert(0, ('','Select One...' ) )
+            self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
+            self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
+            self.fields['condition'].choices.insert(0, ('','Select One...' ) )
+            self.fields['action'].choices.insert(0, ('','Select One...' ) )
+            self.fields['alert'].choices.insert(0, ('','Select One...' ) )
+
+
     def clean(self):        
         cleaned_data = self.cleaned_data  
         try:
