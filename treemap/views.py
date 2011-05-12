@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.core.paginator import Paginator
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point
@@ -942,7 +943,7 @@ def tree_add(request, tree_id = ''):
             new_tree = form.save(request)
             print 'saved %s' % new_tree
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
-            
+            messages.success(request, "Your tree was successfully added!")
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
             elif form.cleaned_data.get('target') == "addsame":

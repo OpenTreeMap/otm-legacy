@@ -46,7 +46,6 @@
 
         if ('{{form.edit_address_street.value}}' != "") {
             jQuery("#update_map").click();
-            jQuery("#opt_field_group").toggle();
         }   
 
         jQuery("#opt_field_toggle").click(function() {
@@ -58,26 +57,15 @@
 {% endblock %}
 
 
-
-{% comment %}
-{% block content_body_top %}
-
-    <!-- start contentbody -->
-        <div id="contentbody">
-            <div class="tabset-holder">
-
-                <ul class="tabset">
-                    <li class="active"><a href="../"><span>Add a Tree</span></a></li>
-                </ul>
-            </div>
-            <div class="tab-content" id="tab-2">
-
-                <div class="wrap">
-{% endblock %}
-{% endcomment %}
-
 {% block left_panel %}
-
+{% if messages %}
+<div id="messages">
+{% for message in messages %}
+    <div {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+    <div>You can add another tree below. <a href="/map">Done?</a></div>
+{% endfor %}
+</div>
+{% endif %}
 <div id="register" class="add">
 
     <h1>Add a New Tree <span class="note"></span></h1>
