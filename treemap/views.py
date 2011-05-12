@@ -14,7 +14,7 @@ from django.db.models import Count, Sum, Q
 from django.views.decorators.csrf import csrf_view_exempt
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
-from django_reputation.models import Reputation, Permission, UserReputationAction
+from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
 from registration.signals import user_activated
 # formsets
 from django.forms.formsets import formset_factory
@@ -891,7 +891,7 @@ def object_update(request):
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
                     print "instance save"
-                    if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeFlags"] :
+                    if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeAction", "TreeFlags"] :
                         print save_value
                         print request.user.reputation.reputation
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
@@ -943,7 +943,12 @@ def tree_add(request, tree_id = ''):
             print 'saved %s' % new_tree
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
             
-            return HttpResponseRedirect('/trees/%s/edit/' % new_tree.id)
+            if form.cleaned_data.get('target') == "add":
+                form = TreeAddForm()
+            elif form.cleaned_data.get('target') == "addsame":
+                pass
+            elif form.cleaned_data.get('target') == "edit":
+                return HttpResponseRedirect('/trees/new/%i' % request.user.id)
     else:
         form = TreeAddForm()
     
@@ -951,6 +956,20 @@ def tree_add(request, tree_id = ''):
         'user' : request.user, 
         'form' : form }))
     
+def added_today_list(request, user_id=None):
+    action = ReputationAction.objects.filter(name='add tree')
+    user = None
+    trees = UserReputationAction.objects.filter(action=action,
+                                                date_created__year=datetime.today().year, 
+                                                date_created__month=datetime.today().month, 
+                                                date_created__day=datetime.today().day).order_by('-date_created')
+    if user_id:
+        user = User.objects.get(pk=user_id)
+        trees = trees.filter(user=user)
+    return render_to_response('treemap/added_today.html', RequestContext(request,{
+        'trees' : trees,
+        'user': user}))
+
 
 def _build_tree_search_result(request):
     # todo - optimize!

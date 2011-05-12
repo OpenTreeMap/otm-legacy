@@ -86,8 +86,9 @@ form, fieldset {
 	height: 30px;
 	line-height: 24px;
 	padding-bottom: 3px;
-    padding-left: 5px;
-    padding-right: 5px;
+	padding-top: 3px;
+    padding-left: 7px;
+    padding-right: 7px;
 	font-weight:bold;
 	cursor:pointer;
 	color: #fff;
@@ -3255,6 +3256,21 @@ padding: 15px 0 0 0;
 }
 #register.add label.opt_fields {
     width:150px;
+}
+#register.add ul li {
+    list-style:none;
+}
+#register.add li label {
+    float:none;	
+    width: auto;
+	text-align:left;
+	font-size: 20px;
+	margin-top:5px;
+}
+#register.add li input {
+    float:none;	
+    width: auto;
+    margin:0px;
 }
 #register.add .value {
 	font-size: 20px;

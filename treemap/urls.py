@@ -35,8 +35,10 @@ urlpatterns = patterns('',
     (r'^trees/(?P<tree_id>\d+)/ecosystem/$', trees),
     url(r'^trees/(?P<tree_id>\d+)/$', trees, name="treemap_tree_detail"),
     (r'^trees/location/$', tree_location_search),
-    (r'^trees/location/update/$', tree_location_update),
-    
+    (r'^trees/location/update/$', tree_location_update), 
+    (r'^trees/new/$', added_today_list),   
+    (r'^trees/new/(?P<user_id>\d+)/$', added_today_list),
+
     (r'^trees/watch/$', watch_list),
     (r'^watch/validate/$', validate_watch),
     

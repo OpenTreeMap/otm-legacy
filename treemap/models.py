@@ -577,7 +577,9 @@ class Tree(models.Model):
         if z: self.zipcode = z[0]
         else: self.zipcode = None
         
+        print "pre save", self.powerline_conflict_potential
         super(Tree, self).save(*args,**kwargs) 
+        print "post save", self.powerline_conflict_potential
         
         self.set_environmental_summaries()
         #set new species counts

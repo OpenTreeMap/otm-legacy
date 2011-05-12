@@ -18,6 +18,7 @@
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
+        jQuery("#opt_field_group").hide();
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
@@ -42,6 +43,16 @@
         		jQuery("#id_species_name")[0].value = "";
         	}
         });
+
+        if ('{{form.edit_address_street.value}}' != "") {
+            jQuery("#update_map").click();
+            jQuery("#opt_field_group").toggle();
+        }   
+
+        jQuery("#opt_field_toggle").click(function() {
+            jQuery("#opt_field_group").toggle();
+        });
+
     });
 </script>
 {% endblock %}
@@ -115,34 +126,40 @@
 
 	    <div class="clearLeft" id="step3">
             <label class="required">Step 3 </label>
-	        <span class="value">Optional Fields</span><button type="submit" class="buttonMed">Add this Tree!</button>
-       
+	        <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields</a></span>
+            <div id="opt_field_group">
+                <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
+                <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.canopy_height.label}}</label>{{ form.canopy_height }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.condition.label}}</label>{{ form.condition }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.canopy_condition.label}}</label>{{ form.canopy_condition }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.status.label}}</label>{{ form.status }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.action.label}}</label>{{ form.action }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.alert.label}}</label>{{ form.alert }}
+            </div>
             <div class="clearLeft"></div>
-            <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
-            <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.condition.label}}</label>{{ form.condition }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.status.label}}</label>{{ form.status }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.action.label}}</label>{{ form.action }}
-            <div class="clearLeft"></div>
-            <label class="opt_fields">{{form.alert.label}}</label>{{ form.alert }}
-
+            {{ form.target }} 
+            <button type="submit" class="buttonMed">Add this Tree!</button>
         </div>
 
 	</div>

@@ -1,9 +1,10 @@
 from django import forms
-from models import Tree, Species, TreePhoto, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Species, TreePhoto, TreeStatus, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from datetime import datetime
 
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
@@ -34,15 +35,18 @@ class TreeAddForm(forms.Form):
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False)
     height = forms.FloatField(required=False)
+    canopy_height = forms.IntegerField(required=False)
     plot_width = forms.IntegerField(required=False)
     plot_length = forms.IntegerField(required=False)
     plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot'), required=False)
     power_lines = forms.ChoiceField(choices=Choices().get_field_choices('bool_set'), required=False)
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
+    canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
     action = forms.ChoiceField(choices=Choices().get_field_choices('action'),required=False)
     alert = forms.ChoiceField(choices=Choices().get_field_choices('alert'), required=False)
-        
+    target = forms.ChoiceField(choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done! I want to receive confirmation')], initial='edit', widget=forms.RadioSelect)        
+
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
         if not self.fields['plot_type'].choices[0][0] == '':        
@@ -50,6 +54,7 @@ class TreeAddForm(forms.Form):
             self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
             self.fields['condition'].choices.insert(0, ('','Select One...' ) )
+            self.fields['canopy_condition'].choices.insert(0, ('','Select One...' ) )
             self.fields['action'].choices.insert(0, ('','Select One...' ) )
             self.fields['alert'].choices.insert(0, ('','Select One...' ) )
 
@@ -82,18 +87,31 @@ class TreeAddForm(forms.Form):
                 new_tree = Tree()
         else:
             new_tree = Tree()
-        add = self.cleaned_data.get('edit_address_street')
-        if add:
-            new_tree.address_street = add
-            new_tree.geocoded_address = add
+        address = self.cleaned_data.get('edit_address_street')
+        if address:
+            new_tree.address_street = address
+            new_tree.geocoded_address = address
         city = self.cleaned_data.get('edit_address_city')
         if city:
             new_tree.address_city = city
-
         zip_ = self.cleaned_data.get('edit_address_zip')
         if zip_:
             new_tree.address_zip = zip_
         
+        plot_width = self.cleaned_data.get('plot_width')
+        if plot_width:
+            new_tree.plot_width = plot_width
+        plot_length = self.cleaned_data.get('plot_length')
+        if plot_length:
+            new_tree.plot_length = plot_length
+        plot_type = self.cleaned_data.get('plot_type')
+        if plot_type:
+            new_tree.plot_type = plot_type
+        power_lines = self.cleaned_data.get('power_lines')
+        print power_lines
+        if power_lines != None:
+            new_tree.powerline_conflict_potential = power_lines
+
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
         new_tree.import_event = import_event
         
@@ -102,6 +120,22 @@ class TreeAddForm(forms.Form):
         new_tree.geometry = pnt
         new_tree.last_updated_by = request.user
         new_tree.save()
+        height = self.cleaned_data.get('height')
+        if height:
+            ts = TreeStatus(                
+                reported_by = request.user,
+                value = height,
+                key = 'height',
+                tree = new_tree)
+            ts.save()
+        canopy_height = self.cleaned_data.get('canopy_height')
+        if canopy_height:
+            ts = TreeStatus(                
+                reported_by = request.user,
+                value = canopy_height,
+                key = 'canopy_height',
+                tree = new_tree)
+            ts.save()
         dbh = self.cleaned_data.get('dbh')
         if dbh:
             ts = TreeStatus(
@@ -110,6 +144,48 @@ class TreeAddForm(forms.Form):
                 key = 'dbh',
                 tree = new_tree)
             ts.save()
+        sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
+        if sidewalk_damage:
+            ts = TreeStatus(
+                reported_by = request.user,
+                value = sidewalk_damage,
+                key = 'sidewalk_damage',
+                tree = new_tree)
+            ts.save()
+        condition = self.cleaned_data.get('condition')
+        if condition:
+            ts = TreeStatus(
+                reported_by = request.user,
+                value = condition,
+                key = 'condition',
+                tree = new_tree)
+            ts.save()
+        canopy_condition = self.cleaned_data.get('canopy_condition')
+        if canopy_condition:
+            ts = TreeStatus(
+                reported_by = request.user,
+                value = canopy_condition,
+                key = 'canopy_condition',
+                tree = new_tree)
+            ts.save()
+        alert = self.cleaned_data.get('alert')
+        if alert:
+            ts = TreeAlert(
+                reported_by = request.user,
+                value = datetime.now(),
+                key = alert,
+                solved = False,
+                tree = new_tree)
+            ts.save()
+        action = self.cleaned_data.get('action')
+        if action:
+            ts = TreeAction(
+                reported_by = request.user,
+                value = datetime.now(),
+                key = action,
+                tree = new_tree)
+            ts.save()
+        
         return new_tree
        
 class _TreeAddForm(forms.ModelForm):
