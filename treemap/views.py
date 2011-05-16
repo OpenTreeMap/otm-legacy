@@ -390,164 +390,12 @@ def tree_edit(request, tree_id = ''):
     #if not request.user in (tree.data_owner, tree.tree_owner) and not request.user.is_superuser:
     #    return render_to_response("not_allowed.html", {'user' : request.user, "error_message":"You are not the owner of this tree."})
     
-    dbh = tree.treestatus_set.filter(key="dbh").order_by("-reported")
-    if dbh.count():
-        diams = [tree.treestatus_set.filter(key="dbh").order_by("-reported")[0]]
-    else:
-        diams = []
-    diam = {'type':'diameter_field',
-         'name': 'dbh',
-         'label': "Trunk diameter (inches)",
-         'diams': str([x.value for x in diams]), 
-         'display': tree.get_dbh()
-        }
-    
-    height = {'type':'status_field',
-         'name': 'height',
-         'label': "Tree height (feet)",
-        }
-    heights = tree.treestatus_set.filter(key="height").order_by("-reported")
-    if heights.count():
-        height['value'] = heights[0].value
-        height['display'] = heights[0].value
-    
-    c_height = {'type':'status_field',
-         'name': 'canopy_height',
-         'label': "Canopy height (feet)",
-        }
-    c_heights = tree.treestatus_set.filter(key="canopy_height").order_by('-reported')
-    if c_heights.count():
-        c_height['value'] = c_heights[0].value
-        c_height['display'] = c_heights[0].value
-    
-    c_condition = {'type':'status_field',
-             'name': 'canopy_condition',
-             'label': "Canopy condition",
-             'jsOptions': ", 'type':'select', 'loadurl':'choices/canopy_condition/'"
-            }
-    c_conditions = tree.treestatus_set.filter(key="canopy_condition").order_by('-reported')
-    if c_conditions.count():
-        c_condition['value'] = c_conditions[0].value
-        c_condition['display'] = c_conditions[0].display
-        
-    sidewalk = {'type':'status_field',
-         'name': 'sidewalk_damage',
-         'label': "Sidewalk damage",
-         'jsOptions': ", 'type':'select', 'loadurl':'choices/sidewalk_damage/'"
-        }
-    sidewalks = tree.treestatus_set.filter(key="sidewalk_damage").order_by("-reported")
-    if sidewalks.count():
-        sidewalk['value'] = sidewalks[0].value
-        sidewalk['display'] = sidewalks[0].display
-    
-    condition = {'type':'status_field',
-         'name': 'condition',
-         'label': "Tree condition",
-         'jsOptions': ", 'type':'select', 'loadurl':'choices/condition/'"
-        }
-    conditions = tree.treestatus_set.filter(key="condition").order_by("-reported")
-    if conditions.count():
-        condition['value'] = conditions[0].value
-        condition['display'] = conditions[0].display
-    
-    perm = Permission.objects.get(name = 'can_edit_condition')
-    rep = Reputation.objects.reputation_for_user(request.user)
-    
-    data = [
-        {'type':'header',
-         'text': "General Tree Information"
-        },
-        {'type':'species_field',
-         'name': 'species_id',
-         'label': 'Scientific name',
-         'value': tree.get_scientific_name()
-        },
-        {'type':'field_noedit',
-         'name': 'species',
-         'label': 'Common name',
-         'value': tree.species and tree.species.common_name
-        },
-        diam,
-    ]
+    reputation = {        
+        "base_edit": Permission.objects.get(name = 'can_edit_condition'),
+        "user_rep": Reputation.objects.reputation_for_user(request.user)    
+    }
 
-    height_data = [
-        height,
-        c_height,
-    ]
-    if rep.reputation >= perm.required_reputation or request.user.is_superuser:
-        data.extend(height_data)
-        
-    further_data = [
-        {'type':'field',
-         'name': 'address_street',
-         'label':"Street",
-         'value': tree.address_street
-        },
-        {'type':'field',
-         'name': 'address_city',
-         'label':"City",
-         'value': tree.address_city
-        },
-        {'type':'field_noedit',
-         'name': 'address_zip',
-         'label':"Zip code",
-         'value': tree.address_zip
-        },
-        {'type':'date_field',
-         'name': 'date_planted',
-         'label':"Date planted",
-         'value': tree.date_planted
-        },
-        {'type':'header',
-         'text': "Environment"
-        },
-        {'type':'field',
-         'name': 'plot_length',
-         'label':"Plot length (feet)",
-         'value': tree.plot_length
-        },
-        {'type':'field',
-         'name': 'plot_width',
-         'label':"Plot width (feet)",
-         'value': tree.plot_width
-        },
-        {'type':'field_choices',
-         'name': 'plot_type',
-         'label':"Plot type",
-         'value': tree.get_plot_type_display()
-        },
-        {'type':'field_choices',
-         'name': 'powerline_conflict_potential',
-         'label':"Is there a powerline overhead?",
-         'value': tree.get_powerline_conflict_potential_display()
-        },
-    ]
-    data.extend(further_data)
-    
-    optional_data = [
-        sidewalk,
-        condition,
-        c_condition,
-    ]    
-    status_data = [  
-        {'type':'header',
-         'text': "Status"
-        },
-    ]
-    if not tree.data_owner or tree.data_owner.id != 11:
-        status_data.extend(optional_data)    
-    status_data.append({
-        'type':'local',
-        'name': 'local',
-        'label':"Local",
-        'value': tree.treeflags_set.all()
-    })
-    
-    if rep.reputation >= perm.required_reputation or request.user.is_superuser:
-        data.extend(status_data)
-
-
-    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree, 'data': data}))           
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree,'reputation': reputation, 'user': request.user}))           
 
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
@@ -944,6 +792,7 @@ def tree_add(request, tree_id = ''):
             print 'saved %s' % new_tree
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
             messages.success(request, "Your tree was successfully added!")
+            print new_tree.powerline_conflict_potential
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
             elif form.cleaned_data.get('target') == "addsame":
@@ -952,7 +801,6 @@ def tree_add(request, tree_id = ''):
                 return HttpResponseRedirect('/trees/new/%i' % request.user.id)
     else:
         form = TreeAddForm()
-    
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
         'user' : request.user, 
         'form' : form }))

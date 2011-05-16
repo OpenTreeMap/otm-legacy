@@ -3398,11 +3398,11 @@ padding: 15px 0 0 0;
 }
 
 
-* MISC
+/* MISC
 ** _____________________________________________________________________________
 */
 
-div.messages {
+#messages {
     border: 1px solid #9EBD2E;
     font-size: 15px;
     margin-left: auto;
@@ -3412,7 +3412,7 @@ div.messages {
     width: 400px;
     line-height: 20px;
 }
-div.messages .success {
+#messages .success {
     color:green;
     font-weight: bold;
 }

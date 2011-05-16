@@ -39,7 +39,7 @@ class TreeAddForm(forms.Form):
     plot_width = forms.IntegerField(required=False)
     plot_length = forms.IntegerField(required=False)
     plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot'), required=False)
-    power_lines = forms.ChoiceField(choices=Choices().get_field_choices('bool_set'), required=False)
+    power_lines = forms.BooleanField(required=False, label='Power lines overhead')
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
@@ -109,7 +109,8 @@ class TreeAddForm(forms.Form):
             new_tree.plot_type = plot_type
         power_lines = self.cleaned_data.get('power_lines')
         print power_lines
-        if power_lines != None:
+        if power_lines != "":
+            print "saving pl %s" % power_lines
             new_tree.powerline_conflict_potential = power_lines
 
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)

@@ -380,8 +380,7 @@ class Tree(models.Model):
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
     powerline_conflict_potential = models.NullBooleanField(
-        help_text = "Are there overhead powerlines present?", 
-        choices=choices.get_field_choices('bool_set'),null=True, blank=True)
+        help_text = "Are there overhead powerlines present?",null=True, blank=True)
     present = models.BooleanField(default=True)
     plot_width = models.IntegerField(null=True, blank=True)
     plot_length = models.IntegerField(null=True, blank=True) 
@@ -436,7 +435,7 @@ class Tree(models.Model):
 
     def get_sidewalk_damage(self,display=False):
         sidewalk_damage = self.treestatus_set.filter(key='sidewalk_damage').order_by('-reported')
-        if sidewalk_damage:
+        if sidewalk_damage:        
             if display:
                 return sidewalk_damage[0].display
             else:
@@ -480,7 +479,14 @@ class Tree(models.Model):
             return dbh[0].value
         else:
             return None
-            
+
+    def get_powerline_conflict_display(self):
+        if powerline_conflict_display == None:
+            return "Unknown"
+        if powerline_conflict_display:
+            return "Yes"
+        return "No"
+
     def get_scientific_name(self):
         if self.species:
             sn = self.species.scientific_name
@@ -577,9 +583,7 @@ class Tree(models.Model):
         if z: self.zipcode = z[0]
         else: self.zipcode = None
         
-        print "pre save", self.powerline_conflict_potential
         super(Tree, self).save(*args,**kwargs) 
-        print "post save", self.powerline_conflict_potential
         
         self.set_environmental_summaries()
         #set new species counts
@@ -828,7 +832,7 @@ class TreeStatus(TreeItem):
         if self.key in STATUS_CHOICES:
             choices = STATUS_CHOICES[self.key]
             for item in choices:
-                if item[0] == self.value:
+                if float(item[0]) == self.value:
                     return item[1]
         return val
 

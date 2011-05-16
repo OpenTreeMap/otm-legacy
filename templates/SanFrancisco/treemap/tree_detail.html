@@ -2,6 +2,8 @@
 
 {% load thumbnail dynamic_attribute humanize %}
 {% load maths %}
+{% load comments %}
+{% load tree_tags %}
 
 {% block extrahead %}
 <script type="text/javascript">
@@ -13,10 +15,6 @@
                 }).next().hide();
             });
             
-        tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
-        tm.currentTreeId = {{tree.id}};
-        tm.init_tree_map(false); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     });
     
 </script>
@@ -112,17 +110,21 @@
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.current_dbh|floatformat:1}} inches</td>
+            <td>{{tree.current_dbh|unit_or_missing:"inches"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree height</td>
-            <td>{{tree.get_height}} feet</td>
+            <td>{{tree.get_height|unit_or_missing:"feet"}}</td>
+            <td></td>
+        </tr><tr>
+        	<td class="col1Wide">Canopy height</td>
+            <td>{{tree.get_canopy_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.address_street}}</td>
+            <td>{{tree.address_street|default:"Missing"}}</td>
             <td></td>
         </tr>
     </tbody>
@@ -185,19 +187,19 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width}} / {{tree.plot_length }} ft/ft</td>
+            <td>{{tree.plot_width|unit_or_missing:"ft x "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
-            <td>{{ tree.get_plot_type_display }}</td>
+            <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|yesno:"Yes,No,Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
-            <td>{{ tree.get_sidewalk_damage_display }}</td>
+            <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
 
     </tbody>
@@ -212,7 +214,11 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Tree status</td>
-            <td>{{tree.get_condition}}</td>
+            <td>{{tree.get_condition|default:"Missing"}}</td>
+        </tr>
+        <tr>
+			<td class="col1Wide">Canopy condition</td>
+			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Alerts</td>
@@ -272,27 +278,27 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Flowering</td>
-            <td>{{tree.species.flower_conspicuous}}</td>
+            <td>{{tree.species.flower_conspicuous|yesno:"Yes,No"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Edible (fruits/nuts)</td>
-            <td>{{ tree.species.fruit_seed_abundance }}</td>
+            <td>{{ tree.species.fruit_seed_abundance|yesno:"Yes,No" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Native to area</td>
-            <td>{{ tree.species.native_status }}</td>
+            <td>{{ tree.species.native_status|yesno:"Yes,No" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Landmark tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_landmark_display}}</td>
+            <td>{{ tree.sanfranciscotree.get_landmark_display|yesno:"Yes,No"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Fruit Gleaning Project tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_fruit_gleaning_project_display}}</td>
+            <td>{{ tree.sanfranciscotree.get_fruit_gleaning_project_display|yesno:"Yes,No"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Carbon Fund tree</td>
-            <td>{{ tree.sanfranciscotree.get_sf_local_carbon_fund_display}}</td>
+            <td>{{ tree.sanfranciscotree.get_local_carbon_fund_display|yesno:"Yes,No"}}</td>
         </tr>
 
     </tbody>
@@ -307,12 +313,12 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Date planted</td>
-            <td>{{tree.date_planted|date}}</td>
+            <td>{{tree.date_planted|date|default:"Missing"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree steward</td>
-            <td>{{tree.steward_name}}</td>
+            <td>{{tree.steward_name|default:"None"}}</td>
             <td></td>
         </tr>
 <!--
@@ -338,7 +344,55 @@
                             <div id="edit_tree_map"></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
+                            <div id="tree_comments">
+								<div class="wrap">
+									<h2>Comments</h2>
+								</div>
+								<div class="comment_list">
+								{% get_comment_list for tree as comment_list %}
+								{% for comment in comment_list %}
+									<div class="comment_item">
+										<div class="comment_head">
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+										</div>
+										<div class="comment_body">
+											{{ comment.comment }}
+										</div>
+									</div>
+								{% empty %}
+									<div class="comment_item">No comments yet!</div>
+								{% endfor %}
+								</div>
 
+								{% if user.is_authenticated %}
+									{% get_comment_form for tree as form %}
+									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+										<input type="hidden" name="next" value="{{request.get_full_path}}" />
+										{% for field in form %}
+										{% if field.is_hidden %}
+										  {{ field }}
+										{% else %}
+										  {% if field.errors %}{{ field.errors }}{% endif %}
+										  <div class="comment_field {% if field.errors %} error{% endif %}"
+											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
+											{{ field.label_tag }} {{ field }}
+										  </div>
+										{% endif %}
+										{% endfor %}
+										<div class="submit">
+											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
+										</div>
+									</form>
+                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
+								{% else %}
+									<div>Please login to add comments</div>
+								{% endif %}
+
+							</div>
                         </div>
                         <!-- end t2_right_panel  -->
                 {% endblock right_panel %}
@@ -426,17 +480,37 @@
                 <li class="optionItemLastContainer">
                     <ul class="optionItemLast">
                         <li>Username</li>
-                        <li class="editItem"><a href="/profiles/{{tree.last_updated_by}}/">{{tree.last_updated_by}}</a></li>
+                        <li class="editItem"><a href="/profiles/{{recent.0.0}}/">{{recent.0.0}}</a></li>
                     </ul>
                     <ul class="optionItemLast">
                         <li>Date</li>
-                        <li class="editItem">{{tree.last_updated|date}}</li>
+                        <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
                 </li>
             </ul>
+            <ul id="progress">
+					<li id="progressStatus">
+					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
+						<div class="progressText">{{ tree.percent_complete|floatformat }}%&nbsp;complete</div></li>
+                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
+			</ul>
             <ul id="message">
                 <li id="title">Your turn</li>
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
+            </ul>
+            <ul id="message">
+            	<li id="title">Recent Contributors</li>
+            	<li>
+					<ul class="optionItem">
+						{% for update in recent %}
+							{% if forloop.counter0 < 5 %}
+							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.0}}" target="_blank">{{ update.0 }}</a></li>
+							{% endif %}
+						{% empty %}
+							<li>No edits yet!</li>
+						{% endfor %}
+					</ul>
+            	</li>
             </ul>
         </div>
                 
@@ -494,4 +568,12 @@
     </div>   
 
 
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+		tm.currentTreeId = {{tree.id}};
+		tm.init_tree_map(false); //not editable
+		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+	</script>
+{% endblock endpage %}
 

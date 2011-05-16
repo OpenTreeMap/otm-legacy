@@ -1723,6 +1723,7 @@ var tm = {
     },
     editDiameter: function(field, diams) {
         tm.editingDiameter = true;
+        if (diams = "None") {diams=[];}        
         var diams = tm.currentTreeDiams || diams;
         var html = '';
         tm.currentDiameter = $(field).html();
