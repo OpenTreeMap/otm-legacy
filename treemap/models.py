@@ -389,7 +389,7 @@ class Tree(models.Model):
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
     address_zip = models.CharField(max_length=30,blank=True, null=True)
-    neighborhood = models.ForeignKey(Neighborhood, null=True)
+    neighborhood = models.ManyToManyField(Neighborhood, null=True)
     zipcode = models.ForeignKey(ZipCode, null=True)
     
     geocoded_accuracy = models.IntegerField(null=True)
@@ -572,19 +572,24 @@ class Tree(models.Model):
 
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
+        super(Tree, self).save(*args,**kwargs) 
+        
         pnt = self.geometry
+                
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
         oldn = self.neighborhood
         oldz = self.zipcode
         
-        if n: self.neighborhood = n[0]
-        else: self.neighborhood = None
+        if n:
+            self.neighborhood.clear()
+            for nhood in n:
+                if nhood:
+                    self.neighborhood.add(nhood)
+        else: self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
-        
-        super(Tree, self).save(*args,**kwargs) 
-        
+
         self.set_environmental_summaries()
         #set new species counts
         if hasattr(self,'old_species') and self.old_species:
@@ -592,9 +597,13 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
             
-        if n and n[0] != oldn:        
-            if n: self.update_aggregate(AggregateNeighborhood, n[0])
-            if oldn: self.update_aggregate(AggregateNeighborhood, oldn)
+        if n and n.count() != oldn.count():        
+            if n: 
+                for nhood in n:
+                    self.update_aggregate(AggregateNeighborhood, nhood)
+            if oldn: 
+                for nhood in oldn:
+                    self.update_aggregate(AggregateNeighborhood, nhood)
         
         if z and z[0] != oldz:
             if z: self.update_aggregate(AggregateZipCode, z[0])

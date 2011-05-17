@@ -51,7 +51,6 @@ class TreeAddForm(forms.Form):
         super(TreeAddForm, self).__init__(*args, **kwargs)
         if not self.fields['plot_type'].choices[0][0] == '':        
             self.fields['plot_type'].choices.insert(0, ('','Select One...' ) )
-            self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
             self.fields['condition'].choices.insert(0, ('','Select One...' ) )
             self.fields['canopy_condition'].choices.insert(0, ('','Select One...' ) )
@@ -108,9 +107,7 @@ class TreeAddForm(forms.Form):
         if plot_type:
             new_tree.plot_type = plot_type
         power_lines = self.cleaned_data.get('power_lines')
-        print power_lines
         if power_lines != "":
-            print "saving pl %s" % power_lines
             new_tree.powerline_conflict_potential = power_lines
 
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
