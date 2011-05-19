@@ -276,6 +276,8 @@ class Resource(models.Model):
     def __unicode__(self): return '%s' % (self.meta_species)
     
     
+
+
 class Species(models.Model):
     """
         http://plants.usda.gov/java/AdvancedSearchServlet?pfa=na&statefips=us
@@ -288,35 +290,23 @@ class Species(models.Model):
         &dsp_frut_seed_abund_cd=on&dsp_frut_seed_start_cd=on&dsp_frut_seed_end_cd=on
         &dsp_frut_body_suit_ind=on&dsp_palat_human_ind=on&Synonyms=all&viewby=sciname  
     """
-    accepted_symbol = models.CharField(max_length=255, null=True, blank=True)
+    accepted_symbol = models.CharField(max_length=255, null=True, blank=True) #change to iTree symbol
     synonym_symbol = models.CharField(max_length=255, null=True, blank=True)
     symbol = models.CharField(max_length=255)
     scientific_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True) #sometimes we just have genus/cultivar combo
-    common_name = models.CharField(max_length=255, null=True, blank=True)
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
-
-    #plants_floristic_area = models.CharField(max_length=255, null=True, blank=True)
-    #state_and_province = models.CharField(max_length=455, null=True, blank=True)
-    #growth_habit = models.CharField(max_length=255, null=True, blank=True) #tree/shrub
+    common_name = models.CharField(max_length=255, null=True, blank=True)
+    
     native_status = models.CharField(max_length=255, null=True, blank=True)
-    #federal_noxious_status = models.CharField(max_length=255, null=True, blank=True)
-    #state_noxious_status = models.CharField(max_length=255, null=True, blank=True)
-    #invasive = models.CharField(max_length=255, null=True, blank=True)
-    #federal_t_e_status = models.CharField(max_length=255, null=True, blank=True)
-    #state_t_e_status = models.CharField(max_length=255, null=True, blank=True)
-    #national_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
-    #regional_wetland_indicator_status = models.CharField(max_length=255, null=True, blank=True)
-    fall_conspicuous = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
-    #fire_resistance = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    bloom_period = models.CharField(max_length=255, null=True, blank=True)
+    fruit_period = models.CharField(max_length=255, null=True, blank=True)
+    fall_conspicuous = models.NullBooleanField()
     flower_conspicuous = models.NullBooleanField()
-    #bloom_period = models.CharField(max_length=255, null=True, blank=True)
-    #fruit_seed_abundance = models.CharField(max_length=255, null=True, blank=True)
-    #fruit_seed_period_begin = models.CharField(max_length=255, null=True, blank=True)
-    #fruit_seed_period_end = models.CharField(max_length=255, null=True, blank=True)
-    #berry_nut_seed_product = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
-    palatable_human = models.NullBooleanField(choices=choices.get_field_choices('bool_set'))
+    palatable_human = models.NullBooleanField()
+    wildlife_value = models.NullBooleanField()
+
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
     

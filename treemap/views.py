@@ -32,6 +32,7 @@ from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benef
 from spreadsheet import ExcelResponse
 import time
 from time import mktime, strptime
+from datetime import timedelta
 
 
 app_models = {'UserProfile':'profiles','User':'auth'}
@@ -808,10 +809,10 @@ def tree_add(request, tree_id = ''):
 def added_today_list(request, user_id=None):
     action = ReputationAction.objects.filter(name='add tree')
     user = None
-    trees = UserReputationAction.objects.filter(action=action,
-                                                date_created__year=datetime.today().year, 
-                                                date_created__month=datetime.today().month, 
-                                                date_created__day=datetime.today().day).order_by('-date_created')
+    twelvehrs = timedelta(hours=12)
+    start_date = datetime.now() - twelvehrs
+    end_date = datetime.now()
+    trees = UserReputationAction.objects.filter(action=action,date_created__range=(start_date, end_date))
     if user_id:
         user = User.objects.get(pk=user_id)
         trees = trees.filter(user=user)
