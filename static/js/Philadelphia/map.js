@@ -9,6 +9,8 @@ tm.map_center_lon = -75.19;
 tm.map_center_lat = 39.99;
 tm.start_zoom = 11;
 tm.add_zoom = 13;
+tm.initial_location_string = "Address, City, State";
+tm.initial_species_string = "All trees";
 
 tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5));
 

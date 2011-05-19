@@ -95,7 +95,7 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Tree number</td>
-            <td>{{tree.id}}</td>
+            <td>#{{tree.id}}</td>
             <td></td>
         </tr>
         <tr>
@@ -117,14 +117,10 @@
         	<td class="col1Wide">Tree height</td>
             <td>{{tree.get_height|unit_or_missing:"feet"}}</td>
             <td></td>
-        </tr><tr>
-        	<td class="col1Wide">Canopy height</td>
-            <td>{{tree.get_canopy_height|unit_or_missing:"feet"}}</td>
-            <td></td>
         </tr>
         <tr>
-        	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.address_street|default:"Missing"}}</td>
+        	<td class="col1Wide">Date Planted</td>
+            <td>{{tree.date_planted|date}}</td>
             <td></td>
         </tr>
     </tbody>
@@ -139,15 +135,15 @@
     </thead>
     <tbody>
 {% if tree.species %} {% if tree.current_dbh %}
-    	<tr>
-        	<td class="col1Wide">Stormwater intercepted</td>
-            <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
-            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
-        </tr>
         <tr>
         	<td class="col1Wide">Energy conserved</td>
             <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
             <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+        </tr>
+    	<tr>
+        	<td class="col1Wide">Stormwater intercepted</td>
+            <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
+            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Air pollutants removed</td>
@@ -213,12 +209,8 @@
     </thead>
     <tbody>
     	<tr>
-        	<td class="col1Wide">Tree status</td>
+        	<td class="col1Wide">Tree condition</td>
             <td>{{tree.get_condition|default:"Missing"}}</td>
-        </tr>
-        <tr>
-			<td class="col1Wide">Canopy condition</td>
-			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Alerts</td>
@@ -272,62 +264,44 @@
 <table class="box-table-a">
     <thead>
     	<tr>
-        	<th scope="col" colspan="4">Details</th>
+        	<th scope="col" colspan="4">Affiliations</th>
         </tr>
     </thead>
     <tbody>
-    	<tr>
-        	<td class="col1Wide">Flowering</td>
-            <td>{{tree.species.flower_conspicuous|yesno:"Yes,No"}}</td>
-        </tr>
         <tr>
-        	<td class="col1Wide">Edible (fruits/nuts)</td>
-            <td>{{ tree.species.fruit_seed_abundance|yesno:"Yes,No" }}</td>
+        	<td class="col1Wide">Local projects</td>
+            <td>{{tree.get_flag_count}} known</td>
+            <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">Details</a>{% endif %}</td>
         </tr>
-        <tr>
-        	<td class="col1Wide">Native to area</td>
-            <td>{{ tree.species.native_status|yesno:"Yes,No" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Landmark tree</td>
-            <td>{{ tree.sanfranciscotree.get_landmark_display|yesno:"Yes,No"}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Fruit Gleaning Project tree</td>
-            <td>{{ tree.sanfranciscotree.get_fruit_gleaning_project_display|yesno:"Yes,No"}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Carbon Fund tree</td>
-            <td>{{ tree.sanfranciscotree.get_local_carbon_fund_display|yesno:"Yes,No"}}</td>
-        </tr>
-
-    </tbody>
-</table>
-
-<table class="box-table-a">
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">History</th>
-        </tr>
-    </thead>
-    <tbody>
-    	<tr>
-        	<td class="col1Wide">Date planted</td>
-            <td>{{tree.date_planted|date|default:"Missing"}}</td>
-            <td></td>
+        <tr id="local" style="display:none;">
+            <td colspan="5">
+                <table class="box-table-b" colspan="5">
+                    <tbody>
+                    	<tr>
+                        	<td class="col1Wide"><b>Local flag</b></td>
+                            <td><b>Added by</b></td>
+                        </tr>
+                        {% for a in tree.treeflags_set.all %}
+                        <tr>
+                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                            <td>{{ a.reported_by }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree steward</td>
-            <td>{{tree.steward_name|default:"None"}}</td>
+            <td>{{tree.steward_name|default:"Missing"}}</td>
             <td></td>
         </tr>
-<!--
         <tr>
-        	<td class="col1Wide">Data owner</td>
-            <td>{{tree.data_owner}}</td>
+        	<td class="col1Wide">Data source</td>
+            <td>{{tree.data_owner|default:"Missing"}}</td>
             <td></td>
         </tr>
--->
+
     </tbody>
 </table>
 

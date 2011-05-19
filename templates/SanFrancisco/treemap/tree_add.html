@@ -43,10 +43,16 @@
         		jQuery("#id_species_name")[0].value = "";
         	}
         });
+        jQuery("#opt_field_group input").focus(function() {
+        	if(this.value == "inches" || this.value == "feet") {
+        		this.value = "";
+        	}
+        });
 
         if ('{{form.edit_address_street.value}}' != "") {
             jQuery("#update_map").click();
         }   
+        jQuery("#id_dbh_type_0").attr('checked', 'checked');
 
         jQuery("#opt_field_toggle").click(function() {
             jQuery("#opt_field_group").toggle();
@@ -121,13 +127,15 @@
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
                 <div class="clearLeft"></div>
+                <label class="opt_fields"> </label>{{ form.dbh_type }}
+                <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.canopy_height.label}}</label>{{ form.canopy_height }}
                 <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}
+                <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}{{ form.plot_length_in }}
                 <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}
+                <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}{{ form.plot_width_in }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
                 <div class="clearLeft"></div>

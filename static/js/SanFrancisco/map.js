@@ -9,7 +9,11 @@ tm.map_center_lon = -122.437821;
 tm.map_center_lat = 37.752809;
 tm.start_zoom = 12;
 tm.add_zoom = 14;
+tm.initial_location_string = "San Francisco, CA";
+tm.initial_species_string = "All trees";
 
+tm.popup_minSize = new OpenLayers.Size(450,200);
+tm.popup_maxSize = new OpenLayers.Size(450,450);
 tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.5,-122.6), new google.maps.LatLng(40.0,-122.0));
 
 tm.init_base_map = function(div_id, controls){

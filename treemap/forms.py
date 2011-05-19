@@ -5,6 +5,7 @@ from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from datetime import datetime
+import math
 
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
@@ -34,10 +35,13 @@ class TreeAddForm(forms.Form):
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False)
+    dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
     height = forms.FloatField(required=False)
     canopy_height = forms.IntegerField(required=False)
-    plot_width = forms.IntegerField(required=False)
-    plot_length = forms.IntegerField(required=False)
+    plot_width = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
+    plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
+    plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
+    plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot'), required=False)
     power_lines = forms.BooleanField(required=False, label='Power lines overhead')
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
@@ -56,6 +60,10 @@ class TreeAddForm(forms.Form):
             self.fields['canopy_condition'].choices.insert(0, ('','Select One...' ) )
             self.fields['action'].choices.insert(0, ('','Select One...' ) )
             self.fields['alert'].choices.insert(0, ('','Select One...' ) )
+            self.fields['plot_width'].choices.insert(0, ('','Select Feet...' ) )
+            self.fields['plot_width_in'].choices.insert(0, ('','Select Inches...' ) )
+            self.fields['plot_length'].choices.insert(0, ('','Select Feet...' ) )
+            self.fields['plot_length_in'].choices.insert(0, ('','Select Inches...' ) )
 
 
     def clean(self):        
@@ -98,11 +106,19 @@ class TreeAddForm(forms.Form):
             new_tree.address_zip = zip_
         
         plot_width = self.cleaned_data.get('plot_width')
+        plot_width_in = self.cleaned_data.get('plot_width_in')
         if plot_width:
-            new_tree.plot_width = plot_width
+            new_tree.plot_width = float(plot_width)
+        if plot_width_in:
+            print plot_width_in
+            print (float(plot_width_in) / 12)
+            new_tree.plot_width = new_tree.plot_width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
+        plot_length_in = self.cleaned_data.get('plot_length_in')
         if plot_length:
-            new_tree.plot_length = plot_length
+            new_tree.plot_length = float(plot_length)
+        if plot_length_in:
+            new_tree.plot_length = new_tree.plot_length + (float(plot_length_in) / 12)
         plot_type = self.cleaned_data.get('plot_type')
         if plot_type:
             new_tree.plot_type = plot_type
@@ -135,13 +151,19 @@ class TreeAddForm(forms.Form):
                 tree = new_tree)
             ts.save()
         dbh = self.cleaned_data.get('dbh')
+        dbh_type = self.cleaned_data.get('dbh_type')
+        print dbh_type
         if dbh:
+            if dbh_type == 'circumference':
+                dbh = dbh / math.pi;
+                print dbh
             ts = TreeStatus(
                 reported_by = request.user,
                 value = dbh,
                 key = 'dbh',
                 tree = new_tree)
             ts.save()
+            print ts
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:
             ts = TreeStatus(

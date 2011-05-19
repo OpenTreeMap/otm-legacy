@@ -38,7 +38,7 @@ var tm_icons = {
     focus_tree : '/static/images/map_icons/v4/marker-selected.png',
     marker : '/static/openlayers/img/marker.png'
     };
-
+var tm_urls = {};
 var tm = {
     speciesData: null,
     speciesDataListeners: [],
@@ -55,6 +55,16 @@ var tm = {
     maxExtent : null,
     clckTimeOut : null,
     locations: null,
+
+    map_center_lon: null,
+    map_center_lat: null,
+    start_zoom: null,
+    add_zoom: null,
+    initial_location_string: "",
+    initial_species_string: "",
+
+    google_bounds: null,
+
     tree_columns_of_interest : {
         'address_street' : true,
         'id' : false,
@@ -124,7 +134,7 @@ var tm = {
         $("#location_search_input").blur(function(evt) {
             if (!this.value) {
                 $("#location_search_input").val("");
-                $(this).val("Address, City, State");
+                $(this).val(tm.initial_location_string);
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
@@ -135,7 +145,7 @@ var tm = {
         $("#species_search_input").blur(function(evt) {
             if (!this.value) {
                 $("#species_search_id").val("");
-                $(this).val("All trees");
+                $(this).val(tm.initial_species_string);
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
@@ -149,11 +159,11 @@ var tm = {
         });
         $("#location_go").click(function(evt) {
             if ($('body')[0].id == "results") {
-                if ($("#location_search_input")[0].value && $("#location_search_input").val() != "Address, City, State") {
+                if ($("#location_search_input")[0].value && $("#location_search_input").val() != tm.initial_location_string) {
                 //if ($("#location_search_input")[0].value ) {
                     tm.handleSearchLocation($("#location_search_input")[0].value);
                 } else {
-                    $("#location_search_input").val("Address, City, State");
+                    $("#location_search_input").val(tm.initial_location_string);
                     delete tm.searchParams['location'];
                     delete tm.searchParams['geoName']
                     tm.updateSearch();
@@ -189,7 +199,7 @@ var tm = {
         }
         function triggerSearch() {
             var q = $.query.empty();
-            if ($("#location_search_input").val() != "Address, City, State") { 
+            if ($("#location_search_input").val() != tm.initial_location_string) { 
                 q = q.set("location", $("#location_search_input").val());
             }
             if ($("#species_search_id").val()) {
@@ -296,7 +306,7 @@ var tm = {
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
                 $("#species_search_id").val("");
-                $(this).val("All trees");
+                $(this).val(tm.initial_species_string);
                 delete tm.searchParams['species'];
             }    
         });
@@ -923,8 +933,8 @@ var tm = {
                    '<div id="max_tree_infowindow">Loading ...</div>',
                    tm.tree_detail_marker.icon,
                    true);
-                popup.minSize = new OpenLayers.Size(400,200);
-                popup.maxSize = new OpenLayers.Size(400,450);
+                popup.minSize = tm.popup_minSize;
+                popup.maxSize = tm.popup_maxSize;
                 popup.autoSize = true;
                 popup.panMapIfOutOfView = true;
                 tm.map.addPopup(popup, true);
@@ -1723,7 +1733,7 @@ var tm = {
     },
     editDiameter: function(field, diams) {
         tm.editingDiameter = true;
-        if (diams = "None") {diams=[];}        
+        if (diams == "None") {diams=[];}        
         var diams = tm.currentTreeDiams || diams;
         var html = '';
         tm.currentDiameter = $(field).html();
@@ -1737,7 +1747,7 @@ var tm = {
             html += "<br />";
         }
         tm.currentTreeDiams = diams.length ? diams : [0];
-        html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Another trunk?</a></span> <br />";
+        html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Add another trunk?</a></span> <br />";
         html += "<span class='activeEdit'>";
         html += "<button type='submit' onclick='tm.saveDiameters(); return false;'>Save</button>";
         html += "<button type='submit' onclick='tm.cancelDiameters(); return false;'>Cancel</button>";
@@ -2101,6 +2111,58 @@ $.editable.addInputType('date', {
         });
         $("#day_", this).children().each(function() {
             if (day == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+    }
+});
+$.editable.addInputType('feetinches', {
+    element : function(settings, original) {       
+        var footselect = $('<select id="feet_">');
+        var inchselect  = $('<select id="inches_">');
+    
+        /* Month loop */
+        for (var foot=1; foot <= 15; foot++) {
+            var option = $('<option>').val(foot).append(foot);
+            footselect.append(option);
+        }
+        $(this).append(footselect);
+
+        /* Day loop */
+        for (var inch=0; inch <= 11; inch++) {
+            var option = $('<option>').val(inch).append(inch);
+            inchselect.append(option);
+        }
+        $(this).append(inchselect);
+            
+        
+        $(this).append("<br><span>Feet</span><span style='padding-left:30px;'>Inches</span><br><div style='color:red;' id='dateplanted_error'/>")
+        
+        /* Hidden input to store value which is submitted to server. */
+        var hidden = $('<input type="hidden">');
+        $(this).append(hidden);
+        return(hidden);
+    },
+    submit: function (settings, original) {
+        var vfeet = parseFloat($("#feet_").val());
+        var vinch = parseFloat($("#inches_").val());
+        
+        var value = vfeet + (vinch / 12)
+        $("input", this).val(value);
+    },
+    content : function(string, settings, original) {
+        var pieces = parseFloat(string);
+        var ft = Math.floor(pieces);
+        var inch = Math.round((pieces - ft) * 12);
+        
+
+        $("#feet_", this).children().each(function() {
+            if (ft == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#inches_", this).children().each(function() {
+            if (inch == $(this).val()) {
                 $(this).attr('selected', 'selected');
             }
         });

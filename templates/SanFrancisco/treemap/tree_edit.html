@@ -46,7 +46,7 @@
     <tr>
     	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ instance.current_dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{instance.current_dbh}}'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.current_dbh}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
 	<tr>
@@ -59,32 +59,6 @@
                 }
             });</script>
     </tr> 
-	<tr>
-    	<td class="col1 activeEditRowLabel">Canopy height (feet)</td>
-        <td class="activeEditRowValue" id="edit_canopy_height">{{ instance.get_canopy_height|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_canopy_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("canopy_height", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }
-            });</script>
-    </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">Street</td>
-        <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
-    </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_city').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("address_city", "Tree", {{instance.id}});</script>
-    </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip|default:"Click to edit" }}</td>
-    </tr>
     <thead>
     	<tr>
         	<th scope="col" colspan="4">Environment</th>
@@ -94,25 +68,26 @@
         	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
             <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|default:"Click to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_length').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("plot_length", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("plot_length", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
             <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|default:"Click to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("plot_width", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("plot_width", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
-	<tr>
+
     	<td class="col1 activeEditRowLabel">Plot type</td>
         <td class="activeEditRowValue" id="edit_plot_type">{{ instance.get_plot_type_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_type').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("plot_type", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/plot_type/'});</script>
     </tr> 
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">Status</th>
-        </tr>
-    </thead>
+	<tr>
+    	<td class="col1 activeEditRowLabel">Is there a powerline overhead?</td>
+        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ instance.get_powerline_conflict_potential_display|yesno:"Yes,No,Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("powerline_conflict_potential", "Tree", {{instance.id}}, {'type':'select', 'data': '{true: "Yes", false: "No", "None": "Unknown"}'});</script>
+    </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
         <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ instance.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
@@ -123,6 +98,11 @@
                 }, 'type':'select', 'loadurl':'choices/sidewalk_damage/'
             });</script>
     </tr>
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Status</th>
+        </tr>
+    </thead>
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree condition</td>
         <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition|default:"Click to edit"  }}</td>
@@ -133,17 +113,6 @@
                 }, 'type':'select', 'loadurl':'choices/condition/'
             });</script>
     </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">Canopy condition</td>
-        <td class="activeEditRowValue" id="edit_canopy_condition">{{ instance.get_canopy_condition|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_canopy_condition').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("canopy_condition", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/canopy_condition/'
-            });</script>
-        </tr>
-
 	    <tr>
         	<td class="col1 activeEditRowLabel">Actions</td>
             <td colspan="2" class="activeEditRowValue" id="edit_actions"><span id="actionCount">{{ instance.treeaction_set.count }} </span> actions <span class="viewAddSep"><a href="#" onclick="$('#actionList').show();tm.newAction(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add actions{% else %}Add an action{% endif %}</a></span></td>
@@ -218,12 +187,6 @@
           </script>
         </td>
     </tr>  
-	<tr>
-    	<td class="col1 activeEditRowLabel">Is there a powerline overhead?</td>
-        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ instance.get_powerline_conflict_potential_display|yesno:"Yes,No,Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("powerline_conflict_potential", "Tree", {{instance.id}}, {'type':'select', 'data': '{true: "Yes", false: "No", "None": "Unknown"}'});</script>
-    </tr>
 
     <input id="id_geometry" type="hidden"/>
     </tbody>

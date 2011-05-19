@@ -220,6 +220,11 @@ input.button {
     font-size:12px;
 }
 
+#feet_, #inches_ {
+    width:50px;
+    margin-right:20px;
+}
+
 
 /* MAP MARKER HOVER */
 .olLayerDiv div {

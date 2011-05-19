@@ -382,8 +382,8 @@ class Tree(models.Model):
     powerline_conflict_potential = models.NullBooleanField(
         help_text = "Are there overhead powerlines present?",null=True, blank=True)
     present = models.BooleanField(default=True)
-    plot_width = models.IntegerField(null=True, blank=True)
-    plot_length = models.IntegerField(null=True, blank=True) 
+    plot_width = models.FloatField(null=True, blank=True)
+    plot_length = models.FloatField(null=True, blank=True) 
     plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
@@ -848,8 +848,8 @@ class TreeStatus(TreeItem):
     
     def save(self,*args,**kwargs):
         #fix up tree if we got a new dbh
-        self.tree.update_dbh()
         super(TreeStatus, self).save(*args,**kwargs) 
+        self.tree.update_dbh()
 
        
 class ResourceSummaryModel(models.Model):
