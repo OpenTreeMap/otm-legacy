@@ -1,0 +1,15 @@
+{% extends "template_3.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Flag this comment" %}{% endblock %}
+
+{% block left_panel %}
+<h2>{% trans "Flag this comment for inappropriate content?" %}</h2>
+  <blockquote>{{comment.user.username}} said: {{ comment.comment|linebreaks }}</blockquote>
+  <form action="." method="post">{% csrf_token %}
+    <input type="hidden" name="next" value="/trees/{{ comment.object_pk }}" id="next" />
+    <p class="submit">
+    <input type="submit" name="submit" value="{% trans "Flag" %}" /> or <a href="{{ comment.get_absolute_url }}">cancel</a>
+    </p>
+  </form>
+{% endblock %}

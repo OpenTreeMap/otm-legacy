@@ -1,0 +1,25 @@
+{% extends "template_3.html" %}
+
+{% block title %}Urban Forest Map - {{ flatpage.title }} {% endblock %}
+
+{% block left_panel %}
+<div id="register">
+    
+	<h1>{{ flatpage.title }} <!-- <span class="note">(If it's bold it's required)</span> --></h1>
+    
+    <div id="flatcontent">
+        {{ flatpage.content }}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block right_panel %}
+                            <div id="calloutContainer">
+                                <h2>Your turn</h2>
+                                <p>Our database of trees comes from public records and citizen foresters like you. <a href="/trees/add/">Add a tree today and help us grow!</a></p>
+                            </div>
+{% endblock %}
+
+{% block callout %}
+{% endblock %}

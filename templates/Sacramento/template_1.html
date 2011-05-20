@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block body_load %}  {% endblock %}
+
+{% block tophead %}
+    <script src="http://dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2"></script>
+    <script type="text/javascript" src="/static/openlayers/proj4js-compressed.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG102100.js"></script>
+	<script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
+	<script type="text/javascript" src="/static/openlayers/OpenLayers.js"></script>
+	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+{% endblock %}
+{% block extrahead %}
+<script type="text/javascript">
+    jQuery().ready(function() {
+        tm_urls.tc_url = '{{ TC_URL }}'
+        {% comment %}
+        //tm.neighborhoods = {{ neighborhoods|safe }};
+        //tm.districts = {{ districts|safe }};
+        {% endcomment %}
+        {% block extra_onready %}
+        {% endblock %}
+     });
+</script>
+{% endblock %}
+
+{% block content %}
+    
+        <div class="content">
+         <div id="displayResults" style="display:none;"><img src="/static/images/v2/indicator_lg2.gif" width="80" height="80" /><p>Loading...</p></div>
+        	<div id="t1_top_content">
+	            {% block top_content %}
+                    {% block heading %}
+                    {% endblock heading %}
+	                <div id="t1_top_left_panel">
+	                    {% block top_left_panel %}
+	                    {% endblock top_left_panel %}
+	                </div>
+	                
+	                <div id="t1_top_right_panel">
+	                    {% block top_right_panel %}
+	                    {% endblock top_right_panel %}
+	                </div>
+	            {% endblock top_content %}
+			</div>
+		</div>
+		
+        <div id="content">
+            <div id="t1_bottom_content">
+                {% block bottom_content %}
+                    <div class="twocolumns"> 
+                        <div id="t1_bottom_left_panel">
+                            {% block bottom_left_panel %}
+                            {% endblock bottom_left_panel %}
+                        </div>
+                        
+                        <div id="t1_bottom_right_panel">
+                            {% block bottom_right_panel %}
+                            {% endblock bottom_right_panel %}
+                        </div>
+                    </div>
+
+                {% endblock bottom_content %}    
+            </div>
+        </div>
+    
+    
+{% endblock %}
+
+

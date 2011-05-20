@@ -1,0 +1,127 @@
+{% extends "infowindow.html" %}
+
+{% block tophead %}
+<script type="text/javascript">
+    jQuery().ready(function() {
+
+    // copied from treemap.js because I don't know how to access from here
+    function add_favorite_handlers(base_create, base_delete) {
+        $('a.favorite.fave').live('click', function(e) {
+            var pk = $(this).attr('id').replace('favorite_', '');
+            var url = base_create + pk + '/';
+            $.getJSON(url, function(data, textStatus) {
+                $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as Favorite');
+            });
+            return false;
+        });
+        $('a.favorite.unfave').live('click', function(e) {
+            var pk = $(this).attr('id').replace('favorite_', '');
+            var url = base_delete + pk + '/';
+            $.getJSON(url, function(data, textStatus) {
+                $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
+            });
+            return false;
+        });
+        }  
+    
+    add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+    });    
+</script>
+{% endblock %}
+
+{% block left_panel %}
+<table class="box-table-c">
+    <!-- Do we really need this header? -->
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Quick view</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+    	<tr>
+        	<td class="col1">Species name</td>
+            <td><i>{{ tree.get_scientific_name }}</i></td>
+        </tr>
+        <tr>
+        	<td class="col1">Common name</td>
+            <td>{{ tree.species.common_name }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Tree number</td>
+            <td>#{{ tree.id }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Nearby address</td>
+            <td>{{ tree.address_street }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Trunk diameter</td>
+            <td>{{ tree.current_dbh|default:"Unknown" }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Last updated</td>
+            <td>{{ tree.last_updated|date }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Alerts</td>
+            <td>
+            {% if tree.treealert_set.all.count > 0 %}
+                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
+            {% else %}
+                No Alerts
+            {% endif %}
+            </td>
+        </tr>
+{% comment %}
+        <tr>
+        	<td class="col1">Height</td>
+            <td>{{ tree.get_height|default:"Unknown" }}</td>
+        </tr>
+        <tr>
+        	<td class="col1">Condition</td>
+            <td>{{ tree.get_condition|default:"Unknown" }}</td>
+        </tr>
+{% endcomment %}
+        <tr>
+        	<td class="col1">Yearly eco impact</td>
+            <td>{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</td>
+        </tr>
+    </tbody>
+</table>
+    
+{% endblock %}
+
+
+{% block right_panel %}
+
+<ul id="optionList">
+	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
+	<li id="note">Tree's profile page</li>
+	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
+	<li id="note">Tree's edit page</li>
+    {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
+    {% if user.is_authenticated %}
+
+    <li id="fav">
+
+        {% if favorite %}
+            Favorited (<a href="#" id="favorite_{{ tree.id }}" class="favorite fav unfave">Unfavorite</a>)
+        {% else %}
+            <a href="#" id="favorite_{{ tree.id }}"
+             class="favorite fav fave">Add as favorite</a>
+            {% if tree.treefavorite_set.all.count %}
+                ({{tree.treefavorite_set.all.count}} others have)
+            {% endif %}
+        {% endif %}
+
+    </li>
+    {% endif %}
+	<!-- TODO -->
+	<!--
+	<li id="email"><a href="#">Email to a friend</a></li>
+	<li id="twitter"><a href="#">Tweet this tree</a></li>
+	-->
+</ul>
+
+{% endblock %}

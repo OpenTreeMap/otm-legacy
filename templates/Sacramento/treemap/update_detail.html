@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block body_load %}onload=tm.init_sidebar_map('tree',{{record.tree.id}}){% endblock %}>  
+
+{% block tophead %}
+    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script>
+{% endblock %}
+
+{% block extra_left_sidebar %}
+    <div id="sidebar_map"></div>
+{% endblock %}
+
+
+{% block content %}
+<h3> Maintenance Record {{record.id}}</h3>
+    date : {{record.date}}<br>
+    reporter : {{record.reporter}}<br>
+    type : {{record.type}}<br>
+    comments : {{record.comments}}<br>
+    <br><br>
+    Tree (<a href="{% url treemap_tree_detail record.tree.id %}">details</a>):<br>
+    - Species: {{record.tree.species}}<br>
+    - Address: {{record.tree.address_street}},{{record.tree.address_city}}<br>
+    - DBH: {{record.tree.dbh}}
+     
+    
+
+{% endblock %}
+

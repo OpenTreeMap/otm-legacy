@@ -1,0 +1,10 @@
+[{% for j in json %}
+ {
+ {% for k,v in j.items %}
+  {% ifequal k "id" %}'{{k}}':{{v}} {% endifequal %}
+  {% ifnotequal k "id" %}'{{k}}':{{v|floatformat:5}} {% endifnotequal %}
+{% if not forloop.last %},{% endif %}
+ {% endfor %}
+ }
+{% if not forloop.last %},{% endif %}
+{% endfor %}]

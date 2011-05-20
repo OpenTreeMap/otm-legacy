@@ -1,0 +1,160 @@
+<div id="announceHeader">
+    		<b>We're in beta!</b> Please <a href="http://www.surveymonkey.com/s/HS8JFV6" target="_new">fill out our survey</a> or use our feedback button.
+    	</div>
+    	<div id="header">
+            <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
+            <ul id="nav">
+                <li>
+                    {% if user.is_authenticated %}
+                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span>
+                    {% else %}
+                        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+        
+<!-- end: header -->
+
+<!-- start: search box -->
+        
+        <div id="searchBox">
+            <div id="searchBoxContainer">
+                <ul id="searchTitles">
+                    <li id="searchSpecies"><img src="/static/images/SanFrancisco/v2/search_species.gif" width="300" alt="Species or common name" /></li>
+                    <li id="searchLocation"><img src="/static/images/SanFrancisco/v2/search_location.gif" width="120" alt="Location" /></li>
+                </ul>
+                <ul id="searchBoxes">
+                <form method="get" action="/map/" name="address" class="address" id="search_form">
+                    <li id="searchSpeciesBox">
+                      <input type="text"  id="species_search_input" value="All trees"
+                       onFocus='if (this.value == "All trees") { this.value=""; };' />
+                      <input type='hidden' name='species_search_id' id="species_search_id" />
+                      <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+                    </li>
+                    <li id="searchJoiner">near</li>
+                    <li id="searchLocationBox"><input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="San Francisco, CA" />
+</li>
+                    <li id="searchButton"><input class="go" type="submit" value="Search San Francisco" /></li>
+                </form>
+                </ul>
+                <ul id="searchSuggest">
+                    <li id="searchSpeciesSuggest">Examples: 
+                    
+                        <a onclick='$("#species_search_input").val("Monterey Pine"); $("#species_search_id").val("PIRA2"); $("#species_search_id").change();  return false' href="#">Monterey Pine</a> 
+                        or <a onclick='$("#species_search_input").val("Cupressus macrocarpa"); $("#species_search_id").val("CUMA2"); $("#species_search_id").change(); return false' href="#">Cupressus macrocarpa</a>
+                    
+                    </li>
+                    
+                    <li id="searchLocationSuggest">Examples: 
+                    
+                        <a onclick='$("#location_search_input").val("210 Columbus Ave."); $("#location_search_input").change(); return false;' href="#">210 Columbus Ave</a>, 
+                        <a onclick='$("#location_search_input").val("North Beach"); $("#location_search_input").change(); return false;' href="#">North Beach</a>,
+                        <a onclick='$("#location_search_input").val("94133"); $("#location_search_input").change(); return false;' href="#">94133</a>
+                    </li>
+                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/SanFrancisco/v2/arrow1.gif" /></a> </li>
+                </ul>
+            </div>
+        </div>
+
+        
+              
+                <div class="filter-box" style="display:none"> 
+                    <div class="wrap"> 
+                        <div class="parameter"> 
+                            <ul> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Diameter</strong> 
+                                        <em><span id="min_diam">0</span> inches - <span id="max_diam">50</span> inches</em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="diameter_slider"></div>
+                                </li> 
+
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Plant Date</strong> 
+                                        <em><span id="min_planted">1700</span> - 
+                                        <span id="max_planted">2010</span></em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="planted_slider"></div>
+                                </li> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Last Tree Update</strong> 
+                                        <em><span id="min_updated">0</span> - 
+                                        <span id="max_updated">365</span></em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="updated_slider"></div>
+                                </li> 
+
+                            </ul> 
+                        </div> 
+                        <form action="#" class="options"> 
+                            <fieldset> 
+                                <div class="characteristics"> 
+                                    <strong>Characteristics</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="flowering" /> 
+                                            <label for="flowering">Flowering</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="color" /> 
+                                            <label for="color">Fall color</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="edible" /> 
+                                            <label for="edible">Edible (fruits/nuts)</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="native" /> 
+                                            <label for="native">Native to region</label> 
+                                        </li> 
+                                        <!-- does not appear to be possible to query -->
+                                        <!--<li> 
+                                            <input type="checkbox" id="performer" /> 
+                                            <label for="performer">High Performer</label> 
+                                        </li>--> 
+                                    </ul> 
+                                </div> 
+                                <div class="project_trees"> 
+                                    <strong>Project trees</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="carbon" /> 
+                                            <label for="carbon">San Francisco Carbon Fund</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="gleaning" /> 
+                                            <label for="gleaning">Fruit Gleaning Project</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="landmark" /> 
+                                            <label for="landmark">San Francisco Landmark</label> 
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                                <div class="outstanding"> 
+                                    <strong>Missing Data</strong> 
+                                    <ul> 
+                                        {% comment %}
+                                        <li> 
+                                            <input type="checkbox" id="correct" /> 
+                                            <label for="correct">Correct Location</label> 
+                                        </li> 
+                                        {% endcomment %}
+                                        <li> 
+                                            <input type="checkbox" id="missing_species" /> 
+                                            <label for="missing">Species</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_diameter" /> 
+                                            <label for="diameter">Trunk diameter</label> 
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                            </fieldset> 
+                        </form> 
+                    </div> 
+                </div> 

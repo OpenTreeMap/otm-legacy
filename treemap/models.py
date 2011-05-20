@@ -109,23 +109,14 @@ class Choices(models.Model):
             else:
                 raise Exception("Invalid key type %r" % c.key_type)
 
-            #TODO: Figure out why we need both! The 2. works for status, 1. for all else
             li[c.key] = c.value
-            #if key is not None:
-                #li[key] = c.value
         return li.items()
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
 choices = Choices()
     
-STATUS_CHOICES = {
-        "sidewalk_damage": Choices().get_field_choices('sidewalk_damage'),
-        "plot_type": Choices().get_field_choices('plot'),
-        "powerline_conflict_potential": choices.get_field_choices('bool_set'),
-        "condition": Choices().get_field_choices('condition'),
-        "canopy_condition": Choices().get_field_choices('canopy_condition'),
-    }
+
 
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
@@ -815,6 +806,14 @@ class TreeAction(TreeItem):
 
     history = audit.AuditTrail()
         
+STATUS_CHOICES = {
+    "sidewalk_damage": choices.get_field_choices('sidewalk_damage'),
+    "plot_type": choices.get_field_choices('plot'),
+    "powerline_conflict_potential": choices.get_field_choices('bool_set'),
+    "condition": choices.get_field_choices('condition'),
+    "canopy_condition": choices.get_field_choices('canopy_condition'),
+}
+
 class TreeStatus(TreeItem):
     """
     status of attributes that we want to track changes over time.
@@ -931,4 +930,4 @@ class AggregateSupervisorDistrict(AggregateSummaryModel):
 class AggregateZipCode(AggregateSummaryModel):
     location = models.OneToOneField(ZipCode, related_name='aggregates')
     
-import meta_badges
+#import meta_badges
