@@ -81,10 +81,10 @@ def home_feeds(request):
     
     feeds['recent_edits'] = unified_history(recent_trees, recent_status, recent_flags)
     feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
-    feeds['species'] = Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')[0:4]
+    feeds['species'] = Species.objects.order_by('-tree_count')[0:4]
     
     #TODO: change from most populated neighborhood to most updates in neighborhood
-    feeds['active_nhoods'] = Neighborhood.objects.annotate(num_trees=Count('tree')).order_by('-num_trees')[0:6]
+    feeds['active_nhoods'] = Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]
     
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 
@@ -242,7 +242,7 @@ def species(request, selection='all', format='html'):
         species = Species.objects.all().order_by('common_name')
     
     if format == 'json':
-        res = [{"symbol":str(x.accepted_symbol or ''), 
+        res = [{"symbol":str(x.symbol or ''), 
                  "cname":str(x.common_name or ''),
                  "cultivar":str(x.cultivar_name or ''),
                  "sname":str(x.scientific_name or x.genus),
@@ -826,7 +826,7 @@ def _build_tree_search_result(request):
     species = Species.objects.filter(tree_count__gt=0)
     max_species_count = species.count()
     
-    species_criteria = {'species' : 'accepted_symbol',
+    species_criteria = {'species' : 'symbol',
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
@@ -860,11 +860,8 @@ def _build_tree_search_result(request):
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
                 ns = ns.filter(geometry__contains=pt)
-            if ns.count():
-                if ns[0].name == 'Philadelphia':
-                    trees = trees.filter(neighborhood__city='Philadelphia')
-                else:                 
-                    trees = trees.filter(neighborhood = ns[0])
+            if ns.count():          
+                trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
         else:
             z = ZipCode.objects.filter(zip=loc)

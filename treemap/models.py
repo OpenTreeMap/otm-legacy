@@ -290,9 +290,9 @@ class Species(models.Model):
         &dsp_frut_seed_abund_cd=on&dsp_frut_seed_start_cd=on&dsp_frut_seed_end_cd=on
         &dsp_frut_body_suit_ind=on&dsp_palat_human_ind=on&Synonyms=all&viewby=sciname  
     """
-    accepted_symbol = models.CharField(max_length=255, null=True, blank=True) #change to iTree symbol
-    synonym_symbol = models.CharField(max_length=255, null=True, blank=True)
     symbol = models.CharField(max_length=255)
+    alternate_symbol = models.CharField(max_length=255, null=True, blank=True) 
+    itree_code = models.CharField(max_length=255, null=True, blank=True)
     scientific_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True) #sometimes we just have genus/cultivar combo
