@@ -7,7 +7,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 DEFAULT_FROM_EMAIL= 'contact@phillytreemap.org'
-CONTACT_EMAILS = ['cbrittain@azavea.com']
+CONTACT_EMAILS = ['phillytreemap@pennhort.org']
 EMAIL_MANAGERS = False
 
 EMAIL_HOST = 'postoffice.dca.net'

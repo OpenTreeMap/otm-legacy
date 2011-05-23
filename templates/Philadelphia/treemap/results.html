@@ -92,15 +92,23 @@
 				</div>
             </div>
 
-			<div id="export">
+			<div id="export_search" class="export">
 					<ul>					
-						<li id="title">Export options:</li>
+						<li id="title">Export this search:</li>
 						<li id="firstOption">
 						<a id="kml_link" target="_blank" href="/search/kml/">KML</a></li>
 						<li><a id="csv_link" target="_blank" href="/search/csv/">CSV</a></li>
                         {% comment %}<li><a id="shp_link" target="_blank" href="/search/shp/">Shapefile</a></li>{% endcomment %}
 					</ul>
-				 </li>
+			 </div>
+            <div id="export_all" class="export">
+					<ul>					
+						<li id="title">Export all trees:</li>
+						<li id="firstOption">
+						<a id="kml_link" target="_blank" href="/export/kmz">KMZ</a></li>
+						<li><a id="csv_link" target="_blank" href="/export/csv">CSV</a></li>
+                        {% comment %}<li><a id="shp_link" target="_blank" href="/search/shp/">Shapefile</a></li>{% endcomment %}
+					</ul>
 			 </div>
         {% endblock %}
 

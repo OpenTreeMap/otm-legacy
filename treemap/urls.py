@@ -15,6 +15,8 @@ urlpatterns = patterns('',
     (r'^home/feeds/$', home_feeds),
     (r'^robots.txt/$', static, {'template':'robots.txt'}),
     
+    (r'^export/csv$', get_all_csv),
+    (r'^export/kmz$', get_all_kmz),
     
     (r'^map/$', result_map),
     

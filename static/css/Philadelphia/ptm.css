@@ -1751,7 +1751,7 @@ ul#resultsContainer li#totals ul li#first .reset_search  a {
 	text-decoration: underline;
 }
 
-ul#resultsContainer li#export {
+ul#resultsContainer li#export_search, ul#resultsContainer li#export_all {
 	float:right;
 	width:300px;
 	text-align:right;
@@ -1763,24 +1763,24 @@ ul#resultsContainer li#export {
 	float:right;
 }
 
-#export {margin-top: 15px; float: right;}
-#export ul {
+.export {margin-top: 15px; float: right; clear:both;}
+.export ul {
     margin:0;
     padding:0;
 }
-#export ul li {
+.export ul li {
     display:inline;
     list-style-type: none;
     padding:0 0 0 5px;
     margin:0;
     border-left:1px solid #ccc;
 }
-#export ul li#title {
+.export ul li#title {
     font-weight: bold;
     border:0;
 	padding: 0;
 }
-#export ul li#firstOption {
+.export ul li#firstOption {
     border:0;
 }
 

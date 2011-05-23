@@ -513,10 +513,10 @@ var tm = {
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , tm.add_zoom);
+            , 9);
             
-        jQuery("#mapHolder").hide();
-        jQuery("#calloutContainer").hide();
+        //jQuery("#mapHolder").hide();
+        //jQuery("#calloutContainer").hide();
         
         tm.geocoder = new google.maps.Geocoder();
         
@@ -1097,7 +1097,7 @@ var tm = {
     },
             
     display_search_results : function(results){
-        $("#export").hide();
+        $("#export_search").hide();
         if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
@@ -1111,7 +1111,7 @@ var tm = {
                 tm.overlay_trees(results.trees);
             }
             if (results.initial_tree_count <= 5000) {
-                $("#export").show();
+                $("#export_search").show();
             }
             if (results.geography) {
                 var geog = results.geography;

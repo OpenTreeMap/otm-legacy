@@ -45,29 +45,16 @@ tm.init_base_map = function(div_id, controls){
         });
     }
     
-//        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
-//            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
-//           {
-//              sphericalMercator: true
-//            }
-//        );
 
-      tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
-        type: VEMapStyle.Shaded,
+   tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
-        animationEnabled: false,
-        numZoomLevels: 18,
-        MAX_ZOOM_LEVEL: 18,
-        MIN_ZOOM_LEVEL: 0
+        numZoomLevels: 18
     });
   
-    tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-        type: VEMapStyle.Hybrid,            
+    tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
+        type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
-        animationEnabled: false, 
-        numZoomLevels: 19,
-        MAX_ZOOM_LEVEL: 19,
-        MIN_ZOOM_LEVEL: 0
+        numZoomLevels: 19
     });
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 

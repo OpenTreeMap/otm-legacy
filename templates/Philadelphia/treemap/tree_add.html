@@ -15,9 +15,12 @@
 {% block body_id %}id="tree_add"{% endblock %}
 
 {% block extrahead %}
+        <script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
+        jQuery("#mapHolder").hide();
+        jQuery("#calloutContainer").hide();        
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {

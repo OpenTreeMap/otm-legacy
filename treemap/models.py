@@ -13,7 +13,6 @@ import logging
 import audit
 
 RESOURCE_NAMES = ['Hydro interception',
-                     'Property Value',
                      'AQ Ozone dep',
                      'AQ NOx dep',
                      'AQ PM10 dep',
@@ -23,16 +22,10 @@ RESOURCE_NAMES = ['Hydro interception',
                      'AQ SOx avoided',
                      'AQ VOC avoided',
                      'BVOC',
-                     'Net VOCs',
                      'CO2 sequestered',
-                     'CO2 Decomp',
-                     'CO2 Maint',
-                     'Net CO2 sequestered',
                      'CO2 avoided',
                      'Natural Gas',
                      'Electricity',
-                     'LSA',
-                     'CPA',
                      'CO2 Storage']
 
 
@@ -173,7 +166,7 @@ class Resource(models.Model):
     meta_species = models.CharField(max_length=150)
     region = models.CharField(max_length=150)
     hydro_interception_dbh = models.TextField()
-    property_value_dbh = models.TextField()
+    #property_value_dbh = models.TextField()
     aq_ozone_dep_dbh = models.TextField()
     aq_nox_dep_dbh = models.TextField()
     aq_pm10_dep_dbh = models.TextField()
@@ -183,25 +176,27 @@ class Resource(models.Model):
     aq_sox_avoided_dbh = models.TextField()
     aq_voc_avoided_dbh = models.TextField()
     bvoc_dbh = models.TextField()
-    net_vocs_dbh = models.TextField()
+    #net_vocs_dbh = models.TextField()
     co2_sequestered_dbh = models.TextField()
-    co2_decomp_dbh = models.TextField()
-    co2_maint_dbh = models.TextField()
-    net_co2_sequestered_dbh = models.TextField()
+    #co2_decomp_dbh = models.TextField()
+    #co2_maint_dbh = models.TextField()
+    #net_co2_sequestered_dbh = models.TextField()
     co2_avoided_dbh = models.TextField()
     natural_gas_dbh = models.TextField()
     electricity_dbh = models.TextField()
-    lsa_dbh = models.TextField()
-    cpa_dbh = models.TextField()
-    dbh_by_age_class_dbh = models.TextField()
+    #lsa_dbh = models.TextField()
+    #cpa_dbh = models.TextField()
+    #dbh_by_age_class_dbh = models.TextField()
     co2_storage_dbh = models.TextField()
     objects = models.GeoManager()
     
-    def get_interpolated_location(self, dbh):
+    def get_interpolated_location(self, dbh, long_list=False):
         """
         return how far along we are along the dbh_list, and interpolated %
         """
         dbh_list = [3.81,11.43,22.86,38.10,53.34,68.58,83.82,99.06,114.30]
+        if long_list:
+            dbh_list = [2.54,5.08,7.62,10.16,12.7,15.24,17.78,20.32,22.86,25.4,27.94,30.48,33.02,35.56,38.1,40.64,43.18,45.72,48.26,50.8,53.34,55.88,58.42,60.96,63.5,66.04,68.58,71.12,73.66,76.2,78.74,81.28,83.82,86.36,88.9,91.44,93.98,96.52,99.06,101.6,104.14,106.68,109.22,111.76,114.3]
         #convert from cm to inches
         dbh_list = [d * 0.393700787 for d in dbh_list]
 
@@ -249,6 +244,7 @@ class Resource(models.Model):
         example: treeobject.species.resource_species.calc_base_resources(['Electricity'], 36.2)
         """
         index, interp = self.get_interpolated_location(dbh)
+        index2, interp2 = self.get_interpolated_location(dbh, True)
         
         #print 'idx,interp',index, interp
         results = {}
@@ -257,11 +253,18 @@ class Resource(models.Model):
             fname = "%s_dbh" % resource.lower().replace(' ','_')
             #get two values of interest - TODO FIX for sketchy eval
             dbhs= (eval(getattr(self, fname)))
-            #start at same list index as dbh_list, and figure out what interp value is here
-            local_interp = float(dbhs[index] - dbhs[index-1]) * interp 
-            #print 'local_interp', local_interp
-            results[fname] = dbhs[index-1] + local_interp
-            #print results[resource]
+            if len(dbhs) > 9:
+                #start at same list index as dbh_list, and figure out what interp value is here
+                local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
+                #print 'local_interp', local_interp
+                results[fname] = dbhs[index2-1] + local_interp2
+                print "long resource"
+            else:
+                #start at same list index as dbh_list, and figure out what interp value is here
+                local_interp = float(dbhs[index] - dbhs[index-1]) * interp 
+                #print 'local_interp', local_interp
+                results[fname] = dbhs[index-1] + local_interp
+                print "short resource"
         return results
         
     def __unicode__(self): return '%s' % (self.meta_species)

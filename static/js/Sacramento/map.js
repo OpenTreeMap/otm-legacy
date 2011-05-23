@@ -5,16 +5,15 @@ var tm_urls = {
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
-tm.map_center_lon = -122.437821;
-tm.map_center_lat = 37.752809;
-tm.start_zoom = 12;
+tm.map_center_lon = -121.607666;
+tm.map_center_lat = 38.6276;
+tm.start_zoom = 9;
 tm.add_zoom = 14;
-tm.initial_location_string = "San Francisco, CA";
+tm.initial_location_string = "Sacramento, CA";
 tm.initial_species_string = "All trees";
-
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.5,-122.6), new google.maps.LatLng(40.0,-122.0));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(38.2,-122.0), new google.maps.LatLng(39.2,-120.8));
 
 tm.init_base_map = function(div_id, controls){
     if (!div_id) {
@@ -23,7 +22,7 @@ tm.init_base_map = function(div_id, controls){
     if (!controls) {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13669424.883684, 4502981.7575163, -13574337.220514, 4576361.3046569), 
+            restrictedExtent: new OpenLayers.Bounds(-13718917.834174, 4517428.3708463, -13338567.181496, 4810946.5594087), 
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:102100"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -37,37 +36,23 @@ tm.init_base_map = function(div_id, controls){
     else {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13669424.883684, 4502981.7575163, -13574337.220514, 4576361.3046569), 
+            restrictedExtent: new OpenLayers.Bounds(-13718917.834174, 4517428.3708463, -13338567.181496, 4810946.5594087), 
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:102100"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: controls
         });
     }
-    
-//        tm.baseLayer = new OpenLayers.Layer.XYZ("ArcOnline", 
-//            "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}.jpg", 
-//           {
-//              sphericalMercator: true
-//            }
-//        );
 
-      tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
-        type: VEMapStyle.Shaded,
+    tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
-        animationEnabled: false,
-        numZoomLevels: 18,
-        MAX_ZOOM_LEVEL: 18,
-        MIN_ZOOM_LEVEL: 0
+        numZoomLevels: 18
     });
   
-    tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-        type: VEMapStyle.Hybrid,            
+    tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
+        type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
-        animationEnabled: false, 
-        numZoomLevels: 19,
-        MAX_ZOOM_LEVEL: 19,
-        MIN_ZOOM_LEVEL: 0
+        numZoomLevels: 19
     });
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 

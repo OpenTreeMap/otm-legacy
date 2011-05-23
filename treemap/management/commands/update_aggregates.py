@@ -16,8 +16,7 @@ class Command(BaseCommand):
         Updates the aggregate tables.  TODO:  don't just overwrite old summaries
         example: update_aggregates(Neighborhood, AggregateNeighborhood)
         """
-        gext = tree_geom.envelope
-        ns = base_model.objects.all()#.filter(geometry__intersects=gext)
+        ns = base_model.objects.all()
         for n in ns:
             print n
             agg =  ag_model.objects.filter(location=n)
@@ -77,7 +76,7 @@ class Command(BaseCommand):
 
     def update_all_aggregates(self, verbose=False):
         tree_geom = models.Tree.objects.all().collect()
-        if not tree_geom: return
+        #if not tree_geom: return
         self.update_aggregates(models.Neighborhood, models.AggregateNeighborhood, tree_geom)
         self.update_aggregates(models.ZipCode, models.AggregateZipCode, tree_geom)
         #cache_search_aggs()

@@ -1,8 +1,8 @@
 import os
 
 #from settings_philadelphia import *
-#from settings_sanfrancisco import *
-from settings_sacramento import *
+from settings_sanfrancisco import *
+#from settings_sacramento import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

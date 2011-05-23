@@ -7,7 +7,9 @@
     {% block extra_onready %}
         //tm.init_map('index_map');    
         //todo less js on the homepage (eg no gmaps stuff?)
-       
+        tm.initial_location_string = "San Francisco, CA";
+        tm.initial_species_string = "All trees";
+
     {% endblock %}
         {% block top_left_panel %}
         <div class="getStarted">

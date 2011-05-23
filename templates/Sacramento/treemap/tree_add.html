@@ -19,6 +19,8 @@
     jQuery().ready(function() {
         tm.init_add_map();
         jQuery("#opt_field_group").hide();
+        //jQuery("#mapHolder").hide();
+        jQuery("#calloutContainer").hide();
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {

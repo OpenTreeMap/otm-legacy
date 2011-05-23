@@ -88,6 +88,18 @@ def home_feeds(request):
     
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 
+def get_all_csv(request):
+    csv_f = open(os.path.join(os.path.dirname(__file__), '../All_Trees.csv'))
+    response = HttpResponse(csv_f, mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=All_Trees.csv'
+    return response
+
+def get_all_kmz(request):
+    csv_f = open(os.path.join(os.path.dirname(__file__), '../All_Trees.kmz'))
+    response = HttpResponse(csv_f, mimetype='application/vnd.google-earth.kmz')
+    response['Content-Disposition'] = 'attachment; filename=All_Trees.kmz'
+    return response
+
 #@cache_page(60*1)
 def result_map(request):
     #top_species = Species.objects.all().annotate(
