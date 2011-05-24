@@ -25,10 +25,9 @@
 {% block left_panel %}
 <div id="register" class="added">
 
-    <h1>Confirmation: The trees have been added </h1>
+    <h1>Recently added trees </h1>
 	<div id="addedTrees">
 {% for tree in trees %}
-
 	<div class="treeHolder {% if forloop.last %} lastTree{% endif %}">
 		<label class="value header">Tree #{{tree.id}}</label>
 		<div class="clearLeft"></div>
@@ -36,9 +35,9 @@
 		<!-- PLACEHOLDER TREE MAP -->
 			<div id="edit_tree_map"></div>
 		<div class="clearLeft"></div>
-		<label class="value">Scientific Name:</label>Lorem Ipsum
+		<label class="value">Scientific Name:</label>{{tree.species.scientific_name|default:"Missing"}}
 		<div class="clearLeft"></div>
-		<label class="value">Common Name:</label>Lorem Ipsum Dolor Sit
+		<label class="value">Common Name:</label>{{tree.species.common_name|default:"Missing"}}
 		<div class="clearLeft"></div>
 		<label class="value">Date Planted:</label>Lorem Ipsum
 		<div class="clearLeft"></div>
@@ -46,7 +45,7 @@
 	</div>
 
 {% empty %}
-    <h1>No trees added today </h1>
+    <h1>No trees added in the last 12 hours. </h1>
 {% endfor %}
 	</div>
 {% endblock %}

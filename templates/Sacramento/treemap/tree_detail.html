@@ -6,6 +6,7 @@
 {% load tree_tags %}
 
 {% block extrahead %}
+        <script type="text/javascript" src="/static/js/map.js"></script>
 <script type="text/javascript">
     jQuery().ready(function() {
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
@@ -110,12 +111,12 @@
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.current_dbh|unit_or_missing:"inches"}}</td>
+            <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree height</td>
-            <td>{{tree.get_height|unit_or_missing:"feet"}}</td>
+            <td>{{tree.height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
         <tr>
@@ -134,7 +135,7 @@
         </tr>
     </thead>
     <tbody>
-{% if tree.species %} {% if tree.current_dbh %}
+{% if tree.species %} {% if tree.dbh %}
         <tr>
         	<td class="col1Wide">Energy conserved</td>
             <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
@@ -210,7 +211,7 @@
     <tbody>
     	<tr>
         	<td class="col1Wide">Tree condition</td>
-            <td>{{tree.get_condition|default:"Missing"}}</td>
+            <td>{{tree.get_condition_display|default:"Missing"}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Alerts</td>
