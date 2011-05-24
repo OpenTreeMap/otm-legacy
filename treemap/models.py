@@ -256,8 +256,8 @@ class Resource(models.Model):
             if len(dbhs) > 9:
                 #start at same list index as dbh_list, and figure out what interp value is here
                 local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
-                #print 'local_interp', local_interp
-                results[fname] = dbhs[index2-1] + local_interp2
+                print 'local_interp', local_interp
+                results[fname] = dbhs[index2-1] + local_interp
                 #print "long resource"
             else:
                 #start at same list index as dbh_list, and figure out what interp value is here
@@ -424,13 +424,13 @@ class Tree(models.Model):
     
     def get_sidewalk_damage_display(self):
         for key, value in Choices().get_field_choices('sidewalk_damage'):
-            if key == self.plot_type:
+            if key == self.sidewalk_damage:
                 return value
         return None    
 
     def get_condition_display(self):
         for key, value in Choices().get_field_choices('condition'):
-            if key == self.plot_type:
+            if key == self.condition:
                 return value
         return None
        

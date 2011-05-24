@@ -808,15 +808,17 @@ def tree_add(request, tree_id = ''):
         'form' : form }))
     
 def added_today_list(request, user_id=None):
-    action = ReputationAction.objects.filter(name='add tree')
     user = None
     twelvehrs = timedelta(hours=12)
     start_date = datetime.now() - twelvehrs
     end_date = datetime.now()
-    trees = UserReputationAction.objects.filter(action=action,date_created__range=(start_date, end_date))
+    new_trees = Tree.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
     if user_id:
         user = User.objects.get(pk=user_id)
-        trees = trees.filter(user=user)
+        new_trees = new_trees.filter(last_updated_by=user)
+    trees = []
+    for tree in new_trees:
+        trees.append(Tree.objects.get(pk=tree.id))
     return render_to_response('treemap/added_today.html', RequestContext(request,{
         'trees' : trees,
         'user': user}))

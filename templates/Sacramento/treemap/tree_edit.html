@@ -45,19 +45,15 @@
     </tr>
     <tr>
     	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
-        <td id="edit_dbh">{{ instance.current_dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.current_dbh}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree height (feet)</td>
-        <td class="activeEditRowValue" id="edit_height">{{ instance.get_height|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_height">{{ instance.height|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("height", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }
-            });</script>
+            <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
     </tr> 
     <thead>
     	<tr>
@@ -92,11 +88,7 @@
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
         <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ instance.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sidewalk_damage", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/sidewalk_damage/'
-            });</script>
+            <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/sidewalk_damage/'});</script>
     </tr>
     <thead>
     	<tr>
@@ -105,13 +97,9 @@
     </thead>
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree condition</td>
-        <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_condition').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("condition", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/condition/'
-            });</script>
+            <script>tm.setupEdit("condition", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/condition/' });</script>
     </tr>
 	    <tr>
         	<td class="col1 activeEditRowLabel">Actions</td>
@@ -150,7 +138,7 @@
     </tr>   
 	<tr>
     	<td class="col1 activeEditRowLabel">Alerts</td>
-        <td colspan="2" class="activeEditRowValue" id="edit_hazards"><span id="hazardCount">{{ instance.treealerts.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
+        <td colspan="2" class="activeEditRowValue" id="edit_hazards"><span id="hazardCount">{{ instance.treealert_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
     </tr>
     <tr>
         <td colspan="3" id="dropSpace">
@@ -162,8 +150,8 @@
                <td><b>Resolved?</b></td>
                <td></td>
              </tr>
-            {% if instance.treealerts.count > 0 %}
-                {% for h in instance.treealerts.all %}
+            {% if instance.treealert_set.count > 0 %}
+                {% for h in instance.treealert_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
