@@ -1802,9 +1802,9 @@ var tm = {
             cssclass:  'activeEdit',
             indicator: '<img src="/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
-            model: 'TreeStatus',
+            model: 'Tree',
             fieldName:  'dbh',
-            extraData: {parent: {'model': 'Tree', 'id': tm.currentTreeId }}
+            objectId: tm.currentTreeId,
 
         };
         tm.updateEditableServerCall(total, editableOptions);

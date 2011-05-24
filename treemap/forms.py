@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto, TreeStatus, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
@@ -42,13 +42,11 @@ class TreeAddForm(forms.Form):
     plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
-    plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot'), required=False)
+    plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot_type'), required=False)
     power_lines = forms.BooleanField(required=False, label='Power lines overhead')
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    action = forms.ChoiceField(choices=Choices().get_field_choices('action'),required=False)
-    alert = forms.ChoiceField(choices=Choices().get_field_choices('alert'), required=False)
     target = forms.ChoiceField(choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done! I want to receive confirmation')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
@@ -58,8 +56,6 @@ class TreeAddForm(forms.Form):
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
             self.fields['condition'].choices.insert(0, ('','Select One...' ) )
             self.fields['canopy_condition'].choices.insert(0, ('','Select One...' ) )
-            self.fields['action'].choices.insert(0, ('','Select One...' ) )
-            self.fields['alert'].choices.insert(0, ('','Select One...' ) )
             self.fields['plot_width'].choices.insert(0, ('','Select Feet...' ) )
             self.fields['plot_width_in'].choices.insert(0, ('','Select Inches...' ) )
             self.fields['plot_length'].choices.insert(0, ('','Select Feet...' ) )
@@ -125,154 +121,35 @@ class TreeAddForm(forms.Form):
         power_lines = self.cleaned_data.get('power_lines')
         if power_lines != "":
             new_tree.powerline_conflict_potential = power_lines
-
+        height = self.cleaned_data.get('height')
+        if height:
+            new_tree.height = height;
+        canopy_height = self.cleaned_data.get('canopy_height')
+        if canopy_height:
+            new_tree.canopy_height = canopy_height
+        dbh = self.cleaned_data.get('dbh')
+        dbh_type = self.cleaned_data.get('dbh_type')
+        if dbh:
+            if dbh_type == 'circumference':
+                dbh = dbh / math.pi;
+            new_tree.dbh = dbh
+        sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
+        if sidewalk_damage:
+            new_tree.sidewalk_damage = sidewalk_damage
+        condition = self.cleaned_data.get('condition')
+        if condition:
+            new_tree.condition = condition
+        canopy_condition = self.cleaned_data.get('canopy_condition')
+        if canopy_condition:
+            new_tree.canopy_condition = canopy_condition
+        
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
         new_tree.import_event = import_event
         
-        #import pdb;pdb.set_trace()
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
         new_tree.geometry = pnt
         new_tree.last_updated_by = request.user
         new_tree.save()
-        height = self.cleaned_data.get('height')
-        if height:
-            ts = TreeStatus(                
-                reported_by = request.user,
-                value = height,
-                key = 'height',
-                tree = new_tree)
-            ts.save()
-        canopy_height = self.cleaned_data.get('canopy_height')
-        if canopy_height:
-            ts = TreeStatus(                
-                reported_by = request.user,
-                value = canopy_height,
-                key = 'canopy_height',
-                tree = new_tree)
-            ts.save()
-        dbh = self.cleaned_data.get('dbh')
-        dbh_type = self.cleaned_data.get('dbh_type')
-        print dbh_type
-        if dbh:
-            if dbh_type == 'circumference':
-                dbh = dbh / math.pi;
-                print dbh
-            ts = TreeStatus(
-                reported_by = request.user,
-                value = dbh,
-                key = 'dbh',
-                tree = new_tree)
-            ts.save()
-            print ts
-        sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
-        if sidewalk_damage:
-            ts = TreeStatus(
-                reported_by = request.user,
-                value = sidewalk_damage,
-                key = 'sidewalk_damage',
-                tree = new_tree)
-            ts.save()
-        condition = self.cleaned_data.get('condition')
-        if condition:
-            ts = TreeStatus(
-                reported_by = request.user,
-                value = condition,
-                key = 'condition',
-                tree = new_tree)
-            ts.save()
-        canopy_condition = self.cleaned_data.get('canopy_condition')
-        if canopy_condition:
-            ts = TreeStatus(
-                reported_by = request.user,
-                value = canopy_condition,
-                key = 'canopy_condition',
-                tree = new_tree)
-            ts.save()
-        alert = self.cleaned_data.get('alert')
-        if alert:
-            ts = TreeAlert(
-                reported_by = request.user,
-                value = datetime.now(),
-                key = alert,
-                solved = False,
-                tree = new_tree)
-            ts.save()
-        action = self.cleaned_data.get('action')
-        if action:
-            ts = TreeAction(
-                reported_by = request.user,
-                value = datetime.now(),
-                key = action,
-                tree = new_tree)
-            ts.save()
         
         return new_tree
-       
-class _TreeAddForm(forms.ModelForm):
-    data_owner = forms.CharField(widget=forms.HiddenInput, required=False)
-    geometry = forms.CharField(required=True)
-    species = forms.CharField(required=True)
-    #species = forms.CharField(required=False)
-
-    def clean_data_owner(self):
-        """
-        generally should be the editing user, but if owner already exists, then keep it as it was
-        """
-        data = self.cleaned_data['data_owner']
-        if data:
-            user = User.objects.get(id=data)
-            return user
-        
-    def clean_geometry(self):
-        print self.cleaned_data['geometry']
-        print self.validate_proximity(False, 0)
-        if self.validate_proximity(False, 0) > 0:
-            raise forms.ValidationError("Too close to another tree.")
-    
-        return self.geometry
-    
-    def clean_species(self):
-        """
-        for a new tree, we're expecting something in the form of: 
-            "Accepted_Symbol,cultivar_name"
-        where cultivar may be blank
-        """
-        data = self.cleaned_data['species']
-        #if not data:
-        #    return
-        if data.isdigit():
-            existing_species = Species.objects.get(id=int(data)) 
-            if existing_species == self.instance.species:
-                print 'species unchanged'
-                return existing_species
-        
-        
-        species,cultivar = data.split(',')
-        result = Species.objects.filter(accepted_symbol=species)
-        
-        if cultivar:
-            result = result.filter(cultivar_name = cultivar)
-        if not result:
-            raise forms.ValidationError("%s is an invalid species" % data)
-        return result[0]
-
-    class Meta:
-        model = Tree
-        fields = (
-        'data_owner',
-        'address_street',
-        'address_city',
-        'address_zip',
-        'geometry',
-        # not required will add in edit_form...
-        #'species',
-        #'condition',
-        #'tree_owner',
-        #'plot_length',
-        #'plot_width',
-        #'plot_type',
-        #'powerline_conflict_potential',
-        )
-
-    def __init__(self, *args, **kwargs):
-        super(TreeAddForm, self).__init__(*args, **kwargs)
+     

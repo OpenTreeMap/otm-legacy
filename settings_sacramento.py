@@ -4,6 +4,7 @@ SITE_LOCATION = 'Sacramento'
 
 #local_settings
 GOOGLE_API_KEY = 'abcdf'
+COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
 
 # must end with trees/ because of odd tilecache deployment issue
 # will be populated with layer name /trees/{layername} dynamically

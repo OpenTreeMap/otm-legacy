@@ -76,10 +76,8 @@ def location_map(request):
 def home_feeds(request):
     feeds = {}
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
-    recent_status = TreeStatus.objects.filter(tree__present=True).order_by("-reported")[0:3]
-    recent_flags = TreeFlags.objects.filter(tree__present=True).order_by("-reported")[0:3]
     
-    feeds['recent_edits'] = unified_history(recent_trees, recent_status, recent_flags)
+    feeds['recent_edits'] = unified_history(recent_trees)
     feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
     feeds['species'] = Species.objects.order_by('-tree_count')[0:4]
     
@@ -131,7 +129,7 @@ def result_map(request):
         min_year = Tree.objects.exclude(date_planted=None).exclude(present=False).order_by("date_planted")[0].date_planted.year
     current_year = datetime.now().year    
 
-    # TODO: Fix this to include updates to treestatus and treeflag objects
+    # TODO: Fix this to include updates to treeflag objects
     min_updated = 0
     max_updated = 0 
     updated = Tree.objects.exclude(last_updated=None, present=False).order_by("last_updated")
@@ -140,10 +138,8 @@ def result_map(request):
         max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
-    recent_status = TreeStatus.objects.filter(tree__present=True).order_by("-reported")[0:3]
-    recent_flags = TreeFlags.objects.filter(tree__present=True).order_by("-reported")[0:3]
 
-    recent_edits = unified_history(recent_trees, recent_status, recent_flags)
+    recent_edits = unified_history(recent_trees)
 
     #TODO return the recent_edits instead
     latest_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
@@ -297,10 +293,8 @@ def trees(request, tree_id=''):
         
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
-        status = TreeStatus.history.filter(tree=trees).order_by('-reported')[:5]
-        flags = TreeFlags.history.filter(tree=trees).order_by('-reported')[:5]
         
-        recent_edits = unified_history(history, status, flags)
+        recent_edits = unified_history(history)
     
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
@@ -324,24 +318,18 @@ def trees(request, tree_id=''):
         return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'recent': recent_edits}))
      
 
-def unified_history(trees, status, flags):
+def unified_history(trees):
     recent_edits = []
     for t in trees:
         recent_edits.append((t.last_updated_by.username, t.last_updated))
-    for s in status:
-        recent_edits.append((s.reported_by, s.reported))
-    for f in flags:
-        recent_edits.append((f.reported_by, f.reported))    
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
+#TODO: Is this used?
 @login_required    
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
-    if type_ in STATUS_CHOICES.keys():
-        choices = STATUS_CHOICES[type_]
-    else:
-        raise Http404
+    choices = Choices().get_field_choices(type_)
     data = SortedDict(choices)
     #for item in choices: 
     #    data[item[0]] = item[1]
@@ -555,6 +543,7 @@ import sys
 @login_required
 @transaction.commit_manually
 @csrf_view_exempt
+#TODO: is this used?
 def multi_status(request):
     if request.method == 'POST':
         if request.META['SERVER_NAME'] == 'testserver':
@@ -753,7 +742,7 @@ def object_update(request):
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
                     print "instance save"
-                    if post['model'] in  ["Tree", "TreeStatus", "TreeAlert", "TreeAction", "TreeFlags"] :
+                    if post['model'] in  ["Tree", "TreeFlags"] :
                         print save_value
                         print request.user.reputation.reputation
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
@@ -911,15 +900,15 @@ def _build_tree_search_result(request):
     ##
     missing_current_dbh = request.GET.get('missing_diameter','')
     if missing_current_dbh:
-        trees = trees.filter(Q(current_dbh__isnull=True) | Q(current_dbh=0))
-        # TODO: What about ones with 0 current_dbh?
+        trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
+        # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
      
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
-        trees = trees.filter(current_dbh__gte=min)
+        trees = trees.filter(dbh__gte=min)
         if max != 50: # TODO: Hardcoded in UI, may need to change
-            trees = trees.filter(current_dbh__lte=max)
+            trees = trees.filter(dbh__lte=max)
     
     if 'planted_range' in request.GET:
         min, max = map(float,request.GET['planted_range'].split("-"))
@@ -1194,29 +1183,19 @@ def verify_edits(request, audit_type='tree'):
     changes = []
     trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
     newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
-    treestatus = TreeStatus.history.filter(tree__present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     treeactions = []
-    treeflags = []
-    if (request.user.reputation.reputation >= 1000):
-       treeflags = TreeFlags.history.filter(tree__present=True).filter(_audit_change_type__exact='U').filter(_audit_verified__exact=0)
     
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         trees = trees.filter(last_updated_by__in=u)
         newtrees = newtrees.filter(last_updated_by__in=u)
-        treestatus = treestatus.filter(reported_by__in=u)
-        treeflags = treeflags.filter(reported_by__in=u)
     if 'address' in request.GET:
         trees = trees.filter(address_street__icontains=request.GET['address'])
         newtrees = newtrees.filter(address_street__icontains=request.GET['address'])
-        treestatus = treestatus.filter(tree__address_street__icontains=request.GET['address'])
-        treeflags = treeflags.filter(tree__address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])
         trees = trees.filter(neighborhood=n)
         newtrees = newtrees.filter(neighborhood=n)
-        treestatus = treestatus.filter(tree__neighborhood=n)
-        treeflags = treeflags.filter(tree__neighborhood=n)
     
     
     for tree in trees:
@@ -1246,41 +1225,6 @@ def verify_edits(request, audit_type='tree'):
             'change_description': 'New Tree',
             'change_id': tree._audit_id,
             'type': 'tree'
-        })
-    for status in treestatus:
-        species = 'no species name'
-        if status.tree.species:
-            species = status.tree.species.common_name
-        
-        diff = simplejson.JSONDecoder().decode(status._audit_diff)
-        diff_no_old = {}
-        for key in diff:
-            if not key == 'old_key':
-                diff_no_old[key] = diff[key]
-        changes.append({
-            'id': status.tree.id,
-            'species': species,
-            'address_street': status.tree.address_street,
-            'last_updated_by': status.reported_by,
-            'last_updated': status.reported,
-            'change_description': diff_no_old,
-            'change_id': status._audit_id,
-            'type': 'status'
-        })
-    for flags in treeflags:
-        species = 'no species name'
-        if flags.tree.species:
-            species = flags.tree.species.common_name
-
-        changes.append({
-            'id': flags.tree.id,
-            'species': species,
-            'address_street': flags.tree.address_street,
-            'last_updated_by': flags.reported_by,
-            'last_updated': flags.reported,
-            'change_description':  clean_diff(flags._audit_diff),
-            'change_id': flags._audit_id,
-            'type': 'flag'
         })
         
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
@@ -1336,15 +1280,11 @@ def user_rep_changes(request):
             user = User.objects.get(pk=user_id['user'])
             user_date_newtrees = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='I', _audit_timestamp__range=(start_time, end_time))
             user_date_treeupdate = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='U', _audit_timestamp__range=(start_time, end_time)).exclude(_audit_diff__exact='')
-            user_date_treestatusupdate = TreeStatus.history.filter(tree__present=True, reported_by=user, _audit_change_type__exact='U',_audit_timestamp__range=(start_time, end_time))
-            user_date_treeflagsupdate = TreeFlags.history.filter(tree__present=True, reported_by=user, _audit_change_type__exact='U', _audit_timestamp__range=(start_time, end_time))
-
+            
             aggs.append({
                 'user':user.username, 
                 'new':user_date_newtrees.count(), 
                 'update': user_date_treeupdate.count(), 
-                'status': user_date_treestatusupdate.count(),
-                'flags': user_date_treeflagsupdate.count(),
                 'date':date
             })
     return render_to_response('treemap/rep_changes.html',RequestContext(request,{'rep':aggs}))
@@ -1357,10 +1297,6 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
         change = Tree.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.last_updated_by_id)
         obj = get_object_or_404(Tree, pk=change.id)
-    elif change_type == 'status':
-        change = TreeStatus.history.filter(_audit_id__exact=change_id)[0]
-        user = get_object_or_404(User, pk=change.reported_by_id)
-        obj = get_object_or_404(TreeStatus, pk=change.id)
     elif change_type == 'action':
         change = TreeAction.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)

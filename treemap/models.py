@@ -258,13 +258,13 @@ class Resource(models.Model):
                 local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
                 #print 'local_interp', local_interp
                 results[fname] = dbhs[index2-1] + local_interp2
-                print "long resource"
+                #print "long resource"
             else:
                 #start at same list index as dbh_list, and figure out what interp value is here
                 local_interp = float(dbhs[index] - dbhs[index-1]) * interp 
                 #print 'local_interp', local_interp
                 results[fname] = dbhs[index-1] + local_interp
-                print "short resource"
+                #print "short resource"
         return results
         
     def __unicode__(self): return '%s' % (self.meta_species)
@@ -360,7 +360,9 @@ class Tree(models.Model):
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     #special = models.BooleanField(help_text="Landmark or other Special status")
-    current_dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
+    dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
+    height = models.FloatField(null=True, blank=True)
+    canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
     powerline_conflict_potential = models.NullBooleanField(
@@ -397,7 +399,11 @@ class Tree(models.Model):
     
     import_event = models.ForeignKey(ImportEvent)
     
-    
+    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+    condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
+    canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
+
+
     def has_common_attributes(self):
         if self.get_flag_count > 0:
             return True
@@ -410,64 +416,28 @@ class Tree(models.Model):
     def get_absolute_url(self):
         return "/trees/%i/" % self.id
     
-    def get_condition(self):
-        condition = self.treestatus_set.filter(key='condition').order_by('-reported')
-        if condition:
-            return condition[0].display
-        else:
-            return None
-
-    def get_sidewalk_damage(self,display=False):
-        sidewalk_damage = self.treestatus_set.filter(key='sidewalk_damage').order_by('-reported')
-        if sidewalk_damage:        
-            if display:
-                return sidewalk_damage[0].display
-            else:
-                return sidewalk_damage[0].value
-        else:
-            return None
-
-    def get_sidewalk_damage_display(self):
-        return self.get_sidewalk_damage(display=True)
-                
-    def get_height(self):
-        height = self.treestatus_set.filter(key='height').order_by('-reported')
-        if height:
-            return height[0].value
-        else:
-            return None
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.plot_type:
+                return value
+        return None
     
-    def get_canopy_height(self):
-        height = self.treestatus_set.filter(key='canopy_height').order_by('-reported')
-        if height:
-            return height[0].value
-        else:
-            return None     
-            
-    def get_canopy_condition(self):
-        condition = self.treestatus_set.filter(key='canopy_condition').order_by('-reported')
-        if condition:
-            return condition[0].display
-        else:
-            return None    
-            
-    def update_dbh(self):
-        #update the current_dbh if out of date .. called by treeStatus save
-        if not self.current_dbh == self.get_dbh():
-            self.current_dbh = self.get_dbh()
-            self.save()
-            
-    def get_dbh(self):
-        dbh = self.treestatus_set.filter(key='dbh').order_by('-reported')
-        if dbh:
-            return dbh[0].value
-        else:
-            return None
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.plot_type:
+                return value
+        return None    
 
+    def get_condition_display(self):
+        for key, value in Choices().get_field_choices('condition'):
+            if key == self.plot_type:
+                return value
+        return None
+       
     def get_powerline_conflict_display(self):
-        if powerline_conflict_display == None:
+        if self.powerline_conflict_potential == None:
             return "Unknown"
-        if powerline_conflict_display:
+        if self.powerline_conflict_potential:
             return "Yes"
         return "No"
 
@@ -502,7 +472,7 @@ class Tree(models.Model):
         return len(self.treeflags_set.all())
         
     def set_environmental_summaries(self):
-        if not self.species or not self.current_dbh:
+        if not self.species or not self.dbh:
             logging.debug('no species or no dbh ..')
             return None
         tr =  TreeResource.objects.filter(tree=self)
@@ -522,7 +492,7 @@ class Tree(models.Model):
             return None
         #calc results and set them
         resource = self.species.resource.all()[0] #todo: and region
-        base_resources = resource.calc_base_resources(RESOURCE_NAMES, self.current_dbh)
+        base_resources = resource.calc_base_resources(RESOURCE_NAMES, self.dbh)
         results = resource.calc_resource_summaries(base_resources)
         if not results:
             logging.warning('Unable to calc results for %s, deleting TreeResource if it exists' % self)
@@ -539,7 +509,7 @@ class Tree(models.Model):
         return True
 
     def is_complete(self):
-        if self.species >= 0 and self.current_dbh:
+        if self.species >= 0 and self.dbh:
             return True
         else:
             return False
@@ -625,27 +595,12 @@ class Tree(models.Model):
         
     def percent_complete(self):
         has = 0
-        desired = 6
-        if self.species:
-            if self.species.scientific_name:
-                has += 1
-        if self.get_condition():
-            has += 1
-        if self.get_sidewalk_damage():
-            has += 1
-        if not self.powerline_conflict_potential is None:
-            has += 1
-        if self.get_canopy_height():
-            has += 1 
-        if self.get_canopy_condition():
-            has += 1
-        attr = ['current_dbh','plot_width','plot_length','plot_type']
-        desired += len(attr)
+        attr = settings.COMPLETE_ARRAY
         for item in attr:
             if hasattr(self,item):
                 if getattr(self,item):
                     has +=1
-        return has/float(desired)*100
+        return has/float(len(attr))*100
     
     def validate_all(self):
         #print watch_tests
@@ -683,11 +638,11 @@ class Tree(models.Model):
     #   Dead + 0% loss, Dead + 25% loss, Dead + 50% loss, Dead + 75% loss
     #   Excellent + 100% loss, Excellent + 75% loss
     def validate_canopy_condition(self):
-        if not self.get_canopy_condition() or not self.get_condition():
+        if not self.canopy_condition or not self.condition:
             return None
         
-        cond = self.get_condition()
-        c_cond = self.get_canopy_condition()
+        cond = self.condition
+        c_cond = self.canopy_condition
         if cond == 'Dead':
             if not c_cond == 'Little or None (up to 100% missing)' and not c_cond == 'None' :
                 return cond + ", " + c_cond
@@ -700,12 +655,12 @@ class Tree(models.Model):
     
     # discussions: http://www.nativetreesociety.org/measure/tdi/diameter_height_ratio.htm
     def validate_height_dbh(self):
-        if not self.get_height() or not self.get_dbh():
+        if not self.height or not self.dbh:
             return None
         getcontext().prec = 3
-        cbh = self.get_dbh() * math.pi
+        cbh = self.dbh * math.pi
         cbh_feet = cbh * .75 / 9
-        float_ratio = self.get_height() / cbh_feet
+        float_ratio = self.height / cbh_feet
         hd_ratio = Decimal(float_ratio.__str__())
         #print hd_ratio        
         if hd_ratio < 100:
@@ -713,17 +668,17 @@ class Tree(models.Model):
         return round(hd_ratio, 2).__str__()
     
     def validate_max_dbh(self):
-        if not self.get_dbh() or not self.species or not self.species.v_max_dbh:
+        if not self.dbh or not self.species or not self.species.v_max_dbh:
             return None
-        if self.get_dbh() > self.species.v_max_dbh:
-            return self.get_dbh() + " (species max: " + self.species.v_max_dbh + ")"
+        if self.dbh > self.species.v_max_dbh:
+            return self.dbh + " (species max: " + self.species.v_max_dbh + ")"
         return None
         
     def validate_max_height(self):
-        if not self.get_height() or not self.species or not self.species.v_max_height:
+        if not self.height or not self.species or not self.species.v_max_height:
             return None
-        if self.get_height() > self.species.v_max_height:
-            return self.get_height() + " (species max: " + self.species.v_max_height + ")"
+        if self.height > self.species.v_max_height:
+            return self.height + " (species max: " + self.species.v_max_height + ")"
         return None
         
     def __unicode__(self): 
@@ -771,8 +726,6 @@ class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField()
 
-    history = audit.AuditTrail()
-
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):
         test_path = os.path.join(settings.MEDIA_ROOT, 'photos', str(instance.tree_id), filename)
@@ -785,8 +738,6 @@ class TreePhoto(TreeItem):
 
     title = models.CharField(max_length=256,null=True,blank=True)
     photo = ImageWithThumbnailsField(upload_to=get_photo_path, blank=True, null=True, thumbnail={'size': (50, 50)})
-
-    history = audit.AuditTrail()
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
@@ -801,49 +752,11 @@ class TreeAlert(TreeItem):
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)    
     
-    history = audit.AuditTrail()
     
 class TreeAction(TreeItem): 
     key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
     value = models.DateTimeField()
-
-    history = audit.AuditTrail()
-        
-STATUS_CHOICES = {
-    "sidewalk_damage": choices.get_field_choices('sidewalk_damage'),
-    "plot_type": choices.get_field_choices('plot'),
-    "powerline_conflict_potential": choices.get_field_choices('bool_set'),
-    "condition": choices.get_field_choices('condition'),
-    "canopy_condition": choices.get_field_choices('canopy_condition'),
-}
-
-class TreeStatus(TreeItem):
-    """
-    status of attributes that we want to track changes over time.
-    sidwalk damage might be scale of 0 thru 5, where dbh or height might be an arbitrary float
-    """
-    key = models.CharField(max_length=256, choices=status_choices)
-    value = models.FloatField()
-
-    history = audit.AuditTrail()
-    
-    @property
-    def display(self):
-        val = self.value
-        if self.key in STATUS_CHOICES:
-            choices = STATUS_CHOICES[self.key]
-            for item in choices:
-                if float(item[0]) == self.value:
-                    return item[1]
-        return val
-
-    
-    def save(self,*args,**kwargs):
-        #fix up tree if we got a new dbh
-        super(TreeStatus, self).save(*args,**kwargs) 
-        self.tree.update_dbh()
-
-       
+      
 class ResourceSummaryModel(models.Model):
     annual_stormwater_management = models.FloatField(help_text="gallons")
     annual_electricity_conserved = models.FloatField(help_text="kWh")

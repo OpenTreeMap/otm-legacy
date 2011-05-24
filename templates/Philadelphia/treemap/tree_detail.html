@@ -11,7 +11,7 @@
 
 {% block extrahead %}
 	   
-
+<script type="text/javascript" src="/static/js/map.js"></script>
 <script type="text/javascript">
     jQuery().ready(function() {
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
@@ -124,16 +124,16 @@
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.get_dbh|unit_or_missing:"inches"}}</td>
+            <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Tree height</td>
-            <td>{{tree.get_height|unit_or_missing:"feet"}}</td>
+            <td>{{tree.height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr><tr>
         	<td class="col1Wide">Canopy height</td>
-            <td>{{tree.get_canopy_height|unit_or_missing:"feet"}}</td>
+            <td>{{tree.canopy_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
         <tr>
@@ -152,7 +152,7 @@
         </tr>
     </thead>
     <tbody>
-{% if tree.species %} {% if tree.current_dbh %}
+{% if tree.species %} {% if tree.dbh %}
     	<tr>
         	<td class="col1Wide">Stormwater intercepted</td>
             <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
@@ -209,7 +209,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
+            <td>{{ tree.powerline_conflict_potential|yesno:"Yes,No,Missing" }}</td>
         </tr>
         {% if tree.data_owner.id != 11 %}
         <tr>
@@ -230,11 +230,11 @@
     	{% if tree.data_owner.id != 11 %}
     	<tr>
         	<td class="col1Wide">Tree status</td>
-            <td>{{tree.get_condition|default:"Missing"}}</td>
+            <td>{{tree.get_condition_display|default:"Missing"}}</td>
         </tr>
         <tr>
 			<td class="col1Wide">Canopy condition</td>
-			<td>{{tree.get_canopy_condition|default:"Missing"}}</td>
+			<td>{{tree.get_canopy_condition_display|default:"Missing"}}</td>
         </tr>
         {% endif %}
         <tr>

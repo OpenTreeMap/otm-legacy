@@ -2,7 +2,7 @@ from operator import itemgetter
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _ # internationalization translate call
 from django.contrib.gis.db import models
-from treemap.models import Tree, TreeStatus, TreeFlags, TreePhoto
+from treemap.models import Tree, TreeFlags, TreePhoto
 from django_reputation.models import UserReputationAction
 from badges.models import Badge, BadgeToUser
 
@@ -37,17 +37,11 @@ class UserProfile(models.Model):
         
     def recently_edited_trees(self):
         trees = Tree.history.filter(last_updated_by=self.user, present=True).order_by('-last_updated')[:7]
-        status = TreeStatus.history.filter(reported_by=self.user, tree__present=True).order_by('-reported')[:7]
-        flags = TreeFlags.history.filter(reported_by=self.user, tree__present=True).order_by('-reported')[:7]
+        print trees        
         recent_edits = []
         for t in trees:
             recent_edits.append((t.species, t.date_planted, t.last_updated, t.id))
-        for s in status:
-            recent_edits.append((s.tree.species, s.tree.date_planted, s.reported, s.tree.id))
-        for f in flags:
-            recent_edits.append((f.tree.species, f.tree.date_planted, f.reported, f.tree.id))  
         return sorted(recent_edits, key=itemgetter(2), reverse=True)[:7]
-        #return Tree.objects.filter(last_updated_by=self.user).order_by('-last_updated')[:7]
 
     def recently_added_photos(self):
         return TreePhoto.objects.filter(reported_by=self.user, tree__present=True).order_by('-reported_by')[:7]

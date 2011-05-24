@@ -1,6 +1,7 @@
 import os
 
 SITE_LOCATION = 'Philadelphia'
+COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','canopy_height','canopy_condition','dbh','plot_width','plot_length','plot_type']
 
 ADMINS = (
     ('Admin1', 'cbrittain@azavea.com'),

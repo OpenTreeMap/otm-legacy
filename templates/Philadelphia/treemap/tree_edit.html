@@ -5,6 +5,7 @@
 {% block body_id %}id="tree_edit"{% endblock %}
 
 {% block extrahead %}
+        <script type="text/javascript" src="/static/js/map.js"></script>
 	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
 {% endblock %}
 
@@ -51,45 +52,27 @@
     </tr>
     <tr>
     	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
-        <td id="edit_dbh">{{ instance.current_dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{instance.current_dbh}}'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{instance.dbh}}'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree height (feet)</td>
-        <td class="activeEditRowValue" id="edit_height">{{ instance.get_height|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_height">{{ instance.height|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("height", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }
-            });</script>
+            <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Canopy height (feet)</td>
-        <td class="activeEditRowValue" id="edit_canopy_height">{{ instance.get_canopy_height|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_canopy_height">{{ instance.canopy_height|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_canopy_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("canopy_height", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }
-            });</script>
+            <script>tm.setupEdit("canopy_height", "Tree", {{instance.id}});</script>
     </tr>
 	<tr>
-    	<td class="col1 activeEditRowLabel">Street</td>
+    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
         <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
-    </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_city').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("address_city", "Tree", {{instance.id}});</script>
-    </tr>
-	<tr>
-    	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip|default:"Click to edit" }}</td>
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Date Planted</td>
@@ -136,31 +119,19 @@
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
         <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ instance.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sidewalk_damage", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/sidewalk_damage/'
-            });</script>
+            <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/sidewalk_damage/'});</script>
     </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree condition</td>
-        <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_condition').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("condition", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/condition/'
-            });</script>
+            <script>tm.setupEdit("condition", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/condition/'});</script>
     </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Canopy condition</td>
-        <td class="activeEditRowValue" id="edit_canopy_condition">{{ instance.get_canopy_condition|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_canopy_condition">{{ instance.get_canopy_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_canopy_condition').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("canopy_condition", "TreeStatus", null, {
-                extraData: {
-                    parent: {'model': 'Tree', 'id': {{instance.id}} }
-                }, 'type':'select', 'loadurl':'choices/canopy_condition/'
-            });</script>
+            <script>tm.setupEdit("canopy_condition", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/canopy_condition/'});</script>
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Local</td>

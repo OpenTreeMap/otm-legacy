@@ -84,8 +84,6 @@
 					<th>{% anchor date Date %}</th>
 					<th>{% anchor new 'New Trees' %}</th>
 					<th>{% anchor update 'Tree Updates' %}</th>
-					<th>{% anchor status 'New Status' %}</th>
-					<th>{% anchor flags 'New Flags' %}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -95,8 +93,6 @@
 						<td>{{ u.date|date:"M d, Y" }}</td>
 						<td>{{ u.new }}</td>
 						<td>{{ u.update }}</td>
-						<td>{{ u.status }}</td>
-						<td>{{ u.flags }}</td>
 					</tr>
 				{% endfor %}
 			</tbody>
