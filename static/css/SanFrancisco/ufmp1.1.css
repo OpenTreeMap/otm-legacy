@@ -3255,7 +3255,7 @@ padding: 15px 0 0 0;
 	margin-top:5px;
 }
 #register.add label.opt_fields {
-    width:150px;
+    width:200px;
 }
 #register.add ul li {
     list-style:none;
@@ -3292,7 +3292,7 @@ padding: 15px 0 0 0;
 	text-align:right;
 	width:200px;
 }
-#register.add .small {width: 400px; clear: left; margin: 3px 0 0 160px; text-align:left;}
+#register.add .small {width: 400px; clear: left; margin: 3px 0 0 210px; text-align:left;}
 #register input{
 	float:left;
 	font-size:16px;
@@ -3394,9 +3394,87 @@ padding: 15px 0 0 0;
 	font-size:14px;
 	padding-right:20px;
 	padding-left:20px;
-	
 }
 
+/* TREE ADD PAGE
+** _____________________________________________________________________________
+*/
+
+#opt_field_group {
+	padding-top: 40px;
+}
+#register #id_power_lines {
+	margin: 12px 0 0 -120px;
+}
+#register #power_lines {
+	padding-bottom: 30px;
+}
+#register #dbh_type {
+	margin: -20px 0 0 -200px;
+	float: left;
+}
+#register input {
+	width: 300px;
+}
+#register input#id_dbh_type_0, #register input#id_dbh_type_1{
+	margin: 0 0 5px 175px;
+}
+#register select#id_plot_length, #register select#id_plot_width,
+#register select#id_plot_length_in, #register select#id_plot_width_in  {
+	width: 138px;
+}
+
+/* ADDED TREES PAGE
+** _____________________________________________________________________________
+*/
+
+#register.added h1 {
+	width: 960px;
+}
+#register.added #addedTrees {
+	width: 650px;
+	float: left;
+	display: block;
+}
+#register.added .treeHolder {
+	width: 100%;
+	padding-bottom: 20px;
+	margin: 0 0 20px 0;
+	font-size: 12pt;
+	border-bottom: 1px dashed #ccc;
+}
+#register.added .lastTree {
+	border-bottom: 0px;
+}
+#register.added .treeHolder label {
+	text-align: left;
+	font-size: 15pt;
+	margin-bottom: 15px;
+}
+#register.added .treeHolder label.header {
+	font-weight: bold;
+}
+#register.added span.mark {
+	margin-left: 200px;
+}
+#register.added #edit_tree_map {
+	margin-bottom: 10px;
+}
+#add_more_trees {
+	position:absolute;
+	background: #fff;
+	border: 1px solid #ccc;
+	min-height: 125px;
+	margin: 50px 0 0 708px;
+	padding: 0 15px;
+	width: 200px;
+}
+#add_more_trees h1.title-add {
+	margin:18px 0px 10 20px;
+	border-bottom: 1px solid #9EBD2E;
+	float:left;
+	width: 100%;
+}
 
 /* MISC
 ** _____________________________________________________________________________

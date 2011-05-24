@@ -9,7 +9,7 @@ body {
 }
 a {
 	text-decoration:none;
-	color:#cc6600;
+	color:#d9541e;
 }
 a:hover {
 	text-decoration:underline;
@@ -54,19 +54,19 @@ form, fieldset {
 */
 
 #announceHeader {
-	background:#eef5d8;
+	background:#e7eddf;
 	text-align:center;
 	padding:10px 20px;
 }
 #header {
 	width:940px;
-	background: #fff url(/static/images/v2/bg_tree.gif) no-repeat right top;
+	background: #fff no-repeat right top;
 	overflow:hidden;
 	margin:0 auto;
 	position:relative;
 }
 .logo {
-	width: 280px;
+	width: 400px;
 	height: 85px;
 	text-indent:-9999px;
 	overflow:hidden;
@@ -155,8 +155,6 @@ form, fieldset {
 	background: url(/static/images/v2/bg_search.gif) repeat-x top left;
 	width:100%;
 	height:115px;
-	border-top:1px solid #a0be31;
-	border-bottom:1px solid #bfd769;
 	margin-bottom:0;
 }
 #searchBoxContainer {
@@ -247,13 +245,13 @@ ul#searchBoxes  li#searchButton {
 	text-align:right;
 }
 ul#searchBoxes li#searchButton .go {
-	height:30px;
+	height:28px;
 	background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
 	text-align:center;
 	line-height:24px;
 	color:#fff;
-	font-size:17px;
+	font-size:14px;
 	font-weight:bold;
 	cursor: pointer;
 	padding-bottom:3px;
@@ -453,7 +451,7 @@ ul#buttonContainer li#support {
 	margin-top:15px;
 }
 a.findButton, a.addButton, a.supportButton {
-     color:#CFCFD0;
+     color:#618527;
      text-decoration: none;
      line-height:45px;
      text-align: center;
@@ -463,7 +461,7 @@ a.findButton, a.addButton, a.supportButton {
      background-color:#fff;
      background-repeat:no-repeat;
      background-position:top center;
-     border:2px solid #9ebd2e;
+     border:2px solid #618527;
 }
 a.findButton {
      background-image: url(/static/images/v2/button_find.gif);
@@ -532,7 +530,7 @@ ul#promoMap li#promoMapEmbed {
 	margin-right:20px;
 	margin-top:30px;
 	padding:20px 20px 25px 20px;
-	background-color:#eef5d8;
+	background-color:#e7eddf;
 }
 /*
 #t2_middle_panel {
@@ -836,7 +834,7 @@ ul#promoMap li#promoMapEmbed {
 	margin-left: 5px;
 	border: 1px solid #ccc;
 	border-bottom: none;
-	background: #eff5d9;
+	background: #e7eddf;
 	text-decoration: none;
 }
 #tablist li a:link {  }
@@ -993,7 +991,7 @@ ul#promoMap li#promoMapEmbed {
 
 
 #subfooterContainer {
-	border-top:1px solid #9ebd2e;
+	border-top:1px solid #618527;
 	margin-top:20px;
 	padding-top:0;
 }
@@ -1047,9 +1045,8 @@ ul#promoMap li#promoMapEmbed {
 	color:#ccc;
 }
 #cityFade {
-	background: #fff url(/static/images/v2/bg_city.gif) repeat-x center left;
+	background: #fff url(/static/images/v2/bg_city.gif) no-repeat center;
 	height:101px;
-	border-bottom:1px solid #9ebd2e;
 }
 
 
@@ -1115,7 +1112,7 @@ ul#promoMap li#promoMapEmbed {
 	margin-right:20px;
 	margin-top:0;
 	padding:10px 15px 25px 15px;
-	background-color:#eef5d8;
+	background-color:#e7eddf;
 	height:465px;
 }
 #results_aside.aside h2 {
@@ -1217,7 +1214,7 @@ ul#promoMap li#promoMapEmbed {
 ul#resultsContainer {
 	float:left;
 	width:920px;
-    background: #eef5d8;
+    background: #e7eddf;
     margin:0 0 10px 0;
     padding:7px 15px 3px 10px;
 }
@@ -1322,7 +1319,7 @@ ul#resultsContainer li#export ul li#firstOption {
 /* 	white-space: nowrap; */
 }
 .box-table-a tr:hover td {
-	background: #eef5d8;
+	background: #e7eddf;
 }
 .box-table-a td.col1{
     width:125px;
@@ -1362,13 +1359,13 @@ ul#resultsContainer li#export ul li#firstOption {
 #dropSpace {
     margin:0;
     padding:0;
-	background:#eef5d8 ;
+	background:#e7eddf ;
 }
 .box-table-a tr td#dropSpace #hazardList table#hazardTable tr td, .box-table-a tr td#dropSpace #actionList table#actionTable tr td{
     padding-left:5px;
     padding-right:5px;
     margin:0;
-	background:#eef5d8 ;
+	background:#e7eddf ;
 
 }
 /*
@@ -1408,7 +1405,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .box-table-b td {
     margin:0;
 /* 	padding: 4px 8px 4px 38px; */
-	background: #eef5d8; 
+	background: #e7eddf; 
 	border-bottom: 0;
 	color: #666;
 	border-top: 1px solid transparent;
@@ -1445,7 +1442,7 @@ ul#resultsContainer li#export ul li#firstOption {
 /* 	white-space: nowrap; */
 }
 .box-table-c tr:hover td {
-	background: #eef5d8;
+	background: #e7eddf;
 }
 .box-table-c td.col1{
     width:100px;
@@ -1463,7 +1460,7 @@ ul#resultsContainer li#export ul li#firstOption {
 	width:390px;
 	margin:0;
 	padding:0;
-	background:#eef5d8;
+	background:#e7eddf;
 }
 #popupContainer ul {
 	float:left;
@@ -1509,14 +1506,14 @@ ul#resultsContainer li#export ul li#firstOption {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-details.gif) no-repeat center left;
+	background:#e7eddf url(/static/images/es/ico-details.gif) no-repeat center left;
 	margin:10px 0 2px 0;
 }
 #popupContainer ul li#options ul#optionList li#edit {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/edit.png) no-repeat center left;
+	background:#e7eddf url(/static/images/edit.png) no-repeat center left;
 	margin:10px 0 2px 0;
 }
 
@@ -1528,17 +1525,17 @@ ul#resultsContainer li#export ul li#firstOption {
 }
 #popupContainer ul li#options ul#optionList li#fav {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-favorite.gif) no-repeat bottom left;
+	background:#e7eddf url(/static/images/es/ico-favorite.gif) no-repeat bottom left;
 	margin:0 0 5px 0;
 }
 #popupContainer ul li#options ul#optionList li#email {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-email.gif) no-repeat center left;
+	background:#e7eddf url(/static/images/es/ico-email.gif) no-repeat center left;
 	margin:0 0 5px 0;
 }
 #popupContainer ul li#options ul#optionList li#twitter {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-twitter.gif) no-repeat center left;
+	background:#e7eddf url(/static/images/es/ico-twitter.gif) no-repeat center left;
 	margin:0 0 5px 0;
 }
 
@@ -1838,7 +1835,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .filter-box{
 	width:900px;
 	margin:0 auto;
-	background:#eff5d9;
+	background:#e7eddf;
 	overflow:hidden;
 	padding:10px 20px 6px;
 	border:1px solid #bfd769;
@@ -2092,14 +2089,14 @@ ul#resultsContainer li#export ul li#firstOption {
     width:180px;
     padding:3px 20px 5px 40px;
     margin:0;
-    background:#eef5d8;
+    background:#e7eddf;
     color:#333;
 }
 .common-attributes .twoDropItems dl dd {
     width:138px;
     padding:3px 0 5px 0;
     margin:0 10px 0 0 ;
-    background:#eef5d8;
+    background:#e7eddf;
 }
 */
 
@@ -2139,7 +2136,7 @@ ul#resultsContainer li#export ul li#firstOption {
     width:250px;
     padding:10px 20px 10px 10px;
     margin:0;
-    background:#eef5d8;
+    background:#e7eddf;
 }
 .tab-content .aside #editOptionContainer ul li {
     list-style-type: none;
@@ -3193,7 +3190,7 @@ width:944px;
 
 
 #genError {
-	background:#eff5d9;
+	background:#e7eddf;
 	padding:15px;
 	margin-bottom:25px;
 	margin-top:0px;
@@ -3226,7 +3223,7 @@ width:944px;
 	font-weight:bold;
 	color:#666;
 	margin-bottom:20px;
-	border-bottom:solid 1px #9ebd2e;
+	border-bottom:solid 1px #618527;
 	padding-bottom:5px;
 	padding-left:10px;
 	margin-top:0;
@@ -3255,7 +3252,7 @@ padding: 15px 0 0 0;
 	margin-top:5px;
 }
 #register.add label.opt_fields {
-    width:150px;
+    width:200px;
 }
 #register.add ul li {
     list-style:none;
@@ -3292,13 +3289,13 @@ padding: 15px 0 0 0;
 	text-align:right;
 	width:200px;
 }
-#register.add .small {width: 400px; clear: left; margin: 3px 0 0 160px; text-align:left;}
+#register.add .small {width: 400px; clear: left; margin: 3px 0 0 210px; text-align:left;}
 #register input{
 	float:left;
 	font-size:16px;
 	color:#666;
 	padding:8px 2px;
-	border:solid 1px #9ebd2e;
+	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
 	margin:0 20px 20px 10px;
@@ -3308,7 +3305,7 @@ padding: 15px 0 0 0;
 	font-size:16px;
 	color:#666;
 	padding:8px 2px;
-	border:solid 1px #9ebd2e;
+	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
 	margin:0 20px 20px 10px;
@@ -3318,7 +3315,7 @@ padding: 15px 0 0 0;
 	font-size:16px;
 	color:#666;
 	padding:8px 2px;
-	border:solid 1px #9ebd2e;
+	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
 	margin:0 20px 20px 10px;
@@ -3328,7 +3325,7 @@ padding: 15px 0 0 0;
 	font-size:16px;
 	color:#666;
 	padding:8px 2px;
-	border:solid 1px #9ebd2e;
+	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
 	margin:0 20px 20px 10px;
@@ -3385,7 +3382,7 @@ padding: 15px 0 0 0;
 	width:200px;
 	margin-top:0;
 	padding:0 10px 15px 10px;
-	background-color:#eef5d8;
+	background-color:#e7eddf;
 }
 #mapHolder {
 	clear:both;
@@ -3397,13 +3394,92 @@ padding: 15px 0 0 0;
 	
 }
 
+/* TREE ADD PAGE
+** _____________________________________________________________________________
+*/
+
+#opt_field_group {
+	padding-top: 40px;
+}
+#register #id_power_lines {
+	margin: 12px 0 0 -120px;
+}
+#register #power_lines {
+	padding-bottom: 30px;
+}
+#register #dbh_type {
+	margin: -20px 0 0 -200px;
+	float: left;
+}
+#register input {
+	width: 300px;
+}
+#register input#id_dbh_type_0, #register input#id_dbh_type_1{
+	margin: 0 0 5px 175px;
+}
+#register select#id_plot_length, #register select#id_plot_width,
+#register select#id_plot_length_in, #register select#id_plot_width_in  {
+	width: 138px;
+}
+
+/* ADDED TREES PAGE
+** _____________________________________________________________________________
+*/
+
+#register.added h1 {
+	width: 960px;
+}
+#register.added #addedTrees {
+	width: 650px;
+	float: left;
+	display: block;
+}
+#register.added .treeHolder {
+	width: 100%;
+	padding-bottom: 20px;
+	margin: 0 0 20px 0;
+	font-size: 12pt;
+	border-bottom: 1px dashed #ccc;
+}
+#register.added .lastTree {
+	border-bottom: 0px;
+}
+#register.added .treeHolder label {
+	text-align: left;
+	font-size: 15pt;
+	margin-bottom: 15px;
+}
+#register.added .treeHolder label.header {
+	font-weight: bold;
+}
+#register.added span.mark {
+	margin-left: 200px;
+}
+#register.added #edit_tree_map {
+	margin-bottom: 10px;
+}
+#add_more_trees {
+	position:absolute;
+	background: #fff;
+	border: 1px solid #ccc;
+	min-height: 125px;
+	margin: 50px 0 0 708px;
+	padding: 0 15px;
+	width: 200px;
+}
+#add_more_trees h1.title-add {
+	margin:18px 0px 10 20px;
+	border-bottom: 1px solid #9EBD2E;
+	float:left;
+	width: 100%;
+}
 
 /* MISC
 ** _____________________________________________________________________________
 */
 
 #messages {
-    border: 1px solid #9EBD2E;
+    border: 1px solid #618527;
     font-size: 15px;
     margin-left: auto;
     margin-right: auto;

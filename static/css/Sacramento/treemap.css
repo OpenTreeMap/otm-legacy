@@ -24,24 +24,24 @@ margin:2px;
 height:382px;
 }
 #index_map{
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 height:400px;
 }
 #results_map{
 position:relative;
 height:480px;
 width:622px;
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 }
 #favorite_tree_map{
 height:250px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 }
 #edit_tree_map{
 height:220px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 overflow: hidden;
 position:relative;
 }
@@ -50,7 +50,7 @@ position:relative;
 float:left;
 width: 630px;
 height:350px;
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 overflow: hidden;
 }
 #add_tree_map #geocode_address {
@@ -89,7 +89,7 @@ width:40px;
 #tree_streetview{
 height:220px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #E7EDDF;
 padding-top:0;
 margin-top:0;
 }

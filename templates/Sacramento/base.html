@@ -71,7 +71,7 @@
                     <li id="searchJoiner">near</li>
                     <li id="searchLocationBox"><input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="San Francisco, CA" />
 </li>
-                    <li id="searchButton"><input class="go" id="location_go" type="button" value="Search San Francisco" /></li>
+                    <li id="searchButton"><input class="go" id="location_go" type="button" value="Search Greenprint Region" /></li>
                 </form>
                 </ul>
                 <ul id="searchSuggest">
@@ -238,21 +238,18 @@
             <div id="footer"> 
                 <div class="footer-holder"> 
                     <div class="ad"> 
-                        <strong>Our Partners</strong> 
+                        <strong>Brought to you by</strong> 
                         <ul> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
                             <li><a href="http://www.fire.ca.gov/"><img src="/static/images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
-                            <li><a href="http://www.sfgov.org/"><img src="/static/images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
+                            <li><a href="http://www.sactree.com/"><img src="/static/images/v2/logo_tree.gif" alt="Sacramento Tree Foundation" width="52" height="59" /></a></li> 
                         </ul> 
                     </div> 
-                    <ul class="footer-nav"> 
-                        <li><a href="/trees/add/">Add a tree</a></li> 
+                    <ul class="footer-nav">
+						<li><a href="http://www.sactree.com/">Sacramento Tree Foundation</a></li>
+						<li><a href="/trees/add/">Greenprint</a></li> 
                         <li><a href="/about/">About</a></li> 
                         <li><a href="/resources/">Resources</a></li> 
-                        <li><a href="http://blog.urbanforestmap.org/">Blog</a></li>
                         <li><a href="/contact/">Contact</a></li> 
-                        <li><a href="/donate/">Donate</a></li> 
                         {% if user.is_authenticated %}
                            <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
                            <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
