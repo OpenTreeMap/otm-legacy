@@ -811,7 +811,7 @@ ul#promoMap li#promoMapEmbed {
 
 
 #tabcontainer {
-	margin:37px 0 15px 0;
+	margin:37px 0 0 0;
 	padding:0;
 }
 #tablist {
@@ -833,16 +833,19 @@ ul#promoMap li#promoMapEmbed {
 	padding: 6px 0.9em;
 	margin-left: 5px;
 	border: 1px solid #ccc;
-	border-bottom: none;
-	background: #e7eddf;
+	border-bottom: 1px solid #fff;
+	background: #e6e6e6;
+	color: #999;
 	text-decoration: none;
 }
 #tablist li a:link {  }
 #tablist li a:hover {
 	background: #f2f2f2;
+	color: #666;
 }
 #tablist li a#current {
 	background: #fff;
+	color: #000;
 	border-bottom: 1px solid #fff;
 }
 #tablist li a#addTree {
@@ -865,6 +868,7 @@ ul#promoMap li#promoMapEmbed {
 .tab-content {
     margin-top:0;
     padding-top:0;
+	border-left: 1px solid #ccc;
 }
 .tab-content .complete{
 	width:100%;
@@ -896,14 +900,14 @@ ul#promoMap li#promoMapEmbed {
     margin-left:10px;
 }
 .tab-content .attributes{
-	float:right;
+	float:left;
 	list-style:none;
 	margin:0;
 	padding:0;
 }
 .tab-content .attributes li{
 	float:left;
-	margin-right:10px;
+	margin-left:10px;
 }
 .tab-content .attributes li img{
 	float:left;
@@ -926,6 +930,9 @@ ul#promoMap li#promoMapEmbed {
 	clear:both;
 	margin-bottom:5px;
 }
+.tab-content .wrap h2 {
+	color: #5D8728;
+}
 .tab-content .comments#top {
     border:0;
     padding:0;
@@ -934,7 +941,7 @@ ul#promoMap li#promoMapEmbed {
     float:left;
     width:700px;
     padding:0;
-    margin:5px 0 15px 0;
+    margin:5px 0 15px 10px;
 }
 .tab-content ul#progress li {
     display:inline;
@@ -1296,7 +1303,7 @@ ul#resultsContainer li#export ul li#firstOption {
 
 .box-table-a {
 	font-size: 14px;
-	margin: 10px 0 0 0;
+	margin: 10px 0 0 10px;
 	width: 388px;
 	text-align: left;
 	border-collapse: collapse;
@@ -1305,17 +1312,18 @@ ul#resultsContainer li#export ul li#firstOption {
 .box-table-a th {
 	font-size: 14px;
 	font-weight: bold;
-	padding: 10px 8px 4px 10px;
+	padding: 10px 8px 0 10px;
 	background: #fff;
 	color:#333;
 }
 .box-table-a td {
-	padding: 6px 8px 6px 12px;
+	padding: 2px 8px 2px 12px;
 	background: #fff; 
 	border-bottom: 1px solid #fff;
 	color: #666;
 	border-top: 1px solid transparent;
 	vertical-align: top;
+	font-size: 12px;
 /* 	white-space: nowrap; */
 }
 .box-table-a tr:hover td {
@@ -2183,7 +2191,20 @@ ul#resultsContainer li#export ul li#firstOption {
 	float:right;
 }
 */
-
+.tab-content .aside #nearby_address ul#address {
+	margin-left: -20px;
+}
+.tab-content .aside #nearby_address ul#address li {
+	list-style: none;
+	font-size: 12pt;
+	float: left;
+	margin: 0 0 0 -10px;
+	width: 260px;
+}
+.tab-content .aside #nearby_address ul#address li.footnote{
+	font-size: 10px;
+	margin-top: 10px;
+}
 .tab-content .comments .title{
 	width:100%;
 	overflow:hidden;

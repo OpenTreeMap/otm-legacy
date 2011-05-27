@@ -36,7 +36,7 @@
                     <!-- TODO -->
                     <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
                     <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
-                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
+                    <li id="edit"><a href="./edit">Edit tree info &raquo;</a></li>
                 </ul>
                 <div class="wrap">
         {% endblock %}
@@ -95,7 +95,7 @@
     </thead>
     <tbody>
     	<tr>
-        	<td class="col1Wide">Tree number</td>
+        	<td class="col1Wide">Number</td>
             <td>#{{tree.id}}</td>
             <td></td>
         </tr>
@@ -184,7 +184,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:"ft x "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
+            <td>{{tree.plot_width|unit_or_missing:" / "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
@@ -216,7 +216,7 @@
         <tr>
         	<td class="col1Wide">Alerts</td>
             <td>{{tree.get_alert_count}} known</td>
-            <td>{% if tree.get_alert_count > 0 %}<a href="#" id="tree_alerts" onclick="$('#alerts').toggle();return false;">Details</a>{% endif %}</td>
+            <td>{% if tree.get_alert_count > 0 %}<a href="#" id="tree_alerts" onclick="$('#alerts').toggle();return false;">see details</a>{% endif %}</td>
         </tr>
         <tr id="alerts" style="display:none;">
             <td colspan="5">
@@ -239,7 +239,7 @@
         <tr>
         	<td class="col1Wide">Actions</td>
             <td>{{tree.get_action_count}} known</td>
-            <td>{% if tree.get_action_count > 1 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">Details</a>{% endif %}</td>
+            <td>{% if tree.get_action_count > 1 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">see details</a>{% endif %}</td>
         </tr>
         <tr id="actions" style="display:none;">
             <td colspan="5">
@@ -272,7 +272,7 @@
         <tr>
         	<td class="col1Wide">Local projects</td>
             <td>{{tree.get_flag_count}} known</td>
-            <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">Details</a>{% endif %}</td>
+            <td>{% if tree.get_flag_count > 0 %}<a href="#" id="tree_local" onclick="$('#local').toggle();return false;">see details</a>{% endif %}</td>
         </tr>
         <tr id="local" style="display:none;">
             <td colspan="5">
@@ -319,54 +319,12 @@
                             <div id="edit_tree_map"></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
-                            <div id="tree_comments">
-								<div class="wrap">
-									<h2>Comments</h2>
-								</div>
-								<div class="comment_list">
-								{% get_comment_list for tree as comment_list %}
-								{% for comment in comment_list %}
-									<div class="comment_item">
-										<div class="comment_head">
-											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
-										</div>
-										<div class="comment_body">
-											{{ comment.comment }}
-										</div>
-									</div>
-								{% empty %}
-									<div class="comment_item">No comments yet!</div>
-								{% endfor %}
-								</div>
-
-								{% if user.is_authenticated %}
-									{% get_comment_form for tree as form %}
-									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
-										<input type="hidden" name="next" value="{{request.get_full_path}}" />
-										{% for field in form %}
-										{% if field.is_hidden %}
-										  {{ field }}
-										{% else %}
-										  {% if field.errors %}{{ field.errors }}{% endif %}
-										  <div class="comment_field {% if field.errors %} error{% endif %}"
-											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
-											{{ field.label_tag }} {{ field }}
-										  </div>
-										{% endif %}
-										{% endfor %}
-										<div class="submit">
-											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
-										</div>
-									</form>
-                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
-								{% else %}
-									<div>Please login to add comments</div>
-								{% endif %}
-
+							<div id="nearby_address">
+								<ul id="address">
+									<li><h2>Nearby address*:</h2></li>
+									<li>191 Lathrop Way, Sacramento</li>
+									<li class="footnote">*Please note that this address is intended to be a general, not exact, reference to the location.</li>
+								</ul>
 							</div>
                         </div>
                         <!-- end t2_right_panel  -->
@@ -420,7 +378,7 @@
                         <a href="#" id="favorite_{{ tree.id }}"
                          class="favorite fav fave">Add as favorite</a>
                         {% if tree.treefavorite_set.all.count %}
-                            ({{tree.treefavorite_set.all.count}} others have)
+                            ({{tree.treefavorite_set.all.count}} people have)
                         {% endif %}
                     {% endif %}
                     </li>
@@ -458,34 +416,18 @@
                         <li class="editItem"><a href="/profiles/{{recent.0.0}}/">{{recent.0.0}}</a></li>
                     </ul>
                     <ul class="optionItemLast">
+                        <li>Update</li>
+                        <li class="editItem"> </li>
+                    </ul>
+					<ul class="optionItemLast">
                         <li>Date</li>
                         <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
                 </li>
             </ul>
-            <ul id="progress">
-					<li id="progressStatus">
-					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
-						<div class="progressText">{{ tree.percent_complete|floatformat }}%&nbsp;complete</div></li>
-                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
-			</ul>
             <ul id="message">
                 <li id="title">Your turn</li>
                 <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
-            </ul>
-            <ul id="message">
-            	<li id="title">Recent Contributors</li>
-            	<li>
-					<ul class="optionItem">
-						{% for update in recent %}
-							{% if forloop.counter0 < 5 %}
-							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.0}}" target="_blank">{{ update.0 }}</a></li>
-							{% endif %}
-						{% empty %}
-							<li>No edits yet!</li>
-						{% endfor %}
-					</ul>
-            	</li>
             </ul>
         </div>
                 
