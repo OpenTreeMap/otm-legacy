@@ -60,8 +60,6 @@ var tm = {
     map_center_lat: null,
     start_zoom: null,
     add_zoom: null,
-    initial_location_string: "",
-    initial_species_string: "",
 
     google_bounds: null,
 
@@ -584,7 +582,7 @@ var tm = {
                     if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
                     if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
                     
-                    //tm.load_nearby_trees(olPoint);
+                    tm.load_nearby_trees(olPoint);
                     tm.add_new_tree_marker(olPoint, true);
                     
                     tm.drag_control.activate();
@@ -1248,7 +1246,7 @@ var tm = {
                 }
             }
             
-            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus", "TreeFlags"]) >=0) {
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
             } else {    
@@ -1812,7 +1810,34 @@ var tm = {
         tm.editingDiameter = false;
         
     },
-    
+    approvePend: function(pend_id) {
+        $.ajax({
+            url: '/trees/pending/' + pend_id + '/approve/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Approve', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
+    rejectPend: function(pend_id) {
+        $.ajax({
+            url: '/trees/pending/' + pend_id + '/reject/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Reject', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
     deleteTree: function(tree_id) {
         if (window.confirm("Are you sure you want to delete this tree permanently from the system?"))
         {
@@ -1825,12 +1850,10 @@ var tm = {
                     window.location = "/map/";
                 },
                 error: function(err) {
-                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                alert("Error: " + err.status + "\nQuery: " + tree_id);
                 }
             });
         }
-        
-        
     },
 
     deletePhoto: function(tree_id, photo_id) {

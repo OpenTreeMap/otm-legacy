@@ -55,6 +55,28 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
     </tr> 
+	<tr>
+    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
+        <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
+    </tr>
+    <tr>
+    	<td class="col1 activeEditRowLabel">City</td>
+        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city }}</td>
+       
+    </tr>
+    <tr>
+    	<td class="col1 activeEditRowLabel">Zip Code</td>
+        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip }}</td>
+       
+    </tr>
+    <tr>
+    	<td class="col1 activeEditRowLabel">Date Planted</td>
+        <td class="activeEditRowValue" id="edit_date_planted">{{ instance.date_planted|default:"Click to edit"}}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_date_planted').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("date_planted", "Tree", {{instance.id}}, {type: 'date'});</script>
+    </tr>
     <thead>
     	<tr>
         	<th scope="col" colspan="4">Environment</th>

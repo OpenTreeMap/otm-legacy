@@ -41,6 +41,9 @@ urlpatterns = patterns('',
     (r'^trees/new/$', added_today_list),   
     (r'^trees/new/(?P<user_id>\d+)/$', added_today_list),
 
+    (r'^trees/pending/(?P<pend_id>\d+)/approve/$', approve_pend),  
+    (r'^trees/pending/(?P<pend_id>\d+)/reject/$', reject_pend),    
+
     (r'^trees/watch/$', watch_list),
     (r'^watch/validate/$', validate_watch),
     

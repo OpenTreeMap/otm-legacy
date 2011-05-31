@@ -63,6 +63,14 @@ watch_tests = {
     "max_dbh": 'validate_max_height',
 }
 
+data_types = (
+    ('text', 'text'),
+    ('int', 'int'),
+    ('float', 'float'),
+    ('bool', 'bool'),
+    ('geo', 'geo'),
+)
+
 class BenefitValues(models.Model):
     area = models.CharField(max_length=255)
     stormwater = models.FloatField()
@@ -471,6 +479,10 @@ class Tree(models.Model):
     def get_flag_count(self):
         return len(self.treeflags_set.all())
         
+    def get_active_pends(self):
+        pends = self.treepending_set.filter(status='pending')
+        return pends
+
     def set_environmental_summaries(self):
         if not self.species or not self.dbh:
             logging.debug('no species or no dbh ..')
@@ -686,6 +698,51 @@ class Tree(models.Model):
             return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.geocoded_address)
         else:
             return self.geocoded_address    
+
+status_types = (
+    ('pending', 'Pending'),
+    ('approved', 'Approved'),
+    ('rejected', 'Rejected')
+)
+
+class TreePending(models.Model):
+    tree = models.ForeignKey(Tree)
+    field = models.CharField(max_length=255)
+    value = models.CharField(max_length=255, blank=True, null=True)
+    text_value = models.CharField(max_length=255, blank=True, null=True)
+    submitted = models.DateTimeField(auto_now_add=True)
+    submitted_by = models.ForeignKey(User, related_name="pend_submitted_by")
+    status = models.CharField(max_length=10, choices=status_types)
+    updated = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, related_name="pend_updated_by")
+
+    def approve(self, updating_user):
+        setattr(self.tree, self.field, self.value)
+        self.tree.last_updated_by = self.submitted_by 
+        self.tree.save()
+
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+    
+    def reject(self, updating_user):
+    	self.status = 'rejected'
+        self.updated_by = updating_user
+        self.save()
+
+class TreeGeoPending(TreePending):
+    geometry = models.PointField(srid=4326)
+    objects = models.GeoManager()
+
+    def approve(self, updating_user):
+        self.tree.geometry = self.geometry
+        self.tree.last_updated_by = self.submitted_by 
+        self.tree.save()
+        
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+    
 
 class TreeWatch(models.Model):
     key = models.CharField(max_length=255, choices=watch_choices.iteritems())

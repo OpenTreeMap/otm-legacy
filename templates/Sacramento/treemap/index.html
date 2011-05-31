@@ -3,7 +3,7 @@
 {% load tree_tags %}
 {% load cache %}        
 
-
+{% block body_id %}id='home'{% endblock %}
     {% block extra_onready %}
         //tm.init_map('index_map');    
         //todo less js on the homepage (eg no gmaps stuff?)

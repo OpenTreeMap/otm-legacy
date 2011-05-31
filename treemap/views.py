@@ -560,6 +560,33 @@ def multi_status(request):
     return HttpResponse("OK")    
 
 @login_required
+def approve_pend(request, pend_id):
+    pend = TreePending.objects.get(pk=pend_id)
+    if not pend:
+        pend = TreeGeoPending.objects.get(pk=pend_id)
+    if not pend:
+        raise Http404
+    pend.approve(request.user)
+    Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
+    return HttpResponse(
+        simplejson.dumps({'success': True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    ) 
+
+@login_required
+def reject_pend(request, pend_id):
+    pend = TreePending.objects.get(pk=pend_id)
+    if not pend:
+        pend = TreeGeoPending.objects.get(pk=pend_id)
+    if not pend:
+        raise Http404
+    pend.reject(request.user)
+    return HttpResponse(
+        simplejson.dumps({'success': True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    ) 
+
+@login_required
 @transaction.commit_manually
 @csrf_view_exempt
 def object_update(request):
@@ -627,8 +654,54 @@ def object_update(request):
                     all.delete()
                     response_dict['delete']['ids'] = ids
             
+           
+
             if update:
                 response_dict['update'] = {}
+ 
+                #check pending feature status and user permisisons
+                #{"model":"Tree","update":{"height":10},"id":6}
+                #{"model":"Tree","update":{"species_id":397},"id":6}
+                #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
+                if settings.PENDING_ON and post['model'] == "Tree": # and user perms? 
+                    for k,v in update.items():
+                        fld = instance._meta.get_field(k.replace('_id',''))
+                        try:
+                            cleaned = fld.clean(v,instance)
+                            response_dict['pending'] = 'true';
+                            if k == 'geometry':
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                response_dict['update'][k] = cleaned
+                                pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
+                            else:                                
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                response_dict['update'][k] = cleaned
+                                pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
+                            
+                            if k == 'species_id':
+                                pend.text_value = Species.objects.get(id=v).scientific_name
+
+                            for key, value in Choices().get_field_choices(k):
+                                if str(key) == str(v):
+                                    pend.text_value = value
+                                    break
+                            pend.save()
+
+                        except ValidationError,e:
+                            response_dict['errors'].append(e.messages[0])
+                        except Exception,e:
+                            response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
+                        if len(response_dict['errors']):
+                            transaction.rollback()
+                        else:
+                            transaction.commit()    
+                            response_dict['success'] = True
+
+                        return HttpResponse(
+                                simplejson.dumps(response_dict, sort_keys=True, indent=4),
+                                #content_type = 'application/javascript; charset=utf8'
+                                content_type = 'text/plain'
+                                )
                 # attempts to use forms...
                 # not working as nicely as I'd want
                 # will likely circle back to using the approach
@@ -765,7 +838,6 @@ def object_update(request):
 
     return HttpResponse(
             simplejson.dumps(response_dict, sort_keys=True, indent=4),
-            #content_type = 'application/javascript; charset=utf8'
             content_type = 'text/plain'
             )
 #for auto reverse-geocode saving of new address, from search page map click

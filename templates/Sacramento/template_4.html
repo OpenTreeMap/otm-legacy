@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block body_load %} onunload="GUnload();" {% endblock %}
+{% block body_load %} {% endblock %}
 
 {% block tophead %}
-<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={{ GKEY }}"></script>
-<script type="text/javascript" src="/static/marker_mgr_light_compress.js"></script>
 
 {% endblock %}
 {% block extrahead %}
 <script type="text/javascript">
     jQuery().ready(function() {
         tm_urls.tc_url = '{{ TC_URL }}'
+        tm.initial_location_string = "Sacramento, CA";
+        tm.initial_species_string =  "All trees";
         {% comment %}
         //tm.neighborhoods = {{ neighborhoods|safe }};
         //tm.districts = {{ districts|safe }};
