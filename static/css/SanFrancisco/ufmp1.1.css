@@ -3404,7 +3404,8 @@ padding: 15px 0 0 0;
 	padding-top: 40px;
 }
 #register #id_power_lines {
-	margin: 12px 0 0 -120px;
+	margin: 10px 0 0 10px;
+	width: 20px;
 }
 #register #power_lines {
 	padding-bottom: 30px;
@@ -3474,6 +3475,51 @@ padding: 15px 0 0 0;
 	border-bottom: 1px solid #9EBD2E;
 	float:left;
 	width: 100%;
+}
+
+/* ADMIN MENU/RECENT CHANGES
+** _____________________________________________________________________________
+*/
+
+ul.admin_nav {
+	list-style: none;
+	margin: 0 0 10px -38px;
+}
+.admin-header {
+	float: left;
+	width: 200px;
+}
+#search {
+	top: 50px;
+	width: 300px;
+	float: left;
+	position: relative;
+	display: block;
+	margin-bottom: 60px;
+}
+#search label {
+	width: 150px;
+	display: block;
+}
+#search input, #search select {
+	margin-bottom: 5px;
+	width: 150px;
+}
+#instructions {
+	width: 400px;
+	position: relative;
+	display: block;
+	padding-right: 30px;
+	float: left;
+	top: 50px;
+	margin-bottom: 50px;
+}
+#legend {
+	width: auto;
+	border:1px solid #ccc;
+	padding:6px 10px;
+	margin: 10px 0;
+	display: block;
 }
 
 /* MISC
