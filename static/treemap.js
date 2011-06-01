@@ -59,6 +59,7 @@ var tm = {
     map_center_lon: null,
     map_center_lat: null,
     start_zoom: null,
+    add_start_zoom: null,
     add_zoom: null,
 
     google_bounds: null,
@@ -511,7 +512,7 @@ var tm = {
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 9);
+            , tm.add_start_zoom);
             
         //jQuery("#mapHolder").hide();
         //jQuery("#calloutContainer").hide();
@@ -575,8 +576,8 @@ var tm = {
             }, function(results, status){
                 if (status == google.maps.GeocoderStatus.OK) {
                     var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                    var zoom = 18;
-                    if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
+                    var zoom = tm.add_zoom;
+                    if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
                     tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
                     
                     if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}

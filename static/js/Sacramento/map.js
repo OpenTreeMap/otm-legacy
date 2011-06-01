@@ -7,8 +7,9 @@ var tm_urls = {
 
 tm.map_center_lon = -121.607666;
 tm.map_center_lat = 38.6276;
-tm.start_zoom = 9;
-tm.add_zoom = 14;
+tm.start_zoom = 1;
+tm.add_start_zoom = 1;
+tm.add_zoom = 9;
 tm.initial_location_string = "Sacramento, CA";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
@@ -46,13 +47,17 @@ tm.init_base_map = function(div_id, controls){
 
     tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
-        numZoomLevels: 18
+        //numZoomLevels: 18
+        minZoomLevel: 8,
+        maxZoomLevel: 17
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
         type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
-        numZoomLevels: 19
+        minZoomLevel: 8,
+        maxZoomLevel: 17
+        //numZoomLevels: 19
     });
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
@@ -63,7 +68,8 @@ tm.init_base_map = function(div_id, controls){
             isBaseLayer: false,
             opacity:0.7,
             wrapDateLine: true,
-            attribution: "(c) UrbanForestMap.org"
+            attribution: "(c) UrbanForestMap.org",
+            zoomOffset: 8
         }
     );
     tm.tms.buffer = 0;
