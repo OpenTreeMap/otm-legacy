@@ -9,7 +9,7 @@ class Command(BaseCommand):
    
     def handle(self, *args, **options):
         for t in Tree.objects.all():
-            if t.current_dbh:
+            if t.dbh:
                 print t.id
                 t.save()
 

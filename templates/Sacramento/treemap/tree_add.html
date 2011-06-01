@@ -52,7 +52,7 @@
         	}
         });
 
-        if ('{{form.edit_address_street.value}}' != "") {
+        if (jQuery("#id_edit_address_street")[0].value != "Enter an Address or Intersection") {
             jQuery("#update_map").click();
         }   
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
