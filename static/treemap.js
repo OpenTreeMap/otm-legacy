@@ -1132,16 +1132,33 @@ var tm = {
         //remove old trees
         jQuery.each(trees, function(i,t){
             var smarker = tm.get_marker_light(t, 'small')
-            tm.tree_layer.addMarker(smarker);
+            smarker.events.register("click", smarker, function (e) {
+                var mapCoord = smarker.lonlat;
+                mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));           
+                tm.clckTimeOut = window.setTimeout(function() {
+                    singleClick(mapCoord)
+                    },500); 
             });
-        },
+            tm.tree_layer.addMarker(smarker);
+                    
+            function singleClick(olLonlat) { 
+                window.clearTimeout(tm.clckTimeOut); 
+                tm.clckTimeOut = null; 
+                var spp = jQuery.urlParam('species');
+                jQuery.getJSON('/trees/location/',
+                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
+                tm.display_tree_details);
+            }         
+
+        });
+    },
         
-        // unused?
-        select_species : function(species){
-            tm.mgr.clearMarkers();
-            jQuery.getJSON('/search/' + species + '/?simple=true', 
-                tm.display_search_results);
-        },
+    // unused?
+    select_species : function(species){
+        tm.mgr.clearMarkers();
+        jQuery.getJSON('/search/' + species + '/?simple=true', 
+            tm.display_search_results);
+    },
 
      
     enableEditTreeLocation : function(){
