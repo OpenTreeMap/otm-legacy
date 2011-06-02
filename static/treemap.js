@@ -1702,7 +1702,7 @@ var tm = {
         tm.geocode_address = search;
         if (tm.isNumber(search)) {
             jQuery.getJSON('/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
-                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
                             
                 if (zips.features.length > 0) {
                     var olPoint = OpenLayers.Bounds.fromArray(zips.bbox).getCenterLonLat();
@@ -1726,7 +1726,7 @@ var tm = {
         else
         {
             jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
-                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
                 if (nbhoods.features.length > 0) {
                     var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
