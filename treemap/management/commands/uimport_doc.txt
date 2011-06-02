@@ -17,7 +17,7 @@ Input file fields:
 	PLOTWIDTH	 - number, feet
 	POWERLINE	 - True/False
 	OWNER		 - property or tree owner name, not a site user
-	DATEPLANTED	 - postgres-recognizable format
+	DATEPLANTED	 - postgres-recognizable date format
 	DIAMETER	 - number, inches
 	HEIGHT		 - number, feet
 	CANOPYHEIGHT	 - number, feet

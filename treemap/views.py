@@ -1073,9 +1073,10 @@ def advanced_search(request, format='json'):
         
     #else we're doing the simple json route .. ensure we return summary info
     tree_count = trees.count()
+    full_count = Tree.objects.count()
     esj = {}
     esj['total_trees'] = tree_count
-    print 'tree count', tree_count   
+    #print 'tree count', tree_count   
 
     if tree_count > maximum_trees_for_summary:
         trees = []
@@ -1090,15 +1091,15 @@ def advanced_search(request, format='json'):
 
     else:
         esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        print 'we have %s  ..' % esj
-        print 'aggregating..'
+        #print 'we have %s  ..' % esj
+        #print 'aggregating..'
 
         r = ResourceSummaryModel()
         
         with_out_resources = trees.filter(treeresource=None).count()
-        print 'without resourcesums:', with_out_resources
+        #print 'without resourcesums:', with_out_resources
         resources = tree_count - with_out_resources
-        print 'have resourcesums:', resources
+        #print 'have resourcesums:', resources
         
         EXTRAPOLATE_WITH_AVERAGE = True
 
@@ -1117,7 +1118,7 @@ def advanced_search(request, format='json'):
                 esj[f] = s
         esj['benefits'] = r.get_benefits()
 
-        print 'aggregated...'
+        #print 'aggregated...'
     
     
     if tree_count > maximum_trees_for_display:   
@@ -1132,7 +1133,7 @@ def advanced_search(request, format='json'):
           'cmplt' : t.is_complete()
           } for t in trees]
 
-    response.update({'trees' : tj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count})
+    response.update({'trees' : tj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count})
     return render_to_json(response)
 
     

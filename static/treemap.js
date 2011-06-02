@@ -435,13 +435,33 @@ var tm = {
         });
     },
     
-            
+    // Search page map init
     init_map : function(div_id){
         tm.init_base_map(div_id);
 
-        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
+
+        tm.tree_layer = new OpenLayers.Layer.WMS(
+                    "treemap_tree - Tiled", "http://207.245.89.246:8081/geoserver/wms",
+                    {
+                        transparent: 'true',
+                        width: '256',
+                        srs: 'EPSG:4326',
+                        layers: 'sf:treemap_tree',
+                        height: '256',
+                        styles: 'greenprint_tree_highlight',
+                        format: 'image/png',
+                        tiled: 'true',
+                        tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
+                    },
+                    {
+                        buffer: 0,
+                        displayOutsideMaxExtent: true,
+                        visibility: false
+                    } 
+                );
+
         
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
@@ -910,7 +930,7 @@ var tm = {
                 var coords = tree.geometry.coordinates;
                 
                 //remove old markers
-                if (tm.tree_detail_marker) {tm.tree_layer.removeMarker(tm.tree_detail_marker);}
+                if (tm.tree_detail_marker) {tm.misc_markers.removeMarker(tm.tree_detail_marker);}
                 
                 var AutoSizeFramedCloud = OpenLayers.Class(OpenLayers.Popup.FramedCloud, {
                     'autoSize': true
@@ -921,7 +941,7 @@ var tm = {
                 tm.tree_detail_marker.tree_id = p.id;
                 tm.tree_detail_marker.nhbd_id = p.neighborhood_id;
                 tm.tree_detail_marker.district_id = p.district_id;
-                tm.tree_layer.addMarker(tm.tree_detail_marker);
+                tm.misc_markers.addMarker(tm.tree_detail_marker);
                 
                 
                 var ll = tm.tree_detail_marker.lonlat;
@@ -1095,9 +1115,17 @@ var tm = {
         //tm.map.addOverlay(tm.current_selected_tile_overlay);
     },
             
+    cqlizeIds: function(trees) {
+        var cql_ids = [];
+        if (trees.length == 1) {return trees[0].id}
+        for(var i=0; i < trees.length; i++) {
+            cql_ids.push(trees[i].id);
+        }
+        return  cql_ids.join();
+    },
+
     display_search_results : function(results){
         $("#export_search").hide();
-        if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
@@ -1106,9 +1134,16 @@ var tm = {
         //}
         if (results) {
             tm.display_summaries(results.summaries);
-            if (results.initial_tree_count <= 1000) {
-                tm.overlay_trees(results.trees);
+            
+            if (results.initial_tree_count != results.full_tree_count) {
+                var cql = tm.cqlizeIds(results.trees);
+                tm.tree_layer.mergeNewParams({'FEATUREID':cql});
+                tm.tree_layer.setVisibility(true);                
+            }            
+            else {
+                tm.tree_layer.setVisibility(false);
             }
+
             if (results.initial_tree_count <= 5000) {
                 $("#export_search").show();
             }
@@ -1127,32 +1162,7 @@ var tm = {
         }
         
     },
-    
-    overlay_trees : function(trees){
-        //remove old trees
-        jQuery.each(trees, function(i,t){
-            var smarker = tm.get_marker_light(t, 'small')
-            smarker.events.register("click", smarker, function (e) {
-                var mapCoord = smarker.lonlat;
-                mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));           
-                tm.clckTimeOut = window.setTimeout(function() {
-                    singleClick(mapCoord)
-                    },500); 
-            });
-            tm.tree_layer.addMarker(smarker);
-                    
-            function singleClick(olLonlat) { 
-                window.clearTimeout(tm.clckTimeOut); 
-                tm.clckTimeOut = null; 
-                var spp = jQuery.urlParam('species');
-                jQuery.getJSON('/trees/location/',
-                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
-                tm.display_tree_details);
-            }         
 
-        });
-    },
-        
     // unused?
     select_species : function(species){
         tm.mgr.clearMarkers();
@@ -1576,10 +1586,7 @@ var tm = {
         if (tm.searchParams['location']) {
             var val = tm.searchParams['location'];
             var coords = tm.geocoded_locations[val];
-            if (!coords)
-            {
-                return false;
-            }
+            if (!coords) {return false;}
             if (coords.join) {
                 q.SET('location', coords.join(','));
             }
@@ -1594,16 +1601,20 @@ var tm = {
         return qstr;
     },
     
+
     updateSearch: function() {
         if (tm.loadingSearch) { return; }
         var qs = tm.serializeSearchParams();
         if (qs === false) { return; }
         tm.trackPageview('/search/' + qs);
         jQuery('#displayResults').show();
+        //TODO: send a geoserver CQL request also
         $.ajax({
             url: '/search/'+qs,
             dataType: 'json',
-            success: tm.display_search_results,
+            success: function(results) {
+                tm.display_search_results(results)
+            },
             error: function(err) {
                 jQuery('#displayResults').hide();
                 alert("Error: " + err.status + "\nQuery: " + qs);
