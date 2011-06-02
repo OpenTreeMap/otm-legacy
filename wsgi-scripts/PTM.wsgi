@@ -1,5 +1,5 @@
 import os, sys
-sys.path.insert(0, '/home/azavea/PhillyTreeMap')
+sys.path.insert(0, '/home/azavea/UrbanForestMap')
 
 import settings
 

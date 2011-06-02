@@ -53,7 +53,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'USER': 'sactrees',
         'PASSWORD': '12345',
-        'HOST': 'sajara01',
+        'HOST': '',
         'PORT': '5432',
     }
 }
