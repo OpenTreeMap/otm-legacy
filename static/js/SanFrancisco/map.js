@@ -10,6 +10,7 @@ tm.map_center_lat = 37.752809;
 tm.start_zoom = 12;
 tm.add_start_zoom = 14;
 tm.add_zoom = 18;
+tm.edit_zoom = 18;
 tm.initial_location_string = "San Francisco, CA";
 tm.initial_species_string = "All trees";
 

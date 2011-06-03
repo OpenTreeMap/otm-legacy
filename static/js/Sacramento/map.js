@@ -11,6 +11,7 @@ tm.map_center_lat = 38.6276;
 tm.start_zoom = 1;
 tm.add_start_zoom = 1;
 tm.add_zoom = 9;
+tm.edit_zoom = 9;
 tm.initial_location_string = "Sacramento, CA";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
@@ -67,7 +68,6 @@ tm.init_base_map = function(div_id, controls){
             layername: 'Map',
             type: 'png',
             isBaseLayer: false,
-            opacity:0.7,
             wrapDateLine: true,
             attribution: "(c) UrbanForestMap.org",
             zoomOffset: 8

@@ -425,7 +425,7 @@ var tm = {
                 coords = f.geometry.coordinates;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                 if (f.properties.id == tm.currentTreeId) {return;}
-                var icon = tm.get_icon(tm_icons.small_trees, 17);
+                var icon = tm.get_icon(tm_icons.small_trees, 19);
                 var marker = new OpenLayers.Marker(ll, icon);
                 marker.tid = f.properties.id;
                 
@@ -539,31 +539,6 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         
-        tm.map.events.register("click", tm.map, function (e) {
-            jQuery('#genError').hide();
-            
-            if (tm.add_vector_layer.features.length > 0) {
-                return false;
-            }
-            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            var zoom = 18;
-            if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
-            tm.map.setCenter(mapCoord, zoom);
-            
-            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            
-            //tm.load_nearby_trees(mapCoord);
-            tm.add_new_tree_marker(mapCoord,true);
-            
-            tm.drag_control.activate();
-            
-            jQuery('#id_lat').val(mapCoord.lat);
-            jQuery('#id_lon').val(mapCoord.lon);
-            
-            //tm.reverse_geocode(mapCoord);
-                        
-        });
-        
         jQuery('#id_edit_address_street').keydown(function(evt){
             if (evt.keyCode == 13) {                
                 evt.preventDefault();
@@ -618,6 +593,7 @@ var tm = {
                     tm.trackEvent('Add', 'View Map');
                 }
             });
+            
         });
     },
         
@@ -649,7 +625,7 @@ var tm = {
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
         tm.map.addLayers([tm.tree_layer]);
         
-        //load in favorite trees
+        //load in new trees
         var url = ['/trees/new/' + user + '/geojson/']
         $.getJSON(url, function(json){
             $.each(json, function(i,f){
@@ -694,11 +670,11 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 18);
+        tm.map.setCenter(olPoint, tm.edit_zoom);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
-        //tm.load_nearby_trees(currentPoint);
+        tm.load_nearby_trees(currentPoint);
         
         //if (editable) { tm.drag_control.activate(); }
         
