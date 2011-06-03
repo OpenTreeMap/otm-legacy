@@ -878,8 +878,8 @@ def tree_add(request, tree_id = ''):
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
         'user' : request.user, 
         'form' : form }))
-    
-def added_today_list(request, user_id=None):
+
+def added_today_list(request, user_id=None, format=None):
     user = None
     twelvehrs = timedelta(hours=12)
     start_date = datetime.now() - twelvehrs
@@ -891,6 +891,11 @@ def added_today_list(request, user_id=None):
     trees = []
     for tree in new_trees:
         trees.append(Tree.objects.get(pk=tree.id))
+    if format == 'geojson':        
+        tj = [{
+           'id':f.id, 
+           'coords':[f.geometry.x, f.geometry.y]} for f in trees]
+        return render_to_json(tj)
     return render_to_response('treemap/added_today.html', RequestContext(request,{
         'trees' : trees,
         'user': user}))

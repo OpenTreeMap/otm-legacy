@@ -622,7 +622,7 @@ var tm = {
     },
         
     //initializes map on the profile page; shows just favorited trees
-    init_favorite_map : function(user){
+    init_favorite_map : function(trees){
         tm.init_base_map('favorite_tree_map');
         
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -630,6 +630,27 @@ var tm = {
         
         //load in favorite trees
         var url = ['/trees/favorites/' + user + '/geojson/']
+        $.getJSON(url, function(json){
+            $.each(json, function(i,f){
+                var coords = f.coords;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]);
+                marker = tm.get_marker_light(ll, 17);
+                marker.tid = f.id;
+                tm.tree_layer.addMarker(marker);
+            });
+            var bounds = tm.tree_layer.getDataExtent();
+            tm.map.zoomToExtent(bounds, true);
+        });
+    },
+    //initializes map on the recently added page; shows just recently added trees
+    init_new_map : function(user){
+        tm.init_base_map('add_tree_map');
+        
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+        tm.map.addLayers([tm.tree_layer]);
+        
+        //load in favorite trees
+        var url = ['/trees/new/' + user + '/geojson/']
         $.getJSON(url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
