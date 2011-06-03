@@ -192,7 +192,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|yesno:"Yes,No,Missing" }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>

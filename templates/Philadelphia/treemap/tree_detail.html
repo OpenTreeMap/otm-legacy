@@ -209,7 +209,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.powerline_conflict_potential|yesno:"Yes,No,Missing" }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display }}</td>
         </tr>
         {% if tree.data_owner.id != 11 %}
         <tr>

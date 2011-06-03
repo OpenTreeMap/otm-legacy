@@ -2115,7 +2115,7 @@ $.editable.addInputType('date', {
             
         /* Year loop */
         thisyear = new Date().getFullYear()
-        for (var year=thisyear; year >= 1950; year--) {
+        for (var year=thisyear; year >= 1900; year--) {
             var option = $('<option>').val(year).append(year);
             yearselect.append(option);
         }

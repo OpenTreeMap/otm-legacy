@@ -111,7 +111,7 @@ class Choices(models.Model):
                 raise Exception("Invalid key type %r" % c.key_type)
 
             li[c.key] = c.value
-        return li.items()
+        return sorted(li.items())
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
@@ -373,12 +373,12 @@ class Tree(models.Model):
     canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
-    powerline_conflict_potential = models.NullBooleanField(
+    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
         help_text = "Are there overhead powerlines present?",null=True, blank=True)
     present = models.BooleanField(default=True)
     plot_width = models.FloatField(null=True, blank=True)
     plot_length = models.FloatField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -443,11 +443,10 @@ class Tree(models.Model):
         return None
        
     def get_powerline_conflict_display(self):
-        if self.powerline_conflict_potential == None:
-            return "Unknown"
-        if self.powerline_conflict_potential:
-            return "Yes"
-        return "No"
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None
 
     def get_scientific_name(self):
         if self.species:

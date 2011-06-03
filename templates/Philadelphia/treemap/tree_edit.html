@@ -117,9 +117,9 @@
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Is there a powerline overhead?</td>
-        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ instance.get_powerline_conflict_potential_display|yesno:"Yes,No,Click to edit" }}</td>
+        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ instance.get_powerline_conflict_potential_display }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("powerline_conflict_potential", "Tree", {{instance.id}}, {'type':'select', 'data': '{true: "Yes", false: "No", "None": "Unknown"}'});</script>
+        <script>tm.setupEdit("powerline_conflict_potential", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/powerline_conflict_potential/'});</script>
     </tr>
 
     {% if user.reputation.reputation > 1000 %}

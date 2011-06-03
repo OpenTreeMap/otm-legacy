@@ -865,11 +865,12 @@ def tree_add(request, tree_id = ''):
             new_tree = form.save(request)
             print 'saved %s' % new_tree
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
-            messages.success(request, "Your tree was successfully added!")
             print new_tree.powerline_conflict_potential
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
+                messages.success(request, "Your tree was successfully added!")
             elif form.cleaned_data.get('target') == "addsame":
+                messages.success(request, "Your tree was successfully added!")
                 pass
             elif form.cleaned_data.get('target') == "edit":
                 return HttpResponseRedirect('/trees/new/%i' % request.user.id)
