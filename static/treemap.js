@@ -545,7 +545,6 @@ var tm = {
                 evt.stopPropagation();
                 if (jQuery('#id_edit_address_street').val() != "") {
                     jQuery('#update_map').click();
-                    jQuery('#genError').hide();
                 }
             }
         });
@@ -554,7 +553,6 @@ var tm = {
                 evt.preventDefault();
                 evt.stopPropagation();
                 jQuery('#update_map').click();
-                jQuery('#genError').hide();
             }
         });
         
@@ -589,7 +587,6 @@ var tm = {
                     jQuery('#update_map').html("Update Map");
                     jQuery("#mapHolder").show();
                     jQuery("#calloutContainer").show();
-                    jQuery('#genError').hide();
                     tm.trackEvent('Add', 'View Map');
                 }
             });
