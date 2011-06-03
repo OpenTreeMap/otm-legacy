@@ -374,7 +374,7 @@ class Tree(models.Model):
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
     powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
-        help_text = "Are there overhead powerlines present?",null=True, blank=True)
+        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     present = models.BooleanField(default=True)
     plot_width = models.FloatField(null=True, blank=True)
     plot_length = models.FloatField(null=True, blank=True) 
