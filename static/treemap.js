@@ -1121,6 +1121,7 @@ var tm = {
     display_search_results : function(results){
         $("#export_search").hide();
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
+        //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
         //{
@@ -1129,7 +1130,7 @@ var tm = {
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count) {
+            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
                 var cql = tm.cqlizeIds(results.trees);
                 tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                 tm.tree_layer.setVisibility(true);                
@@ -1597,6 +1598,7 @@ var tm = {
     
 
     updateSearch: function() {
+        
         if (tm.loadingSearch) { return; }
         var qs = tm.serializeSearchParams();
         if (qs === false) { return; }

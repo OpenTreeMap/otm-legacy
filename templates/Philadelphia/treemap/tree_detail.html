@@ -39,7 +39,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.state}}
+			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.all.0.state}}
 		</h3>
 
             <div class="tab-content" id="tab-1">

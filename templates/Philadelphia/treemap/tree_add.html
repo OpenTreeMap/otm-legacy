@@ -84,6 +84,7 @@
 	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
+    {{ form.edit_address_city }}
 	<a href="javascript:void(0)" id="update_map" class="buttonMed">View Map</a>
 	</div>
 
@@ -126,7 +127,6 @@
     {{ form.species_id }}
     {{ form.lat }}
     {{ form.lon }}
-    {{ form.edit_address_city }}
     {{ form.edit_address_zip }}
 
 

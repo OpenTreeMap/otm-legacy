@@ -3403,13 +3403,6 @@ padding: 15px 0 0 0;
 #opt_field_group {
 	padding-top: 40px;
 }
-#register #id_power_lines {
-	margin: 10px 0 0 10px;
-	width: 20px;
-}
-#register #power_lines {
-	padding-bottom: 30px;
-}
 #register #dbh_type {
 	margin: -20px 0 0 -200px;
 	float: left;

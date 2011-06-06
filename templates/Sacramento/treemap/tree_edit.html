@@ -2,6 +2,9 @@
 
 {% load thumbnail dynamic_attribute %}
 
+{% block extrahead %}
+<script type="text/javascript" src="/static/js/map.js"></script>
+{% endblock %}
 
             {% block content_body_top %}
                
@@ -46,7 +49,7 @@
     <tr>
     	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
 	<tr>
@@ -55,22 +58,6 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
     </tr> 
-	<tr>
-    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
-        <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city }}</td>
-       
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip }}</td>
-       
-    </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Date Planted</td>
         <td class="activeEditRowValue" id="edit_date_planted">{{ instance.date_planted|default:"Click to edit"}}</td>
@@ -110,7 +97,7 @@
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
         <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ instance.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/sidewalk_damage/'});</script>
+            <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/sidewalk_damage/'});</script>
     </tr>
     <thead>
     	<tr>

@@ -3863,9 +3863,6 @@ padding: 15px 0 0 0;
 	margin:0 20px 20px 10px;
 }
 
-#register.add input#id_edit_address_street {
-	width: 434px;
-	}
 #register.add input#id_species_name {
 	width: 408px;
 	margin-bottom: 0;

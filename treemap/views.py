@@ -671,11 +671,11 @@ def object_update(request):
                             response_dict['pending'] = 'true';
                             if k == 'geometry':
                                 response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                response_dict['update'][k] = cleaned
+                                response_dict['update'][k] = 'Pending'
                                 pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
                             else:                                
                                 response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                response_dict['update'][k] = cleaned
+                                response_dict['update'][k] = 'Pending'
                                 pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
                             
                             if k == 'species_id':
