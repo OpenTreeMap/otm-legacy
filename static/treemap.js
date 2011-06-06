@@ -2017,7 +2017,21 @@ var tm = {
             }
         });
     },
-    
+
+    updatePend: function(pend_id, pend_dir) {
+        $.ajax({
+        url: '/trees/pending/' + pend_id + '/' + pend_dir,
+        dataType: 'json',
+        success: function(response) {
+            $("#" + response.pend_id).hide();
+            tm.trackEvent("Pending", pend_dir)
+        },
+        error: function(err) {
+        alert("Error: " + err.status + "\nQuery: " + pend_id + " " + pend_dir);
+        }
+        });
+    },
+
     validate_watch: function(watch_id){
         var data = {
             'watch_id': watch_id

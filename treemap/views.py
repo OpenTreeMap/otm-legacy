@@ -569,7 +569,7 @@ def approve_pend(request, pend_id):
     pend.approve(request.user)
     Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
     return HttpResponse(
-        simplejson.dumps({'success': True}, sort_keys=True, indent=4),
+        simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     ) 
 
@@ -582,9 +582,27 @@ def reject_pend(request, pend_id):
         raise Http404
     pend.reject(request.user)
     return HttpResponse(
-        simplejson.dumps({'success': True}, sort_keys=True, indent=4),
+        simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     ) 
+
+@login_required
+@permission_required('auth.change_user')
+def view_pends(request):
+    pends = TreePending.objects.all()
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        pends = pends.filter(submitted_by__in=u)
+    if 'address' in request.GET:
+        pends = pends.filter(tree__address_street__icontains=request.GET['address'])
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        pends = pends.filter(tree__neighborhood=n)
+    if 'status' in request.GET:
+        pends = pends.filter(status=request.GET['status'])
+
+    return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends':pends}))
+
 
 @login_required
 @transaction.commit_manually
