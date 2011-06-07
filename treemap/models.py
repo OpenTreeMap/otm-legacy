@@ -530,7 +530,10 @@ class Tree(models.Model):
         sets the species, and updates the species tree count
         """
         self.old_species = self.species
-        new_species = Species.objects.get(id=species_id)
+        if species_id == 0:
+            new_species = None
+        else:
+            _species = Species.objects.get(id=species_id)
         self.species = new_species
         if commit:
             self.save()

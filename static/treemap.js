@@ -173,13 +173,7 @@ var tm = {
         });
         
         $("#species_go").click(function(evt) {
-            if ($('body')[0].id == "results") {
-                if ($("#species_search_input")[0].value) {
-                tm.updateSearch();
-                }
-            } else {
-                triggerSearch();
-            }
+            $("#location_go").click();
         });
         $("#searchSpeciesBrowse").click(function(evt) {
             $("#searchSpeciesList").slideToggle();
@@ -1229,13 +1223,13 @@ var tm = {
         // with original value and if 'null' then
         // we should save None in database if its
         // a field that accepts nulls
-        if (value === '') {
+        //if (value === '') {
         //if (value == '' || value == 'null') {
            // do nothing
-           this.innerHTML = 'Click to edit';
-           return 'Click to edit';
-        }
-        else {
+           //this.innerHTML = 'Click to edit';
+           //return 'Click to edit';
+        //}
+        //else {
             if (settings.objectId) {
                 data.id = settings.objectId;
             }    
@@ -1314,7 +1308,7 @@ var tm = {
                     }
                 }});
             return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
-        } 
+        //} 
     },       
     updateEditableLocation: function() {
         var street = jQuery('#edit_address_street')[0].innerHTML;

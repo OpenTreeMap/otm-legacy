@@ -681,7 +681,11 @@ def object_update(request):
                 #{"model":"Tree","update":{"height":10},"id":6}
                 #{"model":"Tree","update":{"species_id":397},"id":6}
                 #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
-                if settings.PENDING_ON and post['model'] == "Tree": # and user perms? 
+                
+                    # if the tree was added by the public, or the current user is not public, skip pending
+                insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+                mgmt_user = request.user.has_perm('auth.change_user')
+                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user or not insert_event_mgmt):
                     for k,v in update.items():
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
@@ -758,7 +762,6 @@ def object_update(request):
                         #print k,v
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
-                            cleaned = fld.clean(v,instance)
                             if k == 'species_id':
                                 response_dict['update']['old_' + k] = instance.get_scientific_name()
                                 instance.set_species(v,commit=False)
@@ -766,6 +769,7 @@ def object_update(request):
                                 # old value for non-status objects only, status objects return None
                                 # and are handled after parent model is set
                                 response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                cleaned = fld.clean(v,instance)
                                 setattr(instance,k,cleaned)
                         except ValidationError,e:
                             response_dict['errors'].append(e.messages[0])
@@ -814,7 +818,6 @@ def object_update(request):
                             # eg. Tree.objects.all()[1].treestatus_set
                             set = getattr(parent_instance,post['model'].lower() + '_set')
                             set.add(instance)
-                            print "instance set"
                             if response_dict['update'].has_key('old_value'):
                                 history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
                                 if history.count() == 0:
@@ -832,12 +835,8 @@ def object_update(request):
                 if not delete:
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
-                    print "instance save"
                     if post['model'] in  ["Tree", "TreeFlags"] :
-                        print save_value
-                        print request.user.reputation.reputation
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
-                        print request.user.reputation.reputation
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:

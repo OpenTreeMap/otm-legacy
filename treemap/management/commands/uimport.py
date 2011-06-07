@@ -106,11 +106,19 @@ class Command(BaseCommand):
 
     def check_species(self, row):
         # locate the species and instanciate the tree instance
-        if not row["SCIENTIFIC"]:            
+        if not row.get('SCIENTIFIC') and not row.get('GENUS'):            
             self.log_verbose("  No species information")
             return (True, None)
 
-        name = row['SCIENTIFIC']
+        if row.get('SCIENTIFIC'):
+            name = row['SCIENTIFIC']
+        else
+            name = str(row['GENUS'])
+            if row.get('SPECIES'):
+                name = name + " " + str(row['SPECIES'])
+            if row.get('CULTIVAR'):
+                name = name + " " + str(row['CULTIVAR'])
+            
         self.log_verbose("  Looking for species: %s" % name)
         species = Species.objects.filter(scientific_name__iexact=name)
 
@@ -261,73 +269,64 @@ class Command(BaseCommand):
 
         # if powerline is specified, then we want to set our boolean
         # attribute; otherwise leave it alone.
-        xyz = row.get('POWERLINE')
-        if xyz is None or xyz.strip() == "":
+        powerline = row.get('POWERLINE')
+        if powerline is None or powerline.strip() == "":
             pass
-        elif xyz is True or xyz == "True":
-            tree.powerline_conflict_potential = True
+        elif powerline is True or powerline.lower() == "true" or powerline.lower() == 'yes':
+            tree.powerline_conflict_potential = 'Yes'
         else:
-            tree.powerline_conflict_potential = False
+            tree.powerline_conflict_potential = 'No'
+
+        sidewalk_damage = row.get('SIDEWALK')
+        if sidewalk_damage is None or sidewalk_damage.strip() == "":
+            pass
+        elif sidewalk_damage is True or sidewalk_damage.lower() == "true" or sidewalk_damage.lower() == 'yes':
+            tree.sidewalk_damage = 2
+        else:
+            tree.sidewalk_damage = 1
 
         if row.get('OWNER'):
             tree.tree_owner = str(row["OWNER"])
 
+        if row.get('STEWARD'):
+            tree.steward_name = str(row["STEWARD"])
+
+        if row.get('SPONSOR'):
+            tree.sponsor = str(row["SPONSOR"])
+
         if row.get('DATEPLANTED'):
             tree.date_planted = str(row['DATEPLANTED'])
 
-        tree.quick_save()
+        if row.get('DIAMETER'):
+            tree.dbh = row['DIAMETER']
 
-        # add associated objects as needed; skip if no change
-        if row.get('DIAMETER') and row['DIAMETER'] != tree.current_dbh: 
-            ts = TreeStatus(
-                reported_by = tree.last_updated_by,
-                value = row['DIAMETER'],
-                key = 'dbh',
-                tree = tree)                    
-            #print ts, ts.value
-            ts.save()
+        if row.get('HEIGHT'):
+            tree.height = row['HEIGHT']
 
-        if row.get('HEIGHT') and row['HEIGHT'] != tree.get_height(): 
-            ts = TreeStatus(
-                reported_by = tree.last_updated_by,
-                value = row['HEIGHT'],
-                key = 'height',
-                tree = tree)
-            #print ts, ts.value
-            ts.save()
+        if row.get('CANOPYHEIGHT'):
+            tree.canopy_height = row['CANOPYHEIGHT']
 
-        if row.get('CANOPYHEIGHT') and row['CANOPYHEIGHT'] != tree.get_canopy_height(): 
-            ts = TreeStatus(
-                reported_by = tree.last_updated_by,
-                value = row['CANOPYHEIGHT'],
-                key = 'canopy_height',
-                tree = tree)
-            #print ts, ts.value
-            ts.save()
-
-        if row.get('CONDITION') and row['CONDITION'] != tree.get_condition():
+        if row.get('CONDITION'):
             for k, v in Choices().get_field_choices('condition'):
                 if v == row['CONDITION']:
-                    ts = TreeStatus(
-                        reported_by = tree.last_updated_by,
-                        value = k,
-                        key = 'condition',
-                        tree = tree)
-                    ts.save()
-                    #print ts, ts.value
+                    tree.condition = v
                     break;
-        
-        if row.get('CANOPYCONDITION') and row['CANOPYCONDITION'] != tree.get_canopy_condition():
+
+        if row.get('CANOPYCONDITION'):
             for k, v in Choices().get_field_choices('canopy_condition'):
                 if v == row['CANOPYCONDITION']:
-                    ts = TreeStatus(
-                        reported_by = tree.last_updated_by,
-                        value = k,
-                        key = 'canopy_condition',
-                        tree = tree)
-                    ts.save()
-                    #print ts, ts.value
+                    tree.canopy_condition = v
                     break;
+
+        tree.quick_save()
+
+        if row.get('PROJECT_1'):
+            pass
+        if row.get('PROJECT_2'):
+            pass
+        if row.get('PROJECT_3'):
+            pass
+
 
         # rerun validation tests and store results
         tree.validate_all()
