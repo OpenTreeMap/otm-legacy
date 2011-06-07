@@ -47,7 +47,7 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    target = forms.ChoiceField(choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
@@ -114,8 +114,6 @@ class TreeAddForm(forms.Form):
         if plot_width:
             new_tree.plot_width = float(plot_width)
         if plot_width_in:
-            print plot_width_in
-            print (float(plot_width_in) / 12)
             new_tree.plot_width = new_tree.plot_width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
         plot_length_in = self.cleaned_data.get('plot_length_in')
@@ -131,7 +129,7 @@ class TreeAddForm(forms.Form):
             new_tree.powerline_conflict_potential = power_lines
         height = self.cleaned_data.get('height')
         if height:
-            new_tree.height = height;
+            new_tree.height = height
         canopy_height = self.cleaned_data.get('canopy_height')
         if canopy_height:
             new_tree.canopy_height = canopy_height
@@ -139,7 +137,7 @@ class TreeAddForm(forms.Form):
         dbh_type = self.cleaned_data.get('dbh_type')
         if dbh:
             if dbh_type == 'circumference':
-                dbh = dbh / math.pi;
+                dbh = dbh / math.pi
             new_tree.dbh = dbh
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:
