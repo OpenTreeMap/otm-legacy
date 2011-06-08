@@ -105,7 +105,7 @@
             {% if pend.field == 'dbh' %}
                 <tr id="pending_{{pend.id}}">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value}} inches Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value|unit_or_missing:"inches"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -117,7 +117,7 @@
             {% if pend.field == 'height' %}
                 <tr id="pending_{{pend.id}}">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value}} ft Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value|unit_or_missing:"ft"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}

@@ -757,7 +757,6 @@ var tm = {
             tm.smallPopup.minSize = new OpenLayers.Size(25,25);
             tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
             tm.smallPopup.border = "1px solid Black";
-            tm.smallPopup.borderRadius = '5px';
             tm.map.addPopup(tm.smallPopup);
             tm.smallPopup.updateSize();
         }
@@ -1279,7 +1278,11 @@ var tm = {
             //  value = dateVal.getFullYear() + "-" + (dateVal.getMonth()+1) + "-" + dateVal.getDate()
             //}
             
-            
+                
+            if (settings.fieldName == 'species_id' && value == 0) {
+                $(this).addClass("error");
+                return "Please select a species from the provided list.";
+            }
             //do some validation for height and canopy height
             if (settings.fieldName == 'height' || settings.fieldName == 'canopy_height') {
                 if (value > 300) {
@@ -1366,17 +1369,12 @@ var tm = {
 
             formatItem: function(row, i, max) {
                 var text = row.cname;
-                /*if (row.cultivar)
-                {
-                    text += ' /' + row.cultivar;
-                }*/
                 text += "  [" + row.sname;
                 if (row.cultivar) {
                     text += " '" + row.cultivar + "'";
                 }
                 text += "]";
                 return text;
-                //return row.cname + "  [" + row.sname + "]";
             },
             formatMatch: function(row, i, max) {
                 return row.symbol + " " + row.cname + " " + row.sname;

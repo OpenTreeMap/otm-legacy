@@ -3401,9 +3401,7 @@ padding: 15px 0 0 0;
 #opt_field_group {
 	padding-top: 40px;
 }
-#register #id_power_lines {
-	margin: 12px 0 0 -120px;
-}
+
 #register #power_lines {
 	padding-bottom: 30px;
 }

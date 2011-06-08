@@ -685,7 +685,7 @@ def object_update(request):
                     # if the tree was added by the public, or the current user is not public, skip pending
                 insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
                 mgmt_user = request.user.has_perm('auth.change_user')
-                if settings.PENDING_ON and post['model'] == "Tree":# and (not mgmt_user or not insert_event_mgmt):
+                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user or not insert_event_mgmt):
                     for k,v in update.items():
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
