@@ -36,6 +36,7 @@ var tm_icons = {
     small_trees : "/static/images/map_icons/v4/zoom5.png",
     small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
     focus_tree : '/static/images/map_icons/v4/marker-selected.png',
+    pending_tree : '/static/images/map_icons/v4/marker-pending.png', 
     marker : '/static/openlayers/img/marker.png'
     };
 var tm_urls = {};
@@ -411,24 +412,6 @@ var tm = {
         return x1 + x2;
     },
     
-    load_nearby_trees : function(ll){
-        //load in nearby trees as well
-        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
-        $.getJSON(url, function(geojson){
-            $.each(geojson.features, function(i,f){
-                coords = f.geometry.coordinates;
-                var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                if (f.properties.id == tm.currentTreeId) {return;}
-                var icon = tm.get_icon(tm_icons.small_trees, 19);
-                var marker = new OpenLayers.Marker(ll, icon);
-                marker.tid = f.properties.id;
-                
-                tm.tree_layer.addMarker(marker);
-                                
-            });
-        });
-    },
-    
     // Search page map init
     init_map : function(div_id){
         tm.init_base_map(div_id);
@@ -665,8 +648,13 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
+        //TODO: get this working
         tm.load_nearby_trees(currentPoint);
         
+        if (tm.current_tree_geometry_pends && tm.current_tree_geometry_pends.length > 0) {
+            tm.add_pending_markers(tm.current_tree_geometry_pends);
+            jQuery('#edit_tree_map_legend').show();
+        }
         //if (editable) { tm.drag_control.activate(); }
         
         tm.load_streetview(currentPoint, 'tree_streetview');
@@ -727,13 +715,39 @@ var tm = {
         return marker
     },        
         
+    load_nearby_trees : function(ll){
+        //load in nearby trees as well
+        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
+        $.getJSON(url, function(geojson){
+            $.each(geojson.features, function(i,f){
+                coords = f.geometry.coordinates;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                if (f.properties.id == tm.currentTreeId) {return;}
+                var icon = tm.get_icon(tm_icons.small_trees, 19);
+                var marker = new OpenLayers.Marker(ll, icon);
+                marker.tid = f.properties.id;
+                
+                tm.tree_layer.addMarker(marker);
+                                
+            });
+        });
+    },
+    
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
 
         return marker
         },
-        
+    add_pending_markers: function(pends) {
+        for (var i=0; i<pends.length; i++) {
+            var ll = new OpenLayers.LonLat(pends[i].x, pends[i].y).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+            var icon = tm.get_icon(tm_icons.pending_tree, 19);
+            var marker = new OpenLayers.Marker(ll, icon);
+            
+            tm.tree_layer.addMarker(marker);
+        }
+    },
     add_new_tree_marker : function(ll, do_reverse_geocode){
         if (tm.add_vector_layer) {
             tm.add_vector_layer.destroyFeatures();
@@ -1311,18 +1325,12 @@ var tm = {
         //} 
     },       
     updateEditableLocation: function() {
-        var street = jQuery('#edit_address_street')[0].innerHTML;
-        var city = jQuery('#edit_address_city')[0].innerHTML;
-        var zip = jQuery('#edit_address_zip')[0].innerHTML;
         
         var wkt = jQuery('#id_geometry').val();
         var data = {
             'model': 'Tree',
             'id': tm.currentTreeId,
             'update': {
-                address_street: street,
-                address_city: city,
-                address_zip: zip,
                 geometry: wkt
             }
         };

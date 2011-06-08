@@ -373,6 +373,9 @@
                         <div class="aside">
                             <div id="edit_tree_map"></div>
                             <div id="alternate_tree_div"></div>
+                            <div id="edit_tree_map_legend" style="display:none;">
+                                <img src="/static/images/map_icons/v4/marker-pending.png" /> - Pending Location <img src="/static/images/map_icons/v4/vector.png" /> - Current Location
+                            </div>
                             <div id="tree_streetview"></div>
                             <div id="tree_comments">
 								<div class="wrap">
@@ -601,6 +604,7 @@
 {% block endpage %}
 	<script>
 		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+        tm.current_tree_geometry_pends = [{% for t in tree.get_active_geopends %} { 'x': {{t.geometry.x}}, 'y': {{t.geometry.y}}, 'id': {{t.id}} }, {% endfor %}];
 		tm.currentTreeId = {{tree.id}};
 		tm.init_tree_map(false); //not editable
 		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');

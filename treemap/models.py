@@ -482,6 +482,10 @@ class Tree(models.Model):
         pends = self.treepending_set.filter(status='pending')
         return pends
 
+    def get_active_geopends(self):
+        pends = TreeGeoPending.objects.filter(status='pending').filter(tree=self)
+        return pends
+
     def set_environmental_summaries(self):
         if not self.species or not self.dbh:
             logging.debug('no species or no dbh ..')
