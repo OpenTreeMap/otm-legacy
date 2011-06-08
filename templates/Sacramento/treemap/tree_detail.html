@@ -375,6 +375,12 @@
                             <div id="alternate_tree_div"></div>
                             <div id="edit_tree_map_legend" style="display:none;">
                                 <img src="/static/images/map_icons/v4/marker-pending.png" /> - Pending Location <img src="/static/images/map_icons/v4/vector.png" /> - Current Location
+                                 {% for t in tree.get_active_geopends %} 
+                                    <div> Pending #{{t.id}}  
+                                        <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">Approve</a> 
+                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">Reject</a> 
+                                    </div> 
+                                {% endfor %}                               
                             </div>
                             <div id="tree_streetview"></div>
                             <div id="tree_comments">

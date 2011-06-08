@@ -746,6 +746,20 @@ var tm = {
             var marker = new OpenLayers.Marker(ll, icon);
             
             tm.tree_layer.addMarker(marker);
+
+            var popupPixel = tm.map.getViewPortPxFromLonLat(ll);
+            popupPixel.y += marker.icon.offset.y - 25;
+            tm.smallPopup = new OpenLayers.Popup("popup_id",
+                       tm.map.getLonLatFromPixel(popupPixel),
+                       null,
+                       pends[i].id,
+                       false);
+            tm.smallPopup.minSize = new OpenLayers.Size(25,25);
+            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+            tm.smallPopup.border = "1px solid Black";
+            tm.smallPopup.borderRadius = '5px';
+            tm.map.addPopup(tm.smallPopup);
+            tm.smallPopup.updateSize();
         }
     },
     add_new_tree_marker : function(ll, do_reverse_geocode){
