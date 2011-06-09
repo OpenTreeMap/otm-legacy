@@ -1,5 +1,5 @@
 from django.dispatch import dispatcher
-from django.db import models
+from django.contrib.gis.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib import admin
 import copy
@@ -176,6 +176,8 @@ def create_audit_model(cls, **kwargs):
                 rel = copy.copy(field.rel)
                 rel.related_name = '_audit_' + field.related_query_name()
                 attrs[field.name].rel = rel
+            if isinstance(field, models.PointField):
+                attrs['objects'] = models.GeoManager()
 
     for track_field in _track_fields(kwargs['track_fields']):
         if track_field['name'] in attrs:

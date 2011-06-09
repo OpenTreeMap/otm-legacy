@@ -1291,9 +1291,9 @@ def verify_edits(request, audit_type='tree'):
         trees = trees.filter(address_street__icontains=request.GET['address'])
         newtrees = newtrees.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
-        trees = trees.filter(neighborhood=n)
-        newtrees = newtrees.filter(neighborhood=n)
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])[0].geometry
+        trees = trees.filter(geometry__within=n)
+        newtrees = newtrees.filter(geometry__within=n)
     
     
     for tree in trees:
