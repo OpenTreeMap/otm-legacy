@@ -115,7 +115,7 @@ class Choices(models.Model):
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
-choices = Choices()
+#choices = Choices()
     
 
 
