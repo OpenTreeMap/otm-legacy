@@ -39,7 +39,13 @@ urlpatterns = patterns('',
     (r'^trees/location/$', tree_location_search),
     (r'^trees/location/update/$', tree_location_update), 
     (r'^trees/new/$', added_today_list),   
+    (r'^trees/new/(?P<format>(geojson))/$', added_today_list),   
     (r'^trees/new/(?P<user_id>\d+)/$', added_today_list),
+    (r'^trees/new/(?P<user_id>\d+)/(?P<format>(geojson))/$', added_today_list),
+
+    (r'^trees/pending/$', view_pends),
+    (r'^trees/pending/(?P<pend_id>\d+)/approve/$', approve_pend),  
+    (r'^trees/pending/(?P<pend_id>\d+)/reject/$', reject_pend),    
 
     (r'^trees/watch/$', watch_list),
     (r'^watch/validate/$', validate_watch),

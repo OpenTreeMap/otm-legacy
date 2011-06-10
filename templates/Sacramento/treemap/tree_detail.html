@@ -62,22 +62,6 @@
                 {% if tree.species.native_status %}
                 <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
-                    {% comment %}
-                    {% if tree.species. %}
-                    <li><img src="/static/images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
-                    {% endif %}
-                    {% endcomment %}
-                {% if tree.sanfranciscotree.sf_local_carbon_fund %}
-                <li><img src="/static/images/SanFrancisco/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
-                {% endif %}
-                {% if tree.sanfranciscotree.sf_fruit_gleaning_project %}
-                <li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
-                {% endif %}
-                {% if tree.sanfranciscotree.sf_landmark %}
-                <li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
-                {% endif %}
-                
-                <!-- ALSO sf significant??? -->
                 
             {% else %}
             <li>None at this time</li>
@@ -85,8 +69,7 @@
 
             </ul>
         </div>
-                        
-                        
+
 <table class="box-table-a">
     <thead>
     	<tr>
@@ -97,33 +80,59 @@
     	<tr>
         	<td class="col1Wide">Number</td>
             <td>#{{tree.id}}</td>
-            <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Scientific name</td>
             <td><i>{{tree.get_scientific_name}}</i></td>
-            <td></td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'species_id' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Common name</td>
             <td>{{tree.get_common_name}}</td>
-            <td></td>
         </tr>
     	<tr>
         	<td class="col1Wide">Trunk diameter</td>
             <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
-            <td></td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'dbh' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.value}} inches Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Tree height</td>
             <td>{{tree.height|unit_or_missing:"feet"}}</td>
-            <td></td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'height' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.value}} ft Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Date Planted</td>
-            <td>{{tree.date_planted|date}}</td>
-            <td></td>
+            <td>{{tree.date_planted|date|default:"Missing"}}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'date_planted' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.value|date}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
     </tbody>
 </table>
 
@@ -186,18 +195,56 @@
         	<td class="col1Wide">Plot size</td>
             <td>{{tree.plot_width|unit_or_missing:" / "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'plot_length' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>Length: {{pend.value|unit_or_missing:"ft"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+            {% if pend.field == 'plot_width' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>Width: {{pend.value|unit_or_missing:"ft"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Plot type</td>
             <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'plot_type' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|yesno:"Yes,No,Missing" }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'powerline_conflict_potential' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
             <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'sidewalk_damage' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
 
     </tbody>
 </table>
@@ -213,6 +260,14 @@
         	<td class="col1Wide">Tree condition</td>
             <td>{{tree.get_condition_display|default:"Missing"}}</td>
         </tr>
+        {% for pend in tree.get_active_pends %}
+            {% if pend.field == 'condition' %}
+                <tr id="pending_{{pend.id}}">
+                	<td class="col1Wide Pending"></td>
+                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         <tr>
         	<td class="col1Wide">Alerts</td>
             <td>{{tree.get_alert_count}} known</td>

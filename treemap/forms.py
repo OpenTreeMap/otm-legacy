@@ -34,7 +34,7 @@ class TreeAddForm(forms.Form):
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
-    dbh = forms.FloatField(required=False)
+    dbh = forms.FloatField(required=False, label="Trunk diameter")
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
     height = forms.FloatField(required=False)
     canopy_height = forms.IntegerField(required=False)
@@ -43,16 +43,17 @@ class TreeAddForm(forms.Form):
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot_type'), required=False)
-    power_lines = forms.BooleanField(required=False, label='Power lines overhead')
+    power_lines = forms.TypedChoiceField(choices=Choices().get_field_choices('powerline_conflict_potential'), required=False)
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    target = forms.ChoiceField(choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done! I want to receive confirmation')], initial='edit', widget=forms.RadioSelect)        
+    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
         if not self.fields['plot_type'].choices[0][0] == '':        
             self.fields['plot_type'].choices.insert(0, ('','Select One...' ) )
+            self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
             self.fields['condition'].choices.insert(0, ('','Select One...' ) )
             self.fields['canopy_condition'].choices.insert(0, ('','Select One...' ) )
@@ -63,20 +64,27 @@ class TreeAddForm(forms.Form):
 
 
     def clean(self):        
-        cleaned_data = self.cleaned_data  
+        cleaned_data = self.cleaned_data 
+        height = cleaned_data.get('height')
+        canopy_height = cleaned_data.get('canopy_height') 
         try:
             point = Point(cleaned_data.get('lon'),cleaned_data.get('lat'),srid=4326)  
-            #nearby = Tree.objects.filter(geometry__distance_lte=(point, D(ft=10)))
             nbhood = Neighborhood.objects.filter(geometry__contains=point)
         except:
             raise forms.ValidationError("This tree is missing a location. Click the map to add a location for this tree.") 
         
-        #if nearby.count() > 0:
-        #    raise forms.ValidationError("The selected location is too close to an existing tree. Please check that the tree you are trying to enter is not already in the system or specify a different location.")
-        
         if nbhood.count() < 1:
             raise forms.ValidationError("The selected location is outside our area. Please specify a different location.")
         
+        if height > 300:
+            raise forms.ValidationError("Height is too large.")
+        if canopy_height > 300:
+            raise forms.ValidationError("Canopy height is too large.")
+
+        if canopy_height and height and canopy_height > height:
+            raise forms.ValidationError("Canopy height cannot be larger than tree height.")
+            
+
         return cleaned_data 
         
     def save(self,request):
@@ -106,8 +114,6 @@ class TreeAddForm(forms.Form):
         if plot_width:
             new_tree.plot_width = float(plot_width)
         if plot_width_in:
-            print plot_width_in
-            print (float(plot_width_in) / 12)
             new_tree.plot_width = new_tree.plot_width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
         plot_length_in = self.cleaned_data.get('plot_length_in')
@@ -123,7 +129,7 @@ class TreeAddForm(forms.Form):
             new_tree.powerline_conflict_potential = power_lines
         height = self.cleaned_data.get('height')
         if height:
-            new_tree.height = height;
+            new_tree.height = height
         canopy_height = self.cleaned_data.get('canopy_height')
         if canopy_height:
             new_tree.canopy_height = canopy_height
@@ -131,7 +137,7 @@ class TreeAddForm(forms.Form):
         dbh_type = self.cleaned_data.get('dbh_type')
         if dbh:
             if dbh_type == 'circumference':
-                dbh = dbh / math.pi;
+                dbh = dbh / math.pi
             new_tree.dbh = dbh
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:

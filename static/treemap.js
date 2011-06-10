@@ -59,9 +59,8 @@ var tm = {
     map_center_lon: null,
     map_center_lat: null,
     start_zoom: null,
+    add_start_zoom: null,
     add_zoom: null,
-    initial_location_string: "",
-    initial_species_string: "",
 
     google_bounds: null,
 
@@ -174,13 +173,7 @@ var tm = {
         });
         
         $("#species_go").click(function(evt) {
-            if ($('body')[0].id == "results") {
-                if ($("#species_search_input")[0].value) {
-                tm.updateSearch();
-                }
-            } else {
-                triggerSearch();
-            }
+            $("#location_go").click();
         });
         $("#searchSpeciesBrowse").click(function(evt) {
             $("#searchSpeciesList").slideToggle();
@@ -426,7 +419,7 @@ var tm = {
                 coords = f.geometry.coordinates;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                 if (f.properties.id == tm.currentTreeId) {return;}
-                var icon = tm.get_icon(tm_icons.small_trees, 17);
+                var icon = tm.get_icon(tm_icons.small_trees, 19);
                 var marker = new OpenLayers.Marker(ll, icon);
                 marker.tid = f.properties.id;
                 
@@ -436,13 +429,33 @@ var tm = {
         });
     },
     
-            
+    // Search page map init
     init_map : function(div_id){
         tm.init_base_map(div_id);
 
-        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
+
+        tm.tree_layer = new OpenLayers.Layer.WMS(
+                    "treemap_tree - Tiled", "http://207.245.89.246:8081/geoserver/wms",
+                    {
+                        transparent: 'true',
+                        width: '256',
+                        srs: 'EPSG:4326',
+                        layers: 'sf:treemap_tree',
+                        height: '256',
+                        styles: 'greenprint_tree_highlight',
+                        format: 'image/png',
+                        tiled: 'true',
+                        tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
+                    },
+                    {
+                        buffer: 0,
+                        displayOutsideMaxExtent: true,
+                        visibility: false
+                    } 
+                );
+
         
         tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
         tm.map.setCenter(
@@ -513,37 +526,12 @@ var tm = {
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
             new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
-            , 9);
+            , tm.add_start_zoom);
             
         //jQuery("#mapHolder").hide();
         //jQuery("#calloutContainer").hide();
         
         tm.geocoder = new google.maps.Geocoder();
-        
-        tm.map.events.register("click", tm.map, function (e) {
-            jQuery('#genError').hide();
-            
-            if (tm.add_vector_layer.features.length > 0) {
-                return false;
-            }
-            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-            var zoom = 18;
-            if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
-            tm.map.setCenter(mapCoord, zoom);
-            
-            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            
-            //tm.load_nearby_trees(mapCoord);
-            tm.add_new_tree_marker(mapCoord,true);
-            
-            tm.drag_control.activate();
-            
-            jQuery('#id_lat').val(mapCoord.lat);
-            jQuery('#id_lon').val(mapCoord.lon);
-            
-            //tm.reverse_geocode(mapCoord);
-                        
-        });
         
         jQuery('#id_edit_address_street').keydown(function(evt){
             if (evt.keyCode == 13) {                
@@ -551,7 +539,6 @@ var tm = {
                 evt.stopPropagation();
                 if (jQuery('#id_edit_address_street').val() != "") {
                     jQuery('#update_map').click();
-                    jQuery('#genError').hide();
                 }
             }
         });
@@ -560,7 +547,6 @@ var tm = {
                 evt.preventDefault();
                 evt.stopPropagation();
                 jQuery('#update_map').click();
-                jQuery('#genError').hide();
             }
         });
         
@@ -577,14 +563,14 @@ var tm = {
             }, function(results, status){
                 if (status == google.maps.GeocoderStatus.OK) {
                     var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                    var zoom = 18;
-                    if (tm.map.getZoom() > 18) {zoom = tm.map.getZoom();}
+                    var zoom = tm.add_zoom;
+                    if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
                     tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
                     
                     if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
                     if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
                     
-                    //tm.load_nearby_trees(olPoint);
+                    tm.load_nearby_trees(olPoint);
                     tm.add_new_tree_marker(olPoint, true);
                     
                     tm.drag_control.activate();
@@ -595,15 +581,15 @@ var tm = {
                     jQuery('#update_map').html("Update Map");
                     jQuery("#mapHolder").show();
                     jQuery("#calloutContainer").show();
-                    jQuery('#genError').hide();
                     tm.trackEvent('Add', 'View Map');
                 }
             });
+            
         });
     },
         
     //initializes map on the profile page; shows just favorited trees
-    init_favorite_map : function(user){
+    init_favorite_map : function(trees){
         tm.init_base_map('favorite_tree_map');
         
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -611,6 +597,27 @@ var tm = {
         
         //load in favorite trees
         var url = ['/trees/favorites/' + user + '/geojson/']
+        $.getJSON(url, function(json){
+            $.each(json, function(i,f){
+                var coords = f.coords;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]);
+                marker = tm.get_marker_light(ll, 17);
+                marker.tid = f.id;
+                tm.tree_layer.addMarker(marker);
+            });
+            var bounds = tm.tree_layer.getDataExtent();
+            tm.map.zoomToExtent(bounds, true);
+        });
+    },
+    //initializes map on the recently added page; shows just recently added trees
+    init_new_map : function(user){
+        tm.init_base_map('add_tree_map');
+        
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+        tm.map.addLayers([tm.tree_layer]);
+        
+        //load in new trees
+        var url = ['/trees/new/' + user + '/geojson/']
         $.getJSON(url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
@@ -654,11 +661,11 @@ var tm = {
         var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
         var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         
-        tm.map.setCenter(olPoint, 18);
+        tm.map.setCenter(olPoint, tm.edit_zoom);
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
-        //tm.load_nearby_trees(currentPoint);
+        tm.load_nearby_trees(currentPoint);
         
         //if (editable) { tm.drag_control.activate(); }
         
@@ -911,7 +918,7 @@ var tm = {
                 var coords = tree.geometry.coordinates;
                 
                 //remove old markers
-                if (tm.tree_detail_marker) {tm.tree_layer.removeMarker(tm.tree_detail_marker);}
+                if (tm.tree_detail_marker) {tm.misc_markers.removeMarker(tm.tree_detail_marker);}
                 
                 var AutoSizeFramedCloud = OpenLayers.Class(OpenLayers.Popup.FramedCloud, {
                     'autoSize': true
@@ -922,7 +929,7 @@ var tm = {
                 tm.tree_detail_marker.tree_id = p.id;
                 tm.tree_detail_marker.nhbd_id = p.neighborhood_id;
                 tm.tree_detail_marker.district_id = p.district_id;
-                tm.tree_layer.addMarker(tm.tree_detail_marker);
+                tm.misc_markers.addMarker(tm.tree_detail_marker);
                 
                 
                 var ll = tm.tree_detail_marker.lonlat;
@@ -1096,10 +1103,19 @@ var tm = {
         //tm.map.addOverlay(tm.current_selected_tile_overlay);
     },
             
+    cqlizeIds: function(trees) {
+        var cql_ids = [];
+        if (trees.length == 1) {return trees[0].id}
+        for(var i=0; i < trees.length; i++) {
+            cql_ids.push(trees[i].id);
+        }
+        return  cql_ids.join();
+    },
+
     display_search_results : function(results){
         $("#export_search").hide();
-        if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
+        //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         jQuery('#displayResults').hide();
         //if (tm.current_selected_tile_overlay)
         //{
@@ -1107,9 +1123,16 @@ var tm = {
         //}
         if (results) {
             tm.display_summaries(results.summaries);
-            if (results.initial_tree_count <= 1000) {
-                tm.overlay_trees(results.trees);
+            
+            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
+                var cql = tm.cqlizeIds(results.trees);
+                tm.tree_layer.mergeNewParams({'FEATUREID':cql});
+                tm.tree_layer.setVisibility(true);                
+            }            
+            else {
+                tm.tree_layer.setVisibility(false);
             }
+
             if (results.initial_tree_count <= 5000) {
                 $("#export_search").show();
             }
@@ -1128,21 +1151,13 @@ var tm = {
         }
         
     },
-    
-    overlay_trees : function(trees){
-        //remove old trees
-        jQuery.each(trees, function(i,t){
-            var smarker = tm.get_marker_light(t, 'small')
-            tm.tree_layer.addMarker(smarker);
-            });
-        },
-        
-        // unused?
-        select_species : function(species){
-            tm.mgr.clearMarkers();
-            jQuery.getJSON('/search/' + species + '/?simple=true', 
-                tm.display_search_results);
-        },
+
+    // unused?
+    select_species : function(species){
+        tm.mgr.clearMarkers();
+        jQuery.getJSON('/search/' + species + '/?simple=true', 
+            tm.display_search_results);
+    },
 
      
     enableEditTreeLocation : function(){
@@ -1208,13 +1223,13 @@ var tm = {
         // with original value and if 'null' then
         // we should save None in database if its
         // a field that accepts nulls
-        if (value === '') {
+        //if (value === '') {
         //if (value == '' || value == 'null') {
            // do nothing
-           this.innerHTML = 'Click to edit';
-           return 'Click to edit';
-        }
-        else {
+           //this.innerHTML = 'Click to edit';
+           //return 'Click to edit';
+        //}
+        //else {
             if (settings.objectId) {
                 data.id = settings.objectId;
             }    
@@ -1248,7 +1263,7 @@ var tm = {
                 }
             }
             
-            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeStatus", "TreeFlags"]) >=0) {
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
             } else {    
@@ -1293,7 +1308,7 @@ var tm = {
                     }
                 }});
             return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
-        } 
+        //} 
     },       
     updateEditableLocation: function() {
         var street = jQuery('#edit_address_street')[0].innerHTML;
@@ -1560,10 +1575,7 @@ var tm = {
         if (tm.searchParams['location']) {
             var val = tm.searchParams['location'];
             var coords = tm.geocoded_locations[val];
-            if (!coords)
-            {
-                return false;
-            }
+            if (!coords) {return false;}
             if (coords.join) {
                 q.SET('location', coords.join(','));
             }
@@ -1578,16 +1590,21 @@ var tm = {
         return qstr;
     },
     
+
     updateSearch: function() {
+        
         if (tm.loadingSearch) { return; }
         var qs = tm.serializeSearchParams();
         if (qs === false) { return; }
         tm.trackPageview('/search/' + qs);
         jQuery('#displayResults').show();
+        //TODO: send a geoserver CQL request also
         $.ajax({
             url: '/search/'+qs,
             dataType: 'json',
-            success: tm.display_search_results,
+            success: function(results) {
+                tm.display_search_results(results)
+            },
             error: function(err) {
                 jQuery('#displayResults').hide();
                 alert("Error: " + err.status + "\nQuery: " + qs);
@@ -1675,7 +1692,7 @@ var tm = {
         tm.geocode_address = search;
         if (tm.isNumber(search)) {
             jQuery.getJSON('/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
-                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
                             
                 if (zips.features.length > 0) {
                     var olPoint = OpenLayers.Bounds.fromArray(zips.bbox).getCenterLonLat();
@@ -1699,7 +1716,7 @@ var tm = {
         else
         {
             jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
-                if (tm.location_marker) {tm.tree_layer.removeMarker(tm.location_marker)} 
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
                 if (nbhoods.features.length > 0) {
                     var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
@@ -1812,7 +1829,34 @@ var tm = {
         tm.editingDiameter = false;
         
     },
-    
+    approvePend: function(pend_id) {
+        $.ajax({
+            url: '/trees/pending/' + pend_id + '/approve/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Approve', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
+    rejectPend: function(pend_id) {
+        $.ajax({
+            url: '/trees/pending/' + pend_id + '/reject/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Reject', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
     deleteTree: function(tree_id) {
         if (window.confirm("Are you sure you want to delete this tree permanently from the system?"))
         {
@@ -1825,12 +1869,10 @@ var tm = {
                     window.location = "/map/";
                 },
                 error: function(err) {
-                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                alert("Error: " + err.status + "\nQuery: " + tree_id);
                 }
             });
         }
-        
-        
     },
 
     deletePhoto: function(tree_id, photo_id) {
@@ -1969,7 +2011,21 @@ var tm = {
             }
         });
     },
-    
+
+    updatePend: function(pend_id, pend_dir) {
+        $.ajax({
+        url: '/trees/pending/' + pend_id + '/' + pend_dir,
+        dataType: 'json',
+        success: function(response) {
+            $("#" + response.pend_id).hide();
+            tm.trackEvent("Pending", pend_dir)
+        },
+        error: function(err) {
+        alert("Error: " + err.status + "\nQuery: " + pend_id + " " + pend_dir);
+        }
+        });
+    },
+
     validate_watch: function(watch_id){
         var data = {
             'watch_id': watch_id
@@ -2069,7 +2125,7 @@ $.editable.addInputType('date', {
             
         /* Year loop */
         thisyear = new Date().getFullYear()
-        for (var year=thisyear; year >= 1950; year--) {
+        for (var year=thisyear; year >= 1900; year--) {
             var option = $('<option>').val(year).append(year);
             yearselect.append(option);
         }

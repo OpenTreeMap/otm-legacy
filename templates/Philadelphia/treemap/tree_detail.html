@@ -39,7 +39,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.state}}
+			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.all.0.state}}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -209,7 +209,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.powerline_conflict_potential|yesno:"Yes,No,Missing" }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         {% if tree.data_owner.id != 11 %}
         <tr>

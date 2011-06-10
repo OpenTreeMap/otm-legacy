@@ -63,6 +63,14 @@ watch_tests = {
     "max_dbh": 'validate_max_height',
 }
 
+data_types = (
+    ('text', 'text'),
+    ('int', 'int'),
+    ('float', 'float'),
+    ('bool', 'bool'),
+    ('geo', 'geo'),
+)
+
 class BenefitValues(models.Model):
     area = models.CharField(max_length=255)
     stormwater = models.FloatField()
@@ -103,7 +111,7 @@ class Choices(models.Model):
                 raise Exception("Invalid key type %r" % c.key_type)
 
             li[c.key] = c.value
-        return li.items()
+        return sorted(li.items())
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
@@ -365,12 +373,12 @@ class Tree(models.Model):
     canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
-    powerline_conflict_potential = models.NullBooleanField(
-        help_text = "Are there overhead powerlines present?",null=True, blank=True)
+    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
+        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     present = models.BooleanField(default=True)
     plot_width = models.FloatField(null=True, blank=True)
     plot_length = models.FloatField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot'))
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
             
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -435,11 +443,10 @@ class Tree(models.Model):
         return None
        
     def get_powerline_conflict_display(self):
-        if self.powerline_conflict_potential == None:
-            return "Unknown"
-        if self.powerline_conflict_potential:
-            return "Yes"
-        return "No"
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None
 
     def get_scientific_name(self):
         if self.species:
@@ -471,6 +478,10 @@ class Tree(models.Model):
     def get_flag_count(self):
         return len(self.treeflags_set.all())
         
+    def get_active_pends(self):
+        pends = self.treepending_set.filter(status='pending')
+        return pends
+
     def set_environmental_summaries(self):
         if not self.species or not self.dbh:
             logging.debug('no species or no dbh ..')
@@ -519,7 +530,10 @@ class Tree(models.Model):
         sets the species, and updates the species tree count
         """
         self.old_species = self.species
-        new_species = Species.objects.get(id=species_id)
+        if species_id == 0:
+            new_species = None
+        else:
+            new_species = Species.objects.get(id=species_id)
         self.species = new_species
         if commit:
             self.save()
@@ -686,6 +700,51 @@ class Tree(models.Model):
             return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.geocoded_address)
         else:
             return self.geocoded_address    
+
+status_types = (
+    ('pending', 'Pending'),
+    ('approved', 'Approved'),
+    ('rejected', 'Rejected')
+)
+
+class TreePending(models.Model):
+    tree = models.ForeignKey(Tree)
+    field = models.CharField(max_length=255)
+    value = models.CharField(max_length=255, blank=True, null=True)
+    text_value = models.CharField(max_length=255, blank=True, null=True)
+    submitted = models.DateTimeField(auto_now_add=True)
+    submitted_by = models.ForeignKey(User, related_name="pend_submitted_by")
+    status = models.CharField(max_length=10, choices=status_types)
+    updated = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, related_name="pend_updated_by")
+
+    def approve(self, updating_user):
+        setattr(self.tree, self.field, self.value)
+        self.tree.last_updated_by = self.submitted_by 
+        self.tree.save()
+
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+    
+    def reject(self, updating_user):
+    	self.status = 'rejected'
+        self.updated_by = updating_user
+        self.save()
+
+class TreeGeoPending(TreePending):
+    geometry = models.PointField(srid=4326)
+    objects = models.GeoManager()
+
+    def approve(self, updating_user):
+        self.tree.geometry = self.geometry
+        self.tree.last_updated_by = self.submitted_by 
+        self.tree.save()
+        
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+    
 
 class TreeWatch(models.Model):
     key = models.CharField(max_length=255, choices=watch_choices.iteritems())

@@ -1,6 +1,7 @@
 import os
 
 SITE_LOCATION = 'SanFrancisco'
+PENDING_ON = False
 
 #local_settings
 GOOGLE_API_KEY = 'abcdf'

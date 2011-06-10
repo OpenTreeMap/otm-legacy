@@ -1,6 +1,7 @@
 import os
 
 SITE_LOCATION = 'Sacramento'
+PENDING_ON = True
 
 #local_settings
 GOOGLE_API_KEY = 'abcdf'

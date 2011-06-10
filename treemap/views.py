@@ -560,6 +560,51 @@ def multi_status(request):
     return HttpResponse("OK")    
 
 @login_required
+def approve_pend(request, pend_id):
+    pend = TreePending.objects.get(pk=pend_id)
+    if not pend:
+        pend = TreeGeoPending.objects.get(pk=pend_id)
+    if not pend:
+        raise Http404
+    pend.approve(request.user)
+    Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
+    return HttpResponse(
+        simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    ) 
+
+@login_required
+def reject_pend(request, pend_id):
+    pend = TreePending.objects.get(pk=pend_id)
+    if not pend:
+        pend = TreeGeoPending.objects.get(pk=pend_id)
+    if not pend:
+        raise Http404
+    pend.reject(request.user)
+    return HttpResponse(
+        simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    ) 
+
+@login_required
+@permission_required('auth.change_user')
+def view_pends(request):
+    pends = TreePending.objects.all()
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        pends = pends.filter(submitted_by__in=u)
+    if 'address' in request.GET:
+        pends = pends.filter(tree__address_street__icontains=request.GET['address'])
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        pends = pends.filter(tree__neighborhood=n)
+    if 'status' in request.GET:
+        pends = pends.filter(status=request.GET['status'])
+
+    return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends':pends}))
+
+
+@login_required
 @transaction.commit_manually
 @csrf_view_exempt
 def object_update(request):
@@ -627,8 +672,58 @@ def object_update(request):
                     all.delete()
                     response_dict['delete']['ids'] = ids
             
+           
+
             if update:
                 response_dict['update'] = {}
+ 
+                #check pending feature status and user permisisons
+                #{"model":"Tree","update":{"height":10},"id":6}
+                #{"model":"Tree","update":{"species_id":397},"id":6}
+                #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
+                
+                    # if the tree was added by the public, or the current user is not public, skip pending
+                insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+                mgmt_user = request.user.has_perm('auth.change_user')
+                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user or not insert_event_mgmt):
+                    for k,v in update.items():
+                        fld = instance._meta.get_field(k.replace('_id',''))
+                        try:
+                            cleaned = fld.clean(v,instance)
+                            response_dict['pending'] = 'true';
+                            if k == 'geometry':
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                response_dict['update'][k] = 'Pending'
+                                pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
+                            else:                                
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                response_dict['update'][k] = 'Pending'
+                                pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
+                            
+                            if k == 'species_id':
+                                pend.text_value = Species.objects.get(id=v).scientific_name
+
+                            for key, value in Choices().get_field_choices(k):
+                                if str(key) == str(v):
+                                    pend.text_value = value
+                                    break
+                            pend.save()
+
+                        except ValidationError,e:
+                            response_dict['errors'].append(e.messages[0])
+                        except Exception,e:
+                            response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
+                        if len(response_dict['errors']):
+                            transaction.rollback()
+                        else:
+                            transaction.commit()    
+                            response_dict['success'] = True
+
+                        return HttpResponse(
+                                simplejson.dumps(response_dict, sort_keys=True, indent=4),
+                                #content_type = 'application/javascript; charset=utf8'
+                                content_type = 'text/plain'
+                                )
                 # attempts to use forms...
                 # not working as nicely as I'd want
                 # will likely circle back to using the approach
@@ -667,7 +762,6 @@ def object_update(request):
                         #print k,v
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
-                            cleaned = fld.clean(v,instance)
                             if k == 'species_id':
                                 response_dict['update']['old_' + k] = instance.get_scientific_name()
                                 instance.set_species(v,commit=False)
@@ -675,6 +769,7 @@ def object_update(request):
                                 # old value for non-status objects only, status objects return None
                                 # and are handled after parent model is set
                                 response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                cleaned = fld.clean(v,instance)
                                 setattr(instance,k,cleaned)
                         except ValidationError,e:
                             response_dict['errors'].append(e.messages[0])
@@ -723,7 +818,6 @@ def object_update(request):
                             # eg. Tree.objects.all()[1].treestatus_set
                             set = getattr(parent_instance,post['model'].lower() + '_set')
                             set.add(instance)
-                            print "instance set"
                             if response_dict['update'].has_key('old_value'):
                                 history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
                                 if history.count() == 0:
@@ -741,12 +835,8 @@ def object_update(request):
                 if not delete:
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
-                    print "instance save"
                     if post['model'] in  ["Tree", "TreeFlags"] :
-                        print save_value
-                        print request.user.reputation.reputation
                         Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
-                        print request.user.reputation.reputation
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:
@@ -765,7 +855,6 @@ def object_update(request):
 
     return HttpResponse(
             simplejson.dumps(response_dict, sort_keys=True, indent=4),
-            #content_type = 'application/javascript; charset=utf8'
             content_type = 'text/plain'
             )
 #for auto reverse-geocode saving of new address, from search page map click
@@ -791,23 +880,24 @@ def tree_add(request, tree_id = ''):
         form = TreeAddForm(request.POST,request.FILES)
         if form.is_valid():
             new_tree = form.save(request)
-            print 'saved %s' % new_tree
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
-            messages.success(request, "Your tree was successfully added!")
-            print new_tree.powerline_conflict_potential
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
+                messages.success(request, "Your tree was successfully added!")
             elif form.cleaned_data.get('target') == "addsame":
+                messages.success(request, "Your tree was successfully added!")
                 pass
             elif form.cleaned_data.get('target') == "edit":
                 return HttpResponseRedirect('/trees/new/%i' % request.user.id)
+            else:
+                return HttpResponseRedirect('/trees/%i' % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
         'user' : request.user, 
         'form' : form }))
-    
-def added_today_list(request, user_id=None):
+
+def added_today_list(request, user_id=None, format=None):
     user = None
     twelvehrs = timedelta(hours=12)
     start_date = datetime.now() - twelvehrs
@@ -819,6 +909,11 @@ def added_today_list(request, user_id=None):
     trees = []
     for tree in new_trees:
         trees.append(Tree.objects.get(pk=tree.id))
+    if format == 'geojson':        
+        tj = [{
+           'id':f.id, 
+           'coords':[f.geometry.x, f.geometry.y]} for f in trees]
+        return render_to_json(tj)
     return render_to_response('treemap/added_today.html', RequestContext(request,{
         'trees' : trees,
         'user': user}))
@@ -1001,9 +1096,10 @@ def advanced_search(request, format='json'):
         
     #else we're doing the simple json route .. ensure we return summary info
     tree_count = trees.count()
+    full_count = Tree.objects.count()
     esj = {}
     esj['total_trees'] = tree_count
-    print 'tree count', tree_count   
+    #print 'tree count', tree_count   
 
     if tree_count > maximum_trees_for_summary:
         trees = []
@@ -1018,15 +1114,15 @@ def advanced_search(request, format='json'):
 
     else:
         esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        print 'we have %s  ..' % esj
-        print 'aggregating..'
+        #print 'we have %s  ..' % esj
+        #print 'aggregating..'
 
         r = ResourceSummaryModel()
         
         with_out_resources = trees.filter(treeresource=None).count()
-        print 'without resourcesums:', with_out_resources
+        #print 'without resourcesums:', with_out_resources
         resources = tree_count - with_out_resources
-        print 'have resourcesums:', resources
+        #print 'have resourcesums:', resources
         
         EXTRAPOLATE_WITH_AVERAGE = True
 
@@ -1045,7 +1141,7 @@ def advanced_search(request, format='json'):
                 esj[f] = s
         esj['benefits'] = r.get_benefits()
 
-        print 'aggregated...'
+        #print 'aggregated...'
     
     
     if tree_count > maximum_trees_for_display:   
@@ -1060,7 +1156,7 @@ def advanced_search(request, format='json'):
           'cmplt' : t.is_complete()
           } for t in trees]
 
-    response.update({'trees' : tj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count})
+    response.update({'trees' : tj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count})
     return render_to_json(response)
 
     

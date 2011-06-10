@@ -30,7 +30,7 @@
 
 </head>
 
-<body {% block body_load %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
+<body {% block body_load %}{% endblock %} {% block body_id %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
     <div id="wrapper">
         
 <!-- start: header -->
@@ -77,8 +77,8 @@
                 <ul id="searchSuggest">
                     <li id="searchSpeciesSuggest">Examples: 
                     
-                        <a onclick='$("#species_search_input").val("Monterey Pine"); $("#species_search_id").val("PIRA2"); $("#species_search_id").change();  return false' href="#">Quercus agrifolia</a> 
-                        or <a onclick='$("#species_search_input").val("Cupressus macrocarpa"); $("#species_search_id").val("CUMA2"); $("#species_search_id").change(); return false' href="#">Coast live oak</a>
+                        <a onclick='$("#species_search_input").val("Quercus agrifolia"); $("#species_search_id").val("QUAR"); $("#species_search_id").change();  return false' href="#">Quercus agrifolia</a> 
+                        or <a onclick='$("#species_search_input").val("Quercus agrifolia"); $("#species_search_id").val("QUAR"); $("#species_search_id").change(); return false' href="#">Coast live oak</a>
                     
                     </li>
                     

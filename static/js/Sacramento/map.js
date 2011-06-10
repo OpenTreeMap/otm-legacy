@@ -1,14 +1,17 @@
 var tm_urls = {
     eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://tilecache.urbanforestmap.org/tilecache.cgi/',
+    tc_url : 'http://207.245.89.246:8080/tilecache/tilecache.py/',
+    geo_url: 'http://207.245.89.246:8081/geoserver/wms?transparent=true',
     //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
 tm.map_center_lon = -121.607666;
 tm.map_center_lat = 38.6276;
-tm.start_zoom = 9;
-tm.add_zoom = 14;
+tm.start_zoom = 1;
+tm.add_start_zoom = 1;
+tm.add_zoom = 9;
+tm.edit_zoom = 9;
 tm.initial_location_string = "Sacramento, CA";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
@@ -46,13 +49,17 @@ tm.init_base_map = function(div_id, controls){
 
     tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
-        numZoomLevels: 18
+        //numZoomLevels: 18
+        minZoomLevel: 8,
+        maxZoomLevel: 17
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
         type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
-        numZoomLevels: 19
+        minZoomLevel: 8,
+        maxZoomLevel: 17
+        //numZoomLevels: 19
     });
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
@@ -61,9 +68,9 @@ tm.init_base_map = function(div_id, controls){
             layername: 'Map',
             type: 'png',
             isBaseLayer: false,
-            opacity:0.7,
             wrapDateLine: true,
-            attribution: "(c) UrbanForestMap.org"
+            attribution: "(c) UrbanForestMap.org",
+            zoomOffset: 8
         }
     );
     tm.tms.buffer = 0;

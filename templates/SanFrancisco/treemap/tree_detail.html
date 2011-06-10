@@ -138,28 +138,28 @@
 {% if tree.species %} {% if tree.dbh %}
         <tr>
         	<td class="col1Wide">Energy conserved</td>
-            <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
-            <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+            <td>{{tree.treeresource.annual_energy_conserved|unit_or_empty:'kWh'}}</td>
+            <td>${{tree.treeresource.benefits.energy|unit_or_empty:''}}</td>
         </tr>
     	<tr>
         	<td class="col1Wide">Stormwater intercepted</td>
-            <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
-            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
+            <td>{{tree.treeresource.annual_stormwater_management|unit_or_empty:'gal'}} </td>
+            <td>${{tree.treeresource.benefits.water|unit_or_empty:''}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Air pollutants removed</td>
-            <td>{{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs</td>
-            <td>${{tree.treeresource.benefits.air_quality|floatformat:2}}</td>
+            <td>{{tree.treeresource.annual_air_quality_improvement|unit_or_empty:'lbs'}} </td>
+            <td>${{tree.treeresource.benefits.air_quality|unit_or_empty:''}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Carbon dioxide reduced</td>
-            <td>{{tree.treeresource.annual_co2_reduced|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_reduced|floatformat:2}}</td>
+            <td>{{tree.treeresource.annual_co2_reduced|unit_or_empty:'lbs'}} </td>
+            <td>${{tree.treeresource.benefits.co2_reduced|unit_or_empty:''}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Total Co2 stored to date</td>
-            <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_stored|floatformat:2}}</td>
+            <td>{{tree.treeresource.total_co2_stored|unit_or_empty:'lbs'}} </td>
+            <td>${{tree.treeresource.benefits.co2_stored|unit_or_empty:''}}</td>
         </tr>
 {% else %}
         <tr>
@@ -192,7 +192,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|yesno:"Yes,No,Missing" }}</td>
+            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
