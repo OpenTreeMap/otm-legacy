@@ -193,7 +193,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:"ft x "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
+            <td>{{tree.get_plot_size }}</td>
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'plot_length' %}

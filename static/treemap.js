@@ -2145,7 +2145,7 @@ $.editable.addInputType('date', {
             
         /* Year loop */
         thisyear = new Date().getFullYear()
-        for (var year=thisyear; year >= 1900; year--) {
+        for (var year=thisyear; year >= 1800; year--) {
             var option = $('<option>').val(year).append(year);
             yearselect.append(option);
         }
@@ -2202,6 +2202,8 @@ $.editable.addInputType('feetinches', {
             var option = $('<option>').val(foot).append(foot);
             footselect.append(option);
         }
+        var option = $('<option>').val(99).append('15+');
+        footselect.append(option);
         $(this).append(footselect);
 
         /* Day loop */
@@ -2222,9 +2224,13 @@ $.editable.addInputType('feetinches', {
     submit: function (settings, original) {
         var vfeet = parseFloat($("#feet_").val());
         var vinch = parseFloat($("#inches_").val());
-        
         var value = vfeet + (vinch / 12)
-        $("input", this).val(value);
+        if (vfeet == 99) {
+            $("input", this).val(vfeet);
+        }
+        else {
+            $("input", this).val(value);
+        }
     },
     content : function(string, settings, original) {
         var pieces = parseFloat(string);

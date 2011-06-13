@@ -429,6 +429,16 @@ class Tree(models.Model):
             if key == self.plot_type:
                 return value
         return None
+
+    def get_plot_size(self): 
+        length = self.plot_length
+        width = self.plot_width
+        if length == 99: length = '15+'
+        if length == None: length = 'Missing'
+        if width == 99: width = '15+'
+        if width == None: width = 'Missing'
+
+        return '%s ft x %s ft' % (length, width)
     
     def get_sidewalk_damage_display(self):
         for key, value in Choices().get_field_choices('sidewalk_damage'):
