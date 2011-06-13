@@ -148,27 +148,27 @@
         <tr>
         	<td class="col1Wide">Energy conserved</td>
             <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
-            <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+            <td>${{tree.treeresource.benefits.energy|unit_or_empty:""}}</td>
         </tr>
     	<tr>
         	<td class="col1Wide">Stormwater intercepted</td>
             <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
-            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
+            <td>${{tree.treeresource.benefits.water|unit_or_empty:""}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Air pollutants removed</td>
             <td>{{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs</td>
-            <td>${{tree.treeresource.benefits.air_quality|floatformat:2}}</td>
+            <td>${{tree.treeresource.benefits.air_quality|unit_or_empty:""}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Carbon dioxide reduced</td>
             <td>{{tree.treeresource.annual_co2_reduced|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_reduced|floatformat:2}}</td>
+            <td>${{tree.treeresource.benefits.co2_reduced|unit_or_empty:""}}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Total Co2 stored to date</td>
             <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_stored|floatformat:2}}</td>
+            <td>${{tree.treeresource.benefits.co2_stored|unit_or_empty:""}}</td>
         </tr>
 {% else %}
         <tr>
@@ -193,7 +193,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:" / "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
+            <td>{{tree.get_plot_size }}</td>
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'plot_length' %}
@@ -373,13 +373,68 @@
                         <div class="aside">
                             <div id="edit_tree_map"></div>
                             <div id="alternate_tree_div"></div>
+                            <div id="edit_tree_map_legend" style="display:none;">
+                                <img src="/static/images/map_icons/v4/marker-pending.png" /> - Pending Location <img src="/static/images/map_icons/v4/vector.png" /> - Current Location
+                                 {% for t in tree.get_active_geopends %} 
+                                    <div> Pending #{{t.id}}  
+                                        <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">Approve</a> 
+                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">Reject</a> 
+                                    </div> 
+                                {% endfor %}                               
+                            </div>
                             <div id="tree_streetview"></div>
-							<div id="nearby_address">
-								<ul id="address">
-									<li><h2>Nearby address*:</h2></li>
-									<li>191 Lathrop Way, Sacramento</li>
-									<li class="footnote">*Please note that this address is intended to be a general, not exact, reference to the location.</li>
-								</ul>
+                            <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
+                                <div id="tree_address_address">{{tree.address_street}}<br>{{tree.address_city}} {{tree.neighborhood.all.0.state}}, {{tree.address_zip}}</div>
+                                <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
+                            </div>
+                            <div id="tree_comments">
+								<div class="wrap">
+									<h2>Comments</h2>
+								</div>
+								<div class="comment_list">
+								{% get_comment_list for tree as comment_list %}
+								{% for comment in comment_list %}
+									<div class="comment_item">
+										<div class="comment_head">
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+										</div>
+										<div class="comment_body">
+											{{ comment.comment }}
+										</div>
+									</div>
+								{% empty %}
+									<div class="comment_item">No comments yet!</div>
+								{% endfor %}
+								</div>
+
+								{% if user.is_authenticated %}
+									{% get_comment_form for tree as form %}
+									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+										<input type="hidden" name="next" value="{{request.get_full_path}}" />
+										{% for field in form %}
+										{% if field.is_hidden %}
+										  {{ field }}
+										{% else %}
+										  {% if field.errors %}{{ field.errors }}{% endif %}
+										  <div class="comment_field {% if field.errors %} error{% endif %}"
+											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
+											{{ field.label_tag }} {{ field }}
+										  </div>
+										{% endif %}
+										{% endfor %}
+										<div class="submit">
+											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
+										</div>
+									</form>
+                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
+								{% else %}
+									<div>Please login to add comments</div>
+								{% endif %}
+
 							</div>
                         </div>
                         <!-- end t2_right_panel  -->
@@ -543,6 +598,7 @@
 {% block endpage %}
 	<script>
 		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+        tm.current_tree_geometry_pends = [{% for t in tree.get_active_geopends %} { 'x': {{t.geometry.x}}, 'y': {{t.geometry.y}}, 'id': {{t.id}} }, {% endfor %}];
 		tm.currentTreeId = {{tree.id}};
 		tm.init_tree_map(false); //not editable
 		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');

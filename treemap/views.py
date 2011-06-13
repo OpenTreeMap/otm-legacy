@@ -685,7 +685,7 @@ def object_update(request):
                     # if the tree was added by the public, or the current user is not public, skip pending
                 insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
                 mgmt_user = request.user.has_perm('auth.change_user')
-                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user or not insert_event_mgmt):
+                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user and insert_event_mgmt):
                     for k,v in update.items():
                         fld = instance._meta.get_field(k.replace('_id',''))
                         try:
@@ -1291,9 +1291,9 @@ def verify_edits(request, audit_type='tree'):
         trees = trees.filter(address_street__icontains=request.GET['address'])
         newtrees = newtrees.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
-        trees = trees.filter(neighborhood=n)
-        newtrees = newtrees.filter(neighborhood=n)
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])[0].geometry
+        trees = trees.filter(geometry__within=n)
+        newtrees = newtrees.filter(geometry__within=n)
     
     
     for tree in trees:

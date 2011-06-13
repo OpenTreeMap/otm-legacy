@@ -17,6 +17,7 @@ tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(38.2,-122.0), new google.maps.LatLng(39.2,-120.8));
+tm.panoAddressControl = false;
 
 tm.init_base_map = function(div_id, controls){
     if (!div_id) {

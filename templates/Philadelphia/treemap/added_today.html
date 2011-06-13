@@ -1,4 +1,5 @@
 {% extends "template_3.html" %}
+{% load tree_tags %}
 
 {% block body_load %}class="contact"{% endblock %}
 
@@ -15,25 +16,42 @@
 {% block body_id %}id="tree_new"{% endblock %}
 
 {% block extrahead %}
+	<script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
     jQuery().ready(function() {
-        
+        tm.init_new_map({{user.id}});
     });
 </script>
 {% endblock %}
 
 {% block left_panel %}
+<div id="register" class="added">
 
-
-{% for tree in trees %}
-    {{tree.id}}
-{% empty %}
-    No trees added today
-{% endfor %}
-
+    <h1>Recently added trees </h1>
+	<div id="addedTrees">
+		<!-- PLACEHOLDER TREE MAP -->
+	    <div id="add_tree_map"></div>
+        <table>
+        <tr><th> </th><th>Name</th><th>Diameter</th><th>Address</th></tr>
+        {% for tree in trees %}
+            <tr>
+                <td><a href="/trees/{{tree.id}}">View Details</a></td>
+                <td><i>{{tree.species.scientific_name|default:""}}</i> {{tree.species.common_name|default:""}}</td>
+                <td>{{tree.dbh|unit_or_empty:'inches'}}</td>
+                <td>{{tree.address_street}} {{tree.address_city}}, {{tree.neighborhood.all.0.state}} {{tree.address_zip}}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3">No trees added in the last 12 hours. </td></tr>
+        {% endfor %}
+        </table>
+	</div>
 {% endblock %}
 
 {% block right_panel %}
-
+	<div id="add_more_trees">
+		<h1 class="title-add">Add more trees</h1>
+		<span>Have more trees you'd like to enter?</span>
+		<span class="mark"><a href="/trees/add/">Add more tree(s) ></a></span>
+	</div>
 {% endblock right_panel %}
-
+</div>

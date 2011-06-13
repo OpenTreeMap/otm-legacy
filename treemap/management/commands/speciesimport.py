@@ -133,7 +133,7 @@ class Command(BaseCommand):
         if row.get('fall_color'):
             species.fall_conspicuous = row['fall_color'] == 'yes'
         if row.get('edible'):
-            species.human_palatable = row['edible'] == 'yes'
+            species.palatable_human = row['edible'] == 'yes'
         if row.get('fruiting_time'):
             species.fruit_period = row['fruiting_time']
         if row.get('wildlife'):

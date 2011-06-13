@@ -36,6 +36,7 @@ var tm_icons = {
     small_trees : "/static/images/map_icons/v4/zoom5.png",
     small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
     focus_tree : '/static/images/map_icons/v4/marker-selected.png',
+    pending_tree : '/static/images/map_icons/v4/marker-pending.png', 
     marker : '/static/openlayers/img/marker.png'
     };
 var tm_urls = {};
@@ -63,6 +64,7 @@ var tm = {
     add_zoom: null,
 
     google_bounds: null,
+    panoAddressControl: true,
 
     tree_columns_of_interest : {
         'address_street' : true,
@@ -164,7 +166,13 @@ var tm = {
                 } else {
                     $("#location_search_input").val(tm.initial_location_string);
                     delete tm.searchParams['location'];
-                    delete tm.searchParams['geoName']
+                    delete tm.searchParams['geoName'];
+                    if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
+                    if (tm.map) {
+                        tm.map.setCenter(
+                            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+                            , tm.start_zoom);
+                    }
                     tm.updateSearch();
                 } 
             } else {
@@ -411,24 +419,6 @@ var tm = {
         return x1 + x2;
     },
     
-    load_nearby_trees : function(ll){
-        //load in nearby trees as well
-        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
-        $.getJSON(url, function(geojson){
-            $.each(geojson.features, function(i,f){
-                coords = f.geometry.coordinates;
-                var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                if (f.properties.id == tm.currentTreeId) {return;}
-                var icon = tm.get_icon(tm_icons.small_trees, 19);
-                var marker = new OpenLayers.Marker(ll, icon);
-                marker.tid = f.properties.id;
-                
-                tm.tree_layer.addMarker(marker);
-                                
-            });
-        });
-    },
-    
     // Search page map init
     init_map : function(div_id){
         tm.init_base_map(div_id);
@@ -665,8 +655,13 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
+        //TODO: get this working
         tm.load_nearby_trees(currentPoint);
         
+        if (tm.current_tree_geometry_pends && tm.current_tree_geometry_pends.length > 0) {
+            tm.add_pending_markers(tm.current_tree_geometry_pends);
+            jQuery('#edit_tree_map_legend').show();
+        }
         //if (editable) { tm.drag_control.activate(); }
         
         tm.load_streetview(currentPoint, 'tree_streetview');
@@ -727,13 +722,52 @@ var tm = {
         return marker
     },        
         
+    load_nearby_trees : function(ll){
+        //load in nearby trees as well
+        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
+        $.getJSON(url, function(geojson){
+            $.each(geojson.features, function(i,f){
+                coords = f.geometry.coordinates;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                if (f.properties.id == tm.currentTreeId) {return;}
+                var icon = tm.get_icon(tm_icons.small_trees, 19);
+                var marker = new OpenLayers.Marker(ll, icon);
+                marker.tid = f.properties.id;
+                
+                tm.tree_layer.addMarker(marker);
+                                
+            });
+        });
+    },
+    
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
 
         return marker
         },
-        
+    add_pending_markers: function(pends) {
+        for (var i=0; i<pends.length; i++) {
+            var ll = new OpenLayers.LonLat(pends[i].x, pends[i].y).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+            var icon = tm.get_icon(tm_icons.pending_tree, 19);
+            var marker = new OpenLayers.Marker(ll, icon);
+            
+            tm.tree_layer.addMarker(marker);
+
+            var popupPixel = tm.map.getViewPortPxFromLonLat(ll);
+            popupPixel.y += marker.icon.offset.y - 25;
+            tm.smallPopup = new OpenLayers.Popup("popup_id",
+                       tm.map.getLonLatFromPixel(popupPixel),
+                       null,
+                       pends[i].id,
+                       false);
+            tm.smallPopup.minSize = new OpenLayers.Size(25,25);
+            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+            tm.smallPopup.border = "1px solid Black";
+            tm.map.addPopup(tm.smallPopup);
+            tm.smallPopup.updateSize();
+        }
+    },
     add_new_tree_marker : function(ll, do_reverse_geocode){
         if (tm.add_vector_layer) {
             tm.add_vector_layer.destroyFeatures();
@@ -888,7 +922,7 @@ var tm = {
     load_streetview : function(ll, div){
           div = document.getElementById(div);
           panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
-          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition});          
+          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});          
     },
         
                 
@@ -1251,7 +1285,11 @@ var tm = {
             //  value = dateVal.getFullYear() + "-" + (dateVal.getMonth()+1) + "-" + dateVal.getDate()
             //}
             
-            
+                
+            if (settings.fieldName == 'species_id' && value == 0) {
+                $(this).addClass("error");
+                return "Please select a species from the provided list.";
+            }
             //do some validation for height and canopy height
             if (settings.fieldName == 'height' || settings.fieldName == 'canopy_height') {
                 if (value > 300) {
@@ -1311,18 +1349,12 @@ var tm = {
         //} 
     },       
     updateEditableLocation: function() {
-        var street = jQuery('#edit_address_street')[0].innerHTML;
-        var city = jQuery('#edit_address_city')[0].innerHTML;
-        var zip = jQuery('#edit_address_zip')[0].innerHTML;
         
         var wkt = jQuery('#id_geometry').val();
         var data = {
             'model': 'Tree',
             'id': tm.currentTreeId,
             'update': {
-                address_street: street,
-                address_city: city,
-                address_zip: zip,
                 geometry: wkt
             }
         };
@@ -1344,17 +1376,12 @@ var tm = {
 
             formatItem: function(row, i, max) {
                 var text = row.cname;
-                /*if (row.cultivar)
-                {
-                    text += ' /' + row.cultivar;
-                }*/
                 text += "  [" + row.sname;
                 if (row.cultivar) {
                     text += " '" + row.cultivar + "'";
                 }
                 text += "]";
                 return text;
-                //return row.cname + "  [" + row.sname + "]";
             },
             formatMatch: function(row, i, max) {
                 return row.symbol + " " + row.cname + " " + row.sname;
@@ -2125,7 +2152,7 @@ $.editable.addInputType('date', {
             
         /* Year loop */
         thisyear = new Date().getFullYear()
-        for (var year=thisyear; year >= 1900; year--) {
+        for (var year=thisyear; year >= 1800; year--) {
             var option = $('<option>').val(year).append(year);
             yearselect.append(option);
         }
@@ -2182,6 +2209,8 @@ $.editable.addInputType('feetinches', {
             var option = $('<option>').val(foot).append(foot);
             footselect.append(option);
         }
+        var option = $('<option>').val(99).append('15+');
+        footselect.append(option);
         $(this).append(footselect);
 
         /* Day loop */
@@ -2202,9 +2231,13 @@ $.editable.addInputType('feetinches', {
     submit: function (settings, original) {
         var vfeet = parseFloat($("#feet_").val());
         var vinch = parseFloat($("#inches_").val());
-        
         var value = vfeet + (vinch / 12)
-        $("input", this).val(value);
+        if (vfeet == 99) {
+            $("input", this).val(vfeet);
+        }
+        else {
+            $("input", this).val(value);
+        }
     },
     content : function(string, settings, original) {
         var pieces = parseFloat(string);

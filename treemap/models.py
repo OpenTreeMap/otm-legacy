@@ -115,7 +115,7 @@ class Choices(models.Model):
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         
-choices = Choices()
+#choices = Choices()
     
 
 
@@ -171,31 +171,31 @@ class Resource(models.Model):
     For use in STRATUM - a Resource can have many species,
     and has different values for each dbh/resource combo.
     """
-    meta_species = models.CharField(max_length=150)
-    region = models.CharField(max_length=150)
-    hydro_interception_dbh = models.TextField()
+    meta_species = models.CharField(max_length=150, null=True, blank=True)
+    region = models.CharField(max_length=150, null=True, blank=True)
+    hydro_interception_dbh = models.TextField(null=True, blank=True)
     #property_value_dbh = models.TextField()
-    aq_ozone_dep_dbh = models.TextField()
-    aq_nox_dep_dbh = models.TextField()
-    aq_pm10_dep_dbh = models.TextField()
-    aq_sox_dep_dbh = models.TextField()
-    aq_nox_avoided_dbh = models.TextField()
-    aq_pm10_avoided_dbh = models.TextField()
-    aq_sox_avoided_dbh = models.TextField()
-    aq_voc_avoided_dbh = models.TextField()
-    bvoc_dbh = models.TextField()
+    aq_ozone_dep_dbh = models.TextField(null=True, blank=True)
+    aq_nox_dep_dbh = models.TextField(null=True, blank=True)
+    aq_pm10_dep_dbh = models.TextField(null=True, blank=True)
+    aq_sox_dep_dbh = models.TextField(null=True, blank=True)
+    aq_nox_avoided_dbh = models.TextField(null=True, blank=True)
+    aq_pm10_avoided_dbh = models.TextField(null=True, blank=True)
+    aq_sox_avoided_dbh = models.TextField(null=True, blank=True)
+    aq_voc_avoided_dbh = models.TextField(null=True, blank=True)
+    bvoc_dbh = models.TextField(null=True, blank=True)
     #net_vocs_dbh = models.TextField()
-    co2_sequestered_dbh = models.TextField()
+    co2_sequestered_dbh = models.TextField(null=True, blank=True)
     #co2_decomp_dbh = models.TextField()
     #co2_maint_dbh = models.TextField()
     #net_co2_sequestered_dbh = models.TextField()
-    co2_avoided_dbh = models.TextField()
-    natural_gas_dbh = models.TextField()
-    electricity_dbh = models.TextField()
+    co2_avoided_dbh = models.TextField(null=True, blank=True)
+    natural_gas_dbh = models.TextField(null=True, blank=True)
+    electricity_dbh = models.TextField(null=True, blank=True)
     #lsa_dbh = models.TextField()
     #cpa_dbh = models.TextField()
     #dbh_by_age_class_dbh = models.TextField()
-    co2_storage_dbh = models.TextField()
+    co2_storage_dbh = models.TextField(null=True, blank=True)
     objects = models.GeoManager()
     
     def get_interpolated_location(self, dbh, long_list=False):
@@ -264,7 +264,7 @@ class Resource(models.Model):
             if len(dbhs) > 9:
                 #start at same list index as dbh_list, and figure out what interp value is here
                 local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
-                print 'local_interp', local_interp
+                #print 'local_interp', local_interp
                 results[fname] = dbhs[index2-1] + local_interp
                 #print "long resource"
             else:
@@ -429,6 +429,16 @@ class Tree(models.Model):
             if key == self.plot_type:
                 return value
         return None
+
+    def get_plot_size(self): 
+        length = self.plot_length
+        width = self.plot_width
+        if length == 99: length = '15+'
+        if length == None: length = 'Missing'
+        if width == 99: width = '15+'
+        if width == None: width = 'Missing'
+
+        return '%s ft x %s ft' % (length, width)
     
     def get_sidewalk_damage_display(self):
         for key, value in Choices().get_field_choices('sidewalk_damage'):
@@ -482,6 +492,10 @@ class Tree(models.Model):
         pends = self.treepending_set.filter(status='pending')
         return pends
 
+    def get_active_geopends(self):
+        pends = TreeGeoPending.objects.filter(status='pending').filter(tree=self)
+        return pends
+
     def set_environmental_summaries(self):
         if not self.species or not self.dbh:
             logging.debug('no species or no dbh ..')
@@ -530,10 +544,7 @@ class Tree(models.Model):
         sets the species, and updates the species tree count
         """
         self.old_species = self.species
-        if species_id == 0:
-            new_species = None
-        else:
-            new_species = Species.objects.get(id=species_id)
+        new_species = Species.objects.get(id=species_id)
         self.species = new_species
         if commit:
             self.save()

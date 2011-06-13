@@ -3490,6 +3490,21 @@ padding: 15px 0 0 0;
 	width: 100%;
 }
 
+/* EDIT/DETAIL PENDING SYSTEM
+** _____________________________________________________________________________
+*/
+
+tr.pending{
+	color: #E7EDDF;
+}
+tr.pending td span{
+	font-weight: bold;
+	color: #5C8727;
+	padding-right: 5px;
+	text-transform: uppercase;
+}
+
+
 /* ADMIN MENU/RECENT CHANGES
 ** _____________________________________________________________________________
 */

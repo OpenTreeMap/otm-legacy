@@ -206,6 +206,14 @@ input.button {
 .activeEdit select {
     width:195px;
 }
+#month_, #day_ {
+    width:50px;
+    margin:0px;
+}
+#year_ {
+    width:60px;
+    margin:0px;
+}
 #actionTypeSelection select, #hazardTypeSelection select {
     width:125px;
 }

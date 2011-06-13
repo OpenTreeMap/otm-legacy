@@ -1299,7 +1299,9 @@ ul#resultsContainer li#export ul li#firstOption {
 ** _____________________________________________________________________________
 */
 
-
+#tree_address, #tree_address_address {
+    margin-bottom:10px;
+}
 
 .box-table-a {
 	font-size: 14px;
