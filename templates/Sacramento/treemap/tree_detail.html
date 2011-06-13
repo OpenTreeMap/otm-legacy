@@ -87,9 +87,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'species_id' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.text_value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -103,9 +103,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'dbh' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value}} inches Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value}} inches <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -115,9 +115,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'height' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value}} ft Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value}} ft <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -127,9 +127,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'date_planted' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value|date}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value|date}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -197,15 +197,15 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'plot_length' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>Length: {{pend.value|unit_or_missing:"ft"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>Length: {{pend.value|unit_or_missing:"ft"}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
             {% if pend.field == 'plot_width' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>Width: {{pend.value|unit_or_missing:"ft"}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>Width: {{pend.value|unit_or_missing:"ft"}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -215,9 +215,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'plot_type' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.text_value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -227,9 +227,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'powerline_conflict_potential' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.text_value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -239,9 +239,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'sidewalk_damage' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.text_value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -262,9 +262,9 @@
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'condition' %}
-                <tr id="pending_{{pend.id}}">
+                <tr id="pending_{{pend.id}}" class="pending">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.text_value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.text_value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}

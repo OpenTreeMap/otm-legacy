@@ -3422,12 +3422,6 @@ padding: 15px 0 0 0;
 #opt_field_group {
 	padding-top: 40px;
 }
-#register #id_power_lines {
-	margin: 12px 0 0 -120px;
-}
-#register #power_lines {
-	padding-bottom: 30px;
-}
 #register #dbh_type {
 	margin: -20px 0 0 -200px;
 	float: left;
@@ -3454,6 +3448,26 @@ padding: 15px 0 0 0;
 	width: 650px;
 	float: left;
 	display: block;
+}
+#register.added #addedTrees p {
+	margin-top: 0px;
+}
+#register.added #addedTrees table {
+	width: 100%;
+	border: 1pt solid #CCC;
+	margin-top: 20px;
+}
+#register.added #addedTrees table th {
+	background: #E7EDDF;
+	height: 30px;
+}
+#register.added #addedTrees table td.noTrees {
+	font-weight: bold;
+	text-align: center;
+	height: 30px;
+}
+#register.added #addedTrees table tr.treeRow {
+	height: 20px;
 }
 #register.added .treeHolder {
 	width: 100%;
@@ -3493,6 +3507,20 @@ padding: 15px 0 0 0;
 	border-bottom: 1px solid #9EBD2E;
 	float:left;
 	width: 100%;
+}
+
+/* EDIT/DETAIL PENDING SYSTEM
+** _____________________________________________________________________________
+*/
+
+tr.pending{
+	color: #E7EDDF;
+}
+tr.pending td span{
+	font-weight: bold;
+	color: #5C8727;
+	padding-right: 5px;
+	text-transform: uppercase;
 }
 
 /* MISC

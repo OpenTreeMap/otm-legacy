@@ -3430,6 +3430,26 @@ padding: 15px 0 0 0;
 	float: left;
 	display: block;
 }
+#register.added #addedTrees p {
+	margin-top: 0px;
+}
+#register.added #addedTrees table {
+	width: 100%;
+	border: 1pt solid #CCC;
+	margin-top: 20px;
+}
+#register.added #addedTrees table th {
+	background: #E7EDDF;
+	height: 30px;
+}
+#register.added #addedTrees table td.noTrees {
+	font-weight: bold;
+	text-align: center;
+	height: 30px;
+}
+#register.added #addedTrees table tr.treeRow {
+	height: 20px;
+}
 #register.added .treeHolder {
 	width: 100%;
 	padding-bottom: 20px;
