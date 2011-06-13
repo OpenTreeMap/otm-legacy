@@ -264,7 +264,7 @@ class Resource(models.Model):
             if len(dbhs) > 9:
                 #start at same list index as dbh_list, and figure out what interp value is here
                 local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
-                print 'local_interp', local_interp
+                #print 'local_interp', local_interp
                 results[fname] = dbhs[index2-1] + local_interp
                 #print "long resource"
             else:
