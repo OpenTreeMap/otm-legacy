@@ -129,7 +129,7 @@
             {% if pend.field == 'date_planted' %}
                 <tr id="pending_{{pend.id}}">
                 	<td class="col1Wide Pending"></td>
-                    <td>{{pend.value|date}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
+                    <td>{{pend.value}} Pending{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">U</a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">D</a>{% endif %}</td>
                 </tr>
             {% endif %}
         {% endfor %}
