@@ -383,6 +383,10 @@
                                 {% endfor %}                               
                             </div>
                             <div id="tree_streetview"></div>
+                            <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
+                                <div id="tree_address_address">{{tree.address_street}}<br>{{tree.address_city}} {{tree.neighborhood.all.0.state}}, {{tree.address_zip}}</div>
+                                <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
+                            </div>
                             <div id="tree_comments">
 								<div class="wrap">
 									<h2>Comments</h2>

@@ -64,6 +64,7 @@ var tm = {
     add_zoom: null,
 
     google_bounds: null,
+    panoAddressControl: true,
 
     tree_columns_of_interest : {
         'address_street' : true,
@@ -165,7 +166,13 @@ var tm = {
                 } else {
                     $("#location_search_input").val(tm.initial_location_string);
                     delete tm.searchParams['location'];
-                    delete tm.searchParams['geoName']
+                    delete tm.searchParams['geoName'];
+                    if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
+                    if (tm.map) {
+                        tm.map.setCenter(
+                            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+                            , tm.start_zoom);
+                    }
                     tm.updateSearch();
                 } 
             } else {
@@ -915,7 +922,7 @@ var tm = {
     load_streetview : function(ll, div){
           div = document.getElementById(div);
           panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
-          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition});          
+          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});          
     },
         
                 
