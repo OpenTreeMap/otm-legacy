@@ -427,14 +427,14 @@ var tm = {
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
 
         tm.tree_layer = new OpenLayers.Layer.WMS(
-                    "treemap_tree - Tiled", "http://207.245.89.246:8081/geoserver/wms",
+                    "treemap_tree - Tiled", tm_urls['geo_url'],
                     {
                         transparent: 'true',
                         width: '256',
                         srs: 'EPSG:4326',
-                        layers: 'sf:treemap_tree',
+                        layers: tm.geo_layer,
                         height: '256',
-                        styles: 'greenprint_tree_highlight',
+                        styles: tm.geo_layer_style,
                         format: 'image/png',
                         tiled: 'true',
                         tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
@@ -1145,6 +1145,13 @@ var tm = {
         }
         return  cql_ids.join();
     },
+    cqlizeArea: function(coords) {
+        var cql_coords = [];
+        for(var i=0; i < coords.length; i++) {
+            cql_coords.push(coords[i][0] + " " + coords[i][1]);
+        }
+        return  cql_coords.join();
+    },
 
     display_search_results : function(results){
         $("#export_search").hide();
@@ -1158,7 +1165,7 @@ var tm = {
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
+            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0 && results.initial_tree_count <= 1000) {
                 var cql = tm.cqlizeIds(results.trees);
                 tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                 tm.tree_layer.setVisibility(true);                
