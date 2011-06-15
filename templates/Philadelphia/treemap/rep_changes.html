@@ -89,7 +89,7 @@
 			<tbody>
 				{% for u in rep %}
 					<tr>
-						<td>{{ u.user }}</td>
+						<td><a href="/profiles/{{u.user}}/">{{ u.user }}</a></td>
 						<td>{{ u.date|date:"M d, Y" }}</td>
 						<td>{{ u.new }}</td>
 						<td>{{ u.update }}</td>

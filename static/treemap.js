@@ -579,7 +579,7 @@ var tm = {
     },
         
     //initializes map on the profile page; shows just favorited trees
-    init_favorite_map : function(trees){
+    init_favorite_map : function(user){
         tm.init_base_map('favorite_tree_map');
         
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
@@ -596,7 +596,9 @@ var tm = {
                 tm.tree_layer.addMarker(marker);
             });
             var bounds = tm.tree_layer.getDataExtent();
-            tm.map.zoomToExtent(bounds, true);
+            if (bounds) {
+                tm.map.zoomToExtent(bounds, true);
+            }
         });
     },
     //initializes map on the recently added page; shows just recently added trees
