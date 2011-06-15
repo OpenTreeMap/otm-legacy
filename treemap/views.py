@@ -440,8 +440,8 @@ def edit_users(request):
     users = User.objects.all()
     if 'username' in request.GET:
         users = users.filter(username__icontains=request.GET['username'])
-    if 'user' in request.GET:
-        users = users.filter(Q(first_name__icontains=request.GET['user']) | Q(last_name__icontains=request.GET['user']) | Q(email__icontails=request.GET['user']))
+    if 'name' in request.GET:
+        users = users.filter(Q(first_name__icontains=request.GET['name']) | Q(last_name__icontains=request.GET['name']) | Q(email__icontains=request.GET['name']))
     if 'group' in request.GET:
         g = Group.objects.filter(name__icontains=request.GET['group'])
         if g.count() == 1:
@@ -1333,7 +1333,7 @@ def watch_list(request):
     watch_failures = TreeWatch.objects.filter(valid=False)
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
-        watch_failures = watch_failures.filter(tree__last_updated_by=u)
+        watch_failures = watch_failures.filter(tree__last_updated_by__in=u)
     if 'address' in request.GET:
         watch_failures = watch_failures.filter(tree__address_street__icontains=request.GET['address'])
     if 'test' in request.GET: 
@@ -1430,7 +1430,7 @@ def view_flagged(request):
         u = User.objects.filter(username__icontains=request.GET['username'])
         flags = flags.filter(user__in=u)
     if 'text' in request.GET:
-        flags = flags.filter(comment__icontains=request.GET['text'])
+        flags = flags.filter(comment__comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])
         f_list = list(flags)
