@@ -1045,7 +1045,7 @@ var tm = {
             //jQuery(".tree_count").css('font-size',20);
         } else if (summaries.total_trees > 1000) {
             jQuery(".notrees").html("");
-            jQuery(".moretrees").html("Too many trees to display. Please narrow your search.");
+            jQuery(".moretrees").html("Too many trees to highlight. Please narrow your search.");
         } else {
             jQuery(".moretrees").html("");
             jQuery(".notrees").html("");
@@ -1165,7 +1165,7 @@ var tm = {
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0 && results.initial_tree_count <= 1000) {
+            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0 && results.initial_tree_count <= 1000 && results.trees.length > 0) {
                 var cql = tm.cqlizeIds(results.trees);
                 tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                 tm.tree_layer.setVisibility(true);                
