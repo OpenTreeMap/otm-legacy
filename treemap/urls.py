@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 from views import *
 from treemap.models import Neighborhood, SupervisorDistrict, Tree, TreeFavorite
 from classfaves.views import CreateFavorite, DeleteFavorite, UserFavorites
+from django.views.generic.simple import direct_to_template
 
 create_favorite = CreateFavorite(TreeFavorite, Tree)
 delete_favorite = DeleteFavorite(TreeFavorite, Tree)
@@ -10,6 +11,7 @@ user_favorites = UserFavorites(TreeFavorite, Tree, extra_filter=most_recent)
 
 
 urlpatterns = patterns('',
+    #(r'^$', direct_to_template, {'template':'under_construction.html'}),
     (r'^$', home_feeds),
     (r'^home/$', home_feeds),
     (r'^home/feeds/$', home_feeds),

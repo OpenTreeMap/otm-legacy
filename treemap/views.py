@@ -921,6 +921,7 @@ def added_today_list(request, user_id=None, format=None):
 
 def _build_tree_search_result(request):
     # todo - optimize!
+    tile_query = []
     species = Species.objects.filter(tree_count__gt=0)
     max_species_count = species.count()
     
@@ -944,6 +945,10 @@ def _build_tree_search_result(request):
         trees = Tree.objects.filter(present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None)|(Q(geocoded_accuracy=-1) & Q(owner_geometry__isnull=False)) )
     else:
         trees = Tree.objects.filter(species__in=species, present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None))
+        species_list = []
+        for s in species:
+            species_list.append("species_id = " + s.id.__str__())
+        tile_query.append("(" + " OR ".join(species_list) + ")")
     #filter by nhbd or zipcode if location was specified
 
     geog_obj = None
@@ -961,16 +966,19 @@ def _build_tree_search_result(request):
             if ns.count():          
                 trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
+                tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
         else:
             z = ZipCode.objects.filter(zip=loc)
             if z.count():
                 trees = trees.filter(zipcode = z[0])
                 geog_obj = z[0]
+                tile_query.append("zipcode_id = " + z[0].id.__str__())
     elif 'hood' in request.GET:
         ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
         if ns:
              trees = trees.filter(neighborhood = ns[0])
              geog_obj = ns[0]
+             tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
 
     #import pdb;pdb.set_trace()
 
@@ -991,6 +999,7 @@ def _build_tree_search_result(request):
         trees = trees.filter(species__isnull=True)
         print 'filtered trees by missing species only - %s - %s' % (tree_criteria[k],v)
         print '  .. now we have %d trees' % len(trees)
+        tile_query.append("species_id IS NULL")
     
     #
     ### TODO - add ability to show trees without "correct location"
@@ -1000,24 +1009,29 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
+        species_list = [s.id for s in species]
+        tile_query.append("dbh IS NULL")
      
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
         if max != 50: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(dbh__lte=max)
+        tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
     
     if 'planted_range' in request.GET:
         min, max = map(float,request.GET['planted_range'].split("-"))
         min = "%i-01-01" % min
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
-    
+        tile_query.append("date_planted BETWEEN " + min.__str__() + " AND " + max.__str__() + "")   
+ 
     if 'updated_range' in request.GET:
         min, max = map(float,request.GET['updated_range'].split("-"))
         min = datetime.fromtimestamp(min)
         max = datetime.fromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
+        tile_query.append("last_updated BETWEEN " + min.__str__() + " AND " + max.__str__() + "")   
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
@@ -1045,7 +1059,7 @@ def _build_tree_search_result(request):
                 pass
 
 
-    return trees, geog_obj
+    return trees, geog_obj, ' AND '.join(tile_query)
         
 def advanced_search(request, format='json'):
     """
@@ -1062,11 +1076,11 @@ def advanced_search(request, format='json'):
     if settings.TILED_SEARCH_RESPONSE:
         maximum_trees_for_display = 0
     else:
-        maximum_trees_for_display = 1000   
+        maximum_trees_for_display = 500   
     maximum_trees_for_summary = 200000  
     response = {}
 
-    trees, geog_obj = _build_tree_search_result(request)
+    trees, geog_obj, tile_query = _build_tree_search_result(request)
     #print "here"
     #todo missing geometry
     if format == "geojson":    
@@ -1146,7 +1160,7 @@ def advanced_search(request, format='json'):
     
     if tree_count > maximum_trees_for_display:   
          trees = []
-         response.update({'tile_query' : request.META['QUERY_STRING']})
+         response.update({'tile_query' : tile_query})
         
   
     tj = [{

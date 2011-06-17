@@ -442,7 +442,8 @@ var tm = {
                     {
                         buffer: 0,
                         displayOutsideMaxExtent: true,
-                        visibility: false
+                        visibility: false,
+                        tileOptions: {maxGetUrlLength: 2048}
                     } 
                 );
 
@@ -1045,10 +1046,7 @@ var tm = {
             jQuery(".moretrees").html("");
             jQuery(".notrees").html("No results? Try changing the filters above.");
             //jQuery(".tree_count").css('font-size',20);
-        } else if (summaries.total_trees > 1000) {
-            jQuery(".notrees").html("");
-            jQuery(".moretrees").html("Too many trees to highlight. Please narrow your search.");
-        } else {
+        }  else {
             jQuery(".moretrees").html("");
             jQuery(".notrees").html("");
         }
@@ -1147,14 +1145,6 @@ var tm = {
         }
         return  cql_ids.join();
     },
-    cqlizeArea: function(coords) {
-        var cql_coords = [];
-        for(var i=0; i < coords.length; i++) {
-            cql_coords.push(coords[i][0] + " " + coords[i][1]);
-        }
-        return  cql_coords.join();
-    },
-
     display_search_results : function(results){
         $("#export_search").hide();
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
@@ -1167,10 +1157,22 @@ var tm = {
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0 && results.initial_tree_count <= 1000 && results.trees.length > 0) {
-                var cql = tm.cqlizeIds(results.trees);
-                tm.tree_layer.mergeNewParams({'FEATUREID':cql});
-                tm.tree_layer.setVisibility(true);                
+            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
+                if (results.trees.length > 0) {
+                    var cql = tm.cqlizeIds(results.trees);
+                    delete tm.tree_layer.params.CQL_FILTER;
+                    tm.tree_layer.mergeNewParams({'FEATUREID':cql});
+                    tm.tree_layer.setVisibility(true);     
+                }
+                else if (results.tile_query) {
+                    var cql = results.tile_query;
+                    delete tm.tree_layer.params.FEATUREID;
+                    tm.tree_layer.mergeNewParams({'CQL_FILTER':cql});
+                    tm.tree_layer.setVisibility(true);     
+                }    
+                else {
+                    tm.tree_layer.setVisibility(false);
+                }                
             }            
             else {
                 tm.tree_layer.setVisibility(false);

@@ -384,6 +384,7 @@ class Tree(models.Model):
     address_city = models.CharField(max_length=256, blank=True, null=True)
     address_zip = models.CharField(max_length=30,blank=True, null=True)
     neighborhood = models.ManyToManyField(Neighborhood, null=True)
+    neighborhoods = models.CharField(max_length=150, null=True)
     zipcode = models.ForeignKey(ZipCode, null=True)
     
     geocoded_accuracy = models.IntegerField(null=True)
@@ -562,10 +563,14 @@ class Tree(models.Model):
         
         if n:
             self.neighborhood.clear()
+            self.neighborhoods = ""
             for nhood in n:
                 if nhood:
                     self.neighborhood.add(nhood)
-        else: self.neighborhood.clear()
+                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+        else: 
+            self.neighborhood.clear()
+            self.neighborhoods = ""
         if z: self.zipcode = z[0]
         else: self.zipcode = None
 

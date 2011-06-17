@@ -3948,6 +3948,31 @@ font-size: 12px;
 #add_tree_nearby .nearby_tree_info a {font-size: 12px;}
 
 
+#register.add .opt_fields{
+    width: 150px;
+}
+#register.add #dbh_type ul li label {
+    width: 100px;
+}
+#register.add #dbh_type ul {
+    list-style: none outside none;
+    margin-left: 120px;
+}
+#opt_field_group select {
+    margin-left: 10px;
+    padding: 4px;
+}
+#step4 ul {
+    list-style: none outside none;
+}
+#step4 li label {
+    float:none;
+    width: auto !important;
+}
+#step4 li input {
+    float:none;
+}
+
 
 /* MISC
 ** _____________________________________________________________________________

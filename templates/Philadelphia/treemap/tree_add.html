@@ -15,12 +15,13 @@
 {% block body_id %}id="tree_add"{% endblock %}
 
 {% block extrahead %}
-        <script type="text/javascript" src="/static/js/map.js"></script>
+<script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
         jQuery("#mapHolder").hide();
-        jQuery("#calloutContainer").hide();        
+        jQuery("#calloutContainer").hide();
+        jQuery("#opt_field_group").hide();
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
@@ -35,36 +36,45 @@
         		jQuery("#id_edit_address_street")[0].value = "";
         	}
         });
+        jQuery("#id_edit_address_city").focus(function() {
+        	if(jQuery("#id_edit_address_city")[0].value == "Enter a City") {
+        		jQuery("#id_edit_address_city")[0].value = "";
+        	}
+        });
         jQuery("#id_species_name").focus(function() {
         	if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
         		jQuery("#id_species_name")[0].value = "";
         	}
         });
+        jQuery("#opt_field_group input").focus(function() {
+        	if(this.value == "inches" || this.value == "feet") {
+        		this.value = "";
+        	}
+        });
+
+        if (jQuery("#id_edit_address_street")[0].value != "Enter an Address or Intersection") {
+            jQuery("#update_map").click();
+        }   
+        jQuery("#id_dbh_type_0").attr('checked', 'checked');
+
+        jQuery("#opt_field_toggle").click(function() {
+            jQuery("#opt_field_group").toggle();
+        });
+
     });
 </script>
 {% endblock %}
 
 
-
-{% comment %}
-{% block content_body_top %}
-
-    <!-- start contentbody -->
-        <div id="contentbody">
-            <div class="tabset-holder">
-
-                <ul class="tabset">
-                    <li class="active"><a href="../"><span>Add a Tree</span></a></li>
-                </ul>
-            </div>
-            <div class="tab-content" id="tab-2">
-
-                <div class="wrap">
-{% endblock %}
-{% endcomment %}
-
 {% block left_panel %}
-
+{% if messages %}
+<div id="messages">
+{% for message in messages %}
+    <div {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+    <div>You can add another tree below. <a href="/map">Done?</a></div>
+{% endfor %}
+</div>
+{% endif %}
 <div id="register" class="add">
 
     <h1>Add a New Tree <span class="note"></span></h1>
@@ -84,6 +94,8 @@
 	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
+    </div>
+    <div id="step1">
     {{ form.edit_address_city }}
 	<a href="javascript:void(0)" id="update_map" class="buttonMed">View Map</a>
 	</div>
@@ -92,32 +104,57 @@
 
 	<div id="mapHolder">
 
-	<div class="clearLeft" id="step2">
-		<label class="required">Step 2</label>
-		<span class="value">Specify Placement</span>
-		<div class="clearLeft"></div>
-	</div>
+	    <div class="clearLeft" id="step2">
+		    <label class="required">Step 2</label>
+		    <span class="value">Specify Placement</span>
+		    <div class="clearLeft"></div>
+	    </div>
 
-        <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
-    <div id="add_tree_map" class="addMap">
-		<div id="geocode_address"></div>
-		<div class="shadowLeft"></div>
-		<div class="shadowTop"></div>
-	</div>
-	<div id="add_tree_nearby">
-		<h1 class="title-edit">Nearby Trees</h1>
-		<div id="nearby_trees"></div>
-	</div>
+            <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
+        <div id="add_tree_map" class="addMap">
+		    <div id="geocode_address"></div>
+		    <div class="shadowLeft"></div>
+		    <div class="shadowTop"></div>
+	    </div>
+	    <div id="add_tree_nearby">
+		    <h1 class="title-edit">Nearby Trees</h1>
+		    <div id="nearby_trees">Enter an address to begin.</div>
+	    </div>
 
-	<div class="clearLeft" id="step3">
-    <label {% if form.species_name.errors %}id="error"{% endif %}>Step 3 <br/><span class="note">Optional</span>
-
-    </label>
-    {{ form.species_name }}
-	<button type="submit" class="buttonMed">Add this Tree!</button>
-	<br/>
-	<span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Philly Tree Key</a></span>
-	</div>
+	    <div class="clearLeft" id="step3">
+            <label class="required">Step 3 </label>
+	        <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields ></a></span>
+            <div id="opt_field_group">
+                <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
+                <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}{{ form.plot_length_in }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}{{ form.plot_width_in }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
+            </div>
+        </div> 
+        <div class="clearLeft"></div>
+        <div class="clearLeft" id="step4">
+		    <label class="required">Step 4</label>
+            <span class="value"> </span>
+		    <div class="clearLeft">
+                {{ form.target }} 
+            </div>
+            <div class="clearLeft"></div>
+            <button type="submit" class="buttonMed">Add this Tree!</button>
+	    </div>
 
 	</div>
 
