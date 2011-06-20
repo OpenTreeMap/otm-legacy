@@ -18,10 +18,10 @@
 {% block extrahead %}
 	<script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
-    jQuery().ready(function() {
-        tm.init_new_map({{user.id}});
-    });
-</script>
+        jQuery().ready(function() {
+            tm.init_new_map({{user.id}});
+        });
+    </script>
 {% endblock %}
 
 {% block left_panel %}
@@ -31,6 +31,7 @@
 	<div id="addedTrees">
 		<!-- PLACEHOLDER TREE MAP -->
 	    <div id="add_tree_map"></div>
+        <div class='clearBoth'>        </div>
         <table>
         <tr><th> </th><th>Name</th><th>Diameter</th><th>Address</th></tr>
         {% for tree in trees %}
@@ -41,10 +42,11 @@
                 <td>{{tree.address_street}} {{tree.address_city}}, {{tree.neighborhood.all.0.state}} {{tree.address_zip}}</td>
             </tr>
         {% empty %}
-            <tr><td colspan="3">No trees added in the last 12 hours. </td></tr>
+            <tr><td colspan="4">No trees added in the last 12 hours. </td></tr>
         {% endfor %}
         </table>
 	</div>
+</div>
 {% endblock %}
 
 {% block right_panel %}
@@ -54,4 +56,3 @@
 		<span class="mark"><a href="/trees/add/">Add more tree(s) ></a></span>
 	</div>
 {% endblock right_panel %}
-</div>
