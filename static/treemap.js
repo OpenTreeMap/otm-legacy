@@ -608,9 +608,10 @@ var tm = {
         
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
         tm.map.addLayers([tm.tree_layer]);
-        
+        var url = []
         //load in new trees
-        var url = ['/trees/new/' + user + '/geojson/']
+        if (user) {url = ['/trees/new/' + user + '/geojson/']}
+        else {url = ['/trees/new/geojson/']}
         $.getJSON(url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
@@ -925,7 +926,18 @@ var tm = {
     load_streetview : function(ll, div){
           div = document.getElementById(div);
           panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
-          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});          
+          new google.maps.StreetViewService().getPanoramaByLocation(panoPosition, 50, function(data, status) {
+              if (status == google.maps.StreetViewStatus.OK) {
+                  tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});
+                  if ($("#tree_address_address")) {
+                      $("#tree_address_address")[0].innerHTML = data.location.description;     
+                  }                
+              }
+              else {
+                  $(div).hide()
+              }
+          });       
+          
     },
         
                 
