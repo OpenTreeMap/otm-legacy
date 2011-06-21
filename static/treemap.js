@@ -925,7 +925,15 @@ var tm = {
     load_streetview : function(ll, div){
           div = document.getElementById(div);
           panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
-          tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});          
+          new google.maps.StreetViewService().getPanoramaByLocation(panoPosition, 50, function(data, status) {
+              if (status == google.maps.StreetViewStatus.OK) {
+                  tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});                    
+              }
+              else {
+                  $(div).hide()
+              }
+          });       
+          
     },
         
                 
