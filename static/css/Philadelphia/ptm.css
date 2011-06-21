@@ -845,7 +845,10 @@ ul#promoMap li#promoMapEmbed {
     padding-top:0;
 }
 
-
+#t3_right_panel {
+    float: right;
+    width: 220px;
+}
 
 
 
@@ -4031,9 +4034,6 @@ font-size: 12px;
 ** _____________________________________________________________________________
 */
 
-#register.added h1 {
-	width: 960px;
-}
 #register.added #addedTrees {
 	width: 650px;
 	float: left;
@@ -4043,13 +4043,20 @@ font-size: 12px;
 	margin-top: 0px;
 }
 #register.added #addedTrees table {
-	width: 100%;
-	border: 1pt solid #CCC;
-	margin-top: 20px;
+	width: 632px;
+	border-collapse: collapse;
+	border-bottom: 2px solid #E7EDDF;
+	border-left: 1px solid #E7EDDF;
+	border-right:  1px solid #E7EDDF;
 }
 #register.added #addedTrees table th {
 	background: #E7EDDF;
 	height: 30px;
+	border-bottom: 2px solid #eaeaea;
+}
+#register.added #addedTrees table td {
+	padding: 6px 6px;
+	border-bottom: 1px solid #eaeaea;
 }
 #register.added #addedTrees table td.noTrees {
 	font-weight: bold;
@@ -4084,13 +4091,12 @@ font-size: 12px;
 	margin-bottom: 10px;
 }
 #add_more_trees {
-	position:absolute;
 	background: #fff;
-	border: 1px solid #ccc;
 	min-height: 125px;
-	margin: 50px 0 0 708px;
 	padding: 0 15px;
-	width: 200px;
+	font-size: 16px;
+
+
 }
 #add_more_trees h1.title-add {
 	margin:18px 0px 10 20px;

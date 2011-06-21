@@ -18,10 +18,8 @@
     {% block left_panel %}
 			<h2>Species List</h2>
      Download as <a href="./csv">CSV</a>
-    {% endblock left_panel %}
-
-    {% block right_panel %}
-        {% if page %}
+	 
+	 {% if page %}
             You are looking at species {{page.start_index}} through {{page.end_index}} <br>
             {% if page.has_previous %}<a href="./?page={{page.previous_page_number}}">previous</a>{% endif %}
             {% if page.has_next %}<a href="./?page={{page.next_page_number}}">next</a>{% endif %}
@@ -55,4 +53,10 @@
                 {% endfor %}
             </table>
         </div>
+	 
+	 
+    {% endblock left_panel %}
+
+    {% block right_panel %}
+        
     {% endblock right_panel %}
