@@ -1,13 +1,13 @@
 ![OpenTreeMap Logo](https://github.com/azavea/OpenTreeMap/raw/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
 
 #Installation Instructions#
-##Required programs:##
-    Webserver - Apache2 is recommended
-    Database - Postgres 8.4 + postgis 1.5 is recommended, Something compatable with Django required
-    Map tile renderer - GeoServer(java) on tomcat is recommended (port 8081)
-    SMTP service - sendmail is recommended
-    tile caching service - tilecache is recommended (port 8080 through apache)
-    Python 2.7
+###Required programs:###
+* Webserver - Apache2 is recommended
+* Database - Postgres 8.4 + postgis 1.5 is recommended, Something compatable with Django required
+* Map tile renderer - GeoServer(java) on tomcat is recommended (port 8081)
+* SMTP service - sendmail is recommended
+* tile caching service - tilecache is recommended (port 8080 through apache)
+* Python 2.7
 
 ##Required libraries from aptitude##
     python-django (version 1.3)
