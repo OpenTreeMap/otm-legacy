@@ -1,8 +1,6 @@
 ![OpenTreeMap Logo](/images/logo.png)
 
 #Installation Instructions#
-------------
-
 ##Required programs:##
     Webserver - Apache2 is recommended
     Database - Postgres 8.4 + postgis 1.5 is recommended, Something compatable with Django required
