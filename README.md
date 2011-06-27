@@ -10,38 +10,38 @@
 * Python 2.7
 
 ###Required libraries from aptitude###
-    python-django (version 1.3)
-    libapache2-mod-wsgi
-    python-psycopg2 (only for postgres access)
-    binutils
-    libgeos-3.2.0
-    libgeos-cl
-    libgdal1-1.6.0
-    libproj0
-    python-django-tagging
-    python-imaging
-    python-xlrd
-    python-feedparser
-    python-memcache
-    python-beautifulsoup
-    python-django-debug-toolbar
-    python-simplejson
-    python-django-extensions
+* python-django (version 1.3)
+* libapache2-mod-wsgi
+* python-psycopg2 (only for postgres access)
+* binutils
+* libgeos-3.2.0
+* libgeos-cl
+* libgdal1-1.6.0
+* libproj0
+* python-django-tagging
+* python-imaging
+* python-xlrd
+* python-feedparser
+* python-memcache
+* python-beautifulsoup
+* python-django-debug-toolbar
+* python-simplejson
+* python-django-extensions
 
-##Required libraries from the web##
-    wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
-                wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
-                wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
-                wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
-                wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
-                wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
-                wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
-                wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
-                wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
-                wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
-    git clone git://github.com/miracle2k/webassets.git
+###Required libraries from the web###
+* wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
+  * wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
+  * wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
+  * wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
+  * wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
+  * wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
+  * wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
+  * wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
+  * wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
+  * wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
+* git clone git://github.com/miracle2k/webassets.git
 
-##Patches:##
+###Patches:###
     Fix to proj to deal with spherical mercator
         wget http://download.osgeo.org/proj/proj-datumgrid-1.4.tar.gz
         tar -xzf /proj-datumgrid-1.4.tar.gz
