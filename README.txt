@@ -1,5 +1,3 @@
-![OpenTreeMap Logo](/static/images/Philadelphia/es/2011_opentreemap_trans.png)
-
 Installation Instructions
 ------------
 
