@@ -154,6 +154,8 @@ form, fieldset {
 	position: relative;
 	top: -5px;
 	right: 15px;
+	height: 25px;
+	margin-bottom: -10px;
 }
 
 /* SEARCH BOX
