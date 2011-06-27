@@ -9,7 +9,7 @@
 * tile caching service - tilecache is recommended (port 8080 through apache)
 * Python 2.7
 
-##Required libraries from aptitude##
+###Required libraries from aptitude###
     python-django (version 1.3)
     libapache2-mod-wsgi
     python-psycopg2 (only for postgres access)
