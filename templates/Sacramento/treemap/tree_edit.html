@@ -28,7 +28,7 @@
 
             <div class="wrap">
 
-<table class="box-table-a">
+<table class="box-table-a" style="border: none;">
     <tbody>
     <thead>
     	<tr>
@@ -51,7 +51,7 @@
         <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
-    </tr> 
+    </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree height (feet)</td>
         <td class="activeEditRowValue" id="edit_height">{{ instance.height|default:"Click to edit"  }}</td>
@@ -80,6 +80,9 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_date_planted').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("date_planted", "Tree", {{instance.id}}, {type: 'date'});</script>
     </tr>
+	</tbody>
+</table>
+<table class="box-table-a">
     <thead>
     	<tr>
         	<th scope="col" colspan="4">Environment</th>
@@ -115,6 +118,8 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/sidewalk_damage/'});</script>
     </tr>
+</table>
+<table class="box-table-a">
     <thead>
     	<tr>
         	<th scope="col" colspan="4">Status</th>

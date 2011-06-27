@@ -96,6 +96,11 @@ form, fieldset {
     vertical-align: middle;
 }
 
+#step1 .buttonMed {
+	position: relative;
+	top: 3px;
+}
+
 .buttonMed:hover {
 	background:#e08a00;
 	text-decoration:none;

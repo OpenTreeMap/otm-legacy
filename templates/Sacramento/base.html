@@ -40,6 +40,9 @@
     	<div id="header">
             <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
             <ul id="nav">
+				<li class="support">
+					<a href="http://www.sactree.com/doc.aspx?22" target="_blank"><img src="/static/images/v2/header-button-support.gif" alt="Support Greenprint Trees" /></a>
+				</li>
                 <li>
                     {% if user.is_authenticated %}
                             Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span>
@@ -215,11 +218,11 @@
                         <h2>How you can help</h2> 
                         <div class="box"> 
                             <span class="number">1</span> 
-                            <p><span class="mark"><a href="/map/">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="/map" class="more">Go  &raquo;</a></p> 
+                            <p><span class="mark"><a href="/map/">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="/map/#?advanced=open" class="more">Go  &raquo;</a></p> 
                         </div> 
                         <div class="box"> 
                             <span class="number">2</span> 
-                            <p><span class="mark"><a href="/trees/add/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="/trees/add/" class="more">Go  &raquo;</a></p> 
+                            <p><span class="mark"><a href="/trees/add/">Add a tree</a></span>: The Greenprint Maps grow as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="/trees/add/" class="more">Go  &raquo;</a></p> 
                         </div> 
                         <div class="box" id="boxLast"> 
                             <span class="number">3</span> 
@@ -246,22 +249,25 @@
                     </div> 
                     <ul class="footer-nav">
 						<li><a href="http://www.sactree.com/">Sacramento Tree Foundation</a></li>
-						<li><a href="/trees/add/">Greenprint</a></li> 
+						<li><a href="http://www.sactree.com/doc.aspx?30">Greenprint</a></li>
+						<li><a href="http://www.5milliontrees.com/">5 Million Trees</a></li>
                         <li><a href="/about/">About</a></li> 
                         <li><a href="/resources/">Resources</a></li> 
-                        <li><a href="/contact/">Contact</a></li> 
+                        <li><a href="/contact/">Contact</a></li><br>
+						<ul class="footer-nav">
                         {% if user.is_authenticated %}
-                           <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
+						<li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
                            <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
                            {% if user.is_superuser %}
-                               <li><a href="/_admin_/">Admin</a></li>
+                               <li class="final"><a href="/_admin_/">Admin</a></li>
                            {% endif %}
                            {% if user.reputation.reputation > 1000 %}
-                               <li><a href="/verify/">Recent Changes</a></li>
+                               <li class="final"><a href="/verify/">Recent Changes</a></li>
                            {% endif %}
                         {% else %}
-                            <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
+                            <li class="final"><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
                         {% endif %}
+						</ul>
                     </ul> 
                 </div> 
                 <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>.

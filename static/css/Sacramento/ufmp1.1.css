@@ -96,6 +96,11 @@ form, fieldset {
     vertical-align: middle;
 }
 
+#step1 .buttonMed {
+	position: relative;
+	top: 3px;
+}
+
 .buttonMed:hover {
 	background:#e08a00;
 	text-decoration:none;
@@ -145,7 +150,11 @@ form, fieldset {
 #nav li a {
 	font-weight:bold;
 }
-
+#nav li.support {
+	position: relative;
+	top: -5px;
+	right: 15px;
+}
 
 /* SEARCH BOX
 ** _____________________________________________________________________________
@@ -833,7 +842,6 @@ ul#promoMap li#promoMapEmbed {
 	padding: 6px 0.9em;
 	margin-left: 5px;
 	border: 1px solid #ccc;
-	border-bottom: 1px solid #fff;
 	background: #e6e6e6;
 	color: #999;
 	text-decoration: none;
@@ -870,6 +878,9 @@ ul#promoMap li#promoMapEmbed {
     padding-top:0;
 	border-left: 1px solid #ccc;
 }
+.tab-content .wrap {
+	padding-left: 10px;
+}
 .tab-content .complete{
 	width:100%;
 	overflow:hidden;
@@ -895,9 +906,6 @@ ul#promoMap li#promoMapEmbed {
 	float:left;
 	margin:0 0 10px 0;
 	padding:2px 0 0 0;
-}
-.tab-content .data h2 {
-    margin-left:10px;
 }
 .tab-content .attributes{
 	float:left;
@@ -941,7 +949,7 @@ ul#promoMap li#promoMapEmbed {
     float:left;
     width:700px;
     padding:0;
-    margin:5px 0 15px 10px;
+    margin:10px 0 10px 10px;
 }
 .tab-content ul#progress li {
     display:inline;
@@ -958,7 +966,7 @@ ul#promoMap li#promoMapEmbed {
 .tab-content ul#progress li#progressStatus {
     float:left;
     width:100px;
-    margin:0 20px 0 0;
+    margin:0 20px 0 10px;
     padding:4px 0 0 0;
     font-size:14px;
     font-weight:bold;
@@ -967,7 +975,7 @@ ul#promoMap li#promoMapEmbed {
     float:right;
     width:100px;
     margin:0;
-    padding:6px 0 0 0;
+    padding:0 0 0 0;
     text-align:right;
 }
 .tab-content .comments #favoritesContainer {
@@ -1052,7 +1060,7 @@ ul#promoMap li#promoMapEmbed {
 	color:#ccc;
 }
 #cityFade {
-	background: #fff url(/static/images/v2/bg_city.gif) no-repeat center;
+	background: #fff url(/static/images/v2/bg_city.gif) repeat-x center;
 	height:101px;
 }
 
@@ -1314,23 +1322,25 @@ ul#resultsContainer li#export ul li#firstOption {
 .box-table-a th {
 	font-size: 14px;
 	font-weight: bold;
-	padding: 10px 8px 0 10px;
+	padding: 10px 8px 0 0;
 	background: #fff;
 	color:#333;
 }
 .box-table-a td {
-	padding: 2px 8px 2px 12px;
+	padding: 2px 8px 2px 0;
 	background: #fff; 
-	border-bottom: 1px solid #fff;
 	color: #666;
-	border-top: 1px solid transparent;
 	vertical-align: top;
 	font-size: 12px;
 /* 	white-space: nowrap; */
 }
+.box-table-a tr{
+	margin-bottom: 5px;
+}
 .box-table-a tr:hover td {
 	background: #e7eddf;
 }
+
 .box-table-a td.col1{
     width:125px;
     vertical-align: top;
@@ -1352,6 +1362,9 @@ ul#resultsContainer li#export ul li#firstOption {
 .box-table-a td a.viewAdd {
     float:right;
     font-size:12px;
+}
+.box-table-a #edit_dbh{
+	border: none;
 }
 /*
 .box-table-a.edit td.activeEditRowValue {
@@ -2452,7 +2465,7 @@ table.favorite,
 table.addet{
 	border-collapse:collapse;
 	padding:0;
-	margin:0;
+	margin:0 0 0 10px;
 	color:#999;
 }
 table.addet#extra{
@@ -2499,6 +2512,10 @@ table.addet .update p{
 	float:left;
 	position:relative;
 }
+.tab-content .recent-photos{
+	margin-left: 10px;
+}
+
 .tab-content .recent-photos ul{
 	list-style:none;
 	margin:0;
@@ -2954,10 +2971,13 @@ table.addet .update p{
 	border-right:1px solid #ccc;
 /* 	background: url(/static/images/es/separator01.gif) no-repeat 100% 2px; */
 	padding:0 6px;
-	margin:5px -4px 0 4px;
+	margin:5px -4px 5px 4px;
 	font-size:12px;
 	font-weight:bold;
 	color:#888;
+}
+.footer-nav li.final{
+	border-right: none;
 }
 .ad{float:left;}
 .ad strong{
@@ -3258,7 +3278,7 @@ width:944px;
 	margin-right:0
 }
 #register.add #step3 {
-padding: 15px 0 0 0;
+	padding: 15px 0 0 0;
 }
 #register label{
 	display:block;
@@ -3271,7 +3291,7 @@ padding: 15px 0 0 0;
 #register.add label {
 	width: 65px;
 	text-align:left;
-	font-size: 20px;
+	font-size: 15px;
 	margin-top:5px;
 }
 #register.add label.opt_fields {
@@ -3284,8 +3304,11 @@ padding: 15px 0 0 0;
     float:none;	
     width: auto;
 	text-align:left;
-	font-size: 20px;
+	font-size: 15px;
 	margin-top:5px;
+}
+#register.add label.steps {
+	font-size: 20px;
 }
 #register.add li input {
     float:none;	
@@ -3315,9 +3338,9 @@ padding: 15px 0 0 0;
 #register.add .small {width: 400px; clear: left; margin: 3px 0 0 210px; text-align:left;}
 #register input{
 	float:left;
-	font-size:16px;
+	font-size:15px;
 	color:#666;
-	padding:8px 2px;
+	padding:4px 2px;
 	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
@@ -3325,9 +3348,9 @@ padding: 15px 0 0 0;
 }
 #register.add select{
 	float:left;
-	font-size:16px;
+	font-size:15px;
 	color:#666;
-	padding:8px 2px;
+	padding:4px 2px;
 	border:solid 1px #618527;
 	background-color:#fff;
 	width:280px;
@@ -3510,6 +3533,9 @@ padding: 15px 0 0 0;
 	float:left;
 	width: 100%;
 }
+.tab-content .recent-photos .wrap, #tree_comments .wrap, #tree_address .wrap, .data .wrap{
+	padding:0;
+}
 
 /* EDIT/DETAIL PENDING SYSTEM
 ** _____________________________________________________________________________
@@ -3524,6 +3550,18 @@ tr.pending td span{
 	padding-right: 5px;
 	text-transform: uppercase;
 }
+.progressBar {
+	width: 225px; 
+	border: 1px solid #ccc; 
+	overflow:hidden;
+	top: 4px;
+	height: 15px; 
+	background: #5C8727 url(/static/images/ptm/button-med-sprite.png) 0 -2px; 
+	position:relative;
+	border: 1px solid #5C8727;
+}
+.progressBarMask {height: 15px; border-left: 1px solid #59b895; background-color: #fff; position:absolute; top: 0; left: 0; width: 400px;}
+
 
 /* MISC
 ** _____________________________________________________________________________
