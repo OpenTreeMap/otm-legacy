@@ -1,4 +1,4 @@
-![OpenTreeMap Logo](https://github.com/azavea/OpenTreeMap/blob/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
+![OpenTreeMap Logo](/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
 
 #Installation Instructions#
 ##Required programs:##
