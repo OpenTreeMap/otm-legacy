@@ -1,3 +1,5 @@
+![alt](http://www.google.com/images/logos/ps_logo2.png)
+
 Installation Instructions
 ------------
 
