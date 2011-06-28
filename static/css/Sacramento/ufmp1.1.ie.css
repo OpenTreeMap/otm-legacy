@@ -1,0 +1,34 @@
+ul#searchBoxes li#searchSpeciesBox input#species_search_input,
+ul#searchBoxes li#searchSpeciesBox input#species_search_input2,
+ul#searchBoxes li#searchLocationBox input#location_search_input {
+	width:250px;
+	height:16px;
+	padding:4px 5px;
+	margin:0;
+	font-size:15px;
+	color:#afafaf;
+}
+
+th {
+	text-align: left;
+}
+
+.olPopupCloseBox {
+	margin: 5px 5px 0 0;
+}
+
+
+#searchBox .ac_results {
+	position:absolute;
+	width:276px;
+	top:70px;
+}
+
+#searchBox .ac_results#searchNBList {
+	left: 375px; 
+	z-index: 10
+}
+#searchBox .ac_results#searchSpeciesList {
+	left: 0;
+	z-index: 11;
+}

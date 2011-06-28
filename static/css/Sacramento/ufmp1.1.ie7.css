@@ -1,0 +1,16 @@
+#footer .footer-nav{
+	float: right;
+}
+#footer .footer-nav-user{
+	text-align: right;
+	float: right;
+}
+.footer-nav li{
+	float:left;
+}
+th {
+	text-align: left;
+}
+.olPopupCloseBox {
+	margin: 5px 5px 0 0;
+}

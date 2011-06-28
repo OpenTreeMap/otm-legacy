@@ -17,7 +17,13 @@
         <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
         <link rel="shortcut icon" href="/static/images/favicon.ico" />
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
-        
+        <!--[if IE]>
+            <link rel="stylesheet" href="/static/css/ufmp1.1.ie7.css" type="text/css"/>
+        <![endif]-->
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/ufmp1.1.ie.css" type="text/css"/>
+        <![endif]-->
                 
         {% block js_ready %}
         <script type="text/javascript">
@@ -34,7 +40,6 @@
     <div id="wrapper">
         
 <!-- start: header -->
-    	<
     	<div id="header">
             <h1 class="logo"><a href="/">Greenprint Maps</a></h1>
             <ul id="nav">
@@ -64,7 +69,7 @@
                 <ul id="searchBoxes">
                 <form method="get" action="/map/" name="address" class="address" id="search_form">
                     <li id="searchSpeciesBox">
-                      <div id="searchLocationBrowse">List</div>
+                      <div id="searchSpeciesBrowse">List</div>
                         <input type="text"  id="species_search_input" value="All trees"
                         onFocus='if (this.value == "All trees") { this.value=""; };' />
                         
@@ -72,8 +77,10 @@
                       <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
                     </li>
                     <li id="searchJoiner">near</li>
-                    <li id="searchLocationBox"><input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Sacramento, CA" />
-</li>
+                    <li id="searchLocationBox">
+						<div id="searchLocationBrowse">List</div>
+						<input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Sacramento, CA" />
+					</li>
                     <li id="searchButton"><input class="go" id="location_go" type="button" value="Search Greenprint Region" /></li>
                 </form>
                 </ul>
@@ -258,7 +265,7 @@
                         <li><a href="/about/">About</a></li> 
                         <li><a href="/resources/">Resources</a></li> 
                         <li><a href="/contact/">Contact</a></li><br>
-						<ul class="footer-nav">
+						<ul class="footer-nav-user">
                         {% if user.is_authenticated %}
 						<li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
                            <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>

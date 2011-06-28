@@ -82,7 +82,7 @@ form, fieldset {
 .buttonMed {
 	font-size: 17px;
     border:2px solid #d8731a;
-    background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	
+    background: #D9541E url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	
 	height: 30px;
 	line-height: 24px;
 	padding-bottom: 3px;
@@ -114,7 +114,7 @@ form, fieldset {
 	
 .buttomSm { 
 	clear:both;
-	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
+	background: #D9541E url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
 	text-align:center;
 	color:#fff;
@@ -168,10 +168,13 @@ form, fieldset {
 	height:115px;
 	margin-bottom:0;
 }
+/* SEARCH CONTAINER */
 #searchBoxContainer {
 	width:940px;
 	margin:0 auto;
+	position: relative;
 }
+/* SEARCH TITLES */
 ul#searchTitles {
 	display: inline;
 	margin-top:18px;
@@ -189,9 +192,10 @@ ul#searchTitles li#searchLocation {
 	float:left;
 	width:120px;
 	list-style-type: none;
-	margin-left:60px;
+	margin-left:75px;
 	padding-left:0;
 }
+/* SEARCH BOXES */
 ul#searchBoxes {
 	float:left;
 	width:940px;
@@ -199,21 +203,33 @@ ul#searchBoxes {
 	margin:0 0 10px 0;
 	padding:0;
 }
-ul#searchBoxes li#searchSpeciesBox {
+ul#searchBoxes li#searchSpeciesBox, 
+ul#searchBoxes  li#searchLocationBox {
 	float:left;
-	width:300px;
+	width:310px;
 	list-style-type: none;
 }
-ul#searchBoxes li#searchSpeciesBox input#species_search_input {
-	width:285px;
-	height:16px;
-	padding:5px;
-	margin:0;
-	font-size:15px;
-	color:#afafaf;
+#searchLocationBrowse, #searchSpeciesBrowse {
+	height:23px;
+	width:30px;
+	background: #D9541E url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
+	border:2px solid #d8731a;
+	text-align:center;
+	line-height:24px;
+	color:#fff;
+	font-size:14px;
+	font-weight:bold;
+	cursor: pointer;
+	padding: 0 5px;
+	float: left;
 }
-ul#searchBoxes li#searchSpeciesBox input#species_search_input2 {
-	width:285px;
+#searchLocationBrowse:hover, #searchSpeciesBrowse:hover {
+	background: #e08a00;
+}
+ul#searchBoxes li#searchSpeciesBox input#species_search_input,
+ul#searchBoxes li#searchSpeciesBox input#species_search_input2,
+ul#searchBoxes li#searchLocationBox input#location_search_input {
+	width:250px;
 	height:16px;
 	padding:5px;
 	margin:0;
@@ -229,19 +245,7 @@ ul#searchBoxes  li#searchJoiner {
 	font-weight:bold;
 	text-align:center;
 	padding-top:3px;
-}
-ul#searchBoxes  li#searchLocationBox {
-	float:left;
-	width:340px;
-	list-style-type: none;
-}
-ul#searchBoxes li#searchLocationBox input#location_search_input {
-	width:343px;
-	height:16px;
-	padding:5px;
-	margin:0;
-	font-size:15px;
-	color:#afafaf;
+	padding-right: 5px;
 }
 ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 	width:380px;
@@ -288,9 +292,9 @@ ul#searchSuggest li#searchSpeciesSuggest {
 }
 ul#searchSuggest li#searchLocationSuggest {
 	float:left;
-	width:380px;
+	width:360px;
 	list-style-type: none;
-	margin-left:60px;
+	margin-left:75px;
 	padding-left:0;
 }
 ul#searchSuggest li#searchFilter {
@@ -306,78 +310,55 @@ ul#searchSuggest li#searchFilter a#advanced em span {
 ul#searchSuggest li#searchFilter a#advanced #arrow {
     vertical-align:center;
 }
-
-x .ac_results {
-background: #3c9e8a; 
-border: none;
-display:none;
-position:absolute;
-width:320px;
-top:78px;
-padding: 0 15px 15px;
--moz-border-radius: 0 0 5px 5px;
--webkit-border-radius: 0 0 5px 5px;
-border-radius: 0 0 5px 5px;
+/* DROP-DOWN RESULTS LISTS */
+#searchBox .ac_results {
+	background: #E7EDDF; 
+	border: #BFD769 1px solid;
+	display:none;
+	position:absolute;
+	width:274px;
+	top:75px;
+	padding: 0 15px 15px;
+	-moz-border-radius: 0 0 5px 5px;
+	-webkit-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
 }
 
 #searchBox .ac_results li.header {
-font-weight:bold;
+	font-weight:bold;
 }
 #searchBox .ac_results li.ac-even {
-padding-left:10px;
+	background: #FFF;
+	padding-left:10px;
 }
 #searchBox .ac_results li.ac_odd {
-background: #e9f6ef;
-padding-left:10px;
+	background: #F4F7E3;
+	padding-left:10px;
 }
 #searchBox .ac_results li.ac_over {
-background: #3fab82;
-cursor: pointer;
+	background: #717A3B;
+	cursor: pointer;
 }
-
-#searchBox .ac_results#searchNBList {left:0; z-index: 10}
-#searchBox .ac_results#searchSpeciesList {left:351px; z-index: 11;}
-
-
+#searchBox .ac_results#searchNBList {
+	left: 375px; 
+	z-index: 10
+}
+#searchBox .ac_results#searchSpeciesList {
+	left: 0;
+	z-index: 11;
+}
 #searchBox .ac_results  ul {
-background: #fff;
-display:block;
-border: 1px solid #c7c7c7;
+	background: #fff;
+	display:block;
+	border: 1px solid #c7c7c7;
 }
-
 #searchBox .ac_results a {
-margin: 3px 0 0 0;
+	margin: 7px 0 0 0;
 }
-
 #searchBox .ac_results  h2 {
-	color: #fff;
+	color: #4E621A;
 	font-size: 12px;
-	margin: 4px 0 9px 0;
-	float:left;
-
-}
-
-#searchLocationBrowse, #searchSpeciesBrowse {
-	background-color: #58413c;
-	float:left;
-	width: 59px;
-	margin-left: 15px;
-	padding: 0;
-	-moz-border-radius:  5px 0 0 5px;
-	-webkit-border-radius:  5px 0 0 5px;
-	border-radius:  5px 0 0 5px;
-}
-#searchLocationBrowse .icon, #searchSpeciesBrowse .icon {
-width: 10px;
-height: 100%;
-background: url(/static/images/ptm/icon-list.png) center left no-repeat;
-float:left;
-margin-left: 9px;
-}
-#searchLocationBrowse .label, #searchSpeciesBrowse .label {
-	background: url(/static/images/ptm/label-list.png) center left no-repeat;
-	width: 35px;
-	height: 100%;
+	margin: 7px 0 9px 0;
 	float:left;
 }
 
@@ -3040,6 +3021,12 @@ table.addet .update p{
 	margin:0;
 	padding:0;
 }
+#footer .footer-nav-user{
+	float:right;
+	list-style:none;
+	margin:8px 0 0;
+	padding:0;
+}
 .footer-nav li{
 	float:left;
 	border-right:1px solid #ccc;
@@ -3634,7 +3621,15 @@ tr.pending td span{
 	position:relative;
 	border: 1px solid #5C8727;
 }
-.progressBarMask {height: 15px; border-left: 1px solid #59b895; background-color: #fff; position:absolute; top: 0; left: 0; width: 400px;}
+.progressBarMask {
+	height: 15px; 
+	border-left: 1px solid #59b895; 
+	background-color: #fff; 
+	position:absolute; 
+	top: 0; 
+	left: 0; 
+	width: 400px;
+}
 
 
 /* MISC
