@@ -435,12 +435,14 @@ class Tree(models.Model):
     def get_plot_size(self): 
         length = self.plot_length
         width = self.plot_width
-        if length == 99: length = '15+'
         if length == None: length = 'Missing'
-        if width == 99: width = '15+'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
         if width == None: width = 'Missing'
-
-        return '%s ft x %s ft' % (length, width)
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        print length, width
+        return '%s x %s' % (length, width)
     
     def get_sidewalk_damage_display(self):
         for key, value in Choices().get_field_choices('sidewalk_damage'):

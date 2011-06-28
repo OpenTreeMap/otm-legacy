@@ -57,14 +57,14 @@ def truncatewords_by_chars(value, arg):
 def unit_or_missing(value, unit=None):
     if value:    
         if unit:
-            return round(float(value), 2).__str__() + " " + unit
-        return round(float(value), 2).__str__()
+            return ("%.2f" % float(value)) + " " + unit
+        return "%.2f" % float(value)
     return "Missing" 
 
 @register.filter
 def unit_or_empty(value, unit=None):
     if value:    
         if unit:
-            return round(float(value), 2).__str__() + " " + unit
-        return round(float(value), 2).__str__()
+            return ("%.2f" % float(value)) + " " + unit
+        return "%.2f" % float(value)
     return "" 

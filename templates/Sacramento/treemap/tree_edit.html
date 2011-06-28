@@ -58,22 +58,6 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
     </tr> 
-	<tr>
-    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
-        <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city }}</td>
-       
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip }}</td>
-       
-    </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Date Planted</td>
         <td class="activeEditRowValue" id="edit_date_planted">{{ instance.date_planted|default:"Click to edit"}}</td>
@@ -228,6 +212,10 @@
                         <div id="edit_tree_map"></div>
                         <div id="alternate_tree_div"></div>
                         <div id="tree_streetview"></div>
+                        <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
+                            <div id="tree_address_address">{{instance.geocoded_address}} <input type='hidden' id="id_geocode_address" /></div>
+                            <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
+                        </div>
                     </div>
                 </div>   
 
