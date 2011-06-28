@@ -210,7 +210,7 @@ ul#searchBoxes  li#searchLocationBox {
 	list-style-type: none;
 }
 #searchLocationBrowse, #searchSpeciesBrowse {
-	height:23px;
+	height:24px;
 	width:30px;
 	background: #D9541E url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
@@ -3018,16 +3018,19 @@ table.addet .update p{
 #footer .footer-nav{
 	float:right;
 	list-style:none;
+	display: block;
 	margin:0;
 	padding:0;
 }
 #footer .footer-nav-user{
 	float:right;
+	clear: both;
+	display: block;
 	list-style:none;
-	margin:8px 0 0;
+	margin:0;
 	padding:0;
 }
-.footer-nav li{
+.footer-nav li, .footer-nav-user li{
 	float:left;
 	border-right:1px solid #ccc;
 /* 	background: url(/static/images/es/separator01.gif) no-repeat 100% 2px; */
@@ -3037,7 +3040,7 @@ table.addet .update p{
 	font-weight:bold;
 	color:#888;
 }
-.footer-nav li.final{
+li.final{
 	border-right: none;
 }
 .ad{float:left;}
