@@ -43,11 +43,11 @@
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Common name</td>
-        <td class="activeEditRowValue" id="edit_{{field.name}}">{{ instance.species.common_name|default:"" }}</td>
+        <td class="activeEditRowValue" id="edit_species">{{ instance.species.common_name|default:"" }}</td>
         <td></td>
     </tr>
     <tr>
-    	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+    	<td class="col1">Tree size (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>

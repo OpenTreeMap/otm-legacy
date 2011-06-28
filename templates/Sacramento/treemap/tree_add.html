@@ -21,7 +21,6 @@
         tm.init_add_map();
         //jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
-        jQuery("#opt_field_group").hide();
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
@@ -57,9 +56,6 @@
         }   
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
 
-        jQuery("#opt_field_toggle").click(function() {
-            jQuery("#opt_field_group").toggle();
-        });
 
     });
 </script>
@@ -71,7 +67,7 @@
 <div id="messages">
 {% for message in messages %}
     <div {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
-    <div>You can add another tree below. <a href="/map">Done?</a></div>
+    <div>You can add another tree below. <a href="/trees/new/">Done?</a></div>
 {% endfor %}
 </div>
 {% endif %}
@@ -123,7 +119,7 @@
 
 	    <div class="clearLeft" id="step3">
             <label class="required steps">Step 3 </label>
-	        <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields ></a></span>
+	        <span class="value">Enter any further information you have. </span>
             <div id="opt_field_group">
                 <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
                 <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
