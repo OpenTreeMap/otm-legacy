@@ -61,8 +61,8 @@ tm.init_base_map = function(div_id, controls){
         type: VEMapStyle.Shaded,
         sphericalMercator: true,
         animationEnabled: false,
-        numZoomLevels: 18,
-        MAX_ZOOM_LEVEL: 18,
+        numZoomLevels: 20,
+        MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0
     });
   
@@ -70,8 +70,8 @@ tm.init_base_map = function(div_id, controls){
         type: VEMapStyle.Hybrid,            
         sphericalMercator: true,
         animationEnabled: false, 
-        numZoomLevels: 19,
-        MAX_ZOOM_LEVEL: 19,
+        numZoomLevels: 20,
+        MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0
     });
     

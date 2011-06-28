@@ -349,12 +349,12 @@
         </tr>
         <tr>
         	<td class="col1Wide">Tree steward</td>
-            <td>{{tree.steward_name|default:"Missing"}}</td>
+            <td>{{tree.steward_name|default:"None"}}</td>
             <td></td>
         </tr>
         <tr>
         	<td class="col1Wide">Data source</td>
-            <td>{{tree.data_owner|default:"Missing"}}</td>
+            <td>{{tree.data_owner|default:"Public"}}</td>
             <td></td>
         </tr>
 
@@ -527,7 +527,17 @@
                     </ul>
                     <ul class="optionItemLast">
                         <li>Update</li>
-                        <li class="editItem"> </li>
+                        {% if recent.0.2.items %}
+							<li class="editItem">
+							{% for key, value in recent.0.2.items %}
+                                {% if key.0 != 'O' %}
+								{{key}}
+                                {% endif %}
+							{% endfor %}
+							</li>
+						{% else %}
+							<li class="editItem">{{recent.0.2}}</li>
+						{% endif %}
                     </ul>
 					<ul class="optionItemLast">
                         <li>Date</li>
@@ -546,54 +556,7 @@
 
             {% endblock left_panel %}
 
-                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Actions</div>
-                    <div class="tree_detail_val">
-                    {{tree.get_action_count}} known <a href="#" id="tree_actions"> See Details</a>
-                        <div>
-                            {% for a in tree.treeaction_set.all %}
-                                {{a.key}} ({{a.reported_by}})<br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Alerts</div>
-                    <div class="tree_detail_val">
-                    {{tree.get_alert_count}} known <a href="#" id="tree_alerts"> See Details</a>
-                      <div>
-                        {% for a in tree.treealert_set.all %}
-                            {{a.key}} : {{a.value|date}}<br>
-                        {% endfor %}
-                      </div>
-                    </div>
-                </div>
-                 <h5>History</h5>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Added By</div>
-                     <div class="tree_detail_val">{{tree.data_owner}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Date planted</div>
-                     <div class="tree_detail_val">{{tree.date_planted|date}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Planted by</div>
-                     <div class="tree_detail_val">{{tree.get_planter}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Tree steward</div>
-                     <div class="tree_detail_val">{{tree.steward}}</div>
-                 </div>
-                <h5>Environmental</h5>
-               
-            </td>
-            <td>
-            static map<br><br><br>
-            What do i share?<br>
-            
-            </td>
-        </tr></table>
-    </div>   
-
+                
 
 {% block endpage %}
 	<script>

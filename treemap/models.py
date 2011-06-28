@@ -11,6 +11,7 @@ from sorl.thumbnail.fields import ImageWithThumbnailsField
 from classfaves.models import FavoriteBase
 import logging
 import audit
+import simplejson 
 
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
@@ -735,8 +736,13 @@ class TreePending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
+        update = {}
+        update['old_' + self.field] = getattr(self.tree, self.field).__str__()
+        update[self.field] = self.value.__str__()
+
         setattr(self.tree, self.field, self.value)
         self.tree.last_updated_by = self.submitted_by 
+        self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
 
         self.updated_by = updating_user
@@ -753,8 +759,12 @@ class TreeGeoPending(TreePending):
     objects = models.GeoManager()
 
     def approve(self, updating_user):
+        update = {}
+        update['old_geometry'] = self.tree.geometry
+        update['geometry'] = self.geometry
         self.tree.geometry = self.geometry
         self.tree.last_updated_by = self.submitted_by 
+        self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
         
         self.updated_by = updating_user

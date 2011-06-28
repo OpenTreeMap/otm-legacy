@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{% block title %}Urban Forest Map{% endblock %}</title>
+    <title>{% block title %}Greenprint Maps{% endblock %}</title>
         
         {% block tophead %}
         {% endblock %}
@@ -34,11 +34,9 @@
     <div id="wrapper">
         
 <!-- start: header -->
-    	<div id="announceHeader">
-    		<b>We're in beta!</b> Please <a href="http://www.surveymonkey.com/s/HS8JFV6" target="_new">fill out our survey</a> or use our feedback button.
-    	</div>
+    	<
     	<div id="header">
-            <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
+            <h1 class="logo"><a href="/">Greenprint Maps</a></h1>
             <ul id="nav">
                 <li>
                     {% if user.is_authenticated %}
@@ -63,8 +61,10 @@
                 <ul id="searchBoxes">
                 <form method="get" action="/map/" name="address" class="address" id="search_form">
                     <li id="searchSpeciesBox">
-                      <input type="text"  id="species_search_input" value="All trees"
-                       onFocus='if (this.value == "All trees") { this.value=""; };' />
+                      <div id="searchLocationBrowse">List</div>
+                        <input type="text"  id="species_search_input" value="All trees"
+                        onFocus='if (this.value == "All trees") { this.value=""; };' />
+                        
                       <input type='hidden' name='species_search_id' id="species_search_id" />
                       <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
                     </li>
@@ -90,6 +90,10 @@
                     </li>
                     <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
                 </ul>
+
+            <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="/treekey/">View Tree Key for More Detail</a></div>
+			<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
+
             </div>
         </div>
 
@@ -283,17 +287,6 @@ var pageTracker = _gat._getTracker("UA-13228685-1");
 pageTracker._setDomainName("none");
 pageTracker._setAllowLinker(true);
 pageTracker._trackPageview();
-} catch(err) {}
-</script>
-
-<script type="text/javascript">
-var is_ssl = ("https:" == document.location.protocol); var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/"; document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E")); 
-</script> 
-
-
-<script type="text/javascript"> 
-try {
-var feedback_widget_options = {}; feedback_widget_options.display = "overlay"; feedback_widget_options.company = "urban_forest_map"; feedback_widget_options.placement = "left"; feedback_widget_options.color = "#222"; feedback_widget_options.style = "idea"; var feedback_widget = new GSFN.feedback_widget(feedback_widget_options); 
 } catch(err) {}
 </script>
 

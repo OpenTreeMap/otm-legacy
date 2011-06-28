@@ -75,7 +75,7 @@ def location_map(request):
 
 def home_feeds(request):
     feeds = {}
-    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
     
     feeds['recent_edits'] = unified_history(recent_trees)
     feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
@@ -137,7 +137,7 @@ def result_map(request):
         min_updated = mktime(updated[0].last_updated.timetuple())
         max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
-    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
 
     recent_edits = unified_history(recent_trees)
 
@@ -321,7 +321,14 @@ def trees(request, tree_id=''):
 def unified_history(trees):
     recent_edits = []
     for t in trees:
-        recent_edits.append((t.last_updated_by.username, t.last_updated))
+        if t._audit_change_type == "I":
+            edit = "New Tree"
+        else:
+            if t._audit_diff:
+                edit = clean_key_names(t._audit_diff)
+            else:
+                edit = ""
+        recent_edits.append((t.last_updated_by.username, t.last_updated, edit))
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
@@ -1271,26 +1278,26 @@ def is_number(s):
     except ValueError:
         return False
 
+def clean_diff(jsonstr):
+    #print jsonstr
+    diff = simplejson.JSONDecoder().decode(jsonstr)
+    diff_no_old = {}
+    for key in diff:
+        if not key.startswith('old_'):
+            diff_no_old[key] = diff[key]
+    return diff_no_old
+
+def clean_key_names(jsonstr):
+    diff = simplejson.JSONDecoder().decode(jsonstr)
+    diff_clean = {}
+    for key in diff:
+        print diff
+        diff_clean[key.replace('_', ' ').title()] = diff[key]
+    return diff_clean    
 
 from django.core import serializers
 @login_required 
 def verify_edits(request, audit_type='tree'):
-    
-    def clean_diff(jsonstr):
-        #print jsonstr
-        diff = simplejson.JSONDecoder().decode(jsonstr)
-        diff_no_old = {}
-        for key in diff:
-            if not key.startswith('old_'):
-                diff_no_old[key] = diff[key]
-        return diff_no_old
-    
-    def clean_key_names(jsonstr):
-        diff = simplejson.JSONDecoder().decode(jsonstr)
-        diff_clean = {}
-        for key in diff:
-            diff_clean[key.replace('_', ' ').title()] = diff[key]
-        return diff_clean    
         
     changes = []
     trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
