@@ -1031,14 +1031,14 @@ def _build_tree_search_result(request):
         min = "%i-01-01" % min
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
-        tile_query.append("date_planted BEFORE " + min + "T00:00:00Z AND date_planted AFTER" + max + "T00:00:00Z")   
+        tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE" + max + "T00:00:00Z")   
  
     if 'updated_range' in request.GET:
         min, max = map(float,request.GET['updated_range'].split("-"))
         min = datetime.utcfromtimestamp(min)
         max = datetime.utcfromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
-        tile_query.append("last_updated BEFORE " + min.isoformat() + "Z AND last_updated AFTER" + max.isoformat() + "Z")   
+        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE" + max.isoformat() + "Z")   
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)

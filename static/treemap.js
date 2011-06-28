@@ -568,6 +568,7 @@ var tm = {
                     
                     jQuery('#id_lat').val(olPoint.lat);
                     jQuery('#id_lon').val(olPoint.lon);
+                    jQuery('#id_geocode_address').val(results[0].formatted_address)
                     
                     jQuery('#update_map').html("Update Map");
                     jQuery("#mapHolder").show();
@@ -853,6 +854,9 @@ var tm = {
                 if ($("#geocode_address")) {
                     $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
                 }
+                if ($("#id_geocode_address")) {
+                    $('#id_geocode_address').val(results[0].formatted_address);
+                }
                 if ($('#nearby_trees')) {
                     $('#nearby_trees').html("Loading...")
                     var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
@@ -929,9 +933,7 @@ var tm = {
           new google.maps.StreetViewService().getPanoramaByLocation(panoPosition, 50, function(data, status) {
               if (status == google.maps.StreetViewStatus.OK) {
                   tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});
-                  if ($("#tree_address_address")) {
-                      $("#tree_address_address")[0].innerHTML = data.location.description;     
-                  }                
+                  
               }
               else {
                   $(div).hide()
@@ -1364,6 +1366,9 @@ var tm = {
                                 }
                             }    
                         }
+                        if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                            if (value == 99.0) {value = "15+"}
+                        }
                         settings.obj.innerHTML = value 
                         tm.trackEvent("Edit", settings.fieldName)
                     }
@@ -1374,11 +1379,13 @@ var tm = {
     updateEditableLocation: function() {
         
         var wkt = jQuery('#id_geometry').val();
+        var geoaddy = jQuery("#id_geocode_address").val();
         var data = {
             'model': 'Tree',
             'id': tm.currentTreeId,
             'update': {
-                geometry: wkt
+                geometry: wkt,
+                geocoded_address: geoaddy
             }
         };
         var jsonString = JSON.stringify(data);
