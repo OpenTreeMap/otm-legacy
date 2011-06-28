@@ -96,6 +96,11 @@ form, fieldset {
     vertical-align: middle;
 }
 
+#step1 .buttonMed {
+	position: relative;
+	top: 3px;
+}
+
 .buttonMed:hover {
 	background:#e08a00;
 	text-decoration:none;
@@ -3251,7 +3256,7 @@ padding: 15px 0 0 0;
 #register.add label {
 	width: 65px;
 	text-align:left;
-	font-size: 20px;
+	font-size: 15px;
 	margin-top:5px;
 }
 #register.add label.opt_fields {
@@ -3264,7 +3269,7 @@ padding: 15px 0 0 0;
     float:none;	
     width: auto;
 	text-align:left;
-	font-size: 20px;
+	font-size: 15px;
 	margin-top:5px;
 }
 #register.add li input {
@@ -3295,19 +3300,22 @@ padding: 15px 0 0 0;
 #register.add .small {width: 400px; clear: left; margin: 3px 0 0 210px; text-align:left;}
 #register input{
 	float:left;
-	font-size:16px;
+	font-size:15px;
 	color:#666;
-	padding:8px 2px;
+	padding:4px 2px;
 	border:solid 1px #9ebd2e;
 	background-color:#fff;
 	width:280px;
 	margin:0 20px 20px 10px;
 }
+#register.add label.steps {
+	font-size: 20px;
+}
 #register.add select{
 	float:left;
-	font-size:16px;
+	font-size:15px;
 	color:#666;
-	padding:8px 2px;
+	padding:4px 2px;
 	border:solid 1px #9ebd2e;
 	background-color:#fff;
 	width:280px;

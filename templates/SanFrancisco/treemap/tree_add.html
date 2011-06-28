@@ -91,13 +91,13 @@
     <form id="addTree" action="." method="POST">
     <fieldset>
 	<div id="step1">
-	<label class="required" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
+	<label class="required steps" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
     </div>
     <div id="step1">
     {{ form.edit_address_city }}
-	<a href="javascript:void(0)" id="update_map" class="buttonMed">View Map</a>
+	<a href="javascript:void(0)" id="update_map" class="buttonMed">Show on Map</a>
 	</div>
 
 
@@ -105,7 +105,7 @@
 	<div id="mapHolder">
 
 	    <div class="clearLeft" id="step2">
-		    <label class="required">Step 2</label>
+		    <label class="required steps">Step 2</label>
 		    <span class="value">Specify Placement</span>
 		    <div class="clearLeft"></div>
 	    </div>
@@ -122,7 +122,7 @@
 	    </div>
 
 	    <div class="clearLeft" id="step3">
-            <label class="required">Step 3 </label>
+            <label class="required steps">Step 3 </label>
 	        <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields</a></span>
             <div id="opt_field_group">
                 <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
@@ -150,9 +150,15 @@
                 <div class="clearLeft"></div>
             </div>
             <div class="clearLeft"></div>
-            {{ form.target }} 
+			<div class="clearLeft" id="step4">
+		    <label class="required steps">Step 4</label>
+            <span class="value"> </span>
+		    <div class="clearLeft">
+                {{ form.target }} 
+            </div>
+            <div class="clearLeft"></div>
             <button type="submit" class="buttonMed">Add this Tree!</button>
-        </div>
+	    </div>
 
 	</div>
 

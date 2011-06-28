@@ -36,7 +36,8 @@
                     <!-- TODO -->
                     <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
                     <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
-                    <li id="edit"><a href="./edit">Edit tree info &raquo;</a></li>
+					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
+					<li id="edit"><a href="./edit">Edit tree info &raquo;</a></li>
                 </ul>
                 <div class="wrap">
         {% endblock %}
@@ -46,7 +47,7 @@
     <!-- start t2_middle_panel  -->
     <div class="data">
 
-        <div class="wrap">
+        <div class="wrap" style="padding-left: 10px;">
             <h2>Common attributes</h2>
             <ul class="attributes">
             {% if tree.has_common_attributes %}
