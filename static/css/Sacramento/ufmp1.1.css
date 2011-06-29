@@ -657,7 +657,6 @@ ul#promoMap li#promoMapEmbed {
 	width:1090px;
 	height:500px;
 	margin:0 auto;
-	background:#fff url(/static/images/v2/index_main3.gif) no-repeat top left;
 }
 #t4_top_left_panel {
 	float:left;
@@ -673,37 +672,7 @@ ul#promoMap li#promoMapEmbed {
 	padding-top:0;
 }
 #t4_bottom_content { }
-.getStarted {
-	float:left;
-	clear:left;
-/* 	height:43px; */
-	margin:230px 0 0 408px;
-	background:#7acc59 url(/static/images/v2/button_started.gif) repeat-x top left;
-}
-.getStarted ul {
-	margin:0;
-	padding:0;
-}
-.getStarted ul li {
-	float:left;
-	width:190px;
-	list-style-type: none;
-	display:block;
-	padding:2px 10px;
-	border:1px solid #72ca5a;
-	margin:0;
-}
-.getStarted ul li a {
-	color:#fff;
-	font-size:30px;
-	font-weight:bold;
-	background:url(/static/images/v2/arrow_started.gif) no-repeat center right;
-	padding-right:25px;
-	padding-bottom:4px;
-}
-.getStarted ul li a:hover {
-	text-decoration:none;
-}
+
 
 
 
