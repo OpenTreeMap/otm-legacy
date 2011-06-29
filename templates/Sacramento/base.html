@@ -223,7 +223,7 @@
             {% endblock callout %}
             
             {% block sub_footer %}
-                
+
                 <div id="cityFade"></div>    
              {% endblock %}    
             
@@ -246,7 +246,7 @@
 						<li><a href="http://www.5milliontrees.com/">5 Million Trees</a></li>
                         <li><a href="/about/">About</a></li> 
                         <li><a href="/resources/">Resources</a></li> 
-                        <li><a href="/contact/">Contact</a></li><br>
+                        <li class="final"><a href="/contact/">Contact</a></li>
 						<ul class="footer-nav-user">
                         {% if user.is_authenticated %}
 						<li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
