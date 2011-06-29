@@ -242,9 +242,12 @@ var tm = {
         $(".outstanding input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
         });
+        $(".plot_type input").change(function(evt) { 
+            tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+        });
         var curmin = 0;
         var curmax = 50;
-        $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [curmin, curmax],
+        $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [0, 50],
             slide: function() { 
                 var min = $(this).slider('values', 0)
                 var max = $(this).slider('values', 1)
@@ -257,6 +260,21 @@ var tm = {
                 $('#min_diam').html(min);
                 $('#max_diam').html(max);
                 tm.searchParams['diameter_range'] = min+'-'+max;
+            }
+        });
+        $("#height_slider").slider({'range': true, max: 200, min: 0, values: [0, 200],
+            slide: function() { 
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_height').html(min);
+                $('#max_height').html(max);
+            },    
+            change: function() {
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_height').html(min);
+                $('#max_height').html(max);
+                tm.searchParams['height_range'] = min+'-'+max;
             }
         });
         
@@ -302,7 +320,21 @@ var tm = {
             }
         });    
         $("#updated_slider")[0].updateDisplay();
-        
+        $("#plot_slider").slider({'range': true, max: 15, min: 0, values: [0, 15],
+            slide: function() { 
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_plot').html(min);
+                $('#max_plot').html(max);
+            },    
+            change: function() {
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_plot').html(min);
+                $('#max_plot').html(max);
+                tm.searchParams['plot_range'] = min+'-'+max;
+            }
+        });
         
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
@@ -313,12 +345,25 @@ var tm = {
         });
 
         $("#close-filters").click(function(evt) {
-            $("#diameter_slider").slider('option', 'values', [curmin, curmax]);
+            $("#diameter_slider").slider('option', 'values', [0, 50]);
+                $('#min_diam').html(0);
+                $('#max_diam').html(50);
             $("#planted_slider").slider('option', 'values', [min_year, current_year]);
+                $("#planted_slider")[0].updateDisplay();
             $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
+                $("#updated_slider")[0].updateDisplay();
+            $("#height_slider").slider('option', 'values', [0, 200]);
+                $('#min_height').html(0);
+                $('#max_height').html(50);
+            $("#plot_slider").slider('option', 'values', [0, 15]);
+                $('#min_plot').html(0);
+                $('#max_plot').html(50);
             delete tm.searchParams['diameter_range'];
             delete tm.searchParams['planted_range'];
             delete tm.searchParams['updated_range'];
+            delete tm.searchParams['height_range'];
+            delete tm.searchParams['plot_range'];
+            delete tm.searchParams['advanced'];
 
             var checks = $("#options_form input:checked");
             for(var i=0;i<checks.length;i++) {
@@ -1597,6 +1642,16 @@ var tm = {
                     var uvals = $.address.parameter(key).split("-");
                     $("#updated_slider").slider('values', 0, uvals[0]);
                     $("#updated_slider").slider('values', 1, uvals[1]);
+                }   
+                if (key == "height_range") {
+                    var hvals = $.address.parameter(key).split("-");
+                    $("#height_slider").slider('values', 0, hvals[0]);
+                    $("#height_slider").slider('values', 1, hvals[1]);
+                }   
+                if (key == "plot_range") {
+                    var plvals = $.address.parameter(key).split("-");
+                    $("#plot_slider").slider('values', 0, plvals[0]);
+                    $("#plot_slider").slider('values', 1, plvals[1]);
                 }   
                 if (key == "species") {
                     var cultivar = null;

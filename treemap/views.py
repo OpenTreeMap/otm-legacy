@@ -927,7 +927,7 @@ def added_today_list(request, user_id=None, format=None):
 
 
 def _build_tree_search_result(request):
-    # todo - optimize!
+    # todo - optimize! OMG Clean it up! >.<
     tile_query = []
     species = Species.objects.filter(tree_count__gt=0)
     max_species_count = species.count()
@@ -1018,14 +1018,133 @@ def _build_tree_search_result(request):
         print '  .. now we have %d trees' % len(trees)
         species_list = [s.id for s in species]
         tile_query.append("dbh IS NULL")
-     
+    
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
         if max != 50: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
-    
+
+    missing_current_height = request.GET.get('missing_height','')
+    if missing_current_height:
+        trees = trees.filter(Q(height__isnull=True) | Q(height=0))
+        # TODO: What about ones with 0 dbh?
+        print '  .. now we have %d trees' % len(trees)
+        species_list = [s.id for s in species]
+        tile_query.append("height IS NULL")
+
+    if not missing_current_height and 'height_range' in request.GET:
+        min, max = map(float,request.GET['height_range'].split("-"))
+        trees = trees.filter(height__gte=min)
+        if max != 200: # TODO: Hardcoded in UI, may need to change
+            trees = trees.filter(height__lte=max)
+        tile_query.append("height BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
+
+    missing_current_plot_size = request.GET.get('missing_plot_size','')
+    missing_current_plot_type = request.GET.get('missing_plot_type','')
+    if missing_current_plot_size:
+        trees = trees.filter(Q(plot_length__isnull=True) | Q(plot_width__isnull=True))
+        # TODO: What about ones with 0 dbh?
+        print '  .. now we have %d trees' % len(trees)
+        species_list = [s.id for s in species]
+        tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
+
+    if not missing_current_plot_size and 'plot_range' in request.GET:
+        min, max = map(float,request.GET['plot_range'].split("-"))
+        trees = trees.filter(Q(plot_length__gte=min) | Q(plot_width__gte=min))
+        if max != 15: # TODO: Hardcoded in UI, may need to change
+            trees = trees.filter(Q(plot_length__lte=max) | Q(plot_length__lte=max))
+        tile_query.append("( (plot_length BETWEEN " + min.__str__() + " AND " + max.__str__() + ") OR (plot_width BETWEEN " + min.__str__() + " AND " + max.__str__() + ") )")
+
+    if missing_current_plot_type:
+        trees = trees.filter(plot_type__isnull=True)
+        # TODO: What about ones with 0 dbh?
+        print '  .. now we have %d trees' % len(trees)
+        species_list = [s.id for s in species]
+        tile_query.append(" plot_type IS NULL ")
+    else:
+        plot_type_choices = Choices().get_field_choices('plot_type')
+        pt_cql = []
+        pt_list = []
+        for k, v in plot_type_choices:
+            if v.lower().replace(' ', '_') in request.GET:
+                plot = request.GET.get(v.lower().replace(' ', '_'),'')
+                if plot:
+                    pt_list.append(k)
+                    pt_cql.append("plot_type = " + k)
+        if len(pt_cql) > 0:
+            tile_query.append("(" + " OR ".join(pt_cql) + ")")
+            trees = trees.filter(plot_type__in=pt_list)
+
+    missing_condition = request.GET.get("missing_condition", '')
+    if missing_condition: 
+        trees = trees.filter(condition__isnull=True)
+        species_list = [s.id for s in species]
+        tile_query.append("condition IS NULL")
+    else: 
+        condition_choices = Choices().get_field_choices('condition')    
+        c_cql = []
+        c_list = []
+        for k, v in condition_choices:
+            if v.lower().replace(' ', '_') in request.GET:
+                cond = request.GET.get(v.lower().replace(' ', '_'),'')
+                if cond:
+                    c_list.append(k)
+                    c_cql.append("condition = " + k)
+        if len(c_cql) > 0:
+            tile_query.append("(" + " OR ".join(c_cql) + ")")
+            trees = trees.filter(condition__in=c_list)
+
+    missing_sidewalk = request.GET.get("missing_sidewalk", '')
+    if missing_sidewalk: 
+        trees = trees.filter(sidewalk_damage__isnull=True)
+        species_list = [s.id for s in species]
+        tile_query.append("sidewalk_damage IS NULL")
+    else: 
+        sidewalk_choices = Choices().get_field_choices('sidewalk_damage')    
+        s_cql = []
+        s_list = []
+        for k, v in sidewalk_choices:
+            if v.lower().split(' ')[0] in request.GET:
+                sw = request.GET.get(v.lower().split(' ')[0],'')
+                if sw:
+                    s_list.append(k)
+                    s_cql.append("sidewalk_damage = " + k)
+        if len(s_cql) > 0:
+            tile_query.append("(" + " OR ".join(s_cql) + ")")
+            trees = trees.filter(sidewalk_damage__in=s_list)
+        
+
+    missing_powerlines = request.GET.get("missing_powerlines", '')
+    if missing_powerlines:
+        trees = trees.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
+        species_list = [s.id for s in species]
+        tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
+    else:
+        powerline_choices = Choices().get_field_choices('powerline_conflict_potential')    
+        p_cql = []
+        p_list = []
+        for k, v in powerline_choices:
+            if v.lower() in request.GET:
+                sw = request.GET.get(v.lower(),'')
+                if sw:
+                    p_list.append(k)
+                    p_cql.append("powerline_conflict_potential = " + k)
+        if len(p_cql) > 0:
+            tile_query.append("(" + " OR ".join(p_cql) + ")")
+            trees = trees.filter(powerline_conflict_potential__in=p_list)
+
+    missing_photos = request.GET.get("missing_photos", '')
+    if missing_photos:
+        trees = trees.filter(treephoto__isnull=True)
+        species_list = [s.id for s in species]
+        #todo: get the count into the tree object so it can be cql queried
+    if not missing_photos and 'photos' in request.GET:
+        trees = trees.filter(treephoto__isnull=False)
+
+    print tile_query
+
     if 'planted_range' in request.GET:
         min, max = map(float,request.GET['planted_range'].split("-"))
         min = "%i-01-01" % min

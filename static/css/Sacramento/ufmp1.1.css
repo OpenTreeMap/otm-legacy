@@ -1892,17 +1892,33 @@ ul#resultsContainer li#export ul li#firstOption {
 	width:201px;
 	float:left;
 }
-.filter-box .wrap{background: url(/static/images/es/bg-catigories.gif) no-repeat 611px 0;}
+.filter-box .wrap{}
+.filter-box .wrap2{ padding-top:5px;padding-bottom:5px; }
+.filter-box .input-box{
+    width:220px;
+    float:left;
+}
+.filter-box .input-box input {
+    width:90%;
+}
+.filter-box .input-box strong {
+    color:black;
+}
 .filter-box .parameter .title{
 	width:100%;
 	overflow:hidden;
+    padding-bottom:4px;
 }
 .parameter ul{
 	list-style:none;
 	margin:0;
 	padding:0;
+    padding-bottom: 5px;
 }
-.parameter ul li{padding-bottom:2px;}
+.parameter ul li{
+    padding-bottom:5px;
+    padding-top:5px;
+}
 .parameter .title strong{
 	float:left;
 	color:#333;
@@ -1926,7 +1942,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .filter-box .options ul{
 	list-style:none;
 	margin:0;
-	padding:0;
+	padding:0 0 5px;
 	float:left;
 	width:100%;
 }
@@ -1945,16 +1961,25 @@ ul#resultsContainer li#export ul li#firstOption {
 *+html .filter-box .options label{padding-top:3px;}
 .filter-box .characteristics{
 	float:left;
-	width:155px;
+	width:140px;
 }
 .filter-box .project_trees{
 	float:left;
-	width:207px;
-	margin-right:36px;
+	width:195px;
 }
 .filter-box .outstanding{
-	width:167px;
+	width:130px;
 	float:left;
+    padding-left:5px;
+    border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+}
+.filter-box .outstanding span{
+    color: #888;
+}
+.filter-box .plot_type{
+	float:left;
+	width:180px;
 }
 .filter-box .search-results{
 	padding:8px 0 0;
