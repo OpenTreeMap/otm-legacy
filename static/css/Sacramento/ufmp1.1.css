@@ -1086,6 +1086,7 @@ ul#promoMap li#promoMapEmbed {
 #cityFade {
 	background: #fff url(/static/images/v2/bg_city.gif) repeat-x center;
 	height:101px;
+	display: block;
 }
 
 
