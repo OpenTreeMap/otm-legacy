@@ -1143,6 +1143,38 @@ def _build_tree_search_result(request):
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)
 
+    steward = request.GET.get("steward", "")
+    if steward:    
+        users = User.objects.filter(username__icontains=steward)
+        trees = trees.filter(steward_user__in=users)
+        user_list = []
+        for u in users:
+            user_list.append("steward_user_id = " + u.id.__str__())
+        tile_query.append("(" + " OR ".join(user_list) + ")")
+
+    owner = request.GET.get("owner", "")
+    if owner:
+        users = User.objects.filter(username__icontains=owner)
+        trees = trees.filter(data_owner__in=users)
+        user_list = []
+        for u in users:
+            user_list.append("data_owner_id = " + u.id.__str__())
+        tile_query.append("(" + " OR ".join(user_list) + ")")
+
+    updated_by = request.GET.get("updated_by", "")
+    if updated_by:
+        users = User.objects.filter(username__icontains=updated_by)
+        trees = trees.filter(last_updated_by__in=users)
+        user_list = []
+        for u in users:
+            user_list.append("last_updated_by_id = " + u.id.__str__())
+        tile_query.append("(" + " OR ".join(user_list) + ")")
+
+    funding = request.GET.get("funding", "")
+    if funding:
+        trees = trees.filter(sponsor__icontains=funding)
+        tile_query.append("sponsor LIKE %" + funding + "%")
+
     print tile_query
 
     if 'planted_range' in request.GET:

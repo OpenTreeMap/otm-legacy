@@ -245,6 +245,10 @@ var tm = {
         $(".plot_type input").change(function(evt) { 
             tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
         });
+        
+        $(".input-box input").change(function(evt) { 
+            tm.searchParams[this.id] = this.value; 
+        });
         var curmin = 0;
         var curmax = 50;
         $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [0, 50],
@@ -358,6 +362,10 @@ var tm = {
             $("#plot_slider").slider('option', 'values', [0, 15]);
                 $('#min_plot').html(0);
                 $('#max_plot').html(50);
+            $("#steward").html('');
+            $("#owner").html('');
+            $("#updated_by").html('');
+            $("#funding").html('');
             delete tm.searchParams['diameter_range'];
             delete tm.searchParams['planted_range'];
             delete tm.searchParams['updated_range'];

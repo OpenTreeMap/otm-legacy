@@ -359,7 +359,7 @@ class Tree(models.Model):
     data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
-    steward_user = models.OneToOneField(User, null=True, blank=True) #only modifyable by admin
+    steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
     #original data to help owners associate back to their own db
