@@ -137,6 +137,18 @@ def result_map(request):
         min_updated = mktime(updated[0].last_updated.timetuple())
         max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
+    min_plot = 0
+    max_plot = 0
+    plot_w = Tree.objects.exclude(last_updated=None, present=False).filter(plot_width__isnull=False).order_by('plot_width')
+    plot_l = Tree.objects.exclude(last_updated=None, present=False).filter(plot_length__isnull=False).order_by('plot_length')
+    if plot_w.exists():
+        min_plot = plot_w[0].plot_width
+        max_plot = plot_w[plot_w.count()-1].plot_width
+
+    if plot_l.exists():
+        if plot_l[0].plot_length < min_plot: min_plot = plot_l[0].plot_length
+        if plot_l[plot_l.count()-1].plot_length > max_plot: max_plot = plot_l[plot_l.count()-1].plot_length
+
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
 
     recent_edits = unified_history(recent_trees)
@@ -157,6 +169,8 @@ def result_map(request):
         'current_year': current_year,
         'min_updated': min_updated,
         'max_updated': max_updated,
+        'min_plot': min_plot,
+        'max_plot': max_plot,
         }))
 
 
@@ -1176,8 +1190,6 @@ def _build_tree_search_result(request):
     if funding:
         trees = trees.filter(sponsor__icontains=funding)
         tile_query.append("sponsor LIKE %" + funding + "%")
-
-    print tile_query
 
     if 'planted_range' in request.GET:
         min, max = map(float,request.GET['planted_range'].split("-"))

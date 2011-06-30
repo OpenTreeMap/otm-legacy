@@ -224,7 +224,7 @@ var tm = {
             
         tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
     },    
-    resultsTemplatePageLoad: function(min_year, current_year, min_updated, max_updated) {    
+    resultsTemplatePageLoad: function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
         tm.init_map('results_map');
 
         var spp = jQuery.urlParam('species');
@@ -324,21 +324,46 @@ var tm = {
             }
         });    
         $("#updated_slider")[0].updateDisplay();
-        $("#plot_slider").slider({'range': true, max: 15, min: 0, values: [0, 15],
-            slide: function() { 
-                var min = $(this).slider('values', 0)
-                var max = $(this).slider('values', 1)
-                $('#min_plot').html(min);
-                $('#max_plot').html(max);
-            },    
-            change: function() {
-                var min = $(this).slider('values', 0)
-                var max = $(this).slider('values', 1)
-                $('#min_plot').html(min);
-                $('#max_plot').html(max);
-                tm.searchParams['plot_range'] = min+'-'+max;
-            }
-        });
+        
+        if (max_plot.indexOf('+') != -1) {
+            max_p = parseInt(max_plot.split('+')[0]) + 1;
+            m_text = max_plot - 1 + "+"
+            $("#plot_slider").slider({'range': true, max: max_p, min: min_plot, values: [min_plot, max_p],
+                slide: function() { 
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    if (max == max_p) {max = m_text;}
+                    else {$('#max_plot').html(max);}
+                },    
+                change: function() {
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    if (max == max_p) {$('#max_plot').html(m_text);tm.searchParams['plot_range'] = min+'-100';}
+                    else {$('#max_plot').html(max);tm.searchParams['plot_range'] = min+'-'+max;}
+                    
+                }
+            });
+        }
+        else {
+            $("#plot_slider").slider({'range': true, max: max_plot, min: min_plot, values: [min_plot, max_plot],
+                slide: function() { 
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    $('#max_plot').html(max);
+                },    
+                change: function() {
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    $('#max_plot').html(max);
+                    tm.searchParams['plot_range'] = min+'-'+max;
+                }
+            });
+        }
+       
         
         $("#species_search_input").change(function(evt) {
             if (this.value === "") {
@@ -358,10 +383,20 @@ var tm = {
                 $("#updated_slider")[0].updateDisplay();
             $("#height_slider").slider('option', 'values', [0, 200]);
                 $('#min_height').html(0);
-                $('#max_height').html(50);
-            $("#plot_slider").slider('option', 'values', [0, 15]);
-                $('#min_plot').html(0);
-                $('#max_plot').html(50);
+                $('#max_height').html(200);
+            if (max_plot.indexOf('+') != -1) {
+                max_p = parseInt(max_plot.split('+')[0]) + 1;
+                m_text = max_p - 1 + "+"
+                $("#plot_slider").slider('option', 'values', [min_plot, max_p]);
+                $('#min_plot').html(min_plot);
+                $('#max_plot').html(m_text);
+            }
+            else {
+                $("#plot_slider").slider('option', 'values', [min_plot, max_plot]);
+                $('#min_plot').html(min_plot);
+                $('#max_plot').html(max_plot);
+            }
+            
             $("#steward").val('');
             $("#owner").val('');
             $("#updated_by").val('');
