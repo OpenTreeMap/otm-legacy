@@ -362,16 +362,20 @@ var tm = {
             $("#plot_slider").slider('option', 'values', [0, 15]);
                 $('#min_plot').html(0);
                 $('#max_plot').html(50);
-            $("#steward").html('');
-            $("#owner").html('');
-            $("#updated_by").html('');
-            $("#funding").html('');
+            $("#steward").val('');
+            $("#owner").val('');
+            $("#updated_by").val('');
+            $("#funding").val('');
             delete tm.searchParams['diameter_range'];
             delete tm.searchParams['planted_range'];
             delete tm.searchParams['updated_range'];
             delete tm.searchParams['height_range'];
             delete tm.searchParams['plot_range'];
             delete tm.searchParams['advanced'];
+            delete tm.searchParams['steward'];
+            delete tm.searchParams['owner'];
+            delete tm.searchParams['updated_by'];
+            delete tm.searchParams['funding'];
 
             var checks = $("#options_form input:checked");
             for(var i=0;i<checks.length;i++) {

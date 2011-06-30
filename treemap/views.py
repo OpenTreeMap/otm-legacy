@@ -943,6 +943,7 @@ def _build_tree_search_result(request):
         v = request.GET.get(k,'')
         if v:
             attrib = species_criteria[k]
+            if v == 'true': v = True
             species = species.filter(**{attrib:v})
             print 'filtered species by %s = %s' % (species_criteria[k],v)
             print '  .. now we have %d species' % len(species)
