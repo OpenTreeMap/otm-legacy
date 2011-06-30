@@ -327,7 +327,7 @@ var tm = {
         
         if (max_plot.indexOf('+') != -1) {
             max_p = parseInt(max_plot.split('+')[0]) + 1;
-            m_text = max_plot - 1 + "+"
+            m_text = max_p - 1 + "+"
             $("#plot_slider").slider({'range': true, max: max_p, min: min_plot, values: [min_plot, max_p],
                 slide: function() { 
                     var min = $(this).slider('values', 0)
