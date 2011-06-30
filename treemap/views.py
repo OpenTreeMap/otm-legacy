@@ -178,7 +178,7 @@ def tree_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
         raise Http404
-    distance = request.GET.get('distance', .0015)
+    distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
     max_trees = request.GET.get('max_trees', 1)
     if max_trees > 500: max_trees = 500
     

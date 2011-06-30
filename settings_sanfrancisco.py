@@ -7,6 +7,7 @@ PENDING_ON = False
 GOOGLE_API_KEY = 'abcdf'
 
 COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
+MAP_CLICK_RADIUS = .0015 # in decimal degrees
         
 
 # must end with trees/ because of odd tilecache deployment issue

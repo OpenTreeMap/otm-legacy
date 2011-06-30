@@ -47,7 +47,7 @@
         <td></td>
     </tr>
     <tr>
-    	<td class="col1">Tree size (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+    	<td class="col1">Trunk size (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
@@ -74,13 +74,21 @@
     </thead>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
+            {% if instance.plot_length == 99 %}
+            <td class="activeEditRowValue" id="edit_plot_length">15+</td>
+            {% else %}
             <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|default:"Click to edit" }}</td>
+            {% endif %}
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_length').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_length", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
+            {% if instance.plot_width == 99 %}
+            <td class="activeEditRowValue" id="edit_plot_width">15+</td>
+            {% else %}
             <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|default:"Click to edit" }}</td>
+            {% endif %}
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_width", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>

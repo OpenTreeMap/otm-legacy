@@ -168,8 +168,13 @@
         </tr>
         <tr>
         	<td class="col1Wide">Total CO2 stored to date</td>
-            <td>{{tree.treeresource.total_co2_stored|floatformat:1}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_stored|unit_or_empty:""}}</td>
+            {% if tree.treeresource.total_co2_stored == 0 %}
+                <td colspan=2>Not Available</td>
+            {% else %}
+                <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
+                <td>${{tree.treeresource.benefits.co2_stored|unit_or_empty:""}}</td>
+            {% endif %}
+
         </tr>
 {% else %}
         <tr>
@@ -436,7 +441,7 @@
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
 									</form>
-                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
+                                    <div id="comment_disclaimer">The comment system on Greenprint Maps does not serve as a way to report problems with a tree.</div>
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}

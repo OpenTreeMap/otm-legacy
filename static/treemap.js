@@ -2368,7 +2368,7 @@ $.editable.addInputType('feetinches', {
             $("input", this).val(vfeet);
         }
         else {
-            $("input", this).val(value);
+            $("input", this).val(Math.round(value*100)/100);
         }
     },
     content : function(string, settings, original) {
