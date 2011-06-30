@@ -1139,9 +1139,10 @@ def _build_tree_search_result(request):
     if missing_photos:
         trees = trees.filter(treephoto__isnull=True)
         species_list = [s.id for s in species]
-        #todo: get the count into the tree object so it can be cql queried
+        tile_query.append("(photo_count IS NULL OR photo_count = 0)")
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)
+        tile_query.append("photo_count > 0")
 
     steward = request.GET.get("steward", "")
     if steward:    

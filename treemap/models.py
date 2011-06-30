@@ -403,6 +403,7 @@ class Tree(models.Model):
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
         
     s_order = models.IntegerField(null=True, blank=True)
+    photo_count = models.IntegerField(null=True, blank=True)
    
     objects = models.GeoManager()
     history = audit.AuditTrail()
@@ -555,8 +556,6 @@ class Tree(models.Model):
 
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
-        super(Tree, self).save(*args,**kwargs) 
-        
         pnt = self.geometry
                 
         n = Neighborhood.objects.filter(geometry__contains=pnt)
@@ -577,6 +576,9 @@ class Tree(models.Model):
         if z: self.zipcode = z[0]
         else: self.zipcode = None
 
+        self.photo_count = self.treephoto_set.count()
+        super(Tree, self).save(*args,**kwargs) 
+        
         self.set_environmental_summaries()
         #set new species counts
         if hasattr(self,'old_species') and self.old_species:
