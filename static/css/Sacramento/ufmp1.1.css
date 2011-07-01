@@ -3634,6 +3634,9 @@ tr.pending td span, div.pending span{
 	width: 400px;
 }
 
+#tree_address .pending {
+    padding-bottom: 10px;
+}
 
 /* MISC
 ** _____________________________________________________________________________
