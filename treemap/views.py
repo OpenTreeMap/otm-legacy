@@ -703,47 +703,48 @@ def object_update(request):
                 #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
                 
                     # if the tree was added by the public, or the current user is not public, skip pending
-                insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
-                mgmt_user = request.user.has_perm('auth.change_user')
-                if settings.PENDING_ON and post['model'] == "Tree" and (not mgmt_user and insert_event_mgmt):
-                    for k,v in update.items():
-                        fld = instance._meta.get_field(k.replace('_id',''))
-                        try:
-                            cleaned = fld.clean(v,instance)
-                            response_dict['pending'] = 'true';
-                            if k == 'geometry':
-                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                response_dict['update'][k] = 'Pending'
-                                pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
-                            else:                                
-                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                response_dict['update'][k] = 'Pending'
-                                pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
-                            
-                            if k == 'species_id':
-                                pend.text_value = Species.objects.get(id=v).scientific_name
+                if settings.PENDING_ON and post['model'] == "Tree":
+                    insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+                    mgmt_user = request.user.has_perm('auth.change_user')
+                    if insert_event_mgmt and not mgmt_user:
+                        for k,v in update.items():
+                            fld = instance._meta.get_field(k.replace('_id',''))
+                            try:
+                                cleaned = fld.clean(v,instance)
+                                response_dict['pending'] = 'true';
+                                if k == 'geometry':
+                                    response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                    response_dict['update'][k] = 'Pending'
+                                    pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
+                                else:                                
+                                    response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                    response_dict['update'][k] = 'Pending'
+                                    pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
+                                
+                                if k == 'species_id':
+                                    pend.text_value = Species.objects.get(id=v).scientific_name
 
-                            for key, value in Choices().get_field_choices(k):
-                                if str(key) == str(v):
-                                    pend.text_value = value
-                                    break
-                            pend.save()
+                                for key, value in Choices().get_field_choices(k):
+                                    if str(key) == str(v):
+                                        pend.text_value = value
+                                        break
+                                pend.save()
 
-                        except ValidationError,e:
-                            response_dict['errors'].append(e.messages[0])
-                        except Exception,e:
-                            response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
-                        if len(response_dict['errors']):
-                            transaction.rollback()
-                        else:
-                            transaction.commit()    
-                            response_dict['success'] = True
+                            except ValidationError,e:
+                                response_dict['errors'].append(e.messages[0])
+                            except Exception,e:
+                                response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
+                            if len(response_dict['errors']):
+                                transaction.rollback()
+                            else:
+                                transaction.commit()    
+                                response_dict['success'] = True
 
-                    return HttpResponse(
-                            simplejson.dumps(response_dict, sort_keys=True, indent=4),
-                            #content_type = 'application/javascript; charset=utf8'
-                            content_type = 'text/plain'
-                            )
+                        return HttpResponse(
+                                simplejson.dumps(response_dict, sort_keys=True, indent=4),
+                                #content_type = 'application/javascript; charset=utf8'
+                                content_type = 'text/plain'
+                                )
                 # attempts to use forms...
                 # not working as nicely as I'd want
                 # will likely circle back to using the approach
@@ -838,15 +839,15 @@ def object_update(request):
                             # eg. Tree.objects.all()[1].treestatus_set
                             set = getattr(parent_instance,post['model'].lower() + '_set')
                             set.add(instance)
-                            if response_dict['update'].has_key('old_value'):
-                                history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
-                                if history.count() == 0:
-                                    history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="I").order_by('reported')
-                                if history.count() > 0:
-                                    if isinstance(history[0].value, datetime):
-                                        response_dict['update']['old_value'] = history[0].value.strftime("%b %d %Y")
-                                    else:
-                                        response_dict['update']['old_value'] = history[0].value.__str__()
+                            #if response_dict['update'].has_key('old_value'):
+                            #    history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="U").order_by('-reported')
+                            #    if history.count() == 0:
+                            #        history = model_object.history.filter(tree__id__exact=instance.tree.id).filter(key__exact=instance.key).filter(_audit_change_type__exact="I").order_by('reported')
+                            #    if history.count() > 0:
+                            #        if isinstance(history[0].value, datetime):
+                            #            response_dict['update']['old_value'] = history[0].value.strftime("%b %d %Y")
+                            #        else:
+                            #            response_dict['update']['old_value'] = history[0].value.__str__()
                         except Exception, e:
                             response_dict['errors'].append('Error setting related obj: %s: %s' % (sys.exc_type,str(e)))
 

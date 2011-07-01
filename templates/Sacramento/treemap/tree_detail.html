@@ -284,13 +284,15 @@
                 <table class="box-table-b" colspan="5">
                     <tbody>
                     	<tr>
-                        	<td class="col1Wide"><b>Alert</b></td>
+                        	<td><b>Alert</b></td>
                             <td><b>Reported by</b></td>
+                        	<td><b>Date</b></td>
                         </tr>
                         {% for a in tree.treealert_set.all %}
                         <tr>
-                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                        	<td>{{ a.get_key_display }}</td>
                             <td>{{ a.reported_by }}</td>
+                        	<td>{{ a.reported|date }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -300,20 +302,22 @@
         <tr>
         	<td class="col1Wide">Actions</td>
             <td>{{tree.get_action_count}} known</td>
-            <td>{% if tree.get_action_count > 1 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">see details</a>{% endif %}</td>
+            <td>{% if tree.get_action_count > 0 %}<a href="#" id="tree_actions" onclick="$('#actions').toggle();return false;">see details</a>{% endif %}</td>
         </tr>
         <tr id="actions" style="display:none;">
             <td colspan="5">
                 <table class="box-table-b" colspan="5">
                     <tbody>
                     	<tr>
-                        	<td class="col1Wide"><b>Action taken</b></td>
+                        	<td><b>Action taken</b></td>
                             <td><b>Reported by</b></td>
+                            <td><b>Date</b></td>
                         </tr>
                         {% for a in tree.treeaction_set.all %}
                         <tr>
-                        	<td class="col1Wide">{{ a.get_key_display }}</td>
+                        	<td>{{ a.get_key_display }}</td>
                             <td>{{ a.reported_by }}</td>
+                            <td>{{ a.reported|date }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
