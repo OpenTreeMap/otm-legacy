@@ -739,11 +739,11 @@ def object_update(request):
                             transaction.commit()    
                             response_dict['success'] = True
 
-                        return HttpResponse(
-                                simplejson.dumps(response_dict, sort_keys=True, indent=4),
-                                #content_type = 'application/javascript; charset=utf8'
-                                content_type = 'text/plain'
-                                )
+                    return HttpResponse(
+                            simplejson.dumps(response_dict, sort_keys=True, indent=4),
+                            #content_type = 'application/javascript; charset=utf8'
+                            content_type = 'text/plain'
+                            )
                 # attempts to use forms...
                 # not working as nicely as I'd want
                 # will likely circle back to using the approach

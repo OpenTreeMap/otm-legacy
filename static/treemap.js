@@ -852,15 +852,16 @@ var tm = {
             tm.tree_layer.addMarker(marker);
 
             var popupPixel = tm.map.getViewPortPxFromLonLat(ll);
-            popupPixel.y += marker.icon.offset.y - 25;
+            popupPixel.y += marker.icon.offset.y - 15;
             tm.smallPopup = new OpenLayers.Popup("popup_id",
                        tm.map.getLonLatFromPixel(popupPixel),
                        null,
-                       pends[i].id,
+                       "<span class='pendPopup'>" + pends[i].id + "</span>",
                        false);
             tm.smallPopup.minSize = new OpenLayers.Size(25,25);
             tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-            tm.smallPopup.border = "1px solid Black";
+            tm.smallPopup.border = "none";
+            tm.smallPopup.backgroundColor = "none";
             tm.map.addPopup(tm.smallPopup);
             tm.smallPopup.updateSize();
         }

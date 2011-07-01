@@ -381,19 +381,24 @@
                             <div id="alternate_tree_div"></div>
                             <div id="edit_tree_map_legend" style="display:none;">
                                 <img src="/static/images/map_icons/v4/marker-pending.png" /> - Pending Location <img src="/static/images/map_icons/v4/vector.png" /> - Current Location
-                                 {% for t in tree.get_active_geopends %} 
-                                    <div> Pending #{{t.id}}  
-                                        <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});">Approve</a> 
-                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});">Reject</a> 
+                                 {% if perms.can_delete_tree %} {% for t in tree.get_active_geopends %} 
+                                    <div> Pending Location #{{t.id}}  
+                                        <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> 
+                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a> 
                                     </div> 
-                                {% endfor %}                               
+                                {% endfor %} {% endif %}                              
                             </div>
                             <div id="tree_streetview"></div>
                             <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
                                 <div id="tree_address_address">{{tree.geocoded_address}}</div>
                                 {% for pend in tree.get_active_pends %}
                                     {% if pend.field == 'geocoded_address' %}
-                                        <div>{{pend.value}} <span>Pending{% if perms.can_delete_tree %}</span> <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
+                                        <div class="pending">{{pend.value}} <span>Pending</span>
+                                            {% if perms.can_delete_tree %} 
+                                                <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> 
+                                                <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>
+                                            {% endif %}
+                                        </div>
                                     {% endif %}
                                 {% endfor %} 
                                 <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
