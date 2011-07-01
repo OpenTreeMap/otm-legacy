@@ -53,7 +53,7 @@ def render_to_json(j):
 
 def user_activated_callback(sender, **kwargs):    
     rep = Reputation.objects.reputation_for_user(kwargs['user'])
-    print rep
+    #print rep
 user_activated.connect(user_activated_callback)
 
 #@cache_page(60*5)
@@ -255,7 +255,6 @@ def species(request, selection='all', format='html'):
         if not location:
             return 404
         coord = map(float,location.split(','))
-        print coord
         pt = Point(coord[0], coord[1])
         trees =  Tree.objects.filter(present=True).filter(geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
         species = Species.objects.filter(tree__in=trees)
@@ -1456,7 +1455,6 @@ def clean_key_names(jsonstr):
     diff = simplejson.JSONDecoder().decode(jsonstr)
     diff_clean = {}
     for key in diff:
-        print diff
         diff_clean[key.replace('_', ' ').title()] = diff[key]
     return diff_clean    
 

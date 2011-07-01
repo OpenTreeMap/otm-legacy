@@ -389,7 +389,7 @@ class Tree(models.Model):
     zipcode = models.ForeignKey(ZipCode, null=True)
     
     geocoded_accuracy = models.IntegerField(null=True)
-    geocoded_address = models.CharField(max_length=256)
+    geocoded_address = models.CharField(max_length=256, null=True)
     geocoded_lat = models.FloatField(null=True)
     geocoded_lon  = models.FloatField(null=True)
 
