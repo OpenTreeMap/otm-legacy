@@ -325,7 +325,7 @@ var tm = {
         });    
         $("#updated_slider")[0].updateDisplay();
         
-        if (max_plot.indexOf('+') != -1) {
+        if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
             max_p = parseInt(max_plot.split('+')[0]) + 1;
             m_text = max_p - 1 + "+"
             $("#plot_slider").slider({'range': true, max: max_p, min: min_plot, values: [min_plot, max_p],
@@ -384,7 +384,7 @@ var tm = {
             $("#height_slider").slider('option', 'values', [0, 200]);
                 $('#min_height').html(0);
                 $('#max_height').html(200);
-            if (max_plot.indexOf('+') != -1) {
+            if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
                 max_p = parseInt(max_plot.split('+')[0]) + 1;
                 m_text = max_p - 1 + "+"
                 $("#plot_slider").slider('option', 'values', [min_plot, max_p]);

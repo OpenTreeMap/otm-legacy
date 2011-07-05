@@ -167,6 +167,7 @@ form, fieldset {
 #searchBoxContainer {
 	width:940px;
 	margin:0 auto;
+	position: relative;
 }
 ul#searchTitles {
 	display: inline;
@@ -200,8 +201,26 @@ ul#searchBoxes li#searchSpeciesBox {
 	width:300px;
 	list-style-type: none;
 }
+#searchLocationBrowse, #searchSpeciesBrowse {
+	height:24px;
+	width:30px;
+	background: #D9541E url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
+	border:2px solid #d8731a;
+	text-align:center;
+	line-height:24px;
+	color:#fff;
+	font-size:14px;
+	font-weight:bold;
+	cursor: pointer;
+	padding: 0 5px;
+    margin-top:2px;
+	float: left;
+}
+#searchLocationBrowse:hover, #searchSpeciesBrowse:hover {
+	background: #e08a00;
+}
 ul#searchBoxes li#searchSpeciesBox input#species_search_input {
-	width:285px;
+	width:235px;
 	height:16px;
 	padding:5px;
 	margin:0;
@@ -232,7 +251,7 @@ ul#searchBoxes  li#searchLocationBox {
 	list-style-type: none;
 }
 ul#searchBoxes li#searchLocationBox input#location_search_input {
-	width:343px;
+	width:280px;
 	height:16px;
 	padding:5px;
 	margin:0;
@@ -303,6 +322,57 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
     vertical-align:center;
 }
 
+/* DROP-DOWN RESULTS LISTS */
+#searchBox .ac_results {
+	background: #E7EDDF; 
+	border: #BFD769 1px solid;
+	display:none;
+	position:absolute;
+	width:262px;
+	top:75px;
+	padding: 0 15px 15px;
+	-moz-border-radius: 0 0 5px 5px;
+	-webkit-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
+}
+
+#searchBox .ac_results li.header {
+	font-weight:bold;
+}
+#searchBox .ac_results li.ac-even {
+	background: #FFF;
+	padding-left:10px;
+}
+#searchBox .ac_results li.ac_odd {
+	background: #F4F7E3;
+	padding-left:10px;
+}
+#searchBox .ac_results li.ac_over {
+	background: #717A3B;
+	cursor: pointer;
+}
+#searchBox .ac_results#searchNBList {
+	left: 405px; 
+	z-index: 10
+}
+#searchBox .ac_results#searchSpeciesList {
+	left: 0;
+	z-index: 11;
+}
+#searchBox .ac_results  ul {
+	background: #fff;
+	display:block;
+	border: 1px solid #c7c7c7;
+}
+#searchBox .ac_results a {
+	margin: 7px 0 0 0;
+}
+#searchBox .ac_results  h2 {
+	color: #4E621A;
+	font-size: 12px;
+	margin: 7px 0 9px 0;
+	float:left;
+}
 
 
 /*
@@ -1294,7 +1364,9 @@ ul#resultsContainer li#export ul li#title {
 ul#resultsContainer li#export ul li#firstOption {
     border:0;
 }
-
+#tree_address div{
+    padding-bottom: 5px;
+}
 
 /* TREE DETAIL DATA DISPLAY
 ** _____________________________________________________________________________
@@ -1853,17 +1925,33 @@ ul#resultsContainer li#export ul li#firstOption {
 	width:201px;
 	float:left;
 }
-.filter-box .wrap{background: url(/static/images/es/bg-catigories.gif) no-repeat 611px 0;}
+.filter-box .wrap{}
+.filter-box .wrap2{ padding-top:5px;padding-bottom:5px; }
 .filter-box .parameter .title{
 	width:100%;
 	overflow:hidden;
+    padding-bottom:4px;
+}
+.filter-box .input-box{
+    width:220px;
+    float:left;
+}
+.filter-box .input-box input {
+    width:90%;
+}
+.filter-box .input-box strong {
+    color:#333;
 }
 .parameter ul{
 	list-style:none;
 	margin:0;
 	padding:0;
+    padding-bottom: 5px;
 }
-.parameter ul li{padding-bottom:2px;}
+.parameter ul li{
+    padding-bottom:2px;
+    padding-top:5px;
+}
 .parameter .title strong{
 	float:left;
 	color:#333;
@@ -1876,7 +1964,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .filter-box .options,
 .parameter .options fieldset{float:left;}
 .filter-box .options{
-	margin-left:48px;
+	margin-left:35px;
 	display:inline;
 }
 .filter-box .options strong{
@@ -1906,16 +1994,22 @@ ul#resultsContainer li#export ul li#firstOption {
 *+html .filter-box .options label{padding-top:3px;}
 .filter-box .characteristics{
 	float:left;
-	width:155px;
+	width:135px;
 }
 .filter-box .project_trees{
 	float:left;
-	width:207px;
-	margin-right:36px;
+	width:190px;
+}
+.filter-box .plot_type{
+	width:170px;
+	float:left;
 }
 .filter-box .outstanding{
-	width:167px;
+	width:140px;
 	float:left;
+    padding-left:5px;
+    border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
 }
 .filter-box .search-results{
 	padding:8px 0 0;

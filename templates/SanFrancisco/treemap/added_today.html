@@ -29,7 +29,7 @@
 
     <h1>Recently added trees </h1>
 	<div id="addedTrees">
-		<p>You have added these trees in the last twenty-four hours.<br/>
+		<p>These trees have been added in the last twenty-four hours.<br/>
 		Please click on the View Details button to view or add more information about a tree.</p>
 		<!-- PLACEHOLDER TREE MAP -->
 	    <div id="add_tree_map"></div>
@@ -41,7 +41,7 @@
                 <td><i>{{tree.species.scientific_name|default:""}}</i></td>
                 <td>{{tree.species.common_name|default:""}}</td>
                 <td>{{tree.dbh|unit_or_empty:'inches'}}</td>
-                <td>{{tree.address_street}} {{tree.address_city}}, {{tree.neighborhood.all.0.state}} {{tree.address_zip}}</td>
+                <td>{{tree.geocoded_address}}</td>
             </tr>
         {% empty %}
             <tr><td colspan="5" class="noTrees">No trees added in the last 12 hours. </td></tr>

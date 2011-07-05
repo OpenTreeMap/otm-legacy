@@ -222,6 +222,7 @@ ul#searchBoxes  li#searchLocationBox {
 	cursor: pointer;
 	padding: 0 5px;
 	float: left;
+    margin-top:2px;
 }
 #searchLocationBrowse:hover, #searchSpeciesBrowse:hover {
 	background: #e08a00;
@@ -1908,7 +1909,7 @@ ul#resultsContainer li#export ul li#firstOption {
     width:90%;
 }
 .filter-box .input-box strong {
-    color:black;
+    color:#333;
 }
 .filter-box .parameter .title{
 	width:100%;
