@@ -861,10 +861,9 @@ var tm = {
                        false);
             tm.smallPopup.minSize = new OpenLayers.Size(25,25);
             tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
-            tm.smallPopup.border = "none";
-            tm.smallPopup.backgroundColor = "none";
             tm.map.addPopup(tm.smallPopup);
             tm.smallPopup.updateSize();
+            tm.smallPopup.setBackgroundColor('transparent');
         }
     },
     add_new_tree_marker : function(ll, do_reverse_geocode){
