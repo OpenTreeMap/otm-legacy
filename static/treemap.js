@@ -1534,7 +1534,8 @@ var tm = {
         var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
         tr.append(
             $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewAction)
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewAction),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
             )
         );
         $("#actionTable").append(tr);
@@ -1547,7 +1548,8 @@ var tm = {
             var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
             tr.append(
                 $("<td />").append(
-                    $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewLocal)
+                    $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewLocal),
+                    $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
                 )
             );
             $("#localTable").append(tr);
@@ -1559,11 +1561,15 @@ var tm = {
         }    
         var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
         tr.append(
-            $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewHazard)
+            $("<td style='white-space:nowrap;' />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewHazard),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
             )
         );
         $("#hazardTable").append(tr);
+    },
+    cancelNew: function(evt) {
+        $(this.parentNode.parentNode).remove();
     },
     handleNewHazard: function(evt) {
         var data = $("#hazardTypeSelection")[0].value;
