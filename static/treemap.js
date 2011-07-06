@@ -715,6 +715,7 @@ var tm = {
             });
             var bounds = tm.tree_layer.getDataExtent();
             tm.map.zoomToExtent(bounds, true);
+            tm.map.zoomOut();
         });
     },
         

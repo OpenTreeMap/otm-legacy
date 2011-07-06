@@ -60,6 +60,8 @@
         jQuery("#opt_field_toggle").click(function() {
             jQuery("#opt_field_group").toggle();
         });
+        jQuery("#id_dbh_type_0").attr('checked', 'checked');
+        jQuery("#id_target_2").attr('checked', 'checked');
 
     });
 </script>
@@ -152,7 +154,7 @@
             <div class="clearLeft"></div>
 			<div class="clearLeft" id="step4">
 		    <label class="required steps">Step 4</label>
-            <span class="value"> </span>
+            <span class="value">After I add this tree... </span>
 		    <div class="clearLeft">
                 {{ form.target }} 
             </div>
