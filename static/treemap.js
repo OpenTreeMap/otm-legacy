@@ -1037,22 +1037,32 @@ var tm = {
     },
         
                 
-    highlight_geography : function(geometry, geog_type){
-        poly_color = {'zipcodes' : 'blue', 'neighborhoods' : 'red' };
-        var verts = [];
-        jQuery.each(geometry.coordinates[0], function(i, c){ //no multipoly support
-            verts.push(new OpenLayers.Geometry.Point(c[0],c[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()));
-            });
+    highlight_geography : function(geometry, geog_type){        
         if (tm.vector_layer){
             tm.vector_layer.destroyFeatures();
-            }
+        }
+        if (geometry.coordinates.length == 1) {            
+            var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
+            tm.vector_layer.addFeatures(feature);
+        }
+        for (var i=0; i<geometry.coordinates.length;i++) {
+            var feature = tm.getFeatureFromCoords(geometry.coordinates[i][0])
+            tm.vector_layer.addFeatures(feature);
+        }
+    },
+
+    getFeatureFromCoords : function (coords) {
+        var verts = [];
+        jQuery.each(coords, function(i, c){ //no multipoly support
+            verts.push(new OpenLayers.Geometry.Point(c[0],c[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()));
+            });
         var poly = new OpenLayers.Geometry.LineString(verts);
         var feature = new OpenLayers.Feature.Vector(poly, null, {
             strokeColor: "#289255",
             strokeWidth: 4,
             strokeOpacity: 0.7
         });
-        tm.vector_layer.addFeatures(feature);
+        return feature;
     },
         
     display_tree_details : function(json){
