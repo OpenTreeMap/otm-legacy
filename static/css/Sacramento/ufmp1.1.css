@@ -1372,7 +1372,7 @@ ul#resultsContainer li#export ul li#firstOption {
     vertical-align: top;
 }
 .box-table-a td.col1Wide{
-    width:175px;
+    width:150px;
     vertical-align: top;
 }
 .box-table-a td img.editOption {
@@ -2262,6 +2262,11 @@ ul#resultsContainer li#export ul li#firstOption {
 	float:right;
 }
 */
+
+#edit_tree_map_legend img{
+    vertical-align: text-bottom;
+}
+
 .tab-content .aside #nearby_address ul#address {
 	margin-left: -20px;
 }
@@ -2370,7 +2375,7 @@ box-2 .comments a.more {
 	padding:3px;
 }
 .tab-content .comments .submit,
-.tab-content .comments .cancel{
+.tab-content .comments .cancel{    color
 	background: url(/static/images/es/btn-submit.gif) no-repeat;
 	width: 105px;
 	height: 21px;
@@ -3606,14 +3611,14 @@ width:944px;
 ** _____________________________________________________________________________
 */
 
-tr.pending{
-	color: #E7EDDF;
+.pending{
 }
-tr.pending td span, div.pending span{
+.pending span{
 	font-weight: bold;
 	color: #5C8727;
-	padding-right: 5px;
-	text-transform: uppercase;
+	text-transform: lowercase;
+    font-style: italic;
+    white-space: nowrap;
 }
 .progressBar {
 	width: 225px; 
