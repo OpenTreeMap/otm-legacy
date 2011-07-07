@@ -81,7 +81,7 @@ tm.init_base_map = function(div_id, controls){
             layername: 'PTM',
             type: 'png',
             isBaseLayer: false,
-            opacity:0.7,
+            //opacity:0.7, causes issues with IE and bing layer. 
             wrapDateLine: true,
             attribution: "(c) PhillyTreeMap.org"
         }

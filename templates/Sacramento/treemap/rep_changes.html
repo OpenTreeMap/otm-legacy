@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% load pagination_tags %}
+{% load sorting_tags %}
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+
+    <script type="text/javascript">
+		$(document).ready(function() {
+
+			if (jQuery.urlParam('username')) {
+				jQuery("#s_username").val(jQuery.urlParam('username'));
+			}
+			if (jQuery.urlParam('user')) {
+				jQuery("#s_user").val(jQuery.urlParam('user'));
+			}
+			if (jQuery.urlParam('group')) {
+				jQuery("#s_group").val(jQuery.urlParam('group'));
+			}
+
+			jQuery("#search input").keydown(function(evt) {
+				if (evt.keyCode == 13) {
+					jQuery("#filter").click();
+				}
+			});
+
+			jQuery("#filter").click(function(evt) {
+				var params = {};
+				var q = $.query.empty();
+				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
+				if (jQuery("#s_user").val()) {params["user"] = jQuery("#s_user").val();}
+				if (jQuery("#s_group").val()) {params["group"] = jQuery("#s_group").val();}
+
+				for (var key in params) {
+					if (!params[key]) {
+						continue;
+					}
+					var val = params[key];
+					q = q.set(key, val);
+				}
+				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
+
+				window.location = "/users/" + qstr;
+
+			});
+			jQuery("#clear").click(function(evt) {
+				window.location = "/users/"
+			});
+
+			//jQuery("#user_list_table").tablesorter({sortList: [[0,0]], headers: {2:{sorter:'usLongDate'}}})
+
+
+		});
+
+    </script>
+{% endblock %}
+
+{% block body_id %}id="user_edit"{% endblock %}
+
+{% block content %}
+
+{% autosort rep %}
+{% autopaginate rep 20 %}
+
+<div class="content admin">
+	<div class="admin-header">
+		<h2>User Activity</h2>
+		{% include "treemap/admin_nav.html" %}
+		<div class="clearBoth"></div>
+	</div>
+	<div id="search">
+		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
+		<div id="search_user"><label for="s_user">User: </label><input id="s_user" /></div>
+		<div id="search_group"><label for="s_group">Group: </label><input id="s_group" /></div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+	</div>
+	<div id='instructions'><b>Instructions:</b> This page provides an overview of user activity in different categories. Click column headings to sort all records. </div>
+	<div class="clearBoth"></div>
+	{% paginate %}
+	<div id="user_list">
+		<table id="user_list_table">
+			<thead>
+				<tr>
+					<th>{% anchor user Username %}</th>
+					<th>{% anchor date Date %}</th>
+					<th>{% anchor new 'New Trees' %}</th>
+					<th>{% anchor update 'Tree Updates' %}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for u in rep %}
+					<tr>
+						<td>{{ u.user }}</td>
+						<td>{{ u.date|date:"M d, Y" }}</td>
+						<td>{{ u.new }}</td>
+						<td>{{ u.update }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% paginate %}
+</div>
+
+
+{% endblock %}
