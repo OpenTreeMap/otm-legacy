@@ -3672,3 +3672,68 @@ div.clearer {
 	line-height: 1%;
 	font-size: 1px;
 }
+
+.admin .admin-header {
+	border-bottom: 1pt dotted #CCC;
+	margin:20px 0;
+	padding-bottom:12px;
+}
+.admin h2 {
+	float:left;
+	font-size:20px;
+	font-weight:bold;
+	color:#666;
+	padding: 0;
+	margin: 0;
+}
+
+.admin #search  label {
+	width: 90px;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+
+.admin #search input {
+	border: 1px solid #ccc;
+	font-size: 14px;
+	height: 21px;
+}
+
+.admin #search button {
+	margin: 5px 0;
+}
+
+.admin .button_group {
+	padding-left: 90px;
+	margin: 0 0 10px 0;
+}
+
+.admin table {
+border-collapse: collapse;
+border: 1px solid #ccc;
+}
+
+.admin table input {
+border: 1px solid #ccc 
+}
+
+.admin  select {border: 1px solid #ccc;}
+
+.admin table td, .admin table th {
+border: 1px solid #ccc;
+}
+
+.admin #instructions {
+margin: 20px 0;
+}
+
+.admin .admin_nav {
+	float: right;
+}
+
+.admin .admin_nav li {
+	float:left;
+	list-style:none;
+	margin-left: 20px;
+	font-weight: bold;
+}

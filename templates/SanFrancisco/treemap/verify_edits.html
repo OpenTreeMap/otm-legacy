@@ -71,6 +71,16 @@
 			<div id="search_address"><label for="s_address">Address: </label><input id="s_address" /></div>
 			<div id="nbhood"><label for="s_nhood">Neighborhood: </label><select id="s_nhood"><option value=""></option></select></div>
 			<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+
+			<div id="legend" style="position:relative;width:auto;border:1px solid #ccc;padding:6px 10px;float:right;">
+				+25 points - Adding a tree  <br/>
+				+5 points - Editing a tree <br/>
+				+5 points - Receiving a thumbs-up on your edit <br/>
+				+1 point - Receiving a neutral reaction to your edit <br/>
+				-5 points - Receiving a thumbs-down on your edit <br/>
+				@1,000 points - Users achieve advanced user status <br/>
+				Users cannot gain or lose more than 100 points per day
+			</div>
 	</div>
 	<div id='instructions'><b>Instructions:</b>
 		Click the thumbs-up icon to respond positively to a user's edit. Click the thumbs-down icon
@@ -80,15 +90,6 @@
 		from the record. You must edit the record directly to return it to its original state.
 		Once an advanced user has responded to a recent edit, that edit will no longer be visible
 		on this page. More information is available in the <a href="/faq/#reputation">FAQ</a>.
-		<div id="legend">
-			+25 points - Adding a tree  <br/>
-			+5 points - Editing a tree <br/>
-			+5 points - Receiving a thumbs-up on your edit <br/>
-			+1 point - Receiving a neutral reaction to your edit <br/>
-			-5 points - Receiving a thumbs-down on your edit <br/>
-			@1,000 points - Users achieve advanced user status <br/>
-			Users cannot gain or lose more than 100 points per day
-		</div>
 	</div>
 	<div class="clearBoth"></div>
 	{% paginate %}

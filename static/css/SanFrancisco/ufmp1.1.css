@@ -3611,45 +3611,70 @@ tr.pending td span{
 ** _____________________________________________________________________________
 */
 
-ul.admin_nav {
-	list-style: none;
-	margin: 0 0 10px -38px;
+
+.admin .admin-header {
+	border-bottom: 1pt dotted #CCC;
+	margin:20px 0;
+	padding-bottom:12px;
 }
-.admin-header {
-	float: left;
-	width: 200px;
+.admin h2 {
+	float:left;
+	font-size:20px;
+	font-weight:bold;
+	color:#666;
+	padding: 0;
+	margin: 0;
 }
-#search {
-	top: 50px;
-	width: 300px;
-	float: left;
-	position: relative;
-	display: block;
-	margin-bottom: 60px;
+
+.admin #search  label {
+	width: 90px;
+	display: inline-block;
+	margin-bottom: 10px;
 }
-#search label {
-	width: 150px;
-	display: block;
+
+.admin #search input {
+	border: 1px solid #ccc;
+	font-size: 14px;
+	height: 21px;
 }
-#search input, #search select {
-	margin-bottom: 5px;
-	width: 150px;
+
+.admin #search button {
+	margin: 5px 0;
 }
-#instructions {
-	width: 400px;
-	position: relative;
-	display: block;
-	padding-right: 30px;
-	float: left;
-	top: 50px;
-	margin-bottom: 50px;
+
+.admin .button_group {
+	padding-left: 90px;
+	margin: 0 0 10px 0;
 }
-#legend {
-	width: auto;
-	border:1px solid #ccc;
-	padding:6px 10px;
-	margin: 10px 0;
-	display: block;
+
+.admin table {
+border-collapse: collapse;
+border: 1px solid #ccc;
+}
+
+.admin table input {
+border: 1px solid #ccc 
+}
+
+.admin  select {border: 1px solid #ccc;}
+
+.admin table td, .admin table th {
+border: 1px solid #ccc;
+}
+
+.admin #instructions {
+margin: 20px 0;
+}
+
+.admin .admin_nav {
+	float: right;
+}
+
+.admin .admin_nav li {
+	float:left;
+	list-style:none;
+	margin-left: 20px;
+	font-weight: bold;
 }
 
 /* MISC
