@@ -133,7 +133,7 @@
             {% if pend.field == 'date_planted' %}
                 <tr id="pending_{{pend.id}}">
                 	<td class="col1Wide"></td>
-                    <td>{{pend.value|date}} </td>
+                    <td>{{pend.value}} </td>
                     <td class="pending"><span>Pending</span>  <a href="/resources/#pending" title="What does pending mean?" target="_blank">(?)</a>{% if perms.can_delete_tree %} <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a>{% endif %}</td>
                 </tr>
             {% endif %}

@@ -317,7 +317,7 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	border: #BFD769 1px solid;
 	display:none;
 	position:absolute;
-	width:274px;
+	width:277px;
 	top:75px;
 	padding: 0 15px 15px;
 	-moz-border-radius: 0 0 5px 5px;
@@ -3611,7 +3611,11 @@ width:944px;
 ** _____________________________________________________________________________
 */
 
-.pending{
+td.pending{
+    white-space:nowrap;
+}
+.pending img{
+    vertical-align: bottom;
 }
 .pending span{
 	font-weight: bold;

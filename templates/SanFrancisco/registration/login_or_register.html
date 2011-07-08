@@ -4,6 +4,8 @@
 {% block js_ready %}
         <script type="text/javascript">
         jQuery().ready(function() {
+            jQuery().ready(tm.baseTemplatePageLoad);
+
             var username = jQuery.urlParam('username');
             if (username)
             {
