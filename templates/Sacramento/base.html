@@ -27,6 +27,8 @@
                 
         {% block js_ready %}
         <script type="text/javascript">
+            tm.initial_location_string = "Greenprint Region";
+            tm.initial_species_string =  "All trees";
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}

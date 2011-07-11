@@ -17,7 +17,7 @@ tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.5,-122.6), new google.maps.LatLng(40.0,-122.0));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.62,-122.62), new google.maps.LatLng(37.88,-122.19));
 tm.geo_layer = "sf:sf_treemap_tree"
 tm.geo_layer_style = "sanfrancisco_tree_highlight"
 tm.panoAddressControl = false;
