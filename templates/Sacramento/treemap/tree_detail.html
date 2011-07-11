@@ -84,7 +84,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Scientific name</td>
-            <td colspan=2><i>{{tree.get_scientific_name}}</i></td>
+            <td><i>{{tree.species.genus}} {{tree.species.species}}</i> {{tree.species.cultivar_name}}</td>
         </tr>
         {% for pend in tree.get_active_pends %}
             {% if pend.field == 'species_id' %}

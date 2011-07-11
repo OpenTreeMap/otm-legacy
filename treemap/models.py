@@ -557,27 +557,32 @@ class Tree(models.Model):
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
         self.photo_count = self.treephoto_set.count()
-        super(Tree, self).save(*args,**kwargs) 
         pnt = self.geometry
                 
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
-        oldn = self.neighborhood
-        oldz = self.zipcode
         
         if n:
-            self.neighborhood.clear()
             self.neighborhoods = ""
             for nhood in n:
                 if nhood:
-                    self.neighborhood.add(nhood)
                     self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
         else: 
-            self.neighborhood.clear()
             self.neighborhoods = ""
+
+        super(Tree, self).save(*args,**kwargs) 
+
+        oldn = self.neighborhood
+        oldz = self.zipcode
+        if n:
+            self.neighborhood.clear()
+            for nhood in n:
+                if nhood:
+                    self.neighborhood.add(nhood)
+        else: 
+            self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
-
         
         self.set_environmental_summaries()
         #set new species counts

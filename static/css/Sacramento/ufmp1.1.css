@@ -821,6 +821,7 @@ ul#promoMap li#promoMapEmbed {
 #t2_top_left_panel ul#message li ul.optionItemLast {
     margin:0;
     padding:0;
+    clear:both;
 }
 #t2_top_left_panel ul#message li ul.optionItemLast li {
     float:left;
