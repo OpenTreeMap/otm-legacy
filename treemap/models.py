@@ -818,7 +818,7 @@ def get_parent_id(instance):
 
 class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
-    value = models.DateTimeField()
+    value = models.DateTimeField(auto_now=True)
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):

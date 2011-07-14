@@ -112,7 +112,7 @@ class Command(BaseCommand):
 
         if row.get('SCIENTIFIC'):
             name = row['SCIENTIFIC']
-        else
+        else:
             name = str(row['GENUS'])
             if row.get('SPECIES'):
                 name = name + " " + str(row['SPECIES'])
@@ -321,11 +321,20 @@ class Command(BaseCommand):
         tree.quick_save()
 
         if row.get('PROJECT_1'):
-            pass
-        if row.get('PROJECT_2'):
-            pass
-        if row.get('PROJECT_3'):
-            pass
+            for k, v in Choices().get_field_choices('local'):
+                if v == row['PROJECT']:
+                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    break;
+        if row.get('PROJECT_2'):            
+            for k, v in Choices().get_field_choices('local'):
+                if v == row['PROJECT']:
+                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    break;
+        if row.get('PROJECT_3'):           
+            for k, v in Choices().get_field_choices('local'):
+                if v == row['PROJECT']:
+                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    break;
 
 
         # rerun validation tests and store results

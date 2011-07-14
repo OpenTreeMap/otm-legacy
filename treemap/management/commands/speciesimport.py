@@ -144,11 +144,12 @@ class Command(BaseCommand):
             species.fact_sheet = row['webpage_link']
         
         species.save()
-
-        resource = Resource.objects.get(meta_species=species.itree_code)
-        if resource:
-            species.resource.clear()
-            species.resource.add(resource)
-        else:
+        try:
+            resource = Resource.objects.get(meta_species=species.itree_code)
+            if resource:
+                species.resource.clear()
+                species.resource.add(resource)
+            else:
+                self.log_error("WARNING: No resource found for code %s" % species.itree_code, row)
+        except:
             self.log_error("WARNING: No resource found for code %s" % species.itree_code, row)
-
