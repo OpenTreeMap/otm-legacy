@@ -223,29 +223,9 @@ class Command(BaseCommand):
         ok, tree = self.check_proximity(tree, species, row)
         if not ok: return
 
-        pnt = tree.geometry
-
         if row.get('ADDRESS') and not tree.address_street:
             tree.address_street = str(row['ADDRESS']).title()
             
-        # find the neighborhood, if any
-        if not tree.neighborhood:
-            n = Neighborhood.objects.filter(geometry__contains=pnt)
-            if n: 
-                tree.neighborhood = n[0]
-                tree.address_city = n[0].city
-            else:
-                tree.neighborhood = None
-
-        # find the zip code, if any
-        if not tree.zipcode:
-            z = ZipCode.objects.filter(geometry__contains=pnt)
-            if z: 
-                tree.zipcode = z[0]
-                tree.address_zip = z[0].zip
-            else:
-                tree.zipcode = None
-
         # FIXME: get this from the config?
         tree.address_state = 'PA'
 
@@ -319,6 +299,33 @@ class Command(BaseCommand):
                     break;
 
         tree.quick_save()
+
+        pnt = tree.geometry
+
+        n = Neighborhood.objects.filter(geometry__contains=pnt)
+        z = ZipCode.objects.filter(geometry__contains=pnt)
+        
+        if n:
+            self.neighborhoods = ""
+            for nhood in n:
+                if nhood:
+                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+        else: 
+            self.neighborhoods = ""
+
+        super(Tree, self).save(*args,**kwargs) 
+
+        oldn = self.neighborhood
+        oldz = self.zipcode
+        if n:
+            self.neighborhood.clear()
+            for nhood in n:
+                if nhood:
+                    self.neighborhood.add(nhood)
+        else: 
+            self.neighborhood.clear()
+        if z: self.zipcode = z[0]
+        else: self.zipcode = None
 
         if row.get('PROJECT_1'):
             for k, v in Choices().get_field_choices('local'):
