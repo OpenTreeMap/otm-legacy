@@ -275,7 +275,9 @@ class Command(BaseCommand):
             tree.sponsor = str(row["SPONSOR"])
 
         if row.get('DATEPLANTED'):
-            tree.date_planted = str(row['DATEPLANTED'])
+            date = str(row['DATEPLANTED'])
+            date = datetime.strptime(date, "%m/%d/%Y")
+            tree.date_planted = date.strftime("%Y-%m-%d")
 
         if row.get('DIAMETER'):
             tree.dbh = row['DIAMETER']
