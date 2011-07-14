@@ -6,7 +6,7 @@ from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.contrib.auth.models import User
-from UrbanForestMap.treemap.models import Species, Tree, Neighborhood, ZipCode, TreeStatus, Choices, ImportEvent
+from UrbanForestMap.treemap.models import Species, Tree, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
 
 class Command(BaseCommand):
     args = '<input_file_name, data_owner_id>'
