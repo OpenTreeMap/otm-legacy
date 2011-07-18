@@ -125,10 +125,12 @@
                 <span class="small"><a id="treekey" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
                 <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
                 <div class="clearLeft"></div>
+                <span class="small">Enter trunk size in inches</span>
                 <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
+                <span class="small">Enter tree height in feet</span>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}{{ form.plot_length_in }}
@@ -137,11 +139,11 @@
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
                 <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
+                <label class="opt_fields">Is there a powerline overhead?</label>{{ form.power_lines }}
                 <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
+                <label class="opt_fields">Is there damage to the sidewalk?</label>{{ form.sidewalk_damage }}
                 <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.condition.label}}</label>{{ form.condition }}
+                <label class="opt_fields">What is the tree's condition?</label>{{ form.condition }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.status.label}}</label>{{ form.status }}
             </div>

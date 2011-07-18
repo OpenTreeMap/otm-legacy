@@ -1,5 +1,6 @@
 from django import forms
 from models import Tree, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
 from django.contrib.gis.geos import Point
@@ -39,8 +40,8 @@ class TreeAddForm(forms.Form):
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
     height = forms.FloatField(required=False, label="Tree height")
     canopy_height = forms.IntegerField(required=False)
-    plot_width = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
-    plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
+    plot_width = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
+    plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot_type'), required=False)
@@ -72,10 +73,10 @@ class TreeAddForm(forms.Form):
             point = Point(cleaned_data.get('lon'),cleaned_data.get('lat'),srid=4326)  
             nbhood = Neighborhood.objects.filter(geometry__contains=point)
         except:
-            raise forms.ValidationError("This tree is missing a location. Click the map to add a location for this tree.") 
+            raise forms.ValidationError("This tree is missing a location. Enter an address in Step 1 and update the map to add a location for this tree.") 
         
         if nbhood.count() < 1:
-            raise forms.ValidationError("The selected location is outside our area. Please specify a different location.")
+            raise forms.ValidationError("The selected location is outside our area. Please specify a location within the " + settings.REGION_NAME + " region.")
         
         if height > 300:
             raise forms.ValidationError("Height is too large.")
