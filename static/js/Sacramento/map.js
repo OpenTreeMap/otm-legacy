@@ -55,14 +55,14 @@ tm.init_base_map = function(div_id, controls){
         sphericalMercator: true,
         //numZoomLevels: 18
         minZoomLevel: 8,
-        maxZoomLevel: 17
+        maxZoomLevel: 19
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
         type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
         minZoomLevel: 8,
-        maxZoomLevel: 17
+        maxZoomLevel: 19
         //numZoomLevels: 19
     });
     

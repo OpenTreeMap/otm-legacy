@@ -60,8 +60,11 @@
                 {% if tree.species.palatable_human %}
                 <li><img src="/static/images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
                 {% endif %}
-                {% if tree.species.native_status %}
+                {% if tree.species.native_status.tolower == 'true' %}
                 <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
+                {% endif %}
+                {% if tree.species.wildlife_value %}
+                <li><img src="/static/images/v2/icon_wild.gif" alt="Wildlife value" title="Wildlife value" width="20" /></li>
                 {% endif %}
                 
             {% else %}
@@ -353,7 +356,7 @@
                 <table class="box-table-b" colspan="5">
                     <tbody>
                     	<tr>
-                        	<td class="col1Wide"><b>Local flag</b></td>
+                        	<td class="col1Wide"><b>Local project</b></td>
                             <td><b>Added by</b></td>
                         </tr>
                         {% for a in tree.treeflags_set.all %}
@@ -367,8 +370,18 @@
             </td>
         </tr>
         <tr>
+        	<td class="col1Wide">Tree sponsor</td>
+            <td>{{tree.sponsor|default:"None"}}</td>
+            <td></td>
+        </tr>
+        <tr>
         	<td class="col1Wide">Tree steward</td>
             <td>{{tree.steward_name|default:"None"}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Tree owner</td>
+            <td>{{tree.tree_owner|default:"None"}}</td>
             <td></td>
         </tr>
         <tr>
@@ -573,6 +586,7 @@
                         <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
                 </li>
+                <li>Pending Changes: {{tree.get_active_pends.count}}</li>
             </ul>
             <ul id="message">
                 <li id="title">Your turn</li>

@@ -2,7 +2,7 @@ from operator import itemgetter
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _ # internationalization translate call
 from django.contrib.gis.db import models
-from treemap.models import Tree, TreeFlags, TreePhoto
+from treemap.models import Tree, TreeFlags, TreePhoto, TreePending
 from django_reputation.models import UserReputationAction
 from badges.models import Badge, BadgeToUser
 
@@ -48,6 +48,9 @@ class UserProfile(models.Model):
 
     def recently_changed_reputation(self):
         return UserReputationAction.objects.filter(user=self.user).order_by('-date_created')[:7]
+
+    def recently_added_pends(self):
+        return TreePending.objects.filter(submitted_by=self.user).order_by('-submitted')[:7]
 
     def badges(self):
         return BadgeToUser.objects.filter(user=self)

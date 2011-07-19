@@ -243,6 +243,42 @@
                        
                 </table>
             </div>
+
+            <div class="comments">
+                <div class="wrap">
+                  <h2>Pending edits</h2>
+                </div>
+                <table class="addet">
+                    {% for pend in profile.recently_added_pends %}
+                    <tr>
+                        <td class="fav">
+            		       <a href="/trees/{{ pend.tree.id }}/">View</a><br>
+                           <!--<a href="#" class="favorite fav unfave" id="favorite_{{tree.id}}">Unfavorite</a><br>-->
+                        </td> 
+                        <td class="species">
+                            <span>Tree species</span>
+                            <em><i>{{ pend.tree.species.genus|default:"Unknown" }} {{ pend.tree.species.species }} {{ pend.tree.species.cultivar }}</i>  {{ pend.tree.species.common_name }}</em>
+                        </td>
+                        <td class="planted">
+                            <span>Date submitted</span>
+                            <em>{{ pend.submitted|date:"M d, Y"|default:"Unknown" }}</em>
+                        </td>
+                        <td class="added">
+                            <span>Status</span>
+                            <em>{{ pend.status  }}</em>
+                        </td>
+
+
+                    </tr>
+                    {% endfor %}
+                    <!--
+                     <tr>
+                        <td colspan="4"><p><a href="#">See all updates &raquo;</a></p></td>
+                    </tr>
+                    -->
+                       
+                </table>
+            </div>
             {% comment %}
             <div class="comments">
                 <div class="wrap">
