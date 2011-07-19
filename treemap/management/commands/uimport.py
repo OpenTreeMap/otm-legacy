@@ -111,13 +111,13 @@ class Command(BaseCommand):
             return (True, None)
 
         if row.get('SCIENTIFIC'):
-            name = row['SCIENTIFIC']
+            name = str(row['SCIENTIFIC']).strip()
         else:
-            name = str(row['GENUS'])
+            name = str(row['GENUS']).strip()
             if row.get('SPECIES'):
-                name = name + " " + str(row['SPECIES'])
+                name = name + " " + str(row['SPECIES']).strip()
             if row.get('CULTIVAR'):
-                name = name + " " + str(row['CULTIVAR'])
+                name = name + " " + str(row['CULTIVAR']).strip()
             
         self.log_verbose("  Looking for species: %s" % name)
         species = Species.objects.filter(scientific_name__iexact=name)
@@ -225,16 +225,21 @@ class Command(BaseCommand):
 
         if row.get('ADDRESS') and not tree.address_street:
             tree.address_street = str(row['ADDRESS']).title()
+            tree.geocoded_address = str(row['ADDRESS']).title()
+        
+        if not tree.geocoded_address: 
+            tree.geocoded_address = ""
+            
             
         # FIXME: get this from the config?
-        tree.address_state = 'PA'
+        tree.address_state = 'CA'
 
         tree.import_event = self.import_event
         tree.last_updated_by = self.updater
         tree.data_owner = self.data_owner
         tree.owner_additional_properties = self.file_name
         if row.get('ID'):
-            tree.owner_id = row['ID']
+            tree.owner_orig_id = row['ID']
         
         if row.get('PLOTTYPE'):
             for k, v in Choices().get_field_choices('plot'):
@@ -308,40 +313,39 @@ class Command(BaseCommand):
         z = ZipCode.objects.filter(geometry__contains=pnt)
         
         if n:
-            self.neighborhoods = ""
+            tree.neighborhoods = ""
             for nhood in n:
                 if nhood:
-                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+                    tree.neighborhoods = tree.neighborhoods + " " + nhood.id.__str__()
         else: 
-            self.neighborhoods = ""
+            tree.neighborhoods = ""
 
-        super(Tree, self).save(*args,**kwargs) 
 
-        oldn = self.neighborhood
-        oldz = self.zipcode
+        oldn = tree.neighborhood
+        oldz = tree.zipcode
         if n:
-            self.neighborhood.clear()
+            tree.neighborhood.clear()
             for nhood in n:
                 if nhood:
-                    self.neighborhood.add(nhood)
+                    tree.neighborhood.add(nhood)
         else: 
-            self.neighborhood.clear()
-        if z: self.zipcode = z[0]
-        else: self.zipcode = None
+            tree.neighborhood.clear()
+        if z: tree.zipcode = z[0]
+        else: tree.zipcode = None
 
         if row.get('PROJECT_1'):
             for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT']:
+                if v == row['PROJECT_1']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
                     break;
         if row.get('PROJECT_2'):            
             for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT']:
+                if v == row['PROJECT_2']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
                     break;
         if row.get('PROJECT_3'):           
             for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT']:
+                if v == row['PROJECT_3']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
                     break;
 
