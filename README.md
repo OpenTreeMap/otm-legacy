@@ -27,6 +27,7 @@
 * python-django-debug-toolbar
 * python-simplejson
 * python-django-extensions
+* python-gdal
 
 ###Required libraries from the web###
 * wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz

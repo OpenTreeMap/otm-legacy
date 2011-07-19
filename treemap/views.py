@@ -1261,7 +1261,7 @@ def advanced_search(request, format='json'):
         print 'shp for %s trees' % len(trees)
         shpresponder = ShpResponder(trees,geo_field='geometry')
         tmp = shpresponder.write_shapefile_to_tmp_file(shpresponder.queryset)
-        zipfile =  shpresponder.zip_response(tmp,shpresponder.file_name,shpresponder.mimetype,shpresponder.readme)
+        zipfile = shpresponder.zip_response(tmp,shpresponder.file_name,shpresponder.mimetype,shpresponder.readme)
         response = HttpResponse(zipfile, mimetype='application/zip')
         response['Content-Disposition'] = 'attachment; filename=trees.zip'
         return response
