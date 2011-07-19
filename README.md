@@ -30,15 +30,14 @@
 
 ###Required libraries from the web###
 * wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
-  * wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
-  * wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
-  * wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
-  * wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
-  * wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
-  * wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
-  * wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
-  * wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
-  * wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
+* wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
+* wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
+* wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
+* wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
+* wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
+* wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
+* wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
+* wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
 * git clone git://github.com/miracle2k/webassets.git
 
 ###Patches:###
@@ -54,6 +53,17 @@
             https://github.com/directeur/django-sorting/issues#issue/8
 						-including comment by Alsaihn
 				sudo cp django-sorting -R /usr/local/lib/python2.6/dist-packages/django_sorting
+    Get django-shapes and remove HttpResponse call
+        wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
+        In shapes/views/export.py - zip-response method - change >
+            # Stick it all in a django HttpResponse
+            #response = HttpResponse(zip_stream, mimetype=mimetype)
+            #response['Content-Disposition'] = 'attachment; filename=%s.zip' % file_name.replace('.shp','')
+            #response['Content-length'] = str(len(zip_stream))
+            #response['Content-Type'] = mimetype
+            #response.write(zip_stream)
+            return zip_stream
+            
     Get django-reputation and fix default config and user bug
         svn checkout http://django-reputation.googlecode.com/svn/trunk/ django-reputation
 				cd django-reputation

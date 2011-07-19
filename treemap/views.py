@@ -1259,7 +1259,12 @@ def advanced_search(request, format='json'):
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
         print 'shp for %s trees' % len(trees)
-        return ShpResponder(trees,geo_field='geometry')
+        shpresponder = ShpResponder(trees,geo_field='geometry')
+        tmp = shpresponder.write_shapefile_to_tmp_file(shpresponder.queryset)
+        zipfile =  shpresponder.zip_response(tmp,shpresponder.file_name,shpresponder.mimetype,shpresponder.readme)
+        response = HttpResponse(zipfile, mimetype='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=trees.zip'
+        return response
     elif format == "kml":
         print 'kml for %s trees' % len(trees)
         trees = trees.kml()
