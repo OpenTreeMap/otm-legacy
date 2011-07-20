@@ -25,10 +25,12 @@
             <link rel="stylesheet" href="/static/css/ufmp1.1.ie.css" type="text/css"/>
         <![endif]-->
                 
-        {% block js_ready %}
         <script type="text/javascript">
             tm.initial_location_string = "Greenprint Region";
             tm.initial_species_string =  "All trees";
+        </script>
+        {% block js_ready %}
+        <script type="text/javascript">
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}
