@@ -1368,7 +1368,7 @@ def check_username(request):
             return render_to_json({'status':'username "%s" not available' % name})
     return render_to_json({'status':''})
 
-@cache_page(60*5)    
+#@cache_page(60*5)    
 def geographies(request, model, id=''):
     """
     return list of nhbds and resource attrs, possibly in json format

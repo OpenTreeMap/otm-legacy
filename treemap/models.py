@@ -572,7 +572,7 @@ class Tree(models.Model):
 
         super(Tree, self).save(*args,**kwargs) 
 
-        oldn = self.neighborhood
+        oldn = self.neighborhood.all()
         oldz = self.zipcode
         if n:
             self.neighborhood.clear()
@@ -590,14 +590,13 @@ class Tree(models.Model):
             self.old_species.save()
         if hasattr(self,'species') and self.species:
             self.species.save()
-            
-        if n and n.count() != oldn.count():        
-            if n: 
-                for nhood in n:
-                    self.update_aggregate(AggregateNeighborhood, nhood)
-            if oldn: 
-                for nhood in oldn:
-                    self.update_aggregate(AggregateNeighborhood, nhood)
+          
+        if n: 
+            for nhood in n:
+                self.update_aggregate(AggregateNeighborhood, nhood)
+        if oldn: 
+            for nhood in oldn:
+                self.update_aggregate(AggregateNeighborhood, nhood)
         
         if z and z[0] != oldz:
             if z: self.update_aggregate(AggregateZipCode, z[0])
@@ -623,14 +622,14 @@ class Tree(models.Model):
         trees = Tree.objects.filter(geometry__within=location.geometry)
         agg.total_trees = len(trees)
         #TODO: speed this up! A lot!
-        #agg.distinct_species = len(trees.values("species"))
+        agg.distinct_species = len(trees.values("species"))
         #TODO figure out how to summarize diff stratum stuff
-        #field_names = [x.name for x in ResourceSummaryModel._meta.fields 
-        #    if not x.name == 'id']
-        #for f in field_names:
-        #    fn = 'treeresource__' + f
-        #    s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-        #    setattr(agg,f,s)
+        field_names = [x.name for x in ResourceSummaryModel._meta.fields 
+            if not x.name == 'id']
+        for f in field_names:
+            fn = 'treeresource__' + f
+            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            setattr(agg,f,s)
         agg.save()
         
     def percent_complete(self):
