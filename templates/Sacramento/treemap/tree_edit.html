@@ -203,7 +203,7 @@
     </tbody>
 </table>
 
-
+{% if perms.can_delete_tree %}
 <table class="box-table-a">
     <thead>
     	<tr>
@@ -267,7 +267,7 @@
         
     </tbody>
 </table>
-
+{% endif %}
             </div>
             </div>
         {% endblock middle_panel %}

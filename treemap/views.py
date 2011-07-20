@@ -884,6 +884,7 @@ def tree_location_update(request):
     post = simplejson.loads(request.raw_post_data)
     tree = Tree.objects.filter(pk=post.get('tree_id'))[0]
     tree.address_street = post.get('address')
+    tree.geocoded_address = post.get('address')
     tree.address_city = post.get('city')
     tree.quick_save()
     
