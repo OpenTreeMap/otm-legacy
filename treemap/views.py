@@ -156,7 +156,7 @@ def result_map(request):
     #TODO return the recent_edits instead
     latest_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
-
+    
     return render_to_response('treemap/results.html',RequestContext(request,{
         #'top_species' : top_species,
         #'latest_maint' : latest_maint,

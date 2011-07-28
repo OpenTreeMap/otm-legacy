@@ -69,7 +69,6 @@ tm.init_base_map = function(div_id, controls){
             layername: 'SF',
             type: 'png',
             isBaseLayer: false,
-            opacity:0.7,
             wrapDateLine: true,
             attribution: "(c) UrbanForestMap.org"
         }

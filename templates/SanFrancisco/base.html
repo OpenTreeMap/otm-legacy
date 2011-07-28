@@ -39,7 +39,7 @@
             <ul id="nav">
                 <li>
                     {% if user.is_authenticated %}
-                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span>
+                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
                     {% else %}
                         <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
                     {% endif %}
@@ -136,7 +136,7 @@
                                 <li> 
                                     <div class="title"> 
                                         <strong>Plot Size</strong> 
-                                        <em><span id="min_plot">{{min_plot}}</span> feet - <span id="max_plot">{{max_plot}}</span> feet</em> 
+                                        <em><span id="min_plot">{{min_plot|floatformat:1}}</span> feet - <span id="max_plot">{{max_plot|floatformat:1}}</span> feet</em> 
                                     </div> 
                                     <div style="width:200px; height:10px;" id="plot_slider"></div>
                                 </li> 

@@ -325,9 +325,12 @@ class Species(models.Model):
     #tree_count should always be set on tree update..
     def save(self,*args,**kwargs):
         self.tree_count = self.tree_set.filter(present=True).count()
-        if not self.scientific_name:
-            if self.genus and self.species:
-                self.scientific_name = '%s %s' % (self.genus, self.species)
+        name = '%s' % self.genus
+        if self.species and self.species != '':
+            name += " %s" % self.species
+        if self.cultivar_name and self.cultivar_name != '':
+            name += " %s" % self.cultivar_name
+        self.scientific_name = name
         super(Species, self).save(*args,**kwargs)  
     
     def __unicode__(self):
@@ -591,16 +594,16 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
           
-        if n: 
-            for nhood in n:
-                self.update_aggregate(AggregateNeighborhood, nhood)
-        if oldn: 
-            for nhood in oldn:
-                self.update_aggregate(AggregateNeighborhood, nhood)
-        
-        if z and z[0] != oldz:
-            if z: self.update_aggregate(AggregateZipCode, z[0])
-            if oldz: self.update_aggregate(AggregateZipCode, oldz)
+        #if n: 
+        #    for nhood in n:
+        #        self.update_aggregate(AggregateNeighborhood, nhood)
+        #if oldn: 
+        #    for nhood in oldn:
+        #        self.update_aggregate(AggregateNeighborhood, nhood)
+        # 
+        #if z and z[0] != oldz:
+        #    if z: self.update_aggregate(AggregateZipCode, z[0])
+        #    if oldz: self.update_aggregate(AggregateZipCode, oldz)
         
     
     def quick_save(self,*args,**kwargs):
@@ -830,7 +833,7 @@ class TreePhoto(TreeItem):
         return path
 
     title = models.CharField(max_length=256,null=True,blank=True)
-    photo = ImageWithThumbnailsField(upload_to=get_photo_path, blank=True, null=True, thumbnail={'size': (50, 50)})
+    photo = ImageWithThumbnailsField(upload_to=get_photo_path, thumbnail={'size': (50, 50)})
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
