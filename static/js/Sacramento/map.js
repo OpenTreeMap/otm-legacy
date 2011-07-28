@@ -6,8 +6,8 @@ var tm_urls = {
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
-tm.map_center_lon = -121.607666;
-tm.map_center_lat = 38.6276;
+tm.map_center_lon = -121.3961792;
+tm.map_center_lat = 38.6790779;
 tm.start_zoom = 1;
 tm.add_start_zoom = 1;
 tm.add_zoom = 9;
