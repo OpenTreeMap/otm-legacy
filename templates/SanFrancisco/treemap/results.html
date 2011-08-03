@@ -20,9 +20,9 @@
                                 <ul>
                                     <li id="title">Export options:</li>
                                     <li id="firstOption">
-                                    <a id="kml_link" target="_blank" href="/search/kml/">KML</a></li> 
-                                    <li><a id="csv_link" target="_blank" href="/search/csv/">CSV</a></li>
-                                    <li><a id="shp_link" target="_blank" href="/search/shp/">Shapefile</a></li> 
+                                    <a id="kml_link" href="/search/kml/">KML</a></li> 
+                                    <li><a id="csv_link" href="/search/csv/">CSV</a></li>
+                                    <li><a id="shp_link" href="/search/shp/">Shapefile</a></li> 
                                 </ul>
                             </li>
                         </ul>
@@ -173,7 +173,7 @@
 {% block endpage %}
 	<script type="text/javascript">
 		//jQuery().ready(function() {
-			tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}}, {{min_plot}}, {{max_plot}});
+			tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}}, 0, '15+');
 		//});
 	</script>
 {% endblock endpage %}

@@ -189,6 +189,65 @@
     </tbody>
 </table>
 
+{% if perms.can_delete_tree %}
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Affiliations</th>
+        </tr>
+    </thead>
+	
+    	<td class="col1 activeEditRowLabel">Local Projects</td>
+        <td colspan="2" class="activeEditRowValue" id="edit_local"><span id="localCount">{{ instance.treeflags_set.count }} </span> projects <span class="viewAddSep"><a href="#" onclick="$('#localList').show();tm.newLocal(); return false" class="viewAdd">{% if instance.treeflags.count > 0 %}View and add local projects{% else %}Add a project{% endif %}</a></span></td>
+    </tr>
+    <tr>
+        <td colspan="3" id="dropSpace">
+            <div id="localList">
+            <table id="localTable" width="100%">
+             <tr>
+               <td><b>Local project type</b></td>
+               <td><b>Date</b></td>
+               <td></td>
+             </tr>
+            {% if instance.treeflags_set.count > 0 %}
+                {% for h in instance.treeflags_set.all %}
+                  <tr>
+                    <td>
+                      {{ h.get_key_display }}
+                    </td>
+                    <td>
+                        {{ h.value|date }}
+                    </td>
+                    <td>
+                      <a href="#" onclick="tm.deleteLocal('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+            {% endif %}
+            </table>
+            </div>
+          <script>
+          $("#localList").hide();
+          </script>
+        </td>
+    </tr>
+	<tr>
+    	<td class="col1 activeEditRowLabel">Sponsor</td>
+        <td class="activeEditRowValue" id="edit_sponsor">{{ instance.sponsor|default:"Click to edit"  }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sponsor').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("sponsor", "Tree", {{instance.id}});</script>
+    </tr> 
+    <tr>
+    	<td class="col1 activeEditRowLabel">Steward</td>
+        <td class="activeEditRowValue" id="edit_steward_name">{{ instance.steward_name|default:"Click to edit"  }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_steward_name').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("steward_name", "Tree", {{instance.id}});</script>
+    </tr> 
+	    
+        
+    </tbody>
+</table>
+{% endif %}
             </div>
             </div>
         {% endblock middle_panel %}

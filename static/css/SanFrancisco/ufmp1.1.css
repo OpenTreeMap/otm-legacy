@@ -1077,13 +1077,12 @@ ul#promoMap li#promoMapEmbed {
 }
 #subfooterContainer #col1 {
 	float:left;
-	width:340px;
-	margin-right:20px;
+	width:450px;
+	margin-right:40px;
 }
 #subfooterContainer #col2 {
 	float:left;
-	width:340px;
-	margin-right:20px;
+	width:440px;
 }
 #subfooterContainer #col3 {
 	float:right;
@@ -1530,6 +1529,25 @@ ul#resultsContainer li#export ul li#firstOption {
 }
 
 
+.progressBar {
+	width: 225px; 
+	border: 1px solid #ccc; 
+	overflow:hidden;
+	top: 4px;
+	height: 15px; 
+	background: #5C8727 url(/static/images/ptm/button-med-sprite.png) 0 -2px; 
+	position:relative;
+	border: 1px solid #5C8727;
+}
+.progressBarMask {
+	height: 15px; 
+	border-left: 1px solid #59b895; 
+	background-color: #fff; 
+	position:absolute; 
+	top: 0; 
+	left: 0; 
+	width: 400px;
+}
 
 /* RESULTS POPUP
 ** _____________________________________________________________________________
