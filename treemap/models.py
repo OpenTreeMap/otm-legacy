@@ -328,8 +328,8 @@ class Species(models.Model):
         name = '%s' % self.genus
         if self.species and self.species != '':
             name += " %s" % self.species
-        if self.cultivar_name and self.cultivar_name != '':
-            name += " %s" % self.cultivar_name
+        #if self.cultivar_name and self.cultivar_name != '':
+        #    name += " %s" % self.cultivar_name
         self.scientific_name = name
         super(Species, self).save(*args,**kwargs)  
     
