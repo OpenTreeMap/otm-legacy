@@ -5,11 +5,12 @@ from dbfpy import dbf
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
+from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.auth.models import User
 from UrbanForestMap.treemap.models import Species, Tree, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
 
 class Command(BaseCommand):
-    args = '<input_file_name, data_owner_id>'
+    args = '<input_file_name, data_owner_id, base_srid>'
     option_list = BaseCommand.option_list + (
         make_option('--verbose',
             action='store_true',
@@ -52,8 +53,11 @@ class Command(BaseCommand):
             err_file = dirname(__file__) + "/" + self.file_name + ".err"
             self.verbose = options.get('verbose')
             self.user_id = args[1]
+            if args.count > 2:
+                self.base_srid = args[3]
+                self.transform = CoordTransform(SpatialReference(self.base_srid), SpatialReference(4326))
         except:
-            print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id"
+            print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
             print "Options:    --verbose"
             return
         
@@ -218,7 +222,12 @@ class Command(BaseCommand):
             tree = Tree(species=species[0])
         else:
             tree = Tree()
-        tree.geometry = Point(x, y, srid=4326)
+
+        if (self.base_srid):
+            geom = Point(x, y, srid=self.base_srid)
+            tree.geometry = geom.transform(self.transform)
+        else:        
+            tree.geometry = Point(x, y, srid=4326)
         
         ok, tree = self.check_proximity(tree, species, row)
         if not ok: return
@@ -241,6 +250,9 @@ class Command(BaseCommand):
         if row.get('ID'):
             tree.owner_orig_id = row['ID']
         
+        if row.get('ORIGID'):
+            tree.owner_additional_properties = "ORIGID=" + str(row['ORIGID'])
+
         if row.get('PLOTTYPE'):
             for k, v in Choices().get_field_choices('plot'):
                 if v == row['PLOTTYPE']:
@@ -285,13 +297,13 @@ class Command(BaseCommand):
             tree.date_planted = date.strftime("%Y-%m-%d")
 
         if row.get('DIAMETER'):
-            tree.dbh = row['DIAMETER']
+            tree.dbh = float(row['DIAMETER'])
 
         if row.get('HEIGHT'):
-            tree.height = row['HEIGHT']
+            tree.height = float(row['HEIGHT'])
 
         if row.get('CANOPYHEIGHT'):
-            tree.canopy_height = row['CANOPYHEIGHT']
+            tree.canopy_height = float(row['CANOPYHEIGHT'])
 
         if row.get('CONDITION'):
             for k, v in Choices().get_field_choices('condition'):
@@ -305,7 +317,6 @@ class Command(BaseCommand):
                     tree.canopy_condition = v
                     break;
 
-        tree.quick_save()
 
         pnt = tree.geometry
 
@@ -320,35 +331,36 @@ class Command(BaseCommand):
         else: 
             tree.neighborhoods = ""
 
+        tree.quick_save()
 
-        oldn = tree.neighborhood
-        oldz = tree.zipcode
+        tree.neighborhood.clear()
+        tree.zipcode = None
         if n:
-            tree.neighborhood.clear()
             for nhood in n:
                 if nhood:
-                    tree.neighborhood.add(nhood)
-        else: 
-            tree.neighborhood.clear()
+                    tree.neighborhood.add(nhood
         if z: tree.zipcode = z[0]
-        else: tree.zipcode = None
 
         if row.get('PROJECT_1'):
             for k, v in Choices().get_field_choices('local'):
                 if v == row['PROJECT_1']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    local.save()
                     break;
         if row.get('PROJECT_2'):            
             for k, v in Choices().get_field_choices('local'):
                 if v == row['PROJECT_2']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    local.save()
                     break;
         if row.get('PROJECT_3'):           
             for k, v in Choices().get_field_choices('local'):
                 if v == row['PROJECT_3']:
                     local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                    local.save()
                     break;
 
 
         # rerun validation tests and store results
         tree.validate_all()
+
