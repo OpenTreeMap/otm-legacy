@@ -1997,7 +1997,7 @@ var tm = {
             width: '80%',
             model: 'Tree',
             fieldName:  'dbh',
-            objectId: tm.currentTreeId,
+            objectId: tm.currentTreeId
 
         };
         tm.updateEditableServerCall(total, editableOptions);
