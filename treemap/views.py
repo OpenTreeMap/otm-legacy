@@ -1191,7 +1191,7 @@ def _build_tree_search_result(request):
     funding = request.GET.get("funding", "")
     if funding:
         trees = trees.filter(sponsor__icontains=funding)
-        tile_query.append("sponsor LIKE %" + funding + "%")
+        tile_query.append("sponsor LIKE '%" + funding + "%'")
 
     if 'planted_range' in request.GET:
         min, max = map(float,request.GET['planted_range'].split("-"))

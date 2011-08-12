@@ -74,7 +74,7 @@
     </thead>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
-            {% if instance.plot_length == 99 %}
+            {% if instance.plot_length > 15.99 %}
             <td class="activeEditRowValue" id="edit_plot_length">15+</td>
             {% else %}
             <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|default:"Click to edit" }}</td>
@@ -84,7 +84,7 @@
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
-            {% if instance.plot_width == 99 %}
+            {% if instance.plot_width > 15.99 %}
             <td class="activeEditRowValue" id="edit_plot_width">15+</td>
             {% else %}
             <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|default:"Click to edit" }}</td>

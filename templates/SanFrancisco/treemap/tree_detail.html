@@ -185,7 +185,9 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:"ft x "}} {{tree.plot_length|unit_or_empty:"ft" }}</td>
+            <td>{% if tree.plot_width > 15.99 %}15+ ft x{% else %}{{tree.plot_width|unit_or_missing:"ft x"}}{% endif %}
+                {% if tree.plot_length > 15.99 %}15+ ft{% else %}{{tree.plot_length|unit_or_empty:"ft"}}{% endif %}
+            </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>

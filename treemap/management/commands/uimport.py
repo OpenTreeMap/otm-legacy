@@ -54,8 +54,9 @@ class Command(BaseCommand):
             self.verbose = options.get('verbose')
             self.user_id = args[1]
             if args.count > 2:
-                self.base_srid = args[3]
-                self.transform = CoordTransform(SpatialReference(self.base_srid), SpatialReference(4326))
+                self.base_srid = int(args[2])
+                self.tf = CoordTransform(SpatialReference(self.base_srid), SpatialReference(4326))
+                print "Using transformaton object: %s" % self.tf
         except:
             print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
             print "Options:    --verbose"
@@ -116,15 +117,18 @@ class Command(BaseCommand):
 
         if row.get('SCIENTIFIC'):
             name = str(row['SCIENTIFIC']).strip()
+            species = Species.objects.filter(scientific_name__iexact=name)
         else:
-            name = str(row['GENUS']).strip()
+            genus = str(row['GENUS']).strip()
+            species = ''
+            cultivar = ''
             if row.get('SPECIES'):
-                name = name + " " + str(row['SPECIES']).strip()
+                species = str(row['SPECIES']).strip()
             if row.get('CULTIVAR'):
-                name = name + " " + str(row['CULTIVAR']).strip()
-            
+                cultivar = str(row['CULTIVAR']).strip()
+            species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar)
+
         self.log_verbose("  Looking for species: %s" % name)
-        species = Species.objects.filter(scientific_name__iexact=name)
 
         if species: #species match found
             self.log_verbose("  Found species %r" % species[0])
@@ -222,10 +226,12 @@ class Command(BaseCommand):
             tree = Tree(species=species[0])
         else:
             tree = Tree()
-
-        if (self.base_srid):
+        
+        if (self.base_srid != 4326):
             geom = Point(x, y, srid=self.base_srid)
-            tree.geometry = geom.transform(self.transform)
+            geom.transform(self.tf)
+            self.log_verbose(geom)
+            tree.geometry = geom
         else:        
             tree.geometry = Point(x, y, srid=4326)
         
@@ -338,7 +344,7 @@ class Command(BaseCommand):
         if n:
             for nhood in n:
                 if nhood:
-                    tree.neighborhood.add(nhood
+                    tree.neighborhood.add(nhood)
         if z: tree.zipcode = z[0]
 
         if row.get('PROJECT_1'):

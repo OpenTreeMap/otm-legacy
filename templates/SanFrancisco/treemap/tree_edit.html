@@ -71,13 +71,21 @@
     </thead>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
+            {% if instance.plot_length > 15.99 %}
+            <td class="activeEditRowValue" id="edit_plot_length">15+</td>
+            {% else %}
             <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|floatformat:2|default:"Click to edit" }}</td>
+            {% endif %}
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_length').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_length", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
+            {% if instance.plot_width > 15.99 %}
+            <td class="activeEditRowValue" id="edit_plot_width">15+</td>
+            {% else %}
             <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|floatformat:2|default:"Click to edit" }}</td>
+            {% endif %}
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_width", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
