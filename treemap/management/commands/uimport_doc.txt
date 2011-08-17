@@ -7,20 +7,22 @@ Options:
 
 Input file fields:
 	
-	ID		 - number
+	ID		     - number
 	POINT_X		 - EPSG:4326
 	POINT_Y		 - EPSG:4326
 	SCIENTIFIC	 - Genus species (ex: Tilia americana) must exist in database already, case insensitive
 	ADDRESS		 - Geocodable street address (city, state, zip and neighborhood auto generated)
-	PLOTTYPE	 - one of the db plot choices, case insensitive
+	PLOTTYPE	 - one of the db plot choices, case sensitive
 	PLOTLENGTH	 - number, feet
 	PLOTWIDTH	 - number, feet
 	POWERLINE	 - True/False
 	OWNER		 - property or tree owner name, not a site user
+    STEWARD      - steward name, not a site user
+    SPONSOR      - sponsor organization or individual
 	DATEPLANTED	 - postgres-recognizable date format
 	DIAMETER	 - number, inches
 	HEIGHT		 - number, feet
-	CANOPYHEIGHT	 - number, feet
+	CANOPYHEIGHT - number, feet
 	CONDITION	 - one of the db condition choices, case sensitive
 	CANOPYCONDITION	 - one of the db canopy condition choices, case sensitive
 
@@ -28,5 +30,4 @@ Output file:
 	If any row has unrecoverable errors, the row is written to <input_file_name>.err as a csv
 		- missing or 0,0 coordinates
 		- species not found in db
-		- more than 1 tree within the proximity test distance
 		

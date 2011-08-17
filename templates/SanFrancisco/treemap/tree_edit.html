@@ -197,7 +197,7 @@
     </tbody>
 </table>
 
-{% if perms.can_delete_tree %}
+{% if perms.treemap.delete_tree %}
 <table class="box-table-a">
     <thead>
     	<tr>
@@ -271,7 +271,7 @@
                         </ul>
                     </div>
                     <div class="editMap">
-                        <div id="edit_tree_map"></div>
+                        <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
                         <div id="alternate_tree_div"></div>
                         <div id="tree_streetview"></div>
                         <input type="hidden" id ="id_geocode_address" />
@@ -292,7 +292,7 @@
                         <a href="/media/{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
                             <img src="/media/{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                         </a>
-                        {% if perms.can_delete_tree %}
+                        {% if perms.treemap.delete_tree %}
 							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
 						{% else %}
 							{% if instance.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
@@ -302,7 +302,7 @@
                         <ul id="additionalImages">
 						{% for item in instance.treephoto_set.all|slice:"1:4" %}
 							<li><div><a href="/media/{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a>
-								{% if perms.can_delete_tree %}
+								{% if perms.treemap.delete_tree %}
 									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ item.id }}); return false;">delete?</a></span>
 								{% endif %}
 								</div>
@@ -327,7 +327,7 @@
                     {% endif %}
                 </li>
             </ul>
-            {% if perms.can_delete_tree %}
+            {% if perms.treemap.delete_tree %}
             <ul id="message">
 				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this Tree</a></li>
 				<li>Trees may be deleted only by administrative users. Deleting this tree will remove

@@ -53,10 +53,12 @@ class Command(BaseCommand):
             err_file = dirname(__file__) + "/" + self.file_name + ".err"
             self.verbose = options.get('verbose')
             self.user_id = args[1]
-            if args.count > 2:
+            if len(args) > 2:
                 self.base_srid = int(args[2])
                 self.tf = CoordTransform(SpatialReference(self.base_srid), SpatialReference(4326))
                 print "Using transformaton object: %s" % self.tf
+            else:
+                self.base_srid = 4326
         except:
             print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
             print "Options:    --verbose"
@@ -100,8 +102,12 @@ class Command(BaseCommand):
         self.err_writer.writerow(columns)
     
     def check_coords(self, row):
-        x = float(row.get('POINT_X', 0))
-        y = float(row.get('POINT_Y', 0))
+        try:
+            x = float(row.get('POINT_X', 0))
+            y = float(row.get('POINT_Y', 0))
+        except:
+            self.log_error("  Invalid coords, might not be numbers", row)
+            return (False, 0, 0)
 
         ok = x and y
         if not ok:
@@ -118,6 +124,7 @@ class Command(BaseCommand):
         if row.get('SCIENTIFIC'):
             name = str(row['SCIENTIFIC']).strip()
             species = Species.objects.filter(scientific_name__iexact=name)
+            self.log_verbose("  Looking for species: %s" % name)
         else:
             genus = str(row['GENUS']).strip()
             species = ''
@@ -127,8 +134,8 @@ class Command(BaseCommand):
             if row.get('CULTIVAR'):
                 cultivar = str(row['CULTIVAR']).strip()
             species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar)
-
-        self.log_verbose("  Looking for species: %s" % name)
+            self.log_verbose("  Looking for species: %s %s %s" % (genus, species, cultivar))
+        
 
         if species: #species match found
             self.log_verbose("  Found species %r" % species[0])
@@ -227,13 +234,17 @@ class Command(BaseCommand):
         else:
             tree = Tree()
         
-        if (self.base_srid != 4326):
-            geom = Point(x, y, srid=self.base_srid)
-            geom.transform(self.tf)
-            self.log_verbose(geom)
-            tree.geometry = geom
-        else:        
-            tree.geometry = Point(x, y, srid=4326)
+        try:
+            if (self.base_srid != 4326):
+                geom = Point(x, y, srid=self.base_srid)
+                geom.transform(self.tf)
+                self.log_verbose(geom)
+                tree.geometry = geom
+            else:        
+                tree.geometry = Point(x, y, srid=4326)
+        except:
+            self.log_error("ERROR: Geometry failed to transform", row)
+            return
         
         ok, tree = self.check_proximity(tree, species, row)
         if not ok: return
@@ -262,7 +273,7 @@ class Command(BaseCommand):
         if row.get('PLOTTYPE'):
             for k, v in Choices().get_field_choices('plot'):
                 if v == row['PLOTTYPE']:
-                    tree.plot_type = v
+                    tree.plot_type = k
                     break;
         if row.get('PLOTLENGTH'): 
             tree.plot_length = row['PLOTLENGTH']
@@ -314,13 +325,13 @@ class Command(BaseCommand):
         if row.get('CONDITION'):
             for k, v in Choices().get_field_choices('condition'):
                 if v == row['CONDITION']:
-                    tree.condition = v
+                    tree.condition = k
                     break;
 
         if row.get('CANOPYCONDITION'):
             for k, v in Choices().get_field_choices('canopy_condition'):
                 if v == row['CANOPYCONDITION']:
-                    tree.canopy_condition = v
+                    tree.canopy_condition = k
                     break;
 
 

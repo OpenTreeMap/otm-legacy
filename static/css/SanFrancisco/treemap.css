@@ -38,19 +38,31 @@ height:250px;
 width:260px;
 border:10px solid #eef5d8;
 }
-#edit_tree_map{
+#edit_tree_map_wrap{
 height:220px;
 width:260px;
 border:10px solid #eef5d8;
 overflow: hidden;
 position:relative;
 }
-#add_tree_map{
+#edit_tree_map{
+height:220px;
+width:260px;
+overflow: hidden;
+position:relative;
+}
+#add_tree_map_wrap{
 position:relative;
 float:left;
 width: 630px;
 height:350px;
 border:10px solid #eef5d8;
+overflow: hidden;
+}
+#add_tree_map{
+position:relative;
+width: 630px;
+height:350px;
 overflow: hidden;
 }
 #add_tree_map #geocode_address {

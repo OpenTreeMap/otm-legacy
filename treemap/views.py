@@ -861,8 +861,9 @@ def object_update(request):
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:
-                    pass
-                    #parent_instance.save()
+                    #pass
+                    parent_instance._audit_diff = simplejson.dumps(response_dict["update"])
+                    parent_instance.save()
                     #print "instance parent save"
                     #print parent_instance, instance
             except Exception, e:
@@ -1016,6 +1017,7 @@ def _build_tree_search_result(request):
             trees = trees.filter(treeflags__key__exact=attrib)
             print 'filtered trees by %s = %s' % (tree_criteria[k],v)
             print '  .. now we have %d trees' % len(trees)
+            tile_query.append("projects LIKE '%" + tree_criteria[k] + "%'")
 
     #filter by missing data params:
     missing_species = request.GET.get('missing_species','')
@@ -1198,14 +1200,14 @@ def _build_tree_search_result(request):
         min = "%i-01-01" % min
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
-        tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE" + max + "T00:00:00Z")   
+        tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
  
     if 'updated_range' in request.GET:
         min, max = map(float,request.GET['updated_range'].split("-"))
         min = datetime.utcfromtimestamp(min)
         max = datetime.utcfromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
-        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE" + max.isoformat() + "Z")   
+        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)

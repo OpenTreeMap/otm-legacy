@@ -410,6 +410,7 @@ class Tree(models.Model):
    
     objects = models.GeoManager()
     history = audit.AuditTrail()
+    projects = models.CharField(max_length=20, null=True, blank=True)
     
     import_event = models.ForeignKey(ImportEvent)
     
@@ -572,6 +573,10 @@ class Tree(models.Model):
                     self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
         else: 
             self.neighborhoods = ""
+
+        self.projects = ""
+        for fl in self.treeflags_set.all():
+            self.projects = self.projects + " " + fl.key
 
         super(Tree, self).save(*args,**kwargs) 
 
@@ -821,6 +826,13 @@ def get_parent_id(instance):
 class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField(auto_now=True)
+
+    #def save(self,*args,**kwargs):
+    #   print "save flag"
+    #    super(TreeFlags, self).save(*args,**kwargs) 
+    #    self.tree._audit_diff = '{"flag": "' + self.key + '"}'
+    #    print "save tree"
+    #    self.tree.save()
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):

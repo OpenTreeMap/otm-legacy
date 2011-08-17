@@ -54,13 +54,13 @@ tm.init_base_map = function(div_id, controls){
 
    tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
-        numZoomLevels: 19
+        numZoomLevels: 21
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
         type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
-        numZoomLevels: 20
+        numZoomLevels: 21
     });
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 

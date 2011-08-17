@@ -53,7 +53,7 @@ class Command(BaseCommand):
             err_file = dirname(__file__) + "/" + self.file_name + ".err"
             self.verbose = options.get('verbose')
         except:
-            print "Arguments:  Input_File_Name.[dbf|csv]"
+            print "Arguments:  Input_File_Name.[dbf|csv], column name"
             print "Options:    --verbose, --insert"
             return
         

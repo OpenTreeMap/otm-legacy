@@ -87,15 +87,15 @@ class Command(BaseCommand):
             self.log_verbose("  No genus information")
             return (False, None)
 
-        genus = row['genus']
+        genus = str(row['genus']).strip()
         name = '%s' % genus
         species = ''
         cultivar = ''
         if row.get('species'):
-            species = row['species']
+            species = str(row['species']).strip()
             name += " %s" % species
         if row.get('cultivar'):
-            cultivar = row['cultivar']
+            cultivar = str(row['cultivar']).strip()
             name += " %s" % cultivar
 
         self.log_verbose("  Looking for species: %s" % name)
@@ -144,6 +144,19 @@ class Command(BaseCommand):
             species.fact_sheet = row['webpage_link']
         
         species.save()
+        self.log_verbose("After Save: ")
+        self.log_verbose("---Common Name: %s" % species.common_name)
+        self.log_verbose("---Symbol: %s" % species.symbol)
+        self.log_verbose("---Itree Code: %s" % species.itree_code)
+        self.log_verbose("---Flower Conspicuous: %s" % species.flower_conspicuous)
+        self.log_verbose("---Bloom Period: %s" % species.bloom_period)
+        self.log_verbose("---Fall Conspicuous: %s" % species.fall_conspicuous)
+        self.log_verbose("---Edible: %s" % species.palatable_human)
+        self.log_verbose("---Fruiting Time: %s" % species.fruit_period)
+        self.log_verbose("---Wildlife Value: %s" % species.wildlife_value)
+        self.log_verbose("---Native: %s" % species.native_status)
+        self.log_verbose("---Link: %s" % species.fact_sheet)
+
         try:
             resource = Resource.objects.get(meta_species=species.itree_code)
             if resource:
