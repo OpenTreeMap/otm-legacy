@@ -948,7 +948,7 @@ def _build_tree_search_result(request):
     species = Species.objects.filter(tree_count__gt=0)
     max_species_count = species.count()
     
-    species_criteria = {'species' : 'symbol',
+    species_criteria = {'species' : 'id',
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
@@ -1009,7 +1009,8 @@ def _build_tree_search_result(request):
     tree_criteria = {'project1' : '1',
                      'project2' : '2',
                      'project3' : '3',
-                     'project4' : '4'}
+                     'project4' : '4',
+                     'project5' : '5'}
     for k in tree_criteria.keys():
         v = request.GET.get(k,'')
         if v:

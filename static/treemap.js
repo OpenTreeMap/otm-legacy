@@ -92,7 +92,7 @@ var tm = {
         jQuery.getJSON('/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
-                $("#species_search_id").val(item.symbol).change(); 
+                $("#species_search_id").val(item.id).change(); 
                 if (item.cultivar) {
                     $("#species_search_id_cultivar").val(item.cultivar).change(); 
                 } else {
@@ -429,7 +429,7 @@ var tm = {
             if (tm.speciesData[i].count == 0) {continue;}
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
-            ul.append("<li id='" + tm.speciesData[i].symbol + "' class='" + c + "'>" + tm.speciesData[i].cname + " [" + tm.speciesData[i].sname + "]</li>")
+            ul.append("<li id='" + tm.speciesData[i].id + "' class='" + c + "'>" + tm.speciesData[i].cname + " [" + tm.speciesData[i].sname + "]</li>")
         }
         
         $("#s_list > li").hover(function(evt) {
