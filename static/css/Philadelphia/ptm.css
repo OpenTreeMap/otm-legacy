@@ -860,7 +860,7 @@ ul#promoMap li#promoMapEmbed {
 
 
 
-#home {font-family: "museo-sans-1","museo-sans-2","arial","helvetica",sans-serif;
+#home {font-family: "Questrial","arial","helvetica",sans-serif;
 background: url(/static/images/ptm/home-bg.png) center bottom no-repeat;
 overflow:hidden;
 padding-bottom: 20px;
@@ -898,15 +898,15 @@ margin-bottom: 0;
 }
 
 #home_site_links a {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: bold;
-  height: 55px;
-  padding-left: 63px;
+  height: 40px;
+  padding-left: 46px;
   color: #3c4b8b;
   display:block;
   float:left;
   line-height: 50px;
-  margin-right: 30px;
+  margin-right: 15px;
   
 }
 
@@ -916,6 +916,10 @@ margin-bottom: 0;
 
 #home_site_links a#home_add {
   background: url(/static/images/icon_home_add.png) 0 0 no-repeat
+}
+
+#home_site_links a#home_faq {
+  background: url(/static/images/icon_home_faq.png) 0 0 no-repeat
 }
 
 #home_recent_additions {clear:left; margin-top: 12px; overflow:hidden; padding-bottom:10px;}
