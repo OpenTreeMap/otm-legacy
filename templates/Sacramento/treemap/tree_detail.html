@@ -33,7 +33,7 @@
             </div> 
             <div class="tab-content" id="tab-1">
                 <ul id="progress">
-                    <!-- TODO -->
+                    <!-- TODO -->Monterey pine / Pinus radiata
                     <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
                     <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
 					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
@@ -60,7 +60,7 @@
                 {% if tree.species.palatable_human %}
                 <li><img src="/static/images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
                 {% endif %}
-                {% if tree.species.native_status.tolower == 'true' %}
+                {% if tree.species.native_status.lower == 'true' %}
                 <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
                 {% if tree.species.wildlife_value %}
@@ -604,7 +604,7 @@
 {% block endpage %}
 	<script>
 		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
-        tm.current_tree_geometry_pends = [{% for t in tree.get_active_geopends %} { 'x': {{t.geometry.x}}, 'y': {{t.geometry.y}}, 'id': {{t.id}} }, {% endfor %}];
+        tm.current_tree_geometry_pends = [{% for t in tree.get_active_geopends %} { 'x': {{t.geometry.x}}, 'y': {{t.geometry.y}}, 'id': {{t.id}} } {% if not forloop.last %},{%endif%} {% endfor %}];
 		tm.currentTreeId = {{tree.id}};
 		tm.init_tree_map(false); //not editable
 		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');

@@ -39,6 +39,7 @@
             <ul id="nav">
                 <li>
                     {% if user.is_authenticated %}
+
                             Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
                     {% else %}
                         <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
@@ -77,8 +78,8 @@
                 <ul id="searchSuggest">
                     <li id="searchSpeciesSuggest">Examples: 
                     
-                        <a onclick='$("#species_search_input").val("Monterey Pine"); $("#species_search_id").val("PIRA2"); $("#species_search_id").change();  return false' href="#">Monterey Pine</a> 
-                        or <a onclick='$("#species_search_input").val("Cupressus macrocarpa"); $("#species_search_id").val("CUMA2"); $("#species_search_id").change(); return false' href="#">Cupressus macrocarpa</a>
+                        <a onclick='$("#species_search_input").val("Monterey Pine"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">Monterey Pine</a> 
+                        or <a onclick='$("#species_search_input").val("Cupressus macrocarpa"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#">Cupressus macrocarpa</a>
                     
                     </li>
                     

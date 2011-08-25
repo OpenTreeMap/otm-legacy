@@ -944,6 +944,7 @@ def added_today_list(request, user_id=None, format=None):
 
 def _build_tree_search_result(request):
     # todo - optimize! OMG Clean it up! >.<
+    choices = Choices()
     tile_query = []
     species = Species.objects.filter(tree_count__gt=0)
     max_species_count = species.count()
@@ -1036,7 +1037,7 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("dbh IS NULL")
     
     if not missing_current_dbh and 'diameter_range' in request.GET:
@@ -1051,7 +1052,7 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(height__isnull=True) | Q(height=0))
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("height IS NULL")
 
     if not missing_current_height and 'height_range' in request.GET:
@@ -1067,7 +1068,7 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(plot_length__isnull=True) | Q(plot_width__isnull=True))
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
 
     if not missing_current_plot_size and 'plot_range' in request.GET:
@@ -1081,10 +1082,10 @@ def _build_tree_search_result(request):
         trees = trees.filter(plot_type__isnull=True)
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append(" plot_type IS NULL ")
     else:
-        plot_type_choices = Choices().get_field_choices('plot_type')
+        plot_type_choices = choices.get_field_choices('plot_type')
         pt_cql = []
         pt_list = []
         for k, v in plot_type_choices:
@@ -1100,10 +1101,10 @@ def _build_tree_search_result(request):
     missing_condition = request.GET.get("missing_condition", '')
     if missing_condition: 
         trees = trees.filter(condition__isnull=True)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("condition IS NULL")
     else: 
-        condition_choices = Choices().get_field_choices('condition')    
+        condition_choices = choices.get_field_choices('condition')    
         c_cql = []
         c_list = []
         for k, v in condition_choices:
@@ -1119,10 +1120,10 @@ def _build_tree_search_result(request):
     missing_sidewalk = request.GET.get("missing_sidewalk", '')
     if missing_sidewalk: 
         trees = trees.filter(sidewalk_damage__isnull=True)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("sidewalk_damage IS NULL")
     else: 
-        sidewalk_choices = Choices().get_field_choices('sidewalk_damage')    
+        sidewalk_choices = choices.get_field_choices('sidewalk_damage')    
         s_cql = []
         s_list = []
         for k, v in sidewalk_choices:
@@ -1139,10 +1140,10 @@ def _build_tree_search_result(request):
     missing_powerlines = request.GET.get("missing_powerlines", '')
     if missing_powerlines:
         trees = trees.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
     else:
-        powerline_choices = Choices().get_field_choices('powerline_conflict_potential')    
+        powerline_choices = choices.get_field_choices('powerline_conflict_potential')    
         p_cql = []
         p_list = []
         for k, v in powerline_choices:
@@ -1158,7 +1159,7 @@ def _build_tree_search_result(request):
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
         trees = trees.filter(treephoto__isnull=True)
-        species_list = [s.id for s in species]
+        #species_list = [s.id for s in species]
         tile_query.append("(photo_count IS NULL OR photo_count = 0)")
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)

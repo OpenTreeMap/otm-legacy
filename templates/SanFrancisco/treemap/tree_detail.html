@@ -51,6 +51,7 @@
             <h2>Common attributes</h2>
             <ul class="attributes">
             {% if tree.has_common_attributes %}
+
                 {% if tree.species.flower_conspicuous %}
                 <li><img src="/static/images/v2/icon_flower.gif" alt="Flowering" title="Flowering" width="20" /></li>
                 {% endif %}
@@ -60,7 +61,7 @@
                 {% if tree.species.palatable_human %}
                 <li><img src="/static/images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
                 {% endif %}
-                {% if tree.species.native_status %}
+                {% if tree.species.native_status.lower == 'true' %}
                 <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
                     {% comment %}
