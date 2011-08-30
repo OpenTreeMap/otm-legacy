@@ -409,8 +409,8 @@
                                 <img src="/static/images/map_icons/v4/marker-pending.png" /> Pending Location <img src="/static/images/map_icons/v4/vector.png" /> Current Location
                                  {% if perms.can_delete_tree %} {% for t in tree.get_active_geopends %} 
                                     <div> Pending Location #{{t.id}}  
-                                        <a href="javascript:void(0)" onclick="tm.approvePend({{pend.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> 
-                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{pend.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a> 
+                                        <a href="javascript:void(0)" onclick="tm.approvePend({{t.id}});"><img src="/static/images/es/ico-thumbs-up.gif" alt="Approve" title="Approve" width="17" /></a> 
+                                        <a href="javascript:void(0)" onclick="tm.rejectPend({{t.id}});"><img src="/static/images/es/ico-thumbs-down.gif" alt="Disapprove" title="Disapprove" width="17" /></a> 
                                     </div> 
                                 {% endfor %} {% endif %}                              
                             </div>

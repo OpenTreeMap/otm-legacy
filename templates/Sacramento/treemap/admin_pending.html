@@ -98,7 +98,7 @@
 				<tr id="{{c.id}}">
 					<td><i>{{c.tree.species}}</i><br><a href="/trees/{{c.tree.id}}" target="_blank">View Record ({{c.tree.get_active_pends.count}} pending edits)</a></td>
 					<td>{{c.tree.address_street}}</td>
-					<td><a href="/profiles/{{c.last_updated_by}}" target="_blank">{{c.submitted_by}}</a></td>
+					<td><a href="/profiles/{{c.submitted_by}}" target="_blank">{{c.submitted_by}}</a></td>
 					<td>{{c.submitted|date:"M d, Y"}}</td>
 				    <td><b>{{c.field}}</b> - {{c.text_value|default:c.value}}
 				    </td>
