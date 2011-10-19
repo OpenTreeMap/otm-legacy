@@ -4,3 +4,5 @@ local_tiles/*
 media/*
 static/Nodes/*
 static/Species/*
+
+fabfile.*
