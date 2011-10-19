@@ -1,6 +1,0 @@
-<li class="list-leaf">
-	<a href="/treekey/node/{{ node.id }}/"> {{ node.name }} </a>
-	{% if node.has_children %}
-		<ul class="list-branch">{% for leaf in leaves %}{{ leaf }}{% endfor %}</ul>
-	{% endif %}
-</li>

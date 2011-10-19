@@ -21,3 +21,26 @@ class Command(BaseCommand):
         output.write(compress_kml(loader.render_to_string("treemap/kml_output.kml", {'trees': trees,'root_url':settings.ROOT_URL})))
         output.close()
 
+
+
+
+    def write_csv(self, trees):
+        clip_length = 5000
+        current_clip = 5000
+        tree_clip = trees[:current_clip]
+        output = file('All_Trees.csv','ab')
+        output.truncate(0)
+        while tree_clip:
+            data = list(tree_clip.values())
+            for row in data:
+                out_row = []
+                for value in row:
+                    if not isinstance(value, basestring):
+                        value = unicode(value)
+                    value = value.encode(encoding)
+                    out_row.append(value.replace('"', '""'))
+                output.write('"%s"\n' %
+                             '","'.join(out_row))
+            tree_clip = trees[current_clip+1:current_clip + clip_length]
+            current_clip = current_clip + clip_length
+        output.close()

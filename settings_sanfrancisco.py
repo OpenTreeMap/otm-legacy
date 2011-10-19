@@ -2,7 +2,7 @@ import os
 
 SITE_LOCATION = 'SanFrancisco'
 PENDING_ON = False
-REGION_NAME = 'San Francisco'
+REGION_NAME = 'Greenprint'
 #local_settings
 GOOGLE_API_KEY = 'abcdf'
 
@@ -57,7 +57,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'USER': 'sftrees',
         'PASSWORD': '12345',
-        'HOST': 'sajara01',
+        'HOST': '207.245.89.246',
         'PORT': '5432',
     }
 }
@@ -91,6 +91,7 @@ SECRET_KEY = 'insecure'
 
 TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates/SanFrancisco'),
+    os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
 

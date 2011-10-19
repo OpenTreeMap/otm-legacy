@@ -88,6 +88,7 @@ SECRET_KEY = 'insecure'
 
 TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates/Sacramento'),
+    os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
 

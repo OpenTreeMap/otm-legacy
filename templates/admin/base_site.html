@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Open Tree Map site admin' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'Open Tree Map site admin' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+  <p>&nbsp;&nbsp;<a href='/'>{% trans "Site Home Page" %}</a></p>
+{% endblock %}
