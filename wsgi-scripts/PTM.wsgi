@@ -1,6 +1,9 @@
 import os, sys
 sys.path.insert(0, '/home/azavea/UrbanForestMap')
 
+main_path = os.path.split(os.path.split(os.path.realpath(__file__))[0])[0]
+sys.path.insert(0, main_path)
+
 import settings
 
 import django.core.management
