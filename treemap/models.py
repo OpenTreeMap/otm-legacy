@@ -937,7 +937,6 @@ class AggregateSummaryModel(ResourceSummaryModel):
       if tm and (datetime.now() - self.last_updated).seconds < 7200: #two hrs
           return True
       else:
-          print 'deleting old cached object'
           self.delete()
           return False
 
