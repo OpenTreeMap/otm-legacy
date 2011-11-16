@@ -1215,7 +1215,6 @@ def _build_tree_search_result(request):
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             geog_obj = cached_search_agg[0]
-            print 'found cached agg object for query:', q
         else:
             #geog_obj = cache_search_aggs(query_pairs=({'trees':trees,'query':q},),return_first=True)
             geog_obj = AggregateSearchResult(key=q)
