@@ -1,4 +1,8 @@
 import os, sys
+
+# Redirect stdout to stderr to avoid annoying crashes
+sys.stdout = sys.stderr
+
 sys.path.insert(0, '/home/azavea/UrbanForestMap')
 
 main_path = os.path.split(os.path.split(os.path.realpath(__file__))[0])[0]
