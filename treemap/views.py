@@ -21,8 +21,6 @@ from registration.signals import user_activated
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
 
-from shapes.views import ShpResponder
-
 import simplejson 
 
 from models import *
@@ -33,6 +31,14 @@ from spreadsheet import ExcelResponse
 import time
 from time import mktime, strptime
 from datetime import timedelta
+import tempfile
+import zipfile
+import subprocess
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 app_models = {'UserProfile':'profiles','User':'auth'}
@@ -1238,6 +1244,51 @@ def _build_tree_search_result(request):
 
     return trees, geog_obj, ' AND '.join(tile_query)
         
+
+def zip_shp(shapefile_path,archive_name):
+        buffer = StringIO()
+        zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
+        files = ['shp','shx','prj','dbf']
+        for item in files:
+            filename = '%s.%s' % (shapefile_path.replace('.shp',''), item)
+            zip.write(filename, arcname='%s.%s' % (archive_name.replace('.shp',''), item))
+        zip.close()
+        buffer.flush()
+        zip_stream = buffer.getvalue()
+        buffer.close()
+        return zip_stream
+
+
+def zip_file(file_path,archive_name):
+        buffer = StringIO()
+        zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
+        zip.write(file_path, arcname=archive_name)
+        zip.close()
+        buffer.flush()
+        zip_stream = buffer.getvalue()
+        buffer.close()
+        return zip_stream
+
+def ogr_conversion(output_type, sql, extension=None):   
+    dbsettings = settings.DATABASES['default'] 
+    if extension:
+        tmp = tempfile.NamedTemporaryFile(suffix='.%s' % extension, mode = 'w+b')
+        # we must close the file for GDAL to be able to open and write to it
+        tmp.close()
+        tmp_name = tmp.name
+    else:
+        tmp_name = tempfile.mkdtemp()
+
+    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], dbsettings['HOST'], dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+    done = subprocess.call(command)
+    if done != 0: 
+        return render_to_json({'status':'error'})
+    else: 
+        zipfile = zip_file(tmp_name,'trees')
+        response = HttpResponse(zipfile, mimetype='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=trees.zip'
+        return response
+
 def advanced_search(request, format='json'):
     """
     urlparams:
@@ -1263,21 +1314,15 @@ def advanced_search(request, format='json'):
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        print 'shp for %s trees' % len(trees)
-        shpresponder = ShpResponder(trees,geo_field='geometry')
-        tmp = shpresponder.write_shapefile_to_tmp_file(shpresponder.queryset)
-        zipfile = shpresponder.zip_response(tmp,shpresponder.file_name,shpresponder.mimetype,shpresponder.readme)
-        response = HttpResponse(zipfile, mimetype='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=trees.zip'
-        return response
+        sql = str(trees.query)
+        return ogr_conversion('ESRI Shapefile', sql)
     elif format == "kml":
-        print 'kml for %s trees' % len(trees)
-        trees = trees.kml()
-        print 'kml for %s trees' % len(trees)
-        return render_to_kml("treemap/kml_output.kml", {'trees': trees,'root_url':settings.ROOT_URL})
+        sql = str(trees.query)
+        return ogr_conversion('KML', sql, 'kml')
     elif format == "csv":
-        return ExcelResponse(trees, force_csv=True)
-
+        sql = str(trees.query)
+        return ogr_conversion('CSV', sql, 'csv')
+        
         
     geography = None
     summaries, benefits = None, None

@@ -11,6 +11,47 @@ from django.http import HttpResponse
 from django.utils.encoding import smart_str, smart_unicode
 from django.utils.translation import ugettext as _
 
+class LazyIterator(object):
+    def __init__(self, query_set, chunk_size=100):
+        self.query_set = query_set
+        self.chunk_size = chunk_size
+        self.chunk_index = 0
+        self.current_list_index = 0
+        self.current_list_length = 0
+        
+    def __iter__(self): 
+        return self
+
+    def __len__(self): 
+        raise Exception("You can't do that because calling length would make it not lazy")
+    
+    def reset(self):
+        self.chunk_index = 0
+        self.current_list_index = 0
+        self.current_list_length = 0
+
+    def next(self):
+        if (self.current_list_index < self.current_list_length):
+            # return the thing
+            current_item = self.current_list[self.current_list_index]
+            self.current_list_index = self.current_list_index + 1
+            return current_item
+        else: 
+            self.next_chunk()
+            if self.current_list_length == 0:
+                raise StopIteration
+            return self.next()
+
+    def next_chunk(self):
+        # Update index and set current list to the next chunk
+        # if len(self.this_chunk) == 0 at the end of this then we're done
+        next_index = self.chunk_index + self.chunk_size
+        next_chunk = self.query_set[self.chunk_index:next_index]
+        self.chunk_index = next_index
+        self.current_list = list(next_chunk)
+        self.current_list_index = 0
+        self.current_list_length = len(self.current_list)
+
 # from: http://www.djangosnippets.org/snippets/1151/
 class ExcelResponse(HttpResponse):
     
@@ -20,136 +61,39 @@ class ExcelResponse(HttpResponse):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if isinstance(data, ValuesQuerySet):
-            data = list(data)
+            data = LazyIterator(data)
+            #data = list(data)
         elif isinstance(data, QuerySet):
-            data = list(data.values())
-        if hasattr(data, '__getitem__'):
-            if isinstance(data[0], dict):
-                if headers is None:
-                    headers = data[0].keys()
-                data = [[row[col] for col in headers] for row in data]
-                data.insert(0, headers)
-            if hasattr(data[0], '__getitem__'):
-                valid_data = True
-        assert valid_data is True, "ExcelResponse requires a sequence of sequences"
+            data = LazyIterator(data.values())
+        headers = next(data).keys()
+
         
         import StringIO
         output = StringIO.StringIO()
-        # Excel has a limit on number of rows; if we have more than that, make a csv
-        use_xls = False
-        if len(data) <= 65536 and force_csv is not True:
-            try:
-                import xlwt
-            except ImportError:
-                # xlwt doesn't exist; fall back to csv
-                pass
-            else:
-                use_xls = True
-        if use_xls:
-            book = xlwt.Workbook(encoding=encoding)
-            sheet = book.add_sheet('Sheet 1')
-            styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
-                      'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
-                      'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
-                      'default': xlwt.Style.default_style}
-            
-            for rowx, row in enumerate(data):
-                for colx, value in enumerate(row):
-                    if isinstance(value, datetime.datetime):
-                        cell_style = styles['datetime']
-                    elif isinstance(value, datetime.date):
-                        cell_style = styles['date']
-                    elif isinstance(value, datetime.time):
-                        cell_style = styles['time']
-                    else:
-                        cell_style = styles['default']
-                    sheet.write(rowx, colx, value, style=cell_style)
-            book.save(output)
-            mimetype = 'application/vnd.ms-excel'
-            file_ext = 'xls'
-        else:
-            for row in data:
-                out_row = []
-                for value in row:
-                    if not isinstance(value, basestring):
-                        value = unicode(value)
-                    value = value.encode(encoding)
-                    out_row.append(value.replace('"', '""'))
-                output.write('"%s"\n' %
-                             '","'.join(out_row))            
-            mimetype = 'text/csv'
-            file_ext = 'csv'
+        output.write('"%s"\n' % '","'.join(headers))    
+        flush_index = 0
+        for row in data:
+            row = [row[col] for col in headers]
+            out_row = []
+            for value in row:
+                if not isinstance(value, basestring):
+                    value = unicode(value)
+                value = value.encode(encoding)
+                out_row.append(value.replace('"', '""'))
+            output.write('"%s"\n' %
+                         '","'.join(out_row))     
+            flush_index = flush_index + 1       
+            if flush_index == 1000: 
+                output.flush()
+                print "Flushing!"
+                flush_index = 0
+
+        mimetype = 'text/csv'
+        file_ext = 'csv'
         output.seek(0)
         super(ExcelResponse, self).__init__(content=output.getvalue(),
                                             mimetype=mimetype)
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
 
-# from: http://www.djangosnippets.org/snippets/1151/
-def queryset_to_excel_file( qs, filename, force_csv=False,headers=None, encoding='utf8'):
 
-        data = qs
-        
-        # Make sure we've got the right type of data to work with
-        valid_data = False
-        if isinstance(data, ValuesQuerySet):
-            data = list(data)
-        elif isinstance(data, QuerySet):
-            data = list(data.values())
-        if hasattr(data, '__getitem__'):
-            if isinstance(data[0], dict):
-                if headers is None:
-                    headers = data[0].keys()
-                data = [[row[col] for col in headers] for row in data]
-                data.insert(0, headers)
-            if hasattr(data[0], '__getitem__'):
-                valid_data = True
-        assert valid_data is True, "ExcelResponse requires a sequence of sequences"
-        
-        
-        # Excel has a limit on number of rows; if we have more than that, make a csv
-        use_xls = False
-        file_ext = '.csv'
-        if len(data) <= 65536 and force_csv is not True:
-            try:
-                import xlwt
-            except ImportError:
-                # xlwt doesn't exist; fall back to csv
-                pass
-            else:
-                use_xls = True
-                file_ext = '.xls'
-        name = filename + file_ext
-        output = file(name,'wb')
-        if use_xls:
-            book = xlwt.Workbook(encoding=encoding)
-            sheet = book.add_sheet('Sheet 1')
-            styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
-                      'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
-                      'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
-                      'default': xlwt.Style.default_style}
-            
-            for rowx, row in enumerate(data):
-                for colx, value in enumerate(row):
-                    if isinstance(value, datetime.datetime):
-                        cell_style = styles['datetime']
-                    elif isinstance(value, datetime.date):
-                        cell_style = styles['date']
-                    elif isinstance(value, datetime.time):
-                        cell_style = styles['time']
-                    else:
-                        cell_style = styles['default']
-                    sheet.write(rowx, colx, value, style=cell_style)
-            book.save(output)
-        else:
-            for row in data:
-                out_row = []
-                for value in row:
-                    if not isinstance(value, basestring):
-                        value = unicode(value)
-                    value = value.encode(encoding)
-                    out_row.append(value.replace('"', '""'))
-                output.write('"%s"\n' %
-                             '","'.join(out_row))
-        output.close()
-        return name
