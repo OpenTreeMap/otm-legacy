@@ -1264,8 +1264,10 @@ def ogr_conversion(output_type, sql, extension=None):
         tmp_name = tmp.name
     else:
         tmp_name = tempfile.mkdtemp()
-
-    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], dbsettings['HOST'], dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+    host = dbsettings['HOST']
+    if host == '':
+        host = 'localhost'
+    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
     done = subprocess.call(command)
     if done != 0: 
         return render_to_json({'status':'error'})
