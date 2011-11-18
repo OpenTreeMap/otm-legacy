@@ -4,6 +4,7 @@ from time import mktime, strptime
 from datetime import timedelta
 import tempfile
 import zipfile
+from contextlib import closing
 import subprocess
 from operator import itemgetter
 import simplejson 
@@ -1247,9 +1248,14 @@ def _build_tree_search_result(request):
 
 def zip_file(file_path,archive_name):
         buffer = StringIO()
-        zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
-        zip.write(file_path, arcname=archive_name)
-        zip.close()
+        with closing(zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)) as z:
+            for root, dirs, files in os.walk(file_path):
+                for f in files:
+                    abs_file = os.path.join(root, f)
+                    zipf = abs_file[len(file_path) + len(os.sep):]
+                    zipf = zipf.replace('sql_statement', 'trees')
+                    z.write(abs_file, zipf)
+        z.close()
         buffer.flush()
         zip_stream = buffer.getvalue()
         buffer.close()
@@ -1257,22 +1263,21 @@ def zip_file(file_path,archive_name):
 
 def ogr_conversion(output_type, sql, extension=None):   
     dbsettings = settings.DATABASES['default'] 
-    if extension:
-        tmp = tempfile.NamedTemporaryFile(suffix='.%s' % extension, mode = 'w+b')
-        # we must close the file for GDAL to be able to open and write to it
-        tmp.close()
-        tmp_name = tmp.name
-    else:
-        tmp_name = tempfile.mkdtemp()
+    tmp_dir = tempfile.mkdtemp() + "/trees" 
     host = dbsettings['HOST']
     if host == '':
         host = 'localhost'
+    if extension != None:
+        os.mkdir(tmp_dir)
+        tmp_name = tmp_dir + "/sql_statement." + extension
+    else: 
+        tmp_name = tmp_dir
     command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
     done = subprocess.call(command)
     if done != 0: 
         return render_to_json({'status':'error'})
     else: 
-        zipfile = zip_file(tmp_name,'trees')
+        zipfile = zip_file(tmp_dir,'trees')
         response = HttpResponse(zipfile, mimetype='application/zip')
         response['Content-Disposition'] = 'attachment; filename=trees.zip'
         return response
@@ -1305,7 +1310,7 @@ def advanced_search(request, format='json'):
     elif format == "kml":
         return ogr_conversion('KML', sql, 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', sql, 'csv')
+        return ogr_conversion('CSV', sql)
         
         
     geography = None
