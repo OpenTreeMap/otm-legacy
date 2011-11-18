@@ -1,5 +1,13 @@
 import os
+import time
+from time import mktime, strptime
+from datetime import timedelta
+import tempfile
+import zipfile
+import subprocess
 from operator import itemgetter
+import simplejson 
+
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -21,19 +29,10 @@ from registration.signals import user_activated
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
 
-import simplejson 
-
 from models import *
 from forms import *
 from profiles.models import UserProfile
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
-from spreadsheet import ExcelResponse
-import time
-from time import mktime, strptime
-from datetime import timedelta
-import tempfile
-import zipfile
-import subprocess
 
 try:
     from cStringIO import StringIO
@@ -1243,20 +1242,7 @@ def _build_tree_search_result(request):
 
 
     return trees, geog_obj, ' AND '.join(tile_query)
-        
 
-def zip_shp(shapefile_path,archive_name):
-        buffer = StringIO()
-        zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
-        files = ['shp','shx','prj','dbf']
-        for item in files:
-            filename = '%s.%s' % (shapefile_path.replace('.shp',''), item)
-            zip.write(filename, arcname='%s.%s' % (archive_name.replace('.shp',''), item))
-        zip.close()
-        buffer.flush()
-        zip_stream = buffer.getvalue()
-        buffer.close()
-        return zip_stream
 
 
 def zip_file(file_path,archive_name):
@@ -1309,18 +1295,14 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, geog_obj, tile_query = _build_tree_search_result(request)
-    #print "here"
-    #todo missing geometry
+    sql = str(trees.query)
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        sql = str(trees.query)
         return ogr_conversion('ESRI Shapefile', sql)
     elif format == "kml":
-        sql = str(trees.query)
         return ogr_conversion('KML', sql, 'kml')
     elif format == "csv":
-        sql = str(trees.query)
         return ogr_conversion('CSV', sql, 'csv')
         
         
