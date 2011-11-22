@@ -2,7 +2,8 @@ import os
 
 #from settings_philadelphia import *
 #from settings_sanfrancisco import *
-from settings_sacramento import *
+from settings_greenprint import *
+#from settings_dctreekit import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

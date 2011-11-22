@@ -1263,7 +1263,6 @@ var tm = {
         return  cql_ids.join();
     },
     display_search_results : function(results){
-        $("#export_search").hide();
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         jQuery('#displayResults').hide();
@@ -1295,9 +1294,6 @@ var tm = {
                 tm.tree_layer.setVisibility(false);
             }
 
-            if (results.initial_tree_count <= 5000) {
-                $("#export_search").show();
-            }
             if (results.geography) {
                 var geog = results.geography;
                 $('#summary_subset_val').html(geog.name);

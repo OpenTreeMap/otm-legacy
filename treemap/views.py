@@ -1,5 +1,14 @@
 import os
+import time
+from time import mktime, strptime
+from datetime import timedelta
+import tempfile
+import zipfile
+from contextlib import closing
+import subprocess
 from operator import itemgetter
+import simplejson 
+
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -21,18 +30,15 @@ from registration.signals import user_activated
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
 
-from shapes.views import ShpResponder
-
-import simplejson 
-
 from models import *
 from forms import *
 from profiles.models import UserProfile
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
-from spreadsheet import ExcelResponse
-import time
-from time import mktime, strptime
-from datetime import timedelta
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 app_models = {'UserProfile':'profiles','User':'auth'}
@@ -1237,7 +1243,45 @@ def _build_tree_search_result(request):
 
 
     return trees, geog_obj, ' AND '.join(tile_query)
-        
+
+
+
+def zip_file(file_path,archive_name):
+        buffer = StringIO()
+        with closing(zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)) as z:
+            for root, dirs, files in os.walk(file_path):
+                for f in files:
+                    abs_file = os.path.join(root, f)
+                    zipf = abs_file[len(file_path) + len(os.sep):]
+                    zipf = zipf.replace('sql_statement', 'trees')
+                    z.write(abs_file, zipf)
+        z.close()
+        buffer.flush()
+        zip_stream = buffer.getvalue()
+        buffer.close()
+        return zip_stream
+
+def ogr_conversion(output_type, sql, extension=None):   
+    dbsettings = settings.DATABASES['default'] 
+    tmp_dir = tempfile.mkdtemp() + "/trees" 
+    host = dbsettings['HOST']
+    if host == '':
+        host = 'localhost'
+    if extension != None:
+        os.mkdir(tmp_dir)
+        tmp_name = tmp_dir + "/sql_statement." + extension
+    else: 
+        tmp_name = tmp_dir
+    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+    done = subprocess.call(command)
+    if done != 0: 
+        return render_to_json({'status':'error'})
+    else: 
+        zipfile = zip_file(tmp_dir,'trees')
+        response = HttpResponse(zipfile, mimetype='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=trees.zip'
+        return response
+
 def advanced_search(request, format='json'):
     """
     urlparams:
@@ -1258,26 +1302,16 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, geog_obj, tile_query = _build_tree_search_result(request)
-    #print "here"
-    #todo missing geometry
+    sql = str(trees.query)
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        print 'shp for %s trees' % len(trees)
-        shpresponder = ShpResponder(trees,geo_field='geometry')
-        tmp = shpresponder.write_shapefile_to_tmp_file(shpresponder.queryset)
-        zipfile = shpresponder.zip_response(tmp,shpresponder.file_name,shpresponder.mimetype,shpresponder.readme)
-        response = HttpResponse(zipfile, mimetype='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=trees.zip'
-        return response
+        return ogr_conversion('ESRI Shapefile', sql)
     elif format == "kml":
-        print 'kml for %s trees' % len(trees)
-        trees = trees.kml()
-        print 'kml for %s trees' % len(trees)
-        return render_to_kml("treemap/kml_output.kml", {'trees': trees,'root_url':settings.ROOT_URL})
+        return ogr_conversion('KML', sql, 'kml')
     elif format == "csv":
-        return ExcelResponse(trees, force_csv=True)
-
+        return ogr_conversion('CSV', sql)
+        
         
     geography = None
     summaries, benefits = None, None
