@@ -1,5 +1,9 @@
 ![OpenTreeMap Logo](https://github.com/azavea/OpenTreeMap/raw/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
 
+#Updates? Issues? Questions?#
+For updates join the announcement email list here: http://groups.google.com/group/opentreemap-user
+For issues or questions you can try mailing the user list: http://groups.google.com/group/opentreemap-user or connect with us via IRC at #opentreemap on freenode
+
 #Installation Instructions#
 ###Required programs:###
 * Webserver - Apache2 is recommended
