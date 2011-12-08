@@ -9,7 +9,6 @@ delete_favorite = DeleteFavorite(TreeFavorite, Tree)
 most_recent = lambda qs: qs.order_by('-date_created')
 user_favorites = UserFavorites(TreeFavorite, Tree, extra_filter=most_recent)
 
-
 urlpatterns = patterns('',
     #(r'^$', direct_to_template, {'template':'under_construction.html'}),
     (r'^$', home_feeds),
@@ -66,6 +65,7 @@ urlpatterns = patterns('',
     (r'^species/(?P<code>[-\w]+)/$', species),
 
     (r'^search/$', advanced_search),
+    (r'^search/geo$', geo_search),
     (r'^search/(?P<format>.*)/$', advanced_search),
     
     (r'^check_username/$', check_username),
