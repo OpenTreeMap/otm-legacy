@@ -1102,7 +1102,7 @@ var tm = {
                 
                 tm.trackEvent('Search', 'Map Detail', 'Tree', p.id);
                 
-                if (!p.street_address) {
+                if (!p.address_street) {
                     latlng = new google.maps.LatLng(coords[1], coords[0])
                     tm.geocoder.geocode({
                         latLng: latlng
