@@ -40,7 +40,7 @@
         </tr>
     </thead>
     <tr>
-    	<td class="col1 activeEditRowLabel">Scientific name <a id="treekey" href="/treekey/start" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
+    	<td class="col1 activeEditRowLabel">Scientific name <br><a id="treekey" href="/treekey/start" title="Not sure what kind of tree it is?" target="_blank">View the Tree Key</a></td>
         <td class="activeEditRowValue" id="edit_species_id">{{ instance.species.scientific_name|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_species_id').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("species_id", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
@@ -110,7 +110,7 @@
             <script>tm.setupEdit("plot_width", "Tree", {{instance.id}});</script>
         </tr>
 	<tr>
-    	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>?</a></td>
+    	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>(?)</a></td>
         <td class="activeEditRowValue" id="edit_plot_type">{{ instance.get_plot_type_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_type').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("plot_type", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/plot_type/'});</script>
