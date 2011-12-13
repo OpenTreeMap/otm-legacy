@@ -354,6 +354,70 @@ class ImportEvent(models.Model):
     file_name = models.CharField(max_length=256)
     import_date = models.DateField(auto_now=True) 
 
+class Plot(models.Model):
+    present = models.BooleanField(default=True)
+    plot_width = models.FloatField(null=True, blank=True)
+    plot_length = models.FloatField(null=True, blank=True) 
+    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
+    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
+        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
+    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+    
+    address_street = models.CharField(max_length=256, blank=True, null=True)
+    address_city = models.CharField(max_length=256, blank=True, null=True)
+    address_zip = models.CharField(max_length=30,blank=True, null=True)
+    neighborhood = models.ManyToManyField(Neighborhood, null=True)
+    neighborhoods = models.CharField(max_length=150, null=True)
+    zipcode = models.ForeignKey(ZipCode, null=True)
+    
+    geocoded_accuracy = models.IntegerField(null=True)
+    geocoded_address = models.CharField(max_length=256, null=True)
+    geocoded_lat = models.FloatField(null=True)
+    geocoded_lon  = models.FloatField(null=True)
+
+    geometry = models.PointField(srid=4326)
+    geocoded_geometry = models.PointField(null=True, srid=4326)
+    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
+   
+    region = models.CharField(max_length=256)
+
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
+
+    history = audit.AuditTrail()
+    import_event = models.ForeignKey(ImportEvent)
+    
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.plot_type:
+                return value
+        return None
+
+    def get_plot_size(self): 
+        length = self.plot_length
+        width = self.plot_width
+        if length == None: length = 'Missing'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
+        if width == None: width = 'Missing'
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        print length, width
+        return '%s x %s' % (length, width)
+
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.sidewalk_damage:
+                return value
+        return None    
+       
+    def get_powerline_conflict_display(self):
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None 
+
+
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
