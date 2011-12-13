@@ -382,7 +382,7 @@ class Plot(models.Model):
     region = models.CharField(max_length=256)
 
     last_updated = models.DateTimeField(auto_now=True)
-    last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
+    last_updated_by = models.ForeignKey(User, related_name='plot_updated_by') # TODO set to current user
 
     history = audit.AuditTrail()
     import_event = models.ForeignKey(ImportEvent)
