@@ -356,9 +356,9 @@ class ImportEvent(models.Model):
 
 class Plot(models.Model):
     present = models.BooleanField(default=True)
-    plot_width = models.FloatField(null=True, blank=True)
-    plot_length = models.FloatField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
+    width = models.FloatField(null=True, blank=True)
+    length = models.FloatField(null=True, blank=True)
+    type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
     powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
         help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
@@ -386,16 +386,16 @@ class Plot(models.Model):
 
     history = audit.AuditTrail()
     import_event = models.ForeignKey(ImportEvent)
-    
+
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
-            if key == self.plot_type:
+            if key == self.type:
                 return value
         return None
 
-    def get_plot_size(self): 
-        length = self.plot_length
-        width = self.plot_width
+    def get_plot_size(self):
+        length = self.length
+        width = self.width
         if length == None: length = 'Missing'
         elif length == 99: length = '15+ ft'
         else: length = '%.2f ft' % length
