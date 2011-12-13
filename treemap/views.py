@@ -589,7 +589,7 @@ def multi_status(request):
 def approve_pend(request, pend_id):
     pend = TreePending.objects.get(pk=pend_id)
     if not pend:
-        pend = TreeGeoPending.objects.get(pk=pend_id)
+        pend = PlotPending.objects.get(pk=pend_id)
     if not pend:
         raise Http404
     pend.approve(request.user)
@@ -603,7 +603,7 @@ def approve_pend(request, pend_id):
 def reject_pend(request, pend_id):
     pend = TreePending.objects.get(pk=pend_id)
     if not pend:
-        pend = TreeGeoPending.objects.get(pk=pend_id)
+        pend = PlotPending.objects.get(pk=pend_id)
     if not pend:
         raise Http404
     pend.reject(request.user)
@@ -709,7 +709,7 @@ def object_update(request):
                 #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
                 
                     # if the tree was added by the public, or the current user is not public, skip pending
-                if settings.PENDING_ON and post['model'] == "Tree":
+                if settings.PENDING_ON and (post['model'] == "Tree" or post['model'] == "Plot"):
                     insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
@@ -717,16 +717,27 @@ def object_update(request):
                             fld = instance._meta.get_field(k.replace('_id',''))
                             try:
                                 cleaned = fld.clean(v,instance)
-                                response_dict['pending'] = 'true';
-                                if k == 'geometry':
-                                    response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                    response_dict['update'][k] = 'Pending'
-                                    pend = TreeGeoPending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user, geometry=cleaned)
-                                else:                                
-                                    response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                    response_dict['update'][k] = 'Pending'
-                                    pend = TreePending(tree=instance, field=k, value=cleaned, submitted_by=request.user, status='pending', updated_by=request.user)
-                                
+                                response_dict['pending'] = 'true'
+
+                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                                response_dict['update'][k] = 'Pending'
+
+                                if post['model'] == "Tree":
+                                    pend = TreePending(tree=instance)
+                                else: # post['model'] == "Plot":
+                                    pend = PlotPending(plot=instance)
+                                    if k == 'geometry':
+                                        pend.geometry = cleaned
+                                    else:
+                                        # Omit the geometry so that PlotPending.approve will use the text value
+                                        pend.geometry = None
+
+                                pend.field = k
+                                pend.value = cleaned
+                                pend.submitted_by = request.user
+                                pend.status = 'pending'
+                                pend.updated_by = request.user
+
                                 if k == 'species_id':
                                     pend.text_value = Species.objects.get(id=v).scientific_name
 
@@ -802,16 +813,19 @@ def object_update(request):
                             response_dict['errors'].append(e.messages[0])
                         except Exception,e:
                             response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
+
                         if hasattr(instance,'display'):
                             value = getattr(instance,'display')
                         elif hasattr(instance,'get_%s_display' % k):
                             value = getattr(instance,'get_%s_display' % k)()
                         else:    
                             value = getattr(instance, k)
+
                         if isinstance(value,datetime): 
                             value = value.strftime('%b %d %Y')
                         elif not isinstance(value, basestring):
                             value = unicode(value)
+
                         if k == "key" and value == "None":
                             for s in status_choices:
                                 if v == s[0]: value = s[1]
@@ -862,8 +876,12 @@ def object_update(request):
                 if not delete:
                     instance._audit_diff = simplejson.dumps(response_dict["update"])
                     instance.save()
-                    if post['model'] in  ["Tree", "TreeFlags"] :
-                        Reputation.objects.log_reputation_action(request.user, request.user, 'edit tree', save_value, instance)
+                    if post['model'] in  ["Tree", "TreeFlags", "Plot"] :
+                        if post['model'] == 'Plot':
+                            action_name = 'edit plot'
+                        else:
+                            action_name = 'edit tree'
+                        Reputation.objects.log_reputation_action(request.user, request.user, action_name, save_value, instance)
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:

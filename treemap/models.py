@@ -567,7 +567,7 @@ class Tree(models.Model):
         return pends
 
     def get_active_geopends(self):
-        pends = TreeGeoPending.objects.filter(status='pending').filter(tree=self)
+        pends = PlotPending.objects.filter(status='pending').filter(tree=self)
         return pends
 
     def set_environmental_summaries(self):
@@ -805,8 +805,7 @@ status_types = (
     ('rejected', 'Rejected')
 )
 
-class TreePending(models.Model):
-    tree = models.ForeignKey(Tree)
+class Pending(models.Model):
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255, blank=True, null=True)
     text_value = models.CharField(max_length=255, blank=True, null=True)
@@ -817,6 +816,20 @@ class TreePending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+
+    def reject(self, updating_user):
+        self.status = 'rejected'
+        self.updated_by = updating_user
+        self.save()
+
+class TreePending(Pending):
+    tree = models.ForeignKey(Tree)
+
+    def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -826,31 +839,27 @@ class TreePending(models.Model):
         self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
 
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
-    
-    def reject(self, updating_user):
-    	self.status = 'rejected'
-        self.updated_by = updating_user
-        self.save()
+class PlotPending(Pending):
+    plot = models.ForeignKey(Plot)
 
-class TreeGeoPending(TreePending):
     geometry = models.PointField(srid=4326)
     objects = models.GeoManager()
 
     def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
-        update['old_geometry'] = self.tree.geometry
-        update['geometry'] = self.geometry
-        self.tree.geometry = self.geometry
-        self.tree.last_updated_by = self.submitted_by 
-        self.tree._audit_diff = simplejson.dumps(update)
-        self.tree.save()
-        
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
+        if self.geometry:
+            update['old_geometry'] = self.plot.geometry
+            update['geometry'] = self.geometry
+            self.plot.geometry = self.geometry
+        else:
+            update['old_' + self.field] = getattr(self.plot, self.field).__str__()
+            update[self.field] = self.value.__str__()
+            setattr(self.plot, self.field, self.value)
+
+        self.plot.last_updated_by = self.submitted_by
+        self.plot._audit_diff = simplejson.dumps(update)
+        self.plot.save()
     
 
 class TreeWatch(models.Model):
