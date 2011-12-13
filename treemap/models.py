@@ -423,6 +423,7 @@ class Tree(models.Model):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
         #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
+    plot = models.ForeignKey(Plot, related_name="plot")
     data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
