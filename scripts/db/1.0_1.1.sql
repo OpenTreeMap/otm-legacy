@@ -297,13 +297,36 @@ CREATE INDEX "treemap_plotpending_geometry_id" ON "treemap_plotpending" USING GI
 CREATE OR REPLACE FUNCTION fill_treemap_pending() RETURNS VOID AS $$
 DECLARE
   pending_1_0 RECORD;
+  geom geometry;
+  new_pending_id INT;
+  plot_id INT;
 BEGIN
   FOR pending_1_0 IN SELECT * FROM treemap_treepending_1_0 LOOP
     EXECUTE 'INSERT INTO treemap_pending (field, value, text_value, submitted, submitted_by_id, status, updated, updated_by_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
     USING pending_1_0.field, pending_1_0.value, pending_1_0.text_value, pending_1_0.submitted,
     pending_1_0.submitted_by_id, pending_1_0.status, pending_1_0.updated, pending_1_0.updated_by_id;
 
-    -- TODO: Create a TreePending or PlotPending record depending on the values in the original treemap_treepending record
+    SELECT new_pending_id = currval('treemap_pending_id_seq');
+    SELECT id INTO plot_id FROM treemap_tree WHERE treemap_tree.id = pending_1_0.tree_id;
+
+    SELECT geometry into geom from treemap_treegeopending where treepending_ptr_id = pending_1_0.id
+    IF FOUND
+      EXECUTE 'INSERT INTO treemap_plotpending (pending_ptr_id, plot_id, geometry) VALUES ($1, $2, $3)'
+      USING new_pending_id, plot_id, geom;
+    ELSE
+
+    -- The tree and plot pends are in different tables so that the Django models can have different update and delete
+    -- methods.
+    CASE pending_1_0.field
+    WHEN 'plot_width', 'plot_length', 'plot_type', 'powerline_conflict_potential', 'sidewalk_damage', 'address_street',
+      'address_state', 'address_zip' THEN
+      EXECUTE 'INSERT INTO treemap_plotpending (pending_ptr_id, plot_id) VALUES ($1, $2)'
+      USING new_pending_id, plot_id;
+    ELSE
+      EXECUTE 'INSERT INTO treemap_treepending (pending_ptr_id, tree_id) VALUES ($1, $2)'
+      USING new_pending_id, pending_1_0.tree_id;
+    END
+
   END LOOP;
 END;
 SELECT fill_treemap_pending();
