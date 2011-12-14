@@ -630,7 +630,7 @@ def view_pends(request):
     if 'status' in request.GET:
         pends = pends.filter(status=request.GET['status'])
 
-    return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends':pends}))
+    return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends': pends}))
 
 
 @login_required
