@@ -11,7 +11,8 @@ from sorl.thumbnail.fields import ImageWithThumbnailsField
 from classfaves.models import FavoriteBase
 import logging
 import audit
-import simplejson 
+import simplejson
+from itertools import chain
 
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
@@ -415,7 +416,24 @@ class Plot(models.Model):
         for key, value in Choices().get_field_choices('powerline_conflict_potential'):
             if key == self.powerline_conflict_potential:
                 return value
-        return None 
+        return None
+
+    def current_tree(self):
+        trees = Tree.objects.filter(present=True, plot=self)
+        if len(trees) > 0:
+            return trees[0]
+        else:
+            return None
+
+    def get_active_pends(self):
+        pends = self.plotpending_set.filter(status='pending')
+        return pends
+
+    def get_active_pends_with_tree_pends(self):
+        plot_pends = self.plotpending_set.filter(status='pending')
+        tree_pends = self.current_tree().get_active_pends()
+        pends = list(chain(plot_pends, tree_pends))
+        return pends
 
 
 class Tree(models.Model):
