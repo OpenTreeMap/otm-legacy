@@ -1327,13 +1327,20 @@ def geo_search(request):
     pruned = []
     for tree in trees:
         prune = { "id": tree.pk,
-                  "dbh": tree.dbh,
-                  "itree_code": tree.species.itree_code,
-                  "species": tree.species.scientific_name }
+                  "dbh": tree.dbh }
+
+        if tree.species:
+            prune["itree_code"] = tree.species.itree_code,
+            prune["species"] = tree.species.scientific_name
 
         pruned.append(prune)
 
-    return HttpResponse(simplejson.dumps(pruned), mimetype='application/json')
+    jsonstr = simplejson.dumps(pruned)
+
+    if "callback" in request.REQUEST:
+        jsonstr = "%s(%s);" % (request.REQUEST["callback"], jsonstr)
+
+    return HttpResponse(jsonstr, mimetype='application/json')
 
 def advanced_search(request, format='json'):
     """
