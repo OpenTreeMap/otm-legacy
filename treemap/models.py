@@ -354,11 +354,76 @@ class ImportEvent(models.Model):
     file_name = models.CharField(max_length=256)
     import_date = models.DateField(auto_now=True) 
 
+class Plot(models.Model):
+    present = models.BooleanField(default=True)
+    width = models.FloatField(null=True, blank=True)
+    length = models.FloatField(null=True, blank=True)
+    type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
+    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
+        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
+    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+    
+    address_street = models.CharField(max_length=256, blank=True, null=True)
+    address_city = models.CharField(max_length=256, blank=True, null=True)
+    address_zip = models.CharField(max_length=30,blank=True, null=True)
+    neighborhood = models.ManyToManyField(Neighborhood, null=True)
+    neighborhoods = models.CharField(max_length=150, null=True)
+    zipcode = models.ForeignKey(ZipCode, null=True)
+    
+    geocoded_accuracy = models.IntegerField(null=True)
+    geocoded_address = models.CharField(max_length=256, null=True)
+    geocoded_lat = models.FloatField(null=True)
+    geocoded_lon  = models.FloatField(null=True)
+
+    geometry = models.PointField(srid=4326)
+    geocoded_geometry = models.PointField(null=True, srid=4326)
+    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
+   
+    region = models.CharField(max_length=256)
+
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(User, related_name='plot_updated_by') # TODO set to current user
+
+    history = audit.AuditTrail()
+    import_event = models.ForeignKey(ImportEvent)
+
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.type:
+                return value
+        return None
+
+    def get_plot_size(self):
+        length = self.length
+        width = self.width
+        if length == None: length = 'Missing'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
+        if width == None: width = 'Missing'
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        print length, width
+        return '%s x %s' % (length, width)
+
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.sidewalk_damage:
+                return value
+        return None    
+       
+    def get_powerline_conflict_display(self):
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None 
+
+
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
         #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
+    plot = models.ForeignKey(Plot, related_name="plot")
     data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
@@ -502,7 +567,7 @@ class Tree(models.Model):
         return pends
 
     def get_active_geopends(self):
-        pends = TreeGeoPending.objects.filter(status='pending').filter(tree=self)
+        pends = PlotPending.objects.filter(status='pending').filter(tree=self)
         return pends
 
     def set_environmental_summaries(self):
@@ -740,8 +805,7 @@ status_types = (
     ('rejected', 'Rejected')
 )
 
-class TreePending(models.Model):
-    tree = models.ForeignKey(Tree)
+class Pending(models.Model):
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255, blank=True, null=True)
     text_value = models.CharField(max_length=255, blank=True, null=True)
@@ -752,6 +816,20 @@ class TreePending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+
+    def reject(self, updating_user):
+        self.status = 'rejected'
+        self.updated_by = updating_user
+        self.save()
+
+class TreePending(Pending):
+    tree = models.ForeignKey(Tree)
+
+    def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -761,31 +839,27 @@ class TreePending(models.Model):
         self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
 
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
-    
-    def reject(self, updating_user):
-    	self.status = 'rejected'
-        self.updated_by = updating_user
-        self.save()
+class PlotPending(Pending):
+    plot = models.ForeignKey(Plot)
 
-class TreeGeoPending(TreePending):
     geometry = models.PointField(srid=4326)
     objects = models.GeoManager()
 
     def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
-        update['old_geometry'] = self.tree.geometry
-        update['geometry'] = self.geometry
-        self.tree.geometry = self.geometry
-        self.tree.last_updated_by = self.submitted_by 
-        self.tree._audit_diff = simplejson.dumps(update)
-        self.tree.save()
-        
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
+        if self.geometry:
+            update['old_geometry'] = self.plot.geometry
+            update['geometry'] = self.geometry
+            self.plot.geometry = self.geometry
+        else:
+            update['old_' + self.field] = getattr(self.plot, self.field).__str__()
+            update[self.field] = self.value.__str__()
+            setattr(self.plot, self.field, self.value)
+
+        self.plot.last_updated_by = self.submitted_by
+        self.plot._audit_diff = simplejson.dumps(update)
+        self.plot.save()
     
 
 class TreeWatch(models.Model):
