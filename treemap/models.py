@@ -842,7 +842,7 @@ class TreePending(Pending):
 class PlotPending(Pending):
     plot = models.ForeignKey(Plot)
 
-    geometry = models.PointField(srid=4326)
+    geometry = models.PointField(srid=4326, blank=True, null=True)
     objects = models.GeoManager()
 
     def approve(self, updating_user):
