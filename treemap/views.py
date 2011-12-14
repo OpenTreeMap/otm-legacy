@@ -7,6 +7,7 @@ import zipfile
 from contextlib import closing
 import subprocess
 from operator import itemgetter
+from itertools import chain
 import simplejson 
 
 from django.conf import settings
@@ -615,7 +616,9 @@ def reject_pend(request, pend_id):
 @login_required
 @permission_required('auth.change_user')
 def view_pends(request):
-    pends = TreePending.objects.all()
+    tree_pends = TreePending.objects.all()
+    plot_pends = PlotPending.objects.all()
+    pends = list(chain(tree_pends, plot_pends)) # chain comes from itertools
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         pends = pends.filter(submitted_by__in=u)
