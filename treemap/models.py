@@ -437,6 +437,46 @@ class Plot(models.Model):
         pends = list(chain(plot_pends, tree_pends))
         return pends
 
+    def save(self,*args,**kwargs):
+        pnt = self.geometry
+                
+        n = Neighborhood.objects.filter(geometry__contains=pnt)
+        z = ZipCode.objects.filter(geometry__contains=pnt)
+        
+        if n:
+            self.neighborhoods = ""
+            for nhood in n:
+                if nhood:
+                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+        else: 
+            self.neighborhoods = ""
+        
+        super(Plot, self).save(*args,**kwargs) 
+        
+        oldn = self.neighborhood.all()
+        oldz = self.zipcode
+        if n:
+            self.neighborhood.clear()
+            for nhood in n:
+                if nhood:
+                    self.neighborhood.add(nhood)
+        else: 
+            self.neighborhood.clear()
+        if z: self.zipcode = z[0]
+        else: self.zipcode = None
+        print n.__dict__
+        print oldn.__dict__
+        print z.__dict__
+        if n: 
+            for nhood in n:
+                self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+        if oldn: 
+            for nhood in oldn:
+                self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+         
+        if z and z[0] != oldz:
+            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
+            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -547,9 +587,9 @@ class Tree(models.Model):
                 return value
         return None
        
-    def get_powerline_conflict_display(self):
+    def get_powerline_conflict_potential(self):
         for key, value in Choices().get_field_choices('powerline_conflict_potential'):
-            if key == self.powerline_conflict_potential:
+            if key == self.plot.powerline_conflict_potential:
                 return value
         return None
 
@@ -647,36 +687,36 @@ class Tree(models.Model):
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
         self.photo_count = self.treephoto_set.count()
-        pnt = self.geometry
+        #pnt = self.geometry
                 
-        n = Neighborhood.objects.filter(geometry__contains=pnt)
-        z = ZipCode.objects.filter(geometry__contains=pnt)
+        #n = Neighborhood.objects.filter(geometry__contains=pnt)
+        #z = ZipCode.objects.filter(geometry__contains=pnt)
         
-        if n:
-            self.neighborhoods = ""
-            for nhood in n:
-                if nhood:
-                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
-        else: 
-            self.neighborhoods = ""
+        #if n:
+        #    self.neighborhoods = ""
+        #    for nhood in n:
+        #        if nhood:
+        #            self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+        #else: 
+        #    self.neighborhoods = ""
 
         self.projects = ""
         for fl in self.treeflags_set.all():
             self.projects = self.projects + " " + fl.key
 
+        
         super(Tree, self).save(*args,**kwargs) 
-
-        oldn = self.neighborhood.all()
-        oldz = self.zipcode
-        if n:
-            self.neighborhood.clear()
-            for nhood in n:
-                if nhood:
-                    self.neighborhood.add(nhood)
-        else: 
-            self.neighborhood.clear()
-        if z: self.zipcode = z[0]
-        else: self.zipcode = None
+        #oldn = self.neighborhood.all()
+        #oldz = self.zipcode
+        #if n:
+        #    self.neighborhood.clear()
+        #    for nhood in n:
+        #        if nhood:
+        #            self.neighborhood.add(nhood)
+        #else: 
+        #    self.neighborhood.clear()
+        #if z: self.zipcode = z[0]
+        #else: self.zipcode = None
         
         self.set_environmental_summaries()
         #set new species counts
@@ -706,25 +746,31 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
     
+    #TODO: this is now unacceptably slow for larger locations like Philly, find another way to do this that doesn't happen every save
     def update_aggregate(self, ag_model, location):        
-        agg =  ag_model.objects.filter(location=location)
-        if agg:
-            agg = agg[0]
-        else:
-            agg = ag_model(location=location)
-        summaries = []        
-        trees = Tree.objects.filter(geometry__within=location.geometry)
-        agg.total_trees = len(trees)
+        #agg =  ag_model.objects.filter(location=location)
+        #if agg:
+        #    agg = agg[0]
+        #else:
+        #    agg = ag_model(location=location)
+        #print agg.__dict__
+        #summaries = []        
+        #trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        #print trees
+        #agg.total_trees = len(trees)
+        #print agg.total_trees
         #TODO: speed this up! A lot!
-        agg.distinct_species = len(trees.values("species"))
+        #agg.distinct_species = len(trees.values("species"))
+        #print agg.distinct_species
         #TODO figure out how to summarize diff stratum stuff
-        field_names = [x.name for x in ResourceSummaryModel._meta.fields 
-            if not x.name == 'id']
-        for f in field_names:
-            fn = 'treeresource__' + f
-            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-            setattr(agg,f,s)
-        agg.save()
+        #field_names = [x.name for x in ResourceSummaryModel._meta.fields 
+        #    if not x.name == 'id']
+        #for f in field_names:
+        #    fn = 'treeresource__' + f
+        #    s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+        #    setattr(agg,f,s)
+        #agg.save()
+        pass
         
     def percent_complete(self):
         has = 0
@@ -757,9 +803,9 @@ class Tree(models.Model):
             )
             
     def validate_proximity(self, return_trees=False, max_count=1):
-        if not self.geometry:
+        if not self.plot.geometry:
             return None
-        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=10.0)))
+        nearby = Plot.objects.filter(geometry__distance_lte=(self.plot.geometry, D(ft=10.0)))
         if nearby.count() > max_count: 
             if return_trees:
                 return nearby 

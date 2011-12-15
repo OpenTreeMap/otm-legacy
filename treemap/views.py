@@ -330,7 +330,7 @@ def trees(request, tree_id=''):
     else:
         raise Http404
     if request.GET.get('format','') == 'base_infowindow':
-        return render_to_response('treemap/tree_detail_infowindow.html',RequestContext(request,{'tree':first}))
+        raise Http404
     if request.GET.get('format','') == 'eco_infowindow':
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
@@ -369,7 +369,6 @@ def unified_history(trees):
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
-#TODO: Is this used?
 @login_required    
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
@@ -384,16 +383,32 @@ def tree_edit_choices(request, tree_id, type_):
         #        val = item[1]
         data['selected'] = val   
     else:
-        if type_ == "sidewalk_damage":
-            sidewalks = tree.treestatus_set.filter(key="sidewalk_damage").order_by("-reported")
-            if sidewalks.count():
-                data['selected'] = str(int(sidewalks[0].value))
         if type_ == "condition":
             sidewalks = tree.treestatus_set.filter(key="condition").order_by("-reported")
             if sidewalks.count():
                 data['selected'] = str(int(sidewalks[0].value))
         if type_ == "canopy_condition":
             sidewalks = tree.treestatus_set.filter(key="canopy_condition").order_by("-reported")
+            if sidewalks.count():
+                data['selected'] = str(int(sidewalks[0].value))
+    return HttpResponse(simplejson.dumps(data))    
+
+@login_required    
+def plot_edit_choices(request, plot_id, type_):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    choices = Choices().get_field_choices(type_)
+    data = SortedDict(choices)
+    #for item in choices: 
+    #    data[item[0]] = item[1]
+    if hasattr(plot, type_):
+        val = getattr(plot, type_)
+        #for item in choices:
+        #    if item[0] = val:
+        #        val = item[1]
+        data['selected'] = val   
+    else:
+        if type_ == "sidewalk_damage":
+            sidewalks = plot.treestatus_set.filter(key="sidewalk_damage").order_by("-reported")
             if sidewalks.count():
                 data['selected'] = str(int(sidewalks[0].value))
     return HttpResponse(simplejson.dumps(data))    
@@ -440,7 +455,7 @@ def tree_edit(request, tree_id = ''):
         "user_rep": Reputation.objects.reputation_for_user(request.user)    
     }
 
-    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'instance': tree,'reputation': reputation, 'user': request.user}))           
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree,'reputation': reputation, 'user': request.user}))           
 
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)

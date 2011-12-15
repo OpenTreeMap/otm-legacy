@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     (r'^plots/(?P<plot_id>\d+)/$', plot_detail),
     (r'^plots/location/$', plot_location_search),
     (r'^plots/location/update/$', plot_location_update),
+    (r'^plots/(?P<plot_id>\d+)/edit/choices/(?P<type_>[a-z_]*)/$', plot_edit_choices),
 
     (r'^update/$', object_update),
     (r'^trees/$', trees),

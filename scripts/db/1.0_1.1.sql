@@ -191,6 +191,9 @@ CREATE INDEX treemap_plot_audit_zipcode_id
   USING btree
   (zipcode_id);
 
+ALTER TABLE treemap_tree_audit ALTER COLUMN geocoded_address DROP NOT NULL;
+ALTER TABLE treemap_tree_audit ALTER COLUMN geometry DROP NOT NULL;
+
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 -- Table: treemap_plot_neighborhood
