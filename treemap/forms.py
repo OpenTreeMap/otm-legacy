@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
@@ -100,38 +100,41 @@ class TreeAddForm(forms.Form):
                 new_tree = Tree()
         else:
             new_tree = Tree()
+
+        new_tree.plot = Plot()
+
         address = self.cleaned_data.get('edit_address_street')
         if address:
-            new_tree.address_street = address
-            new_tree.geocoded_address = address
+            new_tree.plot.address_street = address
+            new_tree.plot.geocoded_address = address
         city = self.cleaned_data.get('edit_address_city')
         geo_address = self.cleaned_data.get('geocode_address')
         if geo_address:
-            new_tree.geocoded_address = geo_address
+            new_tree.plot.geocoded_address = geo_address
         if city:
-            new_tree.address_city = city
+            new_tree.plot.address_city = city
         zip_ = self.cleaned_data.get('edit_address_zip')
         if zip_:
-            new_tree.address_zip = zip_
+            new_tree.plot.address_zip = zip_
         
         plot_width = self.cleaned_data.get('plot_width')
         plot_width_in = self.cleaned_data.get('plot_width_in')
         if plot_width:
-            new_tree.plot_width = float(plot_width)
+            new_tree.plot.width = float(plot_width)
         if plot_width_in:
-            new_tree.plot_width = new_tree.plot_width + (float(plot_width_in) / 12)
+            new_tree.plot.width = new_tree.plot_width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
         plot_length_in = self.cleaned_data.get('plot_length_in')
         if plot_length:
-            new_tree.plot_length = float(plot_length)
+            new_tree.plot.length = float(plot_length)
         if plot_length_in:
-            new_tree.plot_length = new_tree.plot_length + (float(plot_length_in) / 12)
+            new_tree.plot.length = new_tree.plot_length + (float(plot_length_in) / 12)
         plot_type = self.cleaned_data.get('plot_type')
         if plot_type:
-            new_tree.plot_type = plot_type
+            new_tree.plot.type = plot_type
         power_lines = self.cleaned_data.get('power_lines')
         if power_lines != "":
-            new_tree.powerline_conflict_potential = power_lines
+            new_tree.plot.powerline_conflict_potential = power_lines
         height = self.cleaned_data.get('height')
         if height:
             new_tree.height = height
@@ -146,7 +149,7 @@ class TreeAddForm(forms.Form):
             new_tree.dbh = dbh
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:
-            new_tree.sidewalk_damage = sidewalk_damage
+            new_tree.plot.sidewalk_damage = sidewalk_damage
         condition = self.cleaned_data.get('condition')
         if condition:
             new_tree.condition = condition
@@ -156,10 +159,13 @@ class TreeAddForm(forms.Form):
         
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
         new_tree.import_event = import_event
+        new_tree.plot.import_event = import_event
         
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
-        new_tree.geometry = pnt
+        new_tree.plot.geometry = pnt
         new_tree.last_updated_by = request.user
+        new_tree.plot.last_updated_by = request.user
+        new_tree.plot.save()
         new_tree.save()
         
         return new_tree

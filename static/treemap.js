@@ -46,7 +46,7 @@ var tm = {
     map : null, 
     tree_markers : [],
     geocoded_locations: {},
-    tree_detail_marker : null,
+    plot_detail_market : null,
     current_tile_overlay : null,
     current_select_tile_overlay : null,
     selected_tile_query : null,
@@ -565,7 +565,7 @@ var tm = {
             window.clearTimeout(tm.clckTimeOut); 
             tm.clckTimeOut = null; 
             var spp = jQuery.urlParam('species');
-            jQuery.getJSON('/trees/location/',
+            jQuery.getJSON('/plots/location/',
               {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
             tm.display_tree_details);
         } 
@@ -767,8 +767,8 @@ var tm = {
         tm.map.events.register('click', tm.map, function(e){
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            jQuery.getJSON('/trees/location/',
-                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_trees' : 1},
+            jQuery.getJSON('/plots/location/',
+                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                 function(json) {
                     var html = '<a href="/trees/' + json.features[0].properties.id + '">Tree #' + json.features[0].properties.id + '</a>';
                     $('#alternate_tree_div').html(html);
@@ -822,7 +822,7 @@ var tm = {
         
     load_nearby_trees : function(ll){
         //load in nearby trees as well
-        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
+        var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=70'].join('');
         $.getJSON(url, function(geojson){
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
@@ -952,7 +952,7 @@ var tm = {
                 }
                 if ($('#nearby_trees')) {
                     $('#nearby_trees').html("Loading...")
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
+                    var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=10&distance=.0001'].join('');
                     $.getJSON(url, function(geojson){
                         if (geojson.features.length == 0) {
                             $('#nearby_trees').html("No other trees nearby.")
@@ -1002,7 +1002,7 @@ var tm = {
             } else {
                 if ($("#geocode_address")) {
                     $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
+                    var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
                     $.getJSON(url, function(geojson){
                         $.each(geojson.features, function(i,f){
                             alert("trees");
@@ -1072,27 +1072,27 @@ var tm = {
                 var coords = tree.geometry.coordinates;
                 
                 //remove old markers
-                if (tm.tree_detail_marker) {tm.misc_markers.removeMarker(tm.tree_detail_marker);}
+                if (tm.plot_detail_market) {tm.misc_markers.removeMarker(tm.plot_detail_market);}
                 
                 var AutoSizeFramedCloud = OpenLayers.Class(OpenLayers.Popup.FramedCloud, {
                     'autoSize': true
                 });
                                 
                 //Add tree marker
-                tm.tree_detail_marker = tm.get_tree_marker(coords[1], coords[0]);
-                tm.tree_detail_marker.tree_id = p.id;
-                tm.tree_detail_marker.nhbd_id = p.neighborhood_id;
-                tm.tree_detail_marker.district_id = p.district_id;
-                tm.misc_markers.addMarker(tm.tree_detail_marker);
+                tm.plot_detail_market = tm.get_tree_marker(coords[1], coords[0]);
+                tm.plot_detail_market.plot_id = p.id;
+                tm.plot_detail_market.nhbd_id = p.neighborhood_id;
+                tm.plot_detail_market.district_id = p.district_id;
+                tm.misc_markers.addMarker(tm.plot_detail_market);
                 
                 
-                var ll = tm.tree_detail_marker.lonlat;
+                var ll = tm.plot_detail_market.lonlat;
                 
                 popup = new OpenLayers.Popup.FramedCloud("Tree Info",
                    ll,
                    null,
                    '<div id="max_tree_infowindow">Loading ...</div>',
-                   tm.tree_detail_marker.icon,
+                   tm.plot_detail_market.icon,
                    true);
                 popup.minSize = tm.popup_minSize;
                 popup.maxSize = tm.popup_maxSize;
@@ -1110,27 +1110,27 @@ var tm = {
                         if (status == google.maps.GeocoderStatus.OK) {
                             //TODO: add jsonString here for post
                             var data = {
-                                'tree_id': p.id,
+                                'plot_id': p.id,
                                 'address': results[0].formatted_address.split(", ")[0],
                                 'city': results[0].formatted_address.split(", ")[1]
                             };
                             var jsonString = JSON.stringify(data);
 
                             $.ajax({
-                                url: '/trees/location/update/',
+                                url: '/plots/location/update/',
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
                                 }
                             });
                         } else {
-                            jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                            jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
                         }
                     });
                 }
                 else {
-                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
                 }
             }
         }
@@ -1231,8 +1231,8 @@ var tm = {
         //if (tm.cur_polygon){
         //    tm.map.removeOverlay(tm.cur_polygon);
         //}
-        //if (tm.tree_detail_marker){
-        //tm.map.removeOverlay(tm.tree_detail_marker);
+        //if (tm.plot_detail_market){
+        //tm.map.removeOverlay(tm.plot_detail_market);
         //}
 
         //var myCopyright = new GCopyrightCollection("(c) ");

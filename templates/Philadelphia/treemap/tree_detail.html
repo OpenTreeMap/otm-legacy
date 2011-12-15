@@ -39,7 +39,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ tree.address_street|default:"No Address" }}<br/>{{ tree.address_city }}, {{tree.neighborhood.all.0.state}}
+			{{ tree.plot.address_street|default:"No Address" }}<br/>{{ tree.plot.address_city }}, {{tree.plot.neighborhood.all.0.state}}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -138,7 +138,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.address_street|default:"Missing"}}</td>
+            <td>{{tree.plot.address_street|default:"Missing"}}</td>
             <td></td>
         </tr>
     </tbody>
@@ -201,7 +201,7 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot_width|unit_or_missing:"ft x "}}{{tree.plot_length|unit_or_empty:"ft" }} </td>
+            <td>{{tree.plot.width|unit_or_missing:"ft x "}}{{tree.plot.length|unit_or_empty:"ft" }} </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
@@ -530,7 +530,7 @@
 
 {% block endpage %}
 	<script>
-		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
+		tm.current_tree_geometry = [{{tree.plot.geometry.x}}, {{tree.plot.geometry.y}}];
 		tm.currentTreeId = {{tree.id}};
 		tm.init_tree_map(false); //not editable
 		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');

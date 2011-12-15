@@ -387,6 +387,8 @@ class Plot(models.Model):
 
     history = audit.AuditTrail()
     import_event = models.ForeignKey(ImportEvent)
+    objects = models.GeoManager()
+
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -463,25 +465,26 @@ class Tree(models.Model):
     powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
         help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     present = models.BooleanField(default=True)
-    plot_width = models.FloatField(null=True, blank=True)
-    plot_length = models.FloatField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
-            
-    address_street = models.CharField(max_length=256, blank=True, null=True)
-    address_city = models.CharField(max_length=256, blank=True, null=True)
-    address_zip = models.CharField(max_length=30,blank=True, null=True)
-    neighborhood = models.ManyToManyField(Neighborhood, null=True)
-    neighborhoods = models.CharField(max_length=150, null=True)
-    zipcode = models.ForeignKey(ZipCode, null=True)
-    
-    geocoded_accuracy = models.IntegerField(null=True)
-    geocoded_address = models.CharField(max_length=256, null=True)
-    geocoded_lat = models.FloatField(null=True)
-    geocoded_lon  = models.FloatField(null=True)
 
-    geometry = models.PointField(srid=4326)
-    geocoded_geometry = models.PointField(null=True, srid=4326)
-    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
+#    plot_width = models.FloatField(null=True, blank=True)
+#    plot_length = models.FloatField(null=True, blank=True)
+#    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
+#
+#    address_street = models.CharField(max_length=256, blank=True, null=True)
+#    address_city = models.CharField(max_length=256, blank=True, null=True)
+#    address_zip = models.CharField(max_length=30,blank=True, null=True)
+#    neighborhood = models.ManyToManyField(Neighborhood, null=True)
+#    neighborhoods = models.CharField(max_length=150, null=True)
+#    zipcode = models.ForeignKey(ZipCode, null=True)
+#
+#    geocoded_accuracy = models.IntegerField(null=True)
+#    geocoded_address = models.CharField(max_length=256, null=True)
+#    geocoded_lat = models.FloatField(null=True)
+#    geocoded_lon  = models.FloatField(null=True)
+#
+#    geometry = models.PointField(srid=4326)
+#    geocoded_geometry = models.PointField(null=True, srid=4326)
+#    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
    
     region = models.CharField(max_length=256)
 
@@ -497,7 +500,7 @@ class Tree(models.Model):
     
     import_event = models.ForeignKey(ImportEvent)
     
-    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+#    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
     condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
     canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
 
@@ -516,7 +519,7 @@ class Tree(models.Model):
     
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
-            if key == self.plot_type:
+            if key == self.plot.type:
                 return value
         return None
 
@@ -534,7 +537,7 @@ class Tree(models.Model):
     
     def get_sidewalk_damage_display(self):
         for key, value in Choices().get_field_choices('sidewalk_damage'):
-            if key == self.sidewalk_damage:
+            if key == self.plot.sidewalk_damage:
                 return value
         return None    
 
@@ -813,9 +816,9 @@ class Tree(models.Model):
         
     def __unicode__(self): 
         if self.species:
-            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.geocoded_address)
+            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
         else:
-            return self.geocoded_address    
+            return self.plot.geocoded_address
 
 status_types = (
     ('pending', 'Pending'),

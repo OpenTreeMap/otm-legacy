@@ -72,18 +72,18 @@
     {% endif %}
 	<tr>
     	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
-        <td class="activeEditRowValue" id="edit_address_street">{{ instance.address_street|default:"Click to edit" }}</td>
+        <td class="activeEditRowValue" id="edit_address_street">{{ instance.plot.address_street|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("address_street", "Tree", {{instance.id}});</script>
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ instance.address_city }}</td>
+        <td class="activeEditRowValue" id="edit_address_city">{{ instance.plot.address_city }}</td>
        
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.address_zip }}</td>
+        <td class="activeEditRowValue" id="edit_address_zip">{{ instance.plot.address_zip }}</td>
        
     </tr>
     <tr>
@@ -99,13 +99,13 @@
     </thead>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
-            <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|default:"Click to edit" }}</td>
+            <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot.length|default:"Click to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_length').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_length", "Tree", {{instance.id}});</script>
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
-            <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|default:"Click to edit" }}</td>
+            <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot.width|default:"Click to edit" }}</td>
             <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
             <script>tm.setupEdit("plot_width", "Tree", {{instance.id}});</script>
         </tr>
@@ -284,7 +284,7 @@
     {% endblock %}
 {% block endpage %}
 	<script>
-		tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
+		tm.current_tree_geometry = [{{instance.plot.geometry.x}}, {{instance.plot.geometry.y}}];
 		tm.init_tree_map(true);
         tm.currentTreeId = {{instance.id}};
 	</script>

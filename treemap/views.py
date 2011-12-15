@@ -13,7 +13,7 @@ import simplejson
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -146,15 +146,15 @@ def result_map(request):
 
     min_plot = 0
     max_plot = 0
-    plot_w = Tree.objects.exclude(last_updated=None, present=False).filter(plot_width__isnull=False).order_by('plot_width')
-    plot_l = Tree.objects.exclude(last_updated=None, present=False).filter(plot_length__isnull=False).order_by('plot_length')
+    plot_w = Tree.objects.exclude(last_updated=None, present=False).filter(plot__width__isnull=False).order_by('plot__width')
+    plot_l = Tree.objects.exclude(last_updated=None, present=False).filter(plot__length__isnull=False).order_by('plot__length')
     if plot_w.exists():
-        min_plot = plot_w[0].plot_width
-        max_plot = plot_w[plot_w.count()-1].plot_width
+        min_plot = plot_w[0].plot.width
+        max_plot = plot_w[plot_w.count()-1].plot.width
 
     if plot_l.exists():
-        if plot_l[0].plot_length < min_plot: min_plot = plot_l[0].plot_length
-        if plot_l[plot_l.count()-1].plot_length > max_plot: max_plot = plot_l[plot_l.count()-1].plot_length
+        if plot_l[0].plot.length < min_plot: min_plot = plot_l[0].plot.length
+        if plot_l[plot_l.count()-1].plot.length > max_plot: max_plot = plot_l[plot_l.count()-1].plot.length
 
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
 
@@ -181,64 +181,63 @@ def result_map(request):
         }))
 
 
-def tree_location_search(request):
+def plot_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
         raise Http404
     distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
-    max_trees = request.GET.get('max_trees', 1)
-    if max_trees > 500: max_trees = 500
+    max_plots = request.GET.get('max_plots', 1)
+    if max_plots > 500: max_plots = 500
     
-    trees = Tree.objects.filter(present=True)
+    plots = Plot.objects.filter(present=True)
         #don't filter by geocode accuracy until we know why some new trees are getting -1
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
 
     if geom.geom_type == 'Point':
-        trees = trees.filter(geometry__dwithin=(
+        plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
             ).distance(geom).order_by('distance')
     #else bbox
     else:
-      trees = trees.filter(geometry__intersects=geom)
+      plots = plots.filter(geometry__intersects=geom)
     # needed to be able to prioritize overlapping trees
+
+    extent = plots.extent()
+
     species = request.GET.get('species')
     if species:
-        # first try to restrict search to the active tree species
-        species_trees = trees.filter(species__symbol=species)
+        plots_filtered_by_species = []
+        for plot in plots:
+            current_tree = plot.current_tree()
+            if current_tree and current_tree.species.symbol == species:
+                plots_filtered_by_species.append(plot)
+
+
         # to allow clicking other trees still...
-        if species_trees.exists():
-            trees = species_trees
-    if trees.exists():
-        trees = trees[:max_trees]
-    return render_to_geojson(trees, 
+        if len(plots_filtered_by_species) > 0:
+            plots = plots_filtered_by_species
+
+    if len(plots) > 0:
+        plots = plots[:max_plots]
+
+    return render_to_geojson(plots,
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
-                             'address_city',                              
-                             'condition_wood',
-                             'region_id',
-                             'plot_length',
+                             'address_city',
+                             'length',
                              'distance',
-                             'orig_species',
                              'geometry',
-                             'native',
                              'geocoded_address',
-                             'photo',
                              'last_updated_by_id',
-                             'data_owner_id',
-                             'flowering',
                              'present',
-                             'owner_additional_properties',
                              'region',
                              'powerline_conflict_potential',
-                             'steward_user_id',
-                             'owner_orig_id',
-                             'condition_leaves',
-                             'height',
-                             'plot_height',
-                             'private_property',
+                             'width',
                              'geocoded_lat',
                              'geocoded_lon',
-                             'site_type'])
+                             'type'],
+                             model=Plot,
+                             extent=extent)
 
 #@cache_page(60*60*4)
 def species(request, selection='all', format='html'):
@@ -336,7 +335,25 @@ def trees(request, tree_id=''):
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
         return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'recent': recent_edits}))
-     
+
+def plot_detail(request, plot_id=''):
+    plots = Plot.objects.filter(present=True)
+
+    if not plot_id:
+       raise HttpResponseBadRequest
+
+    plots = plots.filter(pk=plot_id)
+
+    if not plots.exists():
+        raise Http404
+
+    plot = plots[0]
+
+    return render_to_response('treemap/plot_detail_infowindow.html',RequestContext(request,{
+        'plot': plot,
+        'tree': plot.current_tree()
+    }))
+
 
 def unified_history(trees):
     recent_edits = []
@@ -907,14 +924,14 @@ def object_update(request):
             content_type = 'text/plain'
             )
 #for auto reverse-geocode saving of new address, from search page map click
-def tree_location_update(request):
+def plot_location_update(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
-    tree = Tree.objects.filter(pk=post.get('tree_id'))[0]
-    tree.address_street = post.get('address')
-    tree.geocoded_address = post.get('address')
-    tree.address_city = post.get('city')
-    tree.quick_save()
+    plot = Plot.objects.filter(pk=post.get('plot_id'))[0]
+    plot.address_street = post.get('address')
+    plot.geocoded_address = post.get('address')
+    plot.address_city = post.get('city')
+    plot.save()
     
     response_dict['success'] = True
     
@@ -994,9 +1011,9 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None)|(Q(geocoded_accuracy=-1) & Q(owner_geometry__isnull=False)) )
+        trees = Tree.objects.filter(present=True).filter(Q(plot__geocoded_accuracy__gte=7)|Q(plot__geocoded_accuracy=None)|(Q(plot__geocoded_accuracy=-1) & Q(plot__owner_geometry__isnull=False)) )
     else:
-        trees = Tree.objects.filter(species__in=species, present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None))
+        trees = Tree.objects.filter(species__in=species, present=True).filter(Q(plot__geocoded_accuracy__gte=7)|Q(plot__geocoded_accuracy=None))
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1014,7 +1031,7 @@ def _build_tree_search_result(request):
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
-                ns = ns.filter(geometry__contains=pt)
+                ns = ns.filter(plot__geometry__contains=pt)
             if ns.count():          
                 trees = trees.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
@@ -1022,7 +1039,7 @@ def _build_tree_search_result(request):
         else:
             z = ZipCode.objects.filter(zip=loc)
             if z.count():
-                trees = trees.filter(zipcode = z[0])
+                trees = trees.filter(plot__zipcode = z[0])
                 geog_obj = z[0]
                 tile_query.append("zipcode_id = " + z[0].id.__str__())
     elif 'hood' in request.GET:
@@ -1092,7 +1109,7 @@ def _build_tree_search_result(request):
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
     if missing_current_plot_size:
-        trees = trees.filter(Q(plot_length__isnull=True) | Q(plot_width__isnull=True))
+        trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
@@ -1100,13 +1117,13 @@ def _build_tree_search_result(request):
 
     if not missing_current_plot_size and 'plot_range' in request.GET:
         min, max = map(float,request.GET['plot_range'].split("-"))
-        trees = trees.filter(Q(plot_length__gte=min) | Q(plot_width__gte=min))
+        trees = trees.filter(Q(plot__length__gte=min) | Q(plot__width__gte=min))
         if max != 15: # TODO: Hardcoded in UI, may need to change
-            trees = trees.filter(Q(plot_length__lte=max) | Q(plot_length__lte=max))
+            trees = trees.filter(Q(plot__length__lte=max) | Q(plot__length__lte=max))
         tile_query.append("( (plot_length BETWEEN " + min.__str__() + " AND " + max.__str__() + ") OR (plot_width BETWEEN " + min.__str__() + " AND " + max.__str__() + ") )")
 
     if missing_current_plot_type:
-        trees = trees.filter(plot_type__isnull=True)
+        trees = trees.filter(plot__type__isnull=True)
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
@@ -1146,7 +1163,7 @@ def _build_tree_search_result(request):
 
     missing_sidewalk = request.GET.get("missing_sidewalk", '')
     if missing_sidewalk: 
-        trees = trees.filter(sidewalk_damage__isnull=True)
+        trees = trees.filter(plot__sidewalk_damage__isnull=True)
         #species_list = [s.id for s in species]
         tile_query.append("sidewalk_damage IS NULL")
     else: 
@@ -1161,12 +1178,12 @@ def _build_tree_search_result(request):
                     s_cql.append("sidewalk_damage = " + k)
         if len(s_cql) > 0:
             tile_query.append("(" + " OR ".join(s_cql) + ")")
-            trees = trees.filter(sidewalk_damage__in=s_list)
+            trees = trees.filter(plot__sidewalk_damage__in=s_list)
         
 
     missing_powerlines = request.GET.get("missing_powerlines", '')
     if missing_powerlines:
-        trees = trees.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
+        trees = trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
         #species_list = [s.id for s in species]
         tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
     else:
@@ -1181,7 +1198,7 @@ def _build_tree_search_result(request):
                     p_cql.append("powerline_conflict_potential = " + k)
         if len(p_cql) > 0:
             tile_query.append("(" + " OR ".join(p_cql) + ")")
-            trees = trees.filter(powerline_conflict_potential__in=p_list)
+            trees = trees.filter(plot__powerline_conflict_potential__in=p_list)
 
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
