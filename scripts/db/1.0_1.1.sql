@@ -258,6 +258,10 @@ ALTER TABLE treemap_tree DISABLE TRIGGER ALL;
 UPDATE treemap_tree SET plot_id = (SELECT id from treemap_plot where treemap_plot.tree_id = treemap_tree.id);
 ALTER TABLE treemap_tree ENABLE TRIGGER ALL;
 
+ALTER TABLE treemap_tree_audit DISABLE TRIGGER ALL;
+UPDATE treemap_tree_audit SET plot_id = (SELECT id from treemap_plot where treemap_plot.tree_id = treemap_tree_audit.id);
+ALTER TABLE treemap_tree_audit ENABLE TRIGGER ALL;
+
 ALTER TABLE treemap_tree ALTER COLUMN plot_id SET NOT NULL;
 
 DROP INDEX IF EXISTS treemap_plot_tree_id;

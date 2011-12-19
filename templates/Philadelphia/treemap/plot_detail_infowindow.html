@@ -81,12 +81,12 @@
 
 <div class="col1">
   <div class="infoLabel">Trunk diameter</div>
-  <div class="infoValue">{{ tree.current_dbh|unit_or_missing:"in" }}</div>
+  <div class="infoValue">{{ tree.dbh|unit_or_missing:"in" }}</div>
 </div>
 
 <div class="col2">
 	<div class="infoLabel">Height</div>
-	<div class="infoValue">{{ tree.get_height|unit_or_missing:"ft" }}</div>
+	<div class="infoValue">{{ tree.height|unit_or_missing:"ft" }}</div>
 </div>
 
 <div class="col1 clearLeft">

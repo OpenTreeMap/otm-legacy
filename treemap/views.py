@@ -6,7 +6,7 @@ import tempfile
 import zipfile
 from contextlib import closing
 import subprocess
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 from itertools import chain
 import simplejson 
 
@@ -349,10 +349,19 @@ def plot_detail(request, plot_id=''):
 
     plot = plots[0]
 
-    return render_to_response('treemap/plot_detail_infowindow.html',RequestContext(request,{
-        'plot': plot,
-        'tree': plot.current_tree()
-    }))
+    if request.GET.get('format','') == 'popup':
+        return render_to_response('treemap/plot_detail_infowindow.html',RequestContext(request,{
+            'plot': plot,
+            'tree': plot.current_tree()
+        }))
+    else:
+        current_tree = plot.current_tree()
+        history = current_tree.history.order_by('-last_updated')[:5]
+        recent_edits = unified_history(history)
+        if request.user.is_authenticated() and current_tree:
+            favorite = TreeFavorite.objects.filter(user=request.user, tree=current_tree).count() > 0
+        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':current_tree, 'recent': recent_edits}))
+
 
 
 def unified_history(trees):
@@ -456,6 +465,12 @@ def tree_edit(request, tree_id = ''):
     }
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree,'reputation': reputation, 'user': request.user}))           
+
+@login_required
+def plot_edit(request, plot_id = ''):
+    plot = get_object_or_404(Plot, pk=plot_id, present=True)
+    return tree_edit(request, plot.current_tree().id)
+
 
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
@@ -650,18 +665,22 @@ def reject_pend(request, pend_id):
 def view_pends(request):
     tree_pends = TreePending.objects.all()
     plot_pends = PlotPending.objects.all()
-    pends = list(chain(tree_pends, plot_pends)) # chain comes from itertools
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
-        pends = pends.filter(submitted_by__in=u)
+        tree_pends = tree_pends.filter(submitted_by__in=u)
+        plot_pends = plot_pends.filter(submitted_by__in=u)
     if 'address' in request.GET:
-        pends = pends.filter(tree__address_street__icontains=request.GET['address'])
+        tree_pends = tree_pends.filter(tree__plot__address_street__icontains=request.GET['address'])
+        plot_pends = plot_pends.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])
-        pends = pends.filter(tree__neighborhood=n)
+        tree_pends = tree_pends.filter(tree__plot__neighborhood=n)
+        plot_pends = plot_pends.filter(neighborhood=n)
     if 'status' in request.GET:
-        pends = pends.filter(status=request.GET['status'])
+        tree_pends = tree_pends.filter(status=request.GET['status'])
+        plot_pends = plot_pends.filter(status=request.GET['status'])
 
+    pends = list(chain(tree_pends, plot_pends)) # chain comes from itertools
     return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends': pends}))
 
 
@@ -1602,29 +1621,48 @@ def verify_edits(request, audit_type='tree'):
     changes = []
     trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
     newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
     treeactions = []
     
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         trees = trees.filter(last_updated_by__in=u)
+        plots = plots.filter(last_updated_by__in=u)
         newtrees = newtrees.filter(last_updated_by__in=u)
     if 'address' in request.GET:
-        trees = trees.filter(address_street__icontains=request.GET['address'])
-        newtrees = newtrees.filter(address_street__icontains=request.GET['address'])
+        trees = trees.filter(plot__address_street__icontains=request.GET['address'])
+        plots = plots.filter(address_street__icontains=request.GET['address'])
+        newtrees = newtrees.filter(plot__address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])[0].geometry
-        trees = trees.filter(geometry__within=n)
-        newtrees = newtrees.filter(geometry__within=n)
+        trees = trees.filter(plot__geometry__within=n)
+        plots = plots.filter(geometry__within=n)
+        newtrees = newtrees.filter(plot__geometry__within=n)
     
-    
+    for plot in plots:
+        species = 'no species name'
+        actual_plot = Plot.objects.get(pk=plot.id)
+        if actual_plot.current_tree():
+            species = actual_plot.current_tree().species.common_name
+        changes.append({
+            'id': actual_plot.current_tree().id,
+            'species': species,
+            'address_street': actual_tree.plot.address_street,
+            'last_updated_by': tree.last_updated_by.username,
+            'last_updated': tree.last_updated,
+            'change_description': clean_key_names(tree._audit_diff),
+            'change_id': tree._audit_id,
+            'type': 'plot'
+        })
     for tree in trees:
         species = 'no species name'
         if tree.species:
             species = tree.species.common_name
+        actual_tree = Tree.objects.get(pk=tree.id)
         changes.append({
             'id': tree.id,
             'species': species,
-            'address_street': tree.address_street,
+            'address_street': actual_tree.plot.address_street,
             'last_updated_by': tree.last_updated_by.username,
             'last_updated': tree.last_updated,
             'change_description': clean_key_names(tree._audit_diff),
@@ -1635,10 +1673,11 @@ def verify_edits(request, audit_type='tree'):
         species = 'no species name'
         if tree.species:
             species = tree.species.common_name
+        actual_tree = Tree.objects.get(pk=tree.id)
         changes.append({
             'id': tree.id,
             'species': species,
-            'address_street': tree.address_street,
+            'address_street': actual_tree.plot.address_street,
             'last_updated_by': tree.last_updated_by,
             'last_updated': tree.last_updated,
             'change_description': 'New Tree',
@@ -1646,6 +1685,7 @@ def verify_edits(request, audit_type='tree'):
             'type': 'tree'
         })
         
+    changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
 
 @login_required
@@ -1714,6 +1754,10 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     #parse change type and retrieve change object
     if change_type == 'tree':
         change = Tree.history.filter(_audit_id__exact=change_id)[0]
+        user = get_object_or_404(User, pk=change.last_updated_by_id)
+        obj = get_object_or_404(Tree, pk=change.id)
+    elif change_type == 'plot':
+        change = Plot.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.last_updated_by_id)
         obj = get_object_or_404(Tree, pk=change.id)
     elif change_type == 'action':

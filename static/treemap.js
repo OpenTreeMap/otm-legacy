@@ -770,7 +770,7 @@ var tm = {
             jQuery.getJSON('/plots/location/',
                 {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                 function(json) {
-                    var html = '<a href="/trees/' + json.features[0].properties.id + '">Tree #' + json.features[0].properties.id + '</a>';
+                    var html = '<a href="/plots/' + json.features[0].properties.id + '">Plot #' + json.features[0].properties.id + '</a>';
                     $('#alternate_tree_div').html(html);
                 }
             );
@@ -1121,16 +1121,16 @@ var tm = {
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
+                                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                                 }
                             });
                         } else {
-                            jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
+                            jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                         }
                     });
                 }
                 else {
-                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/');
+                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                 }
             }
         }
