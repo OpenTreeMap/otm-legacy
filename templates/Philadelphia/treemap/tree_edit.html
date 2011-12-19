@@ -53,7 +53,7 @@
     <tr>
     	<td class="col1">Tree diameter (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ tree.dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{tree.dbh}}'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{tree.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
     {% if user.reputation.reputation > 1000 %}

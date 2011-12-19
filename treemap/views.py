@@ -1297,7 +1297,7 @@ def _build_tree_search_result(request):
             #geog_obj = cache_search_aggs(query_pairs=({'trees':trees,'query':q},),return_first=True)
             geog_obj = AggregateSearchResult(key=q)
             geog_obj.total_trees = trees.count()
-            geog_obj.distinct_species = trees.values("species").annotate(Count("id")).order_by("species").count()
+            #geog_obj.distinct_species = trees.values("species").annotate(Count("id")).order_by("species").count()
             #TODO figure out how to summarize diff stratum stuff
             fields = [x.name for x in ResourceSummaryModel._meta.fields 
                 if not x.name in ['id','aggregatesummarymodel_ptr','key','resourcesummarymodel_ptr','last_updated']]
@@ -1454,7 +1454,7 @@ def advanced_search(request, format='json'):
         
 
     else:
-        esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
+        #esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
         #print 'we have %s  ..' % esj
         #print 'aggregating..'
 

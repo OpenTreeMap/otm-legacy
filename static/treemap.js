@@ -1928,7 +1928,7 @@ var tm = {
         tm.currentDiameter = $(field).html();
         for (var i = 0; i < Math.max(diams.length, 1); i++) {
             var val = '';
-            if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
+            if (diams[i]) { val = parseFloat(diams[i]).toFixed(3); }
             html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
             if (i == 0) {
                 html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"

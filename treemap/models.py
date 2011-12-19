@@ -464,9 +464,9 @@ class Plot(models.Model):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
-        print n.__dict__
-        print oldn.__dict__
-        print z.__dict__
+        #print n.__dict__
+        #print oldn.__dict__
+        #print z.__dict__
         if n: 
             for nhood in n:
                 self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
@@ -748,29 +748,32 @@ class Tree(models.Model):
     
     #TODO: this is now unacceptably slow for larger locations like Philly, find another way to do this that doesn't happen every save
     def update_aggregate(self, ag_model, location):        
-        #agg =  ag_model.objects.filter(location=location)
-        #if agg:
-        #    agg = agg[0]
-        #else:
-        #    agg = ag_model(location=location)
+        agg =  ag_model.objects.filter(location=location)
+        if agg:
+            agg = agg[0]
+        else:
+            agg = ag_model(location=location)
         #print agg.__dict__
         #summaries = []        
-        #trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        trees = Tree.objects.filter(plot__geometry__within=location.geometry).exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
         #print trees
-        #agg.total_trees = len(trees)
+        agg.total_trees = trees.count()
         #print agg.total_trees
         #TODO: speed this up! A lot!
         #agg.distinct_species = len(trees.values("species"))
         #print agg.distinct_species
         #TODO figure out how to summarize diff stratum stuff
-        #field_names = [x.name for x in ResourceSummaryModel._meta.fields 
-        #    if not x.name == 'id']
-        #for f in field_names:
-        #    fn = 'treeresource__' + f
-        #    s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-        #    setattr(agg,f,s)
-        #agg.save()
-        pass
+        field_names = [x.name for x in ResourceSummaryModel._meta.fields 
+            if not x.name == 'id']
+        for f in field_names:
+            if agg.total_trees == 0:
+                s = 0.0
+            else: 
+                fn = 'treeresource__' + f
+                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            setattr(agg,f,s)
+        agg.save()
+        
         
     def percent_complete(self):
         has = 0
@@ -1073,7 +1076,7 @@ class TreeResource(ResourceSummaryModel):
 class AggregateSummaryModel(ResourceSummaryModel):
     last_updated = models.DateTimeField(auto_now=True)
     total_trees = models.IntegerField()
-    distinct_species = models.IntegerField()
+    #distinct_species = models.IntegerField()
 
     def ensure_recent(self, current_tree_count = ''):
       if current_tree_count and current_tree_count == self.total_trees:
