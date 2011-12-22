@@ -194,6 +194,7 @@ def plot_location_search(request):
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
 
     if geom.geom_type == 'Point':
+        print float(distance), geom, plots
         plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
             ).distance(geom).order_by('distance')
@@ -201,17 +202,19 @@ def plot_location_search(request):
     else:
       plots = plots.filter(geometry__intersects=geom)
     # needed to be able to prioritize overlapping trees
-
-    extent = plots.extent()
+    if plots:
+        extent = plots.extent()
+    else:
+        extent = []
 
     species = request.GET.get('species')
     if species:
         plots_filtered_by_species = []
         for plot in plots:
             current_tree = plot.current_tree()
-            if current_tree and current_tree.species.symbol == species:
+            if current_tree and current_tree.species and current_tree.species.id == int(species):
                 plots_filtered_by_species.append(plot)
-
+                print plot, current_tree, current_tree.species.id
 
         # to allow clicking other trees still...
         if len(plots_filtered_by_species) > 0:
@@ -300,18 +303,24 @@ def favorites(request, username):
     return render_to_json(js)
     
 def trees(request, tree_id=''):
-    trees = Tree.objects.filter(present=True)
     # testing - to match what you get in /location query and in map tiles.
     favorite = False
     recent_edits = []
     if tree_id:
-        trees = trees.filter(pk=tree_id)
+        tree = Tree.objects.get(pk=tree_id)
         
-        if not trees.exists():
+        if not tree:
             raise Http404
         
+        if tree.present == False:
+            plot = tree.plot
+            if plot.present == False:
+                raise Http404
+            else:
+                return HttpResponseRedirect('/plots/%s/' % plot.id)
+
         # get the last 5 edits to each tree piece
-        history = trees[0].history.order_by('-last_updated')[:5]
+        history = tree.history.order_by('-last_updated')[:5]
         
         recent_edits = unified_history(history)
     
@@ -334,7 +343,7 @@ def trees(request, tree_id=''):
     if request.GET.get('format','') == 'eco_infowindow':
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
-        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'recent': recent_edits}))
+        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'plot': tree.plot, 'recent': recent_edits}))
 
 def plot_detail(request, plot_id=''):
     plots = Plot.objects.filter(present=True)
@@ -356,13 +365,34 @@ def plot_detail(request, plot_id=''):
         }))
     else:
         current_tree = plot.current_tree()
-        history = current_tree.history.order_by('-last_updated')[:5]
+        history = plot.history.order_by('-last_updated')[:5]
+        if current_tree:
+            history = list(chain(history, current_tree.history.order_by('-last_updated')[:5]))
         recent_edits = unified_history(history)
         if request.user.is_authenticated() and current_tree:
             favorite = TreeFavorite.objects.filter(user=request.user, tree=current_tree).count() > 0
-        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':current_tree, 'recent': recent_edits}))
+        else:
+            favorite = None
+        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':current_tree, 'plot': plot, 'recent': recent_edits}))
 
+@login_required
+def plot_add_tree(request, plot_id): 
+    user = request.user
+    tree = Tree()
+    plot = Plot.objects.get(pk=plot_id)
+    tree.plot = plot
+    import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
+    tree.import_event = import_event
+    tree.last_updated_by = request.user
+    tree.save()
 
+    history = plot.history.order_by('-last_updated')[:5]
+    if tree:
+        history = list(chain(history, tree.history.order_by('-last_updated')[:5]))
+    recent_edits = unified_history(history)
+
+    Reputation.objects.log_reputation_action(user, user, 'add tree', 25, tree)
+    return render_to_json({'status':'success'})
 
 def unified_history(trees):
     recent_edits = []
@@ -464,12 +494,17 @@ def tree_edit(request, tree_id = ''):
         "user_rep": Reputation.objects.reputation_for_user(request.user)    
     }
 
-    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree,'reputation': reputation, 'user': request.user}))           
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree, 'plot': tree.plot, 'reputation': reputation, 'user': request.user}))           
 
 @login_required
 def plot_edit(request, plot_id = ''):
     plot = get_object_or_404(Plot, pk=plot_id, present=True)
-    return tree_edit(request, plot.current_tree().id)
+    reputation = {        
+        "base_edit": Permission.objects.get(name = 'can_edit_condition'),
+        "user_rep": Reputation.objects.reputation_for_user(request.user)    
+    }
+
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))   
 
 
 def tree_delete(request, tree_id):
@@ -478,6 +513,25 @@ def tree_delete(request, tree_id):
     tree.save()
     
     for h in tree.history.all():
+        h.present = False
+        h.save()
+    
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
+
+
+def plot_delete(request, plot_id):
+    plot = Plot.objects.get(pk=plot_id)
+    plot.present = False
+    plot.save()
+
+    if plot.current_tree():
+        plot.current_tree().present = False
+        plot.current_tree().save()
+    
+    for h in plot.history.all():
         h.present = False
         h.save()
     
@@ -965,7 +1019,7 @@ def plot_location_update(request):
     plot.address_street = post.get('address')
     plot.geocoded_address = post.get('address')
     plot.address_city = post.get('city')
-    plot.save()
+    plot.quick_save()
     
     response_dict['success'] = True
     
@@ -1000,8 +1054,8 @@ def tree_add(request, tree_id = ''):
 
 def added_today_list(request, user_id=None, format=None):
     user = None
-    twelvehrs = timedelta(hours=12)
-    start_date = datetime.now() - twelvehrs
+    past_date = timedelta(hours=24)
+    start_date = datetime.now() - past_date
     end_date = datetime.now()
     new_trees = Tree.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
     if user_id:
@@ -1045,9 +1099,9 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True).filter(Q(plot__geocoded_accuracy__gte=7)|Q(plot__geocoded_accuracy=None)|(Q(plot__geocoded_accuracy=-1) & Q(plot__owner_geometry__isnull=False)) )
+        trees = Tree.objects.filter(present=True)
     else:
-        trees = Tree.objects.filter(species__in=species, present=True).filter(Q(plot__geocoded_accuracy__gte=7)|Q(plot__geocoded_accuracy=None))
+        trees = Tree.objects.filter(species__in=species, present=True)
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1062,12 +1116,16 @@ def _build_tree_search_result(request):
             if 'geoName' in request.GET:
                 geoname = request.GET['geoName']
                 ns = ns.filter(name=geoname)
+                print ns
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
-                ns = ns.filter(plot__geometry__contains=pt)
-            if ns.count():          
-                trees = trees.filter(neighborhood = ns[0])
+                ns = ns.filter(geometry__contains=pt)
+
+            if ns.count():        
+                print trees  
+                trees = trees.filter(plot__neighborhood = ns[0])
+                print trees
                 geog_obj = ns[0]
                 tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
         else:
@@ -1492,8 +1550,8 @@ def advanced_search(request, format='json'):
   
     tj = [{
           'id': t.id,
-          'lon': '%.12g' % t.geometry.x, 
-          'lat' : '%.12g' % t.geometry.y,
+          'lon': '%.12g' % t.plot.geometry.x, 
+          'lat' : '%.12g' % t.plot.geometry.y,
           'cmplt' : t.is_complete()
           } for t in trees]
 
@@ -1528,7 +1586,6 @@ def geographies(request, model, id=''):
     list = request.GET.get('list', '')
     
     ns = model.objects.all().order_by('state','county','name')
-    
     if location:
         coords = map(float,location.split(','))
         pt = Point(coords)

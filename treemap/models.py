@@ -4,7 +4,7 @@ from decimal import *
 from datetime import datetime
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.gis.db.models import Sum
+from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
 from sorl.thumbnail.fields import ImageWithThumbnailsField
@@ -433,11 +433,46 @@ class Plot(models.Model):
 
     def get_active_pends_with_tree_pends(self):
         plot_pends = self.plotpending_set.filter(status='pending')
-        tree_pends = self.current_tree().get_active_pends()
+        if self.current_tree():
+            tree_pends = self.current_tree().get_active_pends()
+        else:
+            tree_pends = []
         pends = list(chain(plot_pends, tree_pends))
         return pends
 
-    def save(self,*args,**kwargs):
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.type:
+                return value
+        return None
+
+    def get_plot_size(self): 
+        length = self.length
+        width = self.width
+        if length == None: length = 'Missing'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
+        if width == None: width = 'Missing'
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        return '%s x %s' % (length, width)
+    
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.sidewalk_damage:
+                return value
+        return None    
+
+    def get_powerline_conflict_potential(self):
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None
+
+    def quick_save(self, *args, **kwargs):
+        super(Plot, self).save(*args,**kwargs) 
+
+    def save(self, *args, **kwargs):
         pnt = self.geometry
                 
         n = Neighborhood.objects.filter(geometry__contains=pnt)
@@ -450,9 +485,7 @@ class Plot(models.Model):
                     self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
         else: 
             self.neighborhoods = ""
-        
-        super(Plot, self).save(*args,**kwargs) 
-        
+                
         oldn = self.neighborhood.all()
         oldz = self.zipcode
         if n:
@@ -464,19 +497,21 @@ class Plot(models.Model):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+        super(Plot, self).save(*args,**kwargs) 
         #print n.__dict__
         #print oldn.__dict__
         #print z.__dict__
-        if n: 
-            for nhood in n:
-                self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
-        if oldn: 
-            for nhood in oldn:
-                self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
-         
-        if z and z[0] != oldz:
-            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
-            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+        if self.current_tree():
+            if n: 
+                for nhood in n:
+                    self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+            if oldn: 
+                for nhood in oldn:
+                    self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+             
+            if z and z[0] != oldz:
+                if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
+                if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -557,29 +592,6 @@ class Tree(models.Model):
     def get_absolute_url(self):
         return "/trees/%i/" % self.id
     
-    def get_plot_type_display(self):
-        for key, value in Choices().get_field_choices('plot_type'):
-            if key == self.plot.type:
-                return value
-        return None
-
-    def get_plot_size(self): 
-        length = self.plot_length
-        width = self.plot_width
-        if length == None: length = 'Missing'
-        elif length == 99: length = '15+ ft'
-        else: length = '%.2f ft' % length
-        if width == None: width = 'Missing'
-        elif width == 99: width = '15+ ft'
-        else: width = '%.2f ft' % width
-        print length, width
-        return '%s x %s' % (length, width)
-    
-    def get_sidewalk_damage_display(self):
-        for key, value in Choices().get_field_choices('sidewalk_damage'):
-            if key == self.plot.sidewalk_damage:
-                return value
-        return None    
 
     def get_condition_display(self):
         for key, value in Choices().get_field_choices('condition'):
@@ -587,12 +599,6 @@ class Tree(models.Model):
                 return value
         return None
        
-    def get_powerline_conflict_potential(self):
-        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
-            if key == self.plot.powerline_conflict_potential:
-                return value
-        return None
-
     def get_scientific_name(self):
         if self.species:
             sn = self.species.scientific_name
@@ -779,13 +785,10 @@ class Tree(models.Model):
         has = 0
         attr = settings.COMPLETE_ARRAY
         for item in attr:
-            print item
             if hasattr(self,item):
                 if getattr(self,item):
                     has +=1
             elif hasattr(self.plot, item):
-                print "  has", hasattr(self.plot,item)
-                print "  get", getattr(self.plot,item)
                 if getattr(self.plot, item):
                     has +=1
         return has/float(len(attr))*100

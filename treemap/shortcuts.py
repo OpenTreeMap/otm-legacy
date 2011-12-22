@@ -63,7 +63,7 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
     if not model:
         model = query_set.model
 
-    if not extent:
+    if not extent and query_set:
         extent = query_set.extent()
 
     fields = model._meta.fields

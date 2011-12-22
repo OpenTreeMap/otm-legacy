@@ -46,11 +46,10 @@
         
 
 <ul id="optionList">
-	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
+	<li id="details"><a href="/trees/{{tree.id}}">View all details</a></li>
 	<li id="note">Tree's profile page</li>
-	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
+	<li id="edit"><a href="/trees/{{tree.id}}/edit/">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
-    {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 
 

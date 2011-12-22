@@ -2029,8 +2029,22 @@ var tm = {
             }
         });
     },
+    addTreeToPlot: function(plot_id) {
+        $.ajax({
+            url: '/plots/' + plot_id + '/addtree/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Add', 'New Tree');
+                location = "/plots/" + plot_id + "/";
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + plot_id);
+            }
+        });
+    },
     deleteTree: function(tree_id) {
-        if (window.confirm("Are you sure you want to delete this tree permanently from the system?"))
+        if (window.confirm("Are you sure you want to remove this tree permanently from the system?"))
         {
             $.ajax({
                 url: '/trees/' + tree_id + '/delete/',
@@ -2046,7 +2060,23 @@ var tm = {
             });
         }
     },
-
+    deletePlot: function(plot_id) {
+        if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
+        {
+            $.ajax({
+                url: '/plots/' + plot_id + '/delete/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    tm.trackEvent('Edit', 'Delete');
+                    window.location = "/map/";
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + plot_id);
+                }
+            });
+        }
+    },
     deletePhoto: function(tree_id, photo_id) {
         if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
         {

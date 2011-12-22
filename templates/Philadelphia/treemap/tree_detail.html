@@ -29,17 +29,17 @@
         <!-- start contentbody -->
 
         <div id="contentbody">
-				<a href="./edit" class="buttonMed floatRight"><span class="icon iconUpdate"></span><span class="label">Edit Tree Info</span></a>
+				<a href="./edit" class="buttonMed floatRight"><span class="icon iconUpdate"></span><span class="label">Edit Info</span></a>
 		<h2 id="pageHead">
-		{% ifequal tree.get_common_name "unavailable" %}
+		{% if tree.get_common_name == "unavailable" %}
 			Species Not Yet Determined
 		{% else %}
 			{{tree.get_common_name}}
-		{% endifequal %}
+		{% endif %}
 		</h2>
 
 		<h3 id="pageHead">
-			{{ tree.plot.address_street|default:"No Address" }}<br/>{{ tree.plot.address_city }}, {{tree.plot.neighborhood.all.0.state}}
+			{{ plot.address_street|default:"No Address" }}<br/>{{ plot.address_city }}, {{plot.neighborhood.all.0.state}}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -51,7 +51,7 @@
             {% block middle_panel %}
     <!-- start t2_middle_panel  -->
     <div class="data">
-
+        {% if tree %}
         <div class="wrap">
             <h2>Common Attributes</h2>
             <ul class="attributes">
@@ -68,11 +68,6 @@
                 {% if tree.species.native_status %}
                 <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
-                    {% comment %}
-                    {% if tree.species. %}
-                    <li><img src="/static/images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
-                    {% endif %}
-                    {% endcomment %}
 
                 {% if tree.get_flag_count > 0 %}
                 	{% for a in tree.treeflags_set.all %}
@@ -98,9 +93,11 @@
 
             </ul>
         </div>
-
+        {% endif %}
 
 <table class="box-table-a">
+{% if tree %}
+
     <thead>
     	<tr>
         	<th scope="col" colspan="4">General Tree Information</th>
@@ -141,8 +138,18 @@
             <td>{{tree.plot.address_street|default:"Missing"}}</td>
             <td></td>
         </tr>
+    {% else %}
+        <thead>
+        	<tr>
+            	<th scope="col" colspan="4">No tree information for this plot. <a href="#" onclick="tm.addTreeToPlot({{plot.id}}); return false;">Add a tree here?</a></th>
+            </tr>
+        </thead>
+    {% endif %}
+
     </tbody>
 </table>
+
+{% if tree %}
 
 <table class="box-table-a">
     <thead>
@@ -152,44 +159,47 @@
         </tr>
     </thead>
     <tbody>
-{% if tree.species %} {% if tree.dbh %}
-    	<tr>
-        	<td class="col1Wide">Stormwater intercepted</td>
-            <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
-            <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
-        </tr>
+    {% if tree.species %} 
+        {% if tree.dbh %}
+        	<tr>
+            	<td class="col1Wide">Stormwater intercepted</td>
+                <td>{{tree.treeresource.annual_stormwater_management|floatformat:0}} gal</td>
+                <td>${{tree.treeresource.benefits.water|floatformat:2}}</td>
+            </tr>
+            <tr>
+            	<td class="col1Wide">Energy conserved</td>
+                <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
+                <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+            </tr>
+            <tr>
+            	<td class="col1Wide">Air pollutants removed</td>
+                <td>{{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs</td>
+                <td>${{tree.treeresource.benefits.air_quality|floatformat:2}}</td>
+            </tr>
+            <tr>
+            	<td class="col1Wide">Carbon dioxide reduced</td>
+                <td>{{tree.treeresource.annual_co2_reduced|floatformat:0}} lbs</td>
+                <td>${{tree.treeresource.benefits.co2_reduced|floatformat:2}}</td>
+            </tr>
+            <tr>
+            	<td class="col1Wide">Total Co2 stored to date</td>
+                <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
+                <td>${{tree.treeresource.benefits.co2_stored|floatformat:2}}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3"><span class="note">Data is not available. The trunk diameter is needed to calculate the environmental resources for this tree. <a href="edit/">Add the diameter &raquo;</a></span></td>
+            </tr>
+        {% endif %}
+    {% else %}
         <tr>
-        	<td class="col1Wide">Energy conserved</td>
-            <td>{{tree.treeresource.annual_energy_conserved|floatformat:0}} kWh</td>
-            <td>${{tree.treeresource.benefits.energy|floatformat:2}}</td>
+            <td colspan="3">Data is not available. The tree species is needed to calculate the environmental resources for this tree. <a href="edit/">Add the species >></a></td>
         </tr>
-        <tr>
-        	<td class="col1Wide">Air pollutants removed</td>
-            <td>{{tree.treeresource.annual_air_quality_improvement|floatformat:3}} lbs</td>
-            <td>${{tree.treeresource.benefits.air_quality|floatformat:2}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Carbon dioxide reduced</td>
-            <td>{{tree.treeresource.annual_co2_reduced|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_reduced|floatformat:2}}</td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Total Co2 stored to date</td>
-            <td>{{tree.treeresource.total_co2_stored|floatformat:0}} lbs</td>
-            <td>${{tree.treeresource.benefits.co2_stored|floatformat:2}}</td>
-        </tr>
-{% else %}
-        <tr>
-            <td colspan="3"><span class="note">Data is not available. The trunk diameter is needed to calculate the environmental resources for this tree. <a href="edit/">Add the diameter &raquo;</a></span></td>
-        </tr>
-{% endif %}
-{% else %}
-        <tr>
-            <td colspan="3">Data is not available. The trunk species is needed to calculate the environmental resources for this tree. <a href="edit/">Add the species >></a></td>
-        </tr>
-{% endif %}
+    {% endif %}
     </tbody>
 </table>
+
+{% endif %}
 
 <table class="box-table-a">
     <thead>
@@ -201,24 +211,26 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{{tree.plot.width|unit_or_missing:"ft x "}}{{tree.plot.length|unit_or_empty:"ft" }} </td>
+            <td>{{ plot.width|unit_or_missing:"ft x " }}{{ plot.length|unit_or_empty:"ft" }} </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
-            <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
+            <td>{{ plot.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential|default:"Missing" }}</td>
+            <td>{{ plot.get_powerline_conflict_potential|default:"Missing" }}</td>
         </tr>
         {% if tree.data_owner.id != 11 %}
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
-            <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
+            <td>{{ plot.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
 		{% endif %}
     </tbody>
 </table>
+
+{% if tree %}
 
 <table class="box-table-a">
     <thead>
@@ -284,6 +296,8 @@
     </tbody>
 </table>
 
+{% endif %}
+
                     </div>
                     <!-- end t2_middle_panel  -->
 
@@ -297,7 +311,7 @@
                             <div id="edit_tree_map"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"><div class="shadowTop"></div><div class="shadowLeft"></div></div>
-							{% if tree.data_owner.id != 11 %}
+							{% if tree and tree.data_owner.id != 11 %}
 							<div id="tree_comments">
 								<div class="wrap">
 									<h2>Comments</h2>
@@ -364,6 +378,8 @@
 
                 {% block left_panel %}
                 <!-- start t2_left_panel  -->
+
+{% if tree %}
 
          <div id="t2_top_left_panel">
             <ul id="userImage">
@@ -475,63 +491,18 @@
             </ul>
         </div>
 
+{% else %}
 
-                 <!-- end t2_left_panel  -->
 
-            {% endblock left_panel %}
+{% endif %}
 
-                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Actions</div>
-                    <div class="tree_detail_val">
-                    {{tree.get_action_count}} known <a href="#" id="tree_actions"> See Details</a>
-                        <div>
-                            {% for a in tree.treeaction_set.all %}
-                                {{a.key}} ({{a.reported_by}})<br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                 <div class="tree_detail_item"><div class="tree_detail_key">Recent Alerts</div>
-                    <div class="tree_detail_val">
-                    {{tree.get_alert_count}} known <a href="#" id="tree_alerts"> See Details</a>
-                      <div>
-                        {% for a in tree.treealert_set.all %}
-                            {{a.key}} : {{a.value|date}}<br>
-                        {% endfor %}
-                      </div>
-                    </div>
-                </div>
-                 <h5>History</h5>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Added By</div>
-                     <div class="tree_detail_val">{{tree.data_owner}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Date planted</div>
-                     <div class="tree_detail_val">{{tree.date_planted|date}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Planted by</div>
-                     <div class="tree_detail_val">{{tree.get_planter}}</div>
-                 </div>
-                 <div class="tree_detail_item">
-                     <div class="tree_detail_key">Tree steward</div>
-                     <div class="tree_detail_val">{{tree.steward}}</div>
-                 </div>
-                <h5>Environmental</h5>
+{% endblock left_panel %}
 
-            </td>
-            <td>
-            static map<br><br><br>
-            What do i share?<br>
-
-            </td>
-        </tr></table>
-    </div>
-
+                
 {% block endpage %}
 	<script>
-		tm.current_tree_geometry = [{{tree.plot.geometry.x}}, {{tree.plot.geometry.y}}];
-		tm.currentTreeId = {{tree.id}};
+		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
+		tm.currentTreeId = {% if tree %}{{tree.id}} {% else %} {{plot.id}} {% endif %};
 		tm.init_tree_map(false); //not editable
 		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
 	</script>

@@ -351,4 +351,76 @@ END $$ LANGUAGE plpgsql;
 SELECT * FROM fill_treemap_pending();
 DROP FUNCTION fill_treemap_pending();
 
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+-- Connecting plots to neighborhoods - run in python shell
+
+from treemap.models import *
+plots = Plot.objects.all()
+for p in plots:
+   p.neighborhoods = ""
+   p.neighborhood.clear()
+   n = Neighborhood.objects.filter(geometry__contains=p.geometry)
+   if n:
+     for nhood in n:
+       p.neighborhoods = p.neighborhoods + " " + nhood.id.__str__()
+       p.neighborhood.add(nhood)
+   p.quick_save()
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+-- Cleanup
+
+
+drop table treemap_tree_neighborhood ;
+
+delete from treemap_tree 
+  where import_event_id=226 
+  and species_id IS NULL
+  and dbh IS NULL
+  and date_planted IS NULL
+  and powerline_conflict_potential IS NULL
+  and plot_width IS NULL
+  and plot_length IS NULL
+  and height IS NULL
+  and canopy_height IS NULL
+  and sidewalk_damage IS NULL
+  and condition IS NULL
+  and canopy_condition IS NULL
+  and photo_count IS NULL
+  and last_updated_by_id = 1
+;
+
+alter table treemap_resource drop column property_value_dbh;
+alter table treemap_resource drop column net_vocs_dbh;
+alter table treemap_resource drop column co2_decomp_dbh;
+alter table treemap_resource drop column co2_maint_dbh;
+alter table treemap_resource drop column net_co2_sequestered_dbh;
+alter table treemap_resource drop column lsa_dbh;
+alter table treemap_resource drop column cpa_dbh;
+alter table treemap_resource drop column dbh_by_age_class_dbh;
+
+DROP VIEW geoserver_tree_highlight ;
+
+alter table treemap_tree drop column powerline_conflict_potential;
+alter table treemap_tree drop column plot_length;
+alter table treemap_tree drop column plot_width;
+alter table treemap_tree drop column plot_type;
+alter table treemap_tree drop column address_city;
+alter table treemap_tree drop column address_street;
+alter table treemap_tree drop column address_zip;
+alter table treemap_tree drop column neighborhoods;
+alter table treemap_tree drop column zipcode_id;
+alter table treemap_tree drop column geocoded_accuracy;
+alter table treemap_tree drop column geocoded_address;
+alter table treemap_tree drop column geocoded_lat;
+alter table treemap_tree drop column geocoded_lon;
+alter table treemap_tree drop column geometry;
+alter table treemap_tree drop column geocoded_geometry;
+alter table treemap_tree drop column owner_geometry;
+alter table treemap_tree drop column sidewalk_damage;
+
+alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;
+
 COMMIT;

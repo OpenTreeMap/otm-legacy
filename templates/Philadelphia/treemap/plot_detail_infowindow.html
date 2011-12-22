@@ -46,11 +46,10 @@
 
 
 <ul id="optionList">
-	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
+	<li id="details"><a href="/plots/{{plot.id}}/">View all details</a></li>
 	<li id="note">Tree's profile page</li>
-	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
+	<li id="edit"><a href="/plots/{{plot.id}}/edit/">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
-    {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 
 
@@ -59,12 +58,14 @@
             <li id="fav">Favorited (<a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
              class="favorite fav unfave">Unfavorite</a>)</li>
         {% else %}
-		    <li id="fav">
-            <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
-             class="favorite fav fave">Add as favorite</a>
-			 </li>
-            {% if tree.treefavorite_set.all.count %}
-             <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+            {% if tree %}
+		        <li id="fav">
+                <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
+                 class="favorite fav fave">Add as favorite</a>
+			     </li>
+                {% if tree.treefavorite_set.all.count %}
+                 <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+                {% endif %}
             {% endif %}
         {% endif %}
 
@@ -76,47 +77,39 @@
 
 
 <div class="infoWindowDetails">
-<div class="infoLabel">Nearby address</div>
-<div class="infoValue">{{ plot.address_street|default:"Missing" }}</div>
+    <div class="infoLabel">Nearby address</div>
+    <div class="infoValue">{{ plot.address_street|default:"Missing" }}</div>
 
-<div class="col1">
-  <div class="infoLabel">Trunk diameter</div>
-  <div class="infoValue">{{ tree.dbh|unit_or_missing:"in" }}</div>
-</div>
+    {% if tree %}
 
-<div class="col2">
-	<div class="infoLabel">Height</div>
-	<div class="infoValue">{{ tree.height|unit_or_missing:"ft" }}</div>
-</div>
+        <div class="col1">
+          <div class="infoLabel">Trunk diameter</div>
+          <div class="infoValue">{{ tree.dbh|unit_or_missing:"in" }}</div>
+        </div>
 
-<div class="col1 clearLeft">
-	<div class="infoLabel">Last updated</div>
-	<div class="infoValue">{{ tree.last_updated|date }}</div>
-</div>
+        <div class="col2">
+	        <div class="infoLabel">Height</div>
+	        <div class="infoValue">{{ tree.height|unit_or_missing:"ft" }}</div>
+        </div>
 
-<div class="col2">
-	<div class="infoLabel">Yearly eco impact</div>
-	<div class="infoValue">{% if tree.get_eco_impact %}${{ tree.get_eco_impact }}{% else %}Not Available{% endif %}</div>
-</div>
+        <div class="col1 clearLeft">
+	        <div class="infoLabel">Last updated</div>
+	        <div class="infoValue">{% if tree %}{{ tree.last_updated|date }}{% else %}{{ plot.last_updated|date }}{% endif %}</div>
+        </div>
 
+        <div class="col2">
+	        <div class="infoLabel">Yearly eco impact</div>
+	        <div class="infoValue">{% if tree and tree.get_eco_impact %}${{ tree.get_eco_impact }}{% else %}Not Available{% endif %}</div>
+        </div>
+    
+    {% else %}
+        
+        <div class="infoLabel">No tree information yet</div>
+        <div class="infoValue"><a href="#" onclick="tm.addTreeToPlot({{plot.id}}); return false;">Add a tree here</a></div>
 
-
-	        {% if tree.treealert_set.all.count > 0 %}
-        <tr>
-        	<td class="col1">Alerts</td>
-            <td>
-                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
-            </td>
-        </tr>
-        {% endif %}
+    {% endif %}
 
 </div>
-
-	<!-- TODO -->
-	<!--
-	<li id="email"><a href="#">Email to a friend</a></li>
-	<li id="twitter"><a href="#">Tweet this tree</a></li>
-	-->
 
 {% endblock %}
 
