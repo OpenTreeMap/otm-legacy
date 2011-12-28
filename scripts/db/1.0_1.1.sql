@@ -353,7 +353,19 @@ DROP FUNCTION fill_treemap_pending();
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
--- Connecting plots to neighborhoods - run in python shell
+-- Create view for geoserver tree layer
+
+CREATE OR REPLACE VIEW plots_with_trees AS 
+ SELECT a.geometry, a.id AS plot_id, b.id AS tree_id
+   FROM treemap_plot a, treemap_tree b
+  WHERE a.present AND b.present AND a.id = b.plot_id;
+
+ALTER TABLE plots_with_trees OWNER TO phillytreemap;
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+-- Connecting plots to neighborhoods - run in django's python shell
 
 from treemap.models import *
 plots = Plot.objects.all()
@@ -376,8 +388,7 @@ for p in plots:
 drop table treemap_tree_neighborhood ;
 
 delete from treemap_tree 
-  where import_event_id=226 
-  and species_id IS NULL
+  where species_id IS NULL
   and dbh IS NULL
   and date_planted IS NULL
   and powerline_conflict_potential IS NULL
