@@ -411,7 +411,7 @@ class Plot(models.Model):
         if width == None: width = 'Missing'
         elif width == 99: width = '15+ ft'
         else: width = '%.2f ft' % width
-        print length, width
+        #print length, width
         return '%s x %s' % (length, width)
 
     def get_sidewalk_damage_display(self):

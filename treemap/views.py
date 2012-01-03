@@ -194,7 +194,7 @@ def plot_location_search(request):
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
 
     if geom.geom_type == 'Point':
-        print float(distance), geom, plots
+        #print float(distance), geom, plots
         plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
             ).distance(geom).order_by('distance')
@@ -214,7 +214,7 @@ def plot_location_search(request):
             current_tree = plot.current_tree()
             if current_tree and current_tree.species and current_tree.species.id == int(species):
                 plots_filtered_by_species.append(plot)
-                print plot, current_tree, current_tree.species.id
+                #print plot, current_tree, current_tree.species.id
 
         # to allow clicking other trees still...
         if len(plots_filtered_by_species) > 0:

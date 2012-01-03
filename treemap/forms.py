@@ -148,7 +148,7 @@ class TreeAddForm(forms.Form):
 
         #TODO: fix this
         if species or height or canopy_height or dbh or condition or canopy_condition:
-            print species, height, canopy_height, dbh, condition, canopy_condition
+           # print species, height, canopy_height, dbh, condition, canopy_condition
             if species:
                 spp = Species.objects.filter(symbol=species)
                 if spp:
@@ -175,7 +175,7 @@ class TreeAddForm(forms.Form):
             new_tree.last_updated_by = request.user
             new_tree.plot = plot
             new_tree.save()
-            print new_tree.__dict__
+            #print new_tree.__dict__
         
         return plot
      
