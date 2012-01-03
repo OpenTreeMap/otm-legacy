@@ -492,8 +492,14 @@ class Plot(models.Model):
         else: 
             self.neighborhoods = ""
                 
-        oldn = self.neighborhood.all()
-        oldz = self.zipcode
+        if self.id:
+            oldn = self.neighborhood.all()
+            oldz = self.zipcode
+        else:
+            oldn = []
+            oldz = None
+
+        super(Plot, self).save(*args,**kwargs) 
         if n:
             self.neighborhood.clear()
             for nhood in n:
@@ -768,7 +774,6 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
     
-    #TODO: this is now unacceptably slow for larger locations like Philly, find another way to do this that doesn't happen every save
     def update_aggregate(self, ag_model, location):        
         agg =  ag_model.objects.filter(location=location)
         if agg:

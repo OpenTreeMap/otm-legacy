@@ -1057,20 +1057,20 @@ def added_today_list(request, user_id=None, format=None):
     past_date = timedelta(hours=24)
     start_date = datetime.now() - past_date
     end_date = datetime.now()
-    new_trees = Tree.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
+    new_plots = Plot.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
     if user_id:
         user = User.objects.get(pk=user_id)
-        new_trees = new_trees.filter(last_updated_by=user)
-    trees = []
-    for tree in new_trees:
-        trees.append(Tree.objects.get(pk=tree.id))
+        new_plots = new_plots.filter(last_updated_by=user)
+    plots = []
+    for plot in new_plots:
+        plots.append(Plot.objects.get(pk=plot.id))
     if format == 'geojson':        
-        tj = [{
-           'id':f.id, 
-           'coords':[f.geometry.x, f.geometry.y]} for f in trees]
-        return render_to_json(tj)
+        plot_json = [{
+           'id':plot.id, 
+           'coords':[plot.geometry.x, plot.geometry.y]} for plot in plots]
+        return render_to_json(plot_json)
     return render_to_response('treemap/added_today.html', RequestContext(request,{
-        'trees' : trees,
+        'plots' : plots,
         'user': user}))
 
 
