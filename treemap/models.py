@@ -389,6 +389,12 @@ class Plot(models.Model):
     import_event = models.ForeignKey(ImportEvent)
     objects = models.GeoManager()
 
+    #original data to help owners associate back to their own db
+    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
+
+
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -513,21 +519,31 @@ class Plot(models.Model):
                 if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
                 if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
 
+    def validate_proximity(self, return_trees=False, max_count=1):
+        if not self.geometry:
+            return None
+        nearby = Plot.objects.filter(present=True, geometry__distance_lte=(self.geometry, D(ft=10.0)))
+        if nearby.count() > max_count: 
+            if return_trees:
+                return nearby 
+            return (nearby.count()-max_count).__str__() #number greater than max_count allows
+        return None
+
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
         #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
     plot = models.ForeignKey(Plot, related_name="plot")
-    data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
     steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
     #original data to help owners associate back to their own db
-    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
-    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
+    #data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    #owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    #owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
@@ -817,12 +833,7 @@ class Tree(models.Model):
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.plot.geometry:
             return None
-        nearby = Plot.objects.filter(geometry__distance_lte=(self.plot.geometry, D(ft=10.0)))
-        if nearby.count() > max_count: 
-            if return_trees:
-                return nearby 
-            return (nearby.count()-max_count).__str__() #number greater than max_count allows
-        return None
+        return self.plot.validate_proximity()
     
     
     # Disallowed combinations:
