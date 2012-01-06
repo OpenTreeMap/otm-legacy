@@ -32,6 +32,7 @@ For issues or questions you can try mailing the user list: http://groups.google.
 * python-simplejson
 * python-django-extensions
 * python-gdal
+* gdal-bin
 
 ###Required libraries from the web###
 * wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
