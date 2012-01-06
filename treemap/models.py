@@ -485,6 +485,7 @@ class Plot(models.Model):
         z = ZipCode.objects.filter(geometry__contains=pnt)
         
         if n:
+            oldns = self.neighborhoods
             self.neighborhoods = ""
             for nhood in n:
                 if nhood:
@@ -509,21 +510,25 @@ class Plot(models.Model):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+
         super(Plot, self).save(*args,**kwargs) 
-        #print n.__dict__
-        #print oldn.__dict__
-        #print z.__dict__
-        if self.current_tree():
+
+        if self.current_tree() and self.neighborhoods != oldns:
+            done = []
             if n: 
                 for nhood in n:
+                    if nhood.id in done: continue
                     self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
             if oldn: 
                 for nhood in oldn:
+                    if nhood.id in done: continue
                     self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
              
-            if z and z[0] != oldz:
-                if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
-                if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+        if self.current_tree() and z and z[0] != oldz:
+            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
+            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
 
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.geometry:
@@ -786,19 +791,19 @@ class Tree(models.Model):
         #print trees
         agg.total_trees = trees.count()
         #print agg.total_trees
-        #TODO: speed this up! A lot!
-        #agg.distinct_species = len(trees.values("species"))
-        #print agg.distinct_species
         #TODO figure out how to summarize diff stratum stuff
         field_names = [x.name for x in ResourceSummaryModel._meta.fields 
             if not x.name == 'id']
-        for f in field_names:
-            if agg.total_trees == 0:
-                s = 0.0
-            else: 
+    
+        if agg.total_trees == 0:
+            for f in field_names:
+                setattr(agg, f, 0.0)
+        else:
+        #TODO speed this up
+            for f in field_names:
                 fn = 'treeresource__' + f
                 s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-            setattr(agg,f,s)
+                setattr(agg,f,s)
         agg.save()
         
         

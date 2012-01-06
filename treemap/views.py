@@ -296,7 +296,7 @@ def top_species(request):
     return 
 
 def favorites(request, username):
-    faves = User.objects.get(username=username).treefavorite_set.all()
+    faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
        'id':f.tree.id, 
        'coords':[f.tree.geometry.x, f.tree.geometry.y]} for f in faves]
@@ -326,7 +326,7 @@ def trees(request, tree_id=''):
     
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
-                tree=trees).count() > 0
+                tree=trees, tree__present=True).count() > 0
     else:
         trees = trees.filter(Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None))
 
@@ -530,6 +530,9 @@ def plot_delete(request, plot_id):
     if plot.current_tree():
         plot.current_tree().present = False
         plot.current_tree().save()
+        for h in plot.current_tree().history.all():
+            h.present = False
+            h.save()
     
     for h in plot.history.all():
         h.present = False

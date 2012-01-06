@@ -113,13 +113,13 @@ class TreeAddForm(forms.Form):
         if plot_width:
             plot.width = float(plot_width)
         if plot_width_in:
-            plot.width = new_tree.plot_width + (float(plot_width_in) / 12)
+            plot.width = plot.width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
         plot_length_in = self.cleaned_data.get('plot_length_in')
         if plot_length:
             plot.length = float(plot_length)
         if plot_length_in:
-            plot.length = new_tree.plot_length + (float(plot_length_in) / 12)
+            plot.length = plot.length + (float(plot_length_in) / 12)
         plot_type = self.cleaned_data.get('plot_type')
         if plot_type:
             plot.type = plot_type
