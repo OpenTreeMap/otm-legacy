@@ -770,7 +770,7 @@ var tm = {
             jQuery.getJSON('/plots/location/',
                 {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                 function(json) {
-                    var html = '<a href="/plots/' + json.features[0].properties.id + '">Plot #' + json.features[0].properties.id + '</a>';
+                    var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
                     $('#alternate_tree_div').html(html);
                 }
             );
@@ -958,14 +958,14 @@ var tm = {
                             $('#nearby_trees').html("No other trees nearby.")
                         }
                         else {
-                            $('#nearby_trees').html("Found " + geojson.features.length + " tree(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                            $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
                             $.each(geojson.features, function(i,f){
                                 var tree = $('#nearby_trees');
                                 if (f.properties.common_name){
-                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                                    tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                                 }
                                 else {
-                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                                    tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
                                 }
                                 if (f.properties.current_dbh){
                                     tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
@@ -1323,7 +1323,7 @@ var tm = {
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
         tm.trackEvent('Edit', 'Location', 'Start');
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },
@@ -1332,7 +1332,7 @@ var tm = {
         //tm.tree_marker.disableDragging();     
         tm.drag_control.activate();
         tm.trackEvent('Edit', 'Location', 'Save');
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a>'
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
         },

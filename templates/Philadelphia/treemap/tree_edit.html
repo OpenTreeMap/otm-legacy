@@ -213,9 +213,9 @@
                 <div class="aside">
                     <div id="editOptionContainer">
                         <ul>
-                            <li id="title">Edit the Plot Location</li>
+                            <li id="title">Edit the Bed Location</li>
                             <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
-                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Tree Location</a></span></li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a></span></li>
                         </ul>
                     </div>
                     <div class="editMap">
@@ -279,15 +279,15 @@
 				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ tree.id }});return false;" >Delete this Tree</a></li>
 				<li>Trees may be deleted only by administrative users. Deleting this tree will remove
 					it from public view. Please do not delete this tree unless you are
-					sure that it is a duplicate or should otherwise not be in the system.
+					sure that it is a duplicate or has been removed or should otherwise not be in the system.
 					Due to caching of the map tiles, the tree may not immediately be deleted from
 					the map search page. </li>
                 {% endif %}
-                <li id="title"><a href="javascript:void(0)" onclick="tm.deletePlot({{ plot.id }});return false;" >Delete this Plot</a></li>
-				<li>Plots may be deleted only by administrative users. Deleting this plot will remove
-					it and the current tree from public view. Please do not delete this plot unless you are
-					sure that it is a duplicate or should otherwise not be in the system.
-					Due to caching of the map tiles, the plot may not immediately be deleted from
+                <li id="title"><a href="javascript:void(0)" onclick="tm.deletePlot({{ plot.id }});return false;" >Delete this Tree Bed</a></li>
+				<li>Tree beds may be deleted only by administrative users. Deleting this tree bed will remove
+					it and any current tree planted here from public view. Please do not delete this tree bed unless you are
+					sure that it is a duplicate or has been removed or should otherwise not be in the system.
+					Due to caching of the map tiles, the tree bed may not immediately be removed from
 					the map search page. </li>
             </ul>
                 {% if tree %}
