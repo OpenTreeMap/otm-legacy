@@ -1431,20 +1431,23 @@ def geo_search(request):
         h.status_code = 500
         return h
 
-    trees = Tree.objects.filter(geometry__within=poly).all()
-
+    #TODO - Generate count?                                                                                                                                  
+    trees = Tree.objects.filter(plot__geometry__within=poly, species__isnull=False, dbh__isnull=False).all()
+    
     pruned = []
     for tree in trees:
         prune = { "id": tree.pk,
                   "dbh": tree.dbh }
-
-        if tree.species:
+        
+        if tree.species and tree.dbh:
             prune["itree_code"] = tree.species.itree_code,
             prune["species"] = tree.species.scientific_name
 
-        pruned.append(prune)
+            pruned.append(prune)
 
-    jsonstr = simplejson.dumps(pruned)
+    json = { "count": len(trees), "trees": pruned }
+
+    jsonstr = simplejson.dumps(json)
 
     if "callback" in request.REQUEST:
         jsonstr = "%s(%s);" % (request.REQUEST["callback"], jsonstr)
