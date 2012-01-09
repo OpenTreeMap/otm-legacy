@@ -121,7 +121,7 @@
             <script>tm.setupEdit("width", "Plot", {{plot.id}});</script>
         </tr>
 	<tr>
-    	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>?</a></td>
+    	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>(?)</a></td>
         <td class="activeEditRowValue" id="edit_type">{{ plot.get_plot_type_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_type').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("type", "Plot", {{plot.id}}, {'type':'select', 'loadurl': '/plots/{{plot.id}}/edit/choices/plot_type/'});</script>
@@ -283,7 +283,7 @@
 					Due to caching of the map tiles, the tree may not immediately be deleted from
 					the map search page. </li>
                 {% endif %}
-                <li id="title"><a href="javascript:void(0)" onclick="tm.deletePlot({{ tree.plot.id }});return false;" >Delete this Plot</a></li>
+                <li id="title"><a href="javascript:void(0)" onclick="tm.deletePlot({{ plot.id }});return false;" >Delete this Plot</a></li>
 				<li>Plots may be deleted only by administrative users. Deleting this plot will remove
 					it and the current tree from public view. Please do not delete this plot unless you are
 					sure that it is a duplicate or should otherwise not be in the system.
@@ -312,6 +312,7 @@
 		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
 		tm.init_tree_map(true);
         tm.currentTreeId = {% if tree %}{{tree.id}} {% else %} {{plot.id}} {% endif %};
+        tm.currentPlotId = {{plot.id}}
 	</script>
 {% endblock endpage %}
 

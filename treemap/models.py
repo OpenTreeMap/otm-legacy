@@ -389,6 +389,12 @@ class Plot(models.Model):
     import_event = models.ForeignKey(ImportEvent)
     objects = models.GeoManager()
 
+    #original data to help owners associate back to their own db
+    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
+
+
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -405,7 +411,7 @@ class Plot(models.Model):
         if width == None: width = 'Missing'
         elif width == 99: width = '15+ ft'
         else: width = '%.2f ft' % width
-        print length, width
+        #print length, width
         return '%s x %s' % (length, width)
 
     def get_sidewalk_damage_display(self):
@@ -479,6 +485,7 @@ class Plot(models.Model):
         z = ZipCode.objects.filter(geometry__contains=pnt)
         
         if n:
+            oldns = self.neighborhoods
             self.neighborhoods = ""
             for nhood in n:
                 if nhood:
@@ -486,8 +493,14 @@ class Plot(models.Model):
         else: 
             self.neighborhoods = ""
                 
-        oldn = self.neighborhood.all()
-        oldz = self.zipcode
+        if self.id:
+            oldn = self.neighborhood.all()
+            oldz = self.zipcode
+        else:
+            oldn = []
+            oldz = None
+
+        super(Plot, self).save(*args,**kwargs) 
         if n:
             self.neighborhood.clear()
             for nhood in n:
@@ -497,21 +510,35 @@ class Plot(models.Model):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+
         super(Plot, self).save(*args,**kwargs) 
-        #print n.__dict__
-        #print oldn.__dict__
-        #print z.__dict__
-        if self.current_tree():
+
+        if self.current_tree() and self.neighborhoods != oldns:
+            done = []
             if n: 
                 for nhood in n:
+                    if nhood.id in done: continue
                     self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
             if oldn: 
                 for nhood in oldn:
+                    if nhood.id in done: continue
                     self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
              
-            if z and z[0] != oldz:
-                if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
-                if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+        if self.current_tree() and z and z[0] != oldz:
+            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
+            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+
+    def validate_proximity(self, return_trees=False, max_count=1):
+        if not self.geometry:
+            return None
+        nearby = Plot.objects.filter(present=True, geometry__distance_lte=(self.geometry, D(ft=10.0)))
+        if nearby.count() > max_count: 
+            if return_trees:
+                return nearby 
+            return (nearby.count()-max_count).__str__() #number greater than max_count allows
+        return None
 
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
@@ -519,15 +546,15 @@ class Tree(models.Model):
         #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
     plot = models.ForeignKey(Plot, related_name="plot")
-    data_owner = models.ForeignKey(User, related_name="owner", null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
     steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
     #original data to help owners associate back to their own db
-    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
-    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
+    #data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    #owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    #owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
@@ -752,7 +779,6 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
     
-    #TODO: this is now unacceptably slow for larger locations like Philly, find another way to do this that doesn't happen every save
     def update_aggregate(self, ag_model, location):        
         agg =  ag_model.objects.filter(location=location)
         if agg:
@@ -765,19 +791,19 @@ class Tree(models.Model):
         #print trees
         agg.total_trees = trees.count()
         #print agg.total_trees
-        #TODO: speed this up! A lot!
-        #agg.distinct_species = len(trees.values("species"))
-        #print agg.distinct_species
         #TODO figure out how to summarize diff stratum stuff
         field_names = [x.name for x in ResourceSummaryModel._meta.fields 
             if not x.name == 'id']
-        for f in field_names:
-            if agg.total_trees == 0:
-                s = 0.0
-            else: 
+    
+        if agg.total_trees == 0:
+            for f in field_names:
+                setattr(agg, f, 0.0)
+        else:
+        #TODO speed this up
+            for f in field_names:
                 fn = 'treeresource__' + f
                 s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-            setattr(agg,f,s)
+                setattr(agg,f,s)
         agg.save()
         
         
@@ -817,12 +843,7 @@ class Tree(models.Model):
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.plot.geometry:
             return None
-        nearby = Plot.objects.filter(geometry__distance_lte=(self.plot.geometry, D(ft=10.0)))
-        if nearby.count() > max_count: 
-            if return_trees:
-                return nearby 
-            return (nearby.count()-max_count).__str__() #number greater than max_count allows
-        return None
+        return self.plot.validate_proximity()
     
     
     # Disallowed combinations:

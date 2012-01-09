@@ -33,8 +33,8 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
     base_folder : '/static/images/map_icons/v3/', 
-    small_trees : "/static/images/map_icons/v4/zoom5.png",
-    small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
+    small_trees : "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees_complete : "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     focus_tree : '/static/images/map_icons/v4/marker-selected.png',
     pending_tree : '/static/images/map_icons/v4/marker-pending.png', 
     marker : '/static/openlayers/img/marker.png'
@@ -753,7 +753,7 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
-        //TODO: get this working
+
         tm.load_nearby_trees(currentPoint);
         
         if (tm.current_tree_geometry_pends && tm.current_tree_geometry_pends.length > 0) {
@@ -1480,8 +1480,8 @@ var tm = {
         var wkt = jQuery('#id_geometry').val();
         var geoaddy = jQuery("#id_geocode_address").val();
         var data = {
-            'model': 'Tree',
-            'id': tm.currentTreeId,
+            'model': 'Plot',
+            'id': tm.currentPlotId,
             'update': {
                 geometry: wkt,
                 geocoded_address: geoaddy
@@ -2052,7 +2052,7 @@ var tm = {
                 type: 'POST',
                 success: function(response) {
                     tm.trackEvent('Edit', 'Delete');
-                    window.location = "/map/";
+                    location.reload();
                 },
                 error: function(err) {
                 alert("Error: " + err.status + "\nQuery: " + tree_id);

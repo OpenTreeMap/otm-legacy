@@ -35,13 +35,14 @@
 	    <div id="add_tree_map"></div>
         <table>
         <tr><th> </th><th>Scientific Name</th><th>Common Name</th><th>Diameter</th><th>Address</th></tr>
-        {% for tree in trees %}
+        
+        {% for plot in plots %}
             <tr class="treeRow">
-                <td><a href="/trees/{{tree.id}}">View Details</a></td>
-                <td><i>{{tree.species.scientific_name|default:""}}</i></td>
-                <td>{{tree.species.common_name|default:""}}</td>
-                <td>{{tree.dbh|unit_or_empty:'inches'}}</td>
-                <td>{{tree.geocoded_address}}</td>
+                <td><a href="/plots/{{plot.id}}">View Details</a></td>
+                <td><i>{{plot.tree.species.scientific_name|default:""}}</i></td>
+                <td>{{plot.tree.species.common_name|default:""}}</td>
+                <td>{{plot.tree.dbh|unit_or_empty:'inches'}}</td>
+                <td>{{plot.geocoded_address}}</td>
             </tr>
         {% empty %}
             <tr><td colspan="5" class="noTrees">No trees added in the last 12 hours. </td></tr>

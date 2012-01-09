@@ -28,18 +28,19 @@ Required libraries from aptitude
     python-simplejson 
     python-django-extensions
     python-gdal
+    gdal-bin
 
 Required libraries from the web    
     wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
-	wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
-	wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
-	wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
-	wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
-	wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
-	wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
-	wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
-	wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
-	wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
+    wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
+    wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
+    wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
+    wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
+    wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
+    wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
+    wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
+    wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
+    wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
     git clone git://github.com/miracle2k/webassets.git
 
 Patches:

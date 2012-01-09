@@ -194,7 +194,7 @@ def plot_location_search(request):
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
 
     if geom.geom_type == 'Point':
-        print float(distance), geom, plots
+        #print float(distance), geom, plots
         plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
             ).distance(geom).order_by('distance')
@@ -214,7 +214,7 @@ def plot_location_search(request):
             current_tree = plot.current_tree()
             if current_tree and current_tree.species and current_tree.species.id == int(species):
                 plots_filtered_by_species.append(plot)
-                print plot, current_tree, current_tree.species.id
+                #print plot, current_tree, current_tree.species.id
 
         # to allow clicking other trees still...
         if len(plots_filtered_by_species) > 0:
@@ -296,7 +296,7 @@ def top_species(request):
     return 
 
 def favorites(request, username):
-    faves = User.objects.get(username=username).treefavorite_set.all()
+    faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
        'id':f.tree.id, 
        'coords':[f.tree.geometry.x, f.tree.geometry.y]} for f in faves]
@@ -326,7 +326,7 @@ def trees(request, tree_id=''):
     
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
-                tree=trees).count() > 0
+                tree=trees, tree__present=True).count() > 0
     else:
         trees = trees.filter(Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None))
 
@@ -530,6 +530,9 @@ def plot_delete(request, plot_id):
     if plot.current_tree():
         plot.current_tree().present = False
         plot.current_tree().save()
+        for h in plot.current_tree().history.all():
+            h.present = False
+            h.save()
     
     for h in plot.history.all():
         h.present = False
@@ -1057,20 +1060,20 @@ def added_today_list(request, user_id=None, format=None):
     past_date = timedelta(hours=24)
     start_date = datetime.now() - past_date
     end_date = datetime.now()
-    new_trees = Tree.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
+    new_plots = Plot.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
     if user_id:
         user = User.objects.get(pk=user_id)
-        new_trees = new_trees.filter(last_updated_by=user)
-    trees = []
-    for tree in new_trees:
-        trees.append(Tree.objects.get(pk=tree.id))
+        new_plots = new_plots.filter(last_updated_by=user)
+    plots = []
+    for plot in new_plots:
+        plots.append(Plot.objects.get(pk=plot.id))
     if format == 'geojson':        
-        tj = [{
-           'id':f.id, 
-           'coords':[f.geometry.x, f.geometry.y]} for f in trees]
-        return render_to_json(tj)
+        plot_json = [{
+           'id':plot.id, 
+           'coords':[plot.geometry.x, plot.geometry.y]} for plot in plots]
+        return render_to_json(plot_json)
     return render_to_response('treemap/added_today.html', RequestContext(request,{
-        'trees' : trees,
+        'plots' : plots,
         'user': user}))
 
 

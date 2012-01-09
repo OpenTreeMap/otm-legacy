@@ -91,82 +91,91 @@ class TreeAddForm(forms.Form):
         
     def save(self,request):
         from django.contrib.gis.geos import Point
-        species = self.cleaned_data.get('species_id')
-        if species:
-            spp = Species.objects.filter(symbol=species)
-            if spp:
-                new_tree = Tree(species=spp[0])
-            else:
-                new_tree = Tree()
-        else:
-            new_tree = Tree()
 
-        new_tree.plot = Plot()
+        plot = Plot()
 
         address = self.cleaned_data.get('edit_address_street')
         if address:
-            new_tree.plot.address_street = address
-            new_tree.plot.geocoded_address = address
+            plot.address_street = address
+            plot.geocoded_address = address
         city = self.cleaned_data.get('edit_address_city')
         geo_address = self.cleaned_data.get('geocode_address')
         if geo_address:
-            new_tree.plot.geocoded_address = geo_address
+            plot.geocoded_address = geo_address
         if city:
-            new_tree.plot.address_city = city
+            plot.address_city = city
         zip_ = self.cleaned_data.get('edit_address_zip')
         if zip_:
-            new_tree.plot.address_zip = zip_
+            plot.address_zip = zip_
         
         plot_width = self.cleaned_data.get('plot_width')
         plot_width_in = self.cleaned_data.get('plot_width_in')
         if plot_width:
-            new_tree.plot.width = float(plot_width)
+            plot.width = float(plot_width)
         if plot_width_in:
-            new_tree.plot.width = new_tree.plot_width + (float(plot_width_in) / 12)
+            plot.width = plot.width + (float(plot_width_in) / 12)
         plot_length = self.cleaned_data.get('plot_length')
         plot_length_in = self.cleaned_data.get('plot_length_in')
         if plot_length:
-            new_tree.plot.length = float(plot_length)
+            plot.length = float(plot_length)
         if plot_length_in:
-            new_tree.plot.length = new_tree.plot_length + (float(plot_length_in) / 12)
+            plot.length = plot.length + (float(plot_length_in) / 12)
         plot_type = self.cleaned_data.get('plot_type')
         if plot_type:
-            new_tree.plot.type = plot_type
+            plot.type = plot_type
         power_lines = self.cleaned_data.get('power_lines')
         if power_lines != "":
-            new_tree.plot.powerline_conflict_potential = power_lines
-        height = self.cleaned_data.get('height')
-        if height:
-            new_tree.height = height
-        canopy_height = self.cleaned_data.get('canopy_height')
-        if canopy_height:
-            new_tree.canopy_height = canopy_height
-        dbh = self.cleaned_data.get('dbh')
-        dbh_type = self.cleaned_data.get('dbh_type')
-        if dbh:
-            if dbh_type == 'circumference':
-                dbh = dbh / math.pi
-            new_tree.dbh = dbh
+            plot.powerline_conflict_potential = power_lines
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:
-            new_tree.plot.sidewalk_damage = sidewalk_damage
-        condition = self.cleaned_data.get('condition')
-        if condition:
-            new_tree.condition = condition
-        canopy_condition = self.cleaned_data.get('canopy_condition')
-        if canopy_condition:
-            new_tree.canopy_condition = canopy_condition
-        
+            plot.sidewalk_damage = sidewalk_damage
+
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
-        new_tree.import_event = import_event
-        new_tree.plot.import_event = import_event
-        
+        plot.import_event = import_event
+
         pnt = Point(self.cleaned_data.get('lon'),self.cleaned_data.get('lat'),srid=4326)
-        new_tree.plot.geometry = pnt
-        new_tree.last_updated_by = request.user
-        new_tree.plot.last_updated_by = request.user
-        new_tree.plot.save()
-        new_tree.save()
+        plot.geometry = pnt
+        plot.last_updated_by = request.user
+        plot.save()
+
+        species = self.cleaned_data.get('species_id')
+        height = self.cleaned_data.get('height')
+        canopy_height = self.cleaned_data.get('canopy_height')
+        dbh = self.cleaned_data.get('dbh')
+        dbh_type = self.cleaned_data.get('dbh_type')
+        condition = self.cleaned_data.get('condition')
+        canopy_condition = self.cleaned_data.get('canopy_condition')
+
+        #TODO: fix this
+        if species or height or canopy_height or dbh or condition or canopy_condition:
+           # print species, height, canopy_height, dbh, condition, canopy_condition
+            if species:
+                spp = Species.objects.filter(symbol=species)
+                if spp:
+                    new_tree = Tree(species=spp[0])
+                else:
+                    new_tree = Tree()
+            else:
+                new_tree = Tree()
+
+            if height:
+                new_tree.height = height
+            if canopy_height:
+                new_tree.canopy_height = canopy_height
+            if dbh:
+                if dbh_type == 'circumference':
+                    dbh = dbh / math.pi
+                new_tree.dbh = dbh
+            if condition:
+                new_tree.condition = condition
+            if canopy_condition:
+                new_tree.canopy_condition = canopy_condition
+            
+            new_tree.import_event = import_event            
+            new_tree.last_updated_by = request.user
+            new_tree.plot = plot
+            new_tree.save()
+            #print new_tree.__dict__
         
-        return new_tree
+        return plot
      

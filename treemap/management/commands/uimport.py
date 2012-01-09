@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.auth.models import User
-from UrbanForestMap.treemap.models import Species, Tree, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
+from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
 
 class Command(BaseCommand):
     args = '<input_file_name, data_owner_id, base_srid>'
@@ -145,77 +145,108 @@ class Command(BaseCommand):
         self.log_error("ERROR:  Unknown species %r" % name, row) 
         return (False, None)
 
-    def check_proximity(self, tree, species, row):
-        # check for nearby trees
-        collisions = tree.validate_proximity(True, 0)
+    def check_tree_info(self, row):
+        tree_info = False
+        fields = ['STEWARD', 'SPONSOR', 'DATEPLANTED', 'DIAMETER', 'HEIGHT', 'CANOPYHEIGHT', 
+                  'CONDITION', 'CANOPYCONDITION', 'PROJECT_1', 'PROJECT_2', 'PROJECT_3', 'OWNER']
+        
+        for f in fields:
+            # field exists and there's something in it
+            if row.get(f) and str(row[f]).strip():
+                tree_info = True
+                self.log_verbose('  Found tree data in field %s, creating a tree' % f)
+                break
+        
+        return tree_info
+
+    def check_proximity(self, plot, tree, species, row):
+        # check for nearby plots
+        collisions = plot.validate_proximity(True, 0)
         
         # if there are no collisions, then proceed as planned
         if not collisions:
             self.log_verbose("  No collisions found")
-            return (True, tree)
+            return (True, plot, tree)
         self.log_verbose("  Initial proximity test count: %d" % collisions.count())
         
         # exclude collisions from the same file we're working in
         collisions = collisions.exclude(import_event=self.import_event)
         if not collisions:
-            self.log_verbose("  All collisions are for from this import file")
-            return (True, tree)                
+            self.log_verbose("  All collisions are from this import file")
+            return (True, plot, tree)                
         self.log_verbose("  Secondary proximity test count: %d" % collisions.count())
         
         # if we have multiple collitions, check for same species or unknown species
         # and try to associate with one of them otherwise abort
         if collisions.count() > 1:
-            
+            # get existing trees for the plots that we collided with
+            tree_ids = []             
+            for c in collisions:
+                if c.current_tree():
+                    tree_ids.append(c.current_tree().id)
+
+            trees = Tree.objects.filter(id__in=tree_ids)
+
             # Precedence: single same species, single unknown 
             # return false for all others and log
             if species:                
-                same = collisions.filter(species=species[0])            
+                same = trees.filter(species=species[0])            
                 if same.count() == 1 and same[0].species == species[0]:
-                    self.log_verbose("  Using single nearby tree of same species")
-                    return (True, same[0])
+                    self.log_verbose("  Using single nearby plot with tree of same species")
+                    return (True, c, same[0])
             
-            unk = collisions.filter(species=None)
+            unk = trees.filter(species=None)
                 
             if unk.count() == 1:
-                self.log_verbose("  Using single nearby tree of unknown species")
-                return (True, unk[0])
+                self.log_verbose("  Using single nearby plot with tree of unknown species")
+                return (True, c,  unk[0])
             
-            self.log_error("ERROR:  Proximity test failed (near %d trees)" % collisions.count(), row)
-            return (False, None)
+            self.log_error("ERROR:  Proximity test failed (near %d plots)" % collisions.count(), row)
+            return (False, None, None)
 
         # one nearby match found, use it as base
-        tree = collisions[0]
+        plot = collisions[0]
+        plot_tree = plot.current_tree()
         self.log_verbose("  Found one tree nearby")
+
+        # if the nearby plot doesn't have a tree, don't bother doing species matching
+        if not plot_tree: 
+            self.log_verbose("  No tree found for plot, using %d as base plot record" % plot.id)
+            return (True, plot, tree)
 
         # if neither have a species, then we're done and we need to use
         # the tree we collided with.
-        if not tree.species and not species:
-            self.log_verbose("  No species info for either record, using %d as base record" % tree.id)
-            return (True, tree)
+        if not plot_tree.species and not species:
+            self.log_verbose("  No species info for either record, using %d as base tree record" % plot_tree.id)
+            return (True, plot, plot_tree)
 
         # if only the new one has a species, update the tree we collided
         # with and then return it
-        if not tree.species:
+        if not plot_tree.species:
             # we need to update the collision tree with the new species
-            tree.set_species(species[0].id, False) # save later
+            plot_tree.set_species(species[0].id, False) # save later
             self.log_verbose("  Species match, using update file species: %s" % species[0])
-            return (True, tree)
+            return (True, plot, plot_tree)
 
         # if only the collision tree has a species, we're done.
         if not species or species.count() == 0:
-            self.log_verbose("  No species info for import record, using %d as base record" % tree.id)
-            return (True, tree)
+            self.log_verbose("  No species info for import record, using %d as base record" % plot_tree.id)
+            return (True, plot, plot_tree)
 
         # in this case, both had a species. we should check to see if
         # the species are the same.
-        if tree.species != species[0]:
+        if plot_tree.species != species[0]:
             # now that we have a new species, we want to update the
             # collision tree's species and delete all the old status
             # information.
             self.log_verbose("  Species do not match, using update file species: %s" % species[0])
-            tree.set_species(species[0].id, False)
-            TreeStatus.objects.filter(tree=tree.id).delete()
-        return (True, tree) 
+            plot_tree.set_species(species[0].id, False)
+            plot_tree.dbh = None
+            plot_tree.height = None
+            plot_tree.canopy_height = None
+            plot_tree.condition = None
+            plot_tree.canopy_condition = None
+        return (True, plot, plot_tree) 
     
     def handle_row(self, row):
         self.log_verbose(row)
@@ -224,62 +255,72 @@ class Command(BaseCommand):
         ok, x, y = self.check_coords(row)
         if not ok: return
 
-        # check the species (if any)
-        ok, species = self.check_species(row)
-        if not ok: return
+        plot = Plot()
 
-        # check the proximity (try to match up with existing trees)
-        if (species):
-            tree = Tree(species=species[0])
-        else:
-            tree = Tree()
-        
         try:
-            if (self.base_srid != 4326):
+            if self.base_srid != 4326:
                 geom = Point(x, y, srid=self.base_srid)
                 geom.transform(self.tf)
                 self.log_verbose(geom)
-                tree.geometry = geom
+                plot.geometry = geom
             else:        
-                tree.geometry = Point(x, y, srid=4326)
+                plot.geometry = Point(x, y, srid=4326)
         except:
             self.log_error("ERROR: Geometry failed to transform", row)
             return
+
+        # check the species (if any)
+        ok, species = self.check_species(row)
+        if not ok: return
         
-        ok, tree = self.check_proximity(tree, species, row)
+        # check for tree info, should we create a tree or just a plot
+        if species or self.check_tree_info(row):
+            tree = Tree(plot=plot)
+        else:
+            tree = None
+        
+        if tree and species:
+            tree.species = species[0] 
+
+        
+        # check the proximity (try to match up with existing trees)
+        # this may return a different plot/tree than created just above, 
+        # so don't set anything else on either until after this point
+        ok, plot, tree = self.check_proximity(plot, tree, species, row)
         if not ok: return
 
-        if row.get('ADDRESS') and not tree.address_street:
-            tree.address_street = str(row['ADDRESS']).title()
-            tree.geocoded_address = str(row['ADDRESS']).title()
         
-        if not tree.geocoded_address: 
-            tree.geocoded_address = ""
-            
-            
-        # FIXME: get this from the config?
-        tree.address_state = 'CA'
+        if row.get('ADDRESS') and not plot.address_street:
+            plot.address_street = str(row['ADDRESS']).title()
+            plot.geocoded_address = str(row['ADDRESS']).title()
+        
+        if not plot.geocoded_address: 
+            plot.geocoded_address = ""
 
-        tree.import_event = self.import_event
-        tree.last_updated_by = self.updater
-        tree.data_owner = self.data_owner
-        tree.owner_additional_properties = self.file_name
-        if row.get('ID'):
-            tree.owner_orig_id = row['ID']
-        
-        if row.get('ORIGID'):
-            tree.owner_additional_properties = "ORIGID=" + str(row['ORIGID'])
+        # FIXME: get this from the config?
+        plot.address_state = 'CA'
+        plot.import_event = self.import_event
+        plot.last_updated_by = self.updater
+        plot.data_owner = self.data_owner
+        plot.owner_additional_properties = self.file_name
 
         if row.get('PLOTTYPE'):
-            for k, v in Choices().get_field_choices('plot'):
+            for k, v in Choices().get_field_choices('plot_type'):
                 if v == row['PLOTTYPE']:
-                    tree.plot_type = k
+                    plot.type = k
                     break;
+
         if row.get('PLOTLENGTH'): 
-            tree.plot_length = row['PLOTLENGTH']
+            plot.length = row['PLOTLENGTH']
 
         if row.get('PLOTWIDTH'): 
-            tree.plot_width = row['PLOTWIDTH']            
+            plot.width = row['PLOTWIDTH']            
+
+        if row.get('ID'):
+            plot.owner_orig_id = row['ID']
+        
+        if row.get('ORIGID'):
+            plot.owner_additional_properties = "ORIGID=" + str(row['ORIGID'])
 
         # if powerline is specified, then we want to set our boolean
         # attribute; otherwise leave it alone.
@@ -287,97 +328,97 @@ class Command(BaseCommand):
         if powerline is None or powerline.strip() == "":
             pass
         elif powerline is True or powerline.lower() == "true" or powerline.lower() == 'yes':
-            tree.powerline_conflict_potential = 'Yes'
+            plot.powerline_conflict_potential = 1
         else:
-            tree.powerline_conflict_potential = 'No'
+            plot.powerline_conflict_potential = 2
 
         sidewalk_damage = row.get('SIDEWALK')
         if sidewalk_damage is None or sidewalk_damage.strip() == "":
             pass
         elif sidewalk_damage is True or sidewalk_damage.lower() == "true" or sidewalk_damage.lower() == 'yes':
-            tree.sidewalk_damage = 2
+            plot.sidewalk_damage = 2
         else:
-            tree.sidewalk_damage = 1
+            plot.sidewalk_damage = 1
 
-        if row.get('OWNER'):
-            tree.tree_owner = str(row["OWNER"])
+        plot.quick_save()
 
-        if row.get('STEWARD'):
-            tree.steward_name = str(row["STEWARD"])
-
-        if row.get('SPONSOR'):
-            tree.sponsor = str(row["SPONSOR"])
-
-        if row.get('DATEPLANTED'):
-            date = str(row['DATEPLANTED'])
-            date = datetime.strptime(date, "%m/%d/%Y")
-            tree.date_planted = date.strftime("%Y-%m-%d")
-
-        if row.get('DIAMETER'):
-            tree.dbh = float(row['DIAMETER'])
-
-        if row.get('HEIGHT'):
-            tree.height = float(row['HEIGHT'])
-
-        if row.get('CANOPYHEIGHT'):
-            tree.canopy_height = float(row['CANOPYHEIGHT'])
-
-        if row.get('CONDITION'):
-            for k, v in Choices().get_field_choices('condition'):
-                if v == row['CONDITION']:
-                    tree.condition = k
-                    break;
-
-        if row.get('CANOPYCONDITION'):
-            for k, v in Choices().get_field_choices('canopy_condition'):
-                if v == row['CANOPYCONDITION']:
-                    tree.canopy_condition = k
-                    break;
-
-
-        pnt = tree.geometry
-
+        pnt = plot.geometry
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
         
-        if n:
-            tree.neighborhoods = ""
-            for nhood in n:
-                if nhood:
-                    tree.neighborhoods = tree.neighborhoods + " " + nhood.id.__str__()
-        else: 
-            tree.neighborhoods = ""
+        plot.neighborhoods = ""
+        plot.neighborhood.clear()
+        plot.zipcode = None
 
-        tree.quick_save()
-
-        tree.neighborhood.clear()
-        tree.zipcode = None
         if n:
             for nhood in n:
                 if nhood:
-                    tree.neighborhood.add(nhood)
-        if z: tree.zipcode = z[0]
+                    plot.neighborhoods = plot.neighborhoods + " " + nhood.id.__str__()
+                    plot.neighborhood.add(nhood)
 
-        if row.get('PROJECT_1'):
-            for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT_1']:
-                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
-                    local.save()
-                    break;
-        if row.get('PROJECT_2'):            
-            for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT_2']:
-                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
-                    local.save()
-                    break;
-        if row.get('PROJECT_3'):           
-            for k, v in Choices().get_field_choices('local'):
-                if v == row['PROJECT_3']:
-                    local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
-                    local.save()
-                    break;
+        if z: plot.zipcode = z[0]
 
+        if tree:
+            tree.plot = plot
+            tree.import_event = self.import_event
+            tree.last_updated_by = self.updater
+            
+            if row.get('OWNER'):
+                tree.tree_owner = str(row["OWNER"])
+    
+            if row.get('STEWARD'):
+                tree.steward_name = str(row["STEWARD"])
 
-        # rerun validation tests and store results
-        tree.validate_all()
+            if row.get('SPONSOR'):
+                tree.sponsor = str(row["SPONSOR"])
+
+            if row.get('DATEPLANTED'):
+                date = str(row['DATEPLANTED'])
+                date = datetime.strptime(date, "%m/%d/%Y")
+                tree.date_planted = date.strftime("%Y-%m-%d")
+
+            if row.get('DIAMETER'):
+                tree.dbh = float(row['DIAMETER'])
+
+            if row.get('HEIGHT'):
+                tree.height = float(row['HEIGHT'])
+
+            if row.get('CANOPYHEIGHT'):
+                tree.canopy_height = float(row['CANOPYHEIGHT'])
+
+            if row.get('CONDITION'):
+                for k, v in Choices().get_field_choices('condition'):
+                    if v == row['CONDITION']:
+                        tree.condition = k
+                        break;
+
+            if row.get('CANOPYCONDITION'):
+                for k, v in Choices().get_field_choices('canopy_condition'):
+                    if v == row['CANOPYCONDITION']:
+                        tree.canopy_condition = k
+                        break;
+
+            tree.quick_save()
+
+            if row.get('PROJECT_1'):
+                for k, v in Choices().get_field_choices('local'):
+                    if v == row['PROJECT_1']:
+                        local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                        local.save()
+                        break;
+            if row.get('PROJECT_2'):            
+                for k, v in Choices().get_field_choices('local'):
+                    if v == row['PROJECT_2']:
+                        local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                        local.save()
+                        break;
+            if row.get('PROJECT_3'):           
+                for k, v in Choices().get_field_choices('local'):
+                    if v == row['PROJECT_3']:
+                        local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
+                        local.save()
+                        break;
+
+            # rerun validation tests and store results
+            tree.validate_all()
 

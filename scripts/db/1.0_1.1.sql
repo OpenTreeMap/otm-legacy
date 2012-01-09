@@ -30,6 +30,10 @@ CREATE TABLE treemap_plot
   geocoded_geometry geometry,
   owner_geometry geometry,
   tree_id integer NOT NULL,
+  data_owner_id integer,
+  owner_orig_id character varying(256),
+  owner_additional_properties text,
+
   CONSTRAINT treemap_plot_pkey PRIMARY KEY (id),
   CONSTRAINT treemap_plot_import_event_id_fkey FOREIGN KEY (import_event_id)
       REFERENCES treemap_importevent (id) MATCH SIMPLE
@@ -40,6 +44,10 @@ CREATE TABLE treemap_plot
   CONSTRAINT treemap_plot_zipcode_id_fkey FOREIGN KEY (zipcode_id)
       REFERENCES treemap_zipcode (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT treemap_plot_data_owner_id_fkey FOREIGN KEY (data_owner_id)
+      REFERENCES auth_user (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  
   CONSTRAINT enforce_dims_geocoded_geometry CHECK (st_ndims(geocoded_geometry) = 2),
   CONSTRAINT enforce_dims_geometry CHECK (st_ndims(geometry) = 2),
   CONSTRAINT enforce_dims_owner_geometry CHECK (st_ndims(owner_geometry) = 2),
@@ -126,6 +134,9 @@ CREATE TABLE treemap_plot_audit
   geometry geometry NOT NULL,
   geocoded_geometry geometry,
   owner_geometry geometry,
+  data_owner_id integer,
+  owner_orig_id character varying(256),
+  owner_additional_properties text,
   CONSTRAINT treemap_plot_audit_pkey PRIMARY KEY (_audit_id),
   CONSTRAINT treemap_plot_audit_import_event_id_fkey FOREIGN KEY (import_event_id)
       REFERENCES treemap_importevent (id) MATCH SIMPLE
@@ -135,6 +146,9 @@ CREATE TABLE treemap_plot_audit
       ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT treemap_plot_audit_zipcode_id_fkey FOREIGN KEY (zipcode_id)
       REFERENCES treemap_zipcode (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT treemap_plot_data_owner_id_fkey FOREIGN KEY (data_owner_id)
+      REFERENCES auth_user (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT enforce_dims_geocoded_geometry CHECK (st_ndims(geocoded_geometry) = 2),
   CONSTRAINT enforce_dims_geometry CHECK (st_ndims(geometry) = 2),
@@ -238,11 +252,12 @@ CREATE INDEX treemap_plot_neighborhood_plot_id
 ALTER TABLE treemap_plot DISABLE TRIGGER ALL;
 INSERT INTO treemap_plot (present, width, length, type, powerline_conflict_potential, sidewalk_damage, address_street,
   address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy, geocoded_address, geocoded_lat, geocoded_lon,
-  region, last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id)
+  region, last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
+  data_owner_id,  owner_orig_id,  owner_additional_properties)
 SELECT present, plot_width AS width, plot_length AS length, plot_type AS type, powerline_conflict_potential,
   sidewalk_damage, address_street, address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy,
   geocoded_address, geocoded_lat, geocoded_lon, region, last_updated, last_updated_by_id, import_event_id,
-  geometry geometry, geocoded_geometry, owner_geometry, id as tree_id
+  geometry geometry, geocoded_geometry, owner_geometry, id as tree_id, data_owner_id,  owner_orig_id,  owner_additional_properties
 FROM treemap_tree;
 ALTER TABLE treemap_plot ENABLE TRIGGER ALL;
 
@@ -431,6 +446,9 @@ alter table treemap_tree drop column geometry;
 alter table treemap_tree drop column geocoded_geometry;
 alter table treemap_tree drop column owner_geometry;
 alter table treemap_tree drop column sidewalk_damage;
+alter table treemap_tree drop column data_owner_id;
+alter table treemap_tree drop column owner_orig_id;
+alter table treemap_tree drop column owner_additional_properties;
 
 alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;
 
