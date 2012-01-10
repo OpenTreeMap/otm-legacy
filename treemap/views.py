@@ -192,8 +192,8 @@ def plot_location_search(request):
     plots = Plot.objects.filter(present=True)
         #don't filter by geocode accuracy until we know why some new trees are getting -1
         #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
-
     if geom.geom_type == 'Point':
+
         #print float(distance), geom, plots
         plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
@@ -202,27 +202,22 @@ def plot_location_search(request):
     else:
       plots = plots.filter(geometry__intersects=geom)
     # needed to be able to prioritize overlapping trees
+
     if plots:
         extent = plots.extent()
     else:
         extent = []
-
+    
     species = request.GET.get('species')
     if species:
-        plots_filtered_by_species = []
-        for plot in plots:
-            current_tree = plot.current_tree()
-            if current_tree and current_tree.species and current_tree.species.id == int(species):
-                plots_filtered_by_species.append(plot)
-                #print plot, current_tree, current_tree.species.id
-
+        plots_filtered_by_species = plots.filter(tree__species__id=species, tree__present=True)
         # to allow clicking other trees still...
         if len(plots_filtered_by_species) > 0:
             plots = plots_filtered_by_species
-
+    
     if len(plots) > 0:
         plots = plots[:max_plots]
-
+    
     return render_to_geojson(plots,
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
@@ -259,7 +254,6 @@ def species(request, selection='all', format='html'):
         species = species.filter(tree_count__gt=0).order_by('-tree_count')
         
     if selection == 'nearby':
-        print 'filtering by nearby'
         location = request.GET.get('location','')
         if not location:
             return 404
@@ -1119,16 +1113,13 @@ def _build_tree_search_result(request):
             if 'geoName' in request.GET:
                 geoname = request.GET['geoName']
                 ns = ns.filter(name=geoname)
-                print ns
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
-                ns = ns.filter(geometry__contains=pt)
+                ns = ns.filter(plot__geometry__contains=pt)
 
-            if ns.count():        
-                print trees  
+            if ns.count():   
                 trees = trees.filter(plot__neighborhood = ns[0])
-                print trees
                 geog_obj = ns[0]
                 tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
         else:
@@ -1415,9 +1406,8 @@ def ogr_conversion(output_type, sql, extension=None):
         geometry = 'GEOMETRY=AS_WKT'
     else: 
         geometry = ''
-    print sql
+
     command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
-    print command
     done = subprocess.call(command)
 
     if done != 0: 
@@ -1495,7 +1485,6 @@ def advanced_search(request, format='json'):
     elif format == "shp":
         return ogr_conversion('ESRI Shapefile', str(trees.query))
     elif format == "kml":
-        print str(trees.query)
         return ogr_conversion('KML', str(trees.query), 'kml')
     elif format == "csv":
         return ogr_conversion('CSV', str(trees.query))
