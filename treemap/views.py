@@ -973,9 +973,9 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None)|(Q(geocoded_accuracy=-1) & Q(owner_geometry__isnull=False)) )
+        trees = Tree.objects.filter(present=True)
     else:
-        trees = Tree.objects.filter(species__in=species, present=True).filter(Q(geocoded_accuracy__gte=7)|Q(geocoded_accuracy=None))
+        trees = Tree.objects.filter(species__in=species, present=True)
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1272,7 +1272,12 @@ def ogr_conversion(output_type, sql, extension=None):
         tmp_name = tmp_dir + "/sql_statement." + extension
     else: 
         tmp_name = tmp_dir
-    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+    if output_type == 'CSV':
+        geometry = 'GEOMETRY=AS_WKT'
+    else:
+        geometry = ''
+
+    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
     done = subprocess.call(command)
     if done != 0: 
         return render_to_json({'status':'error'})
