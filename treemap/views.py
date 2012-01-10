@@ -1102,9 +1102,9 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True)
+        trees = Tree.objects.filter(present=True, plot__present=True).extra(select={'geometry': "treemap_plot.geometry"})
     else:
-        trees = Tree.objects.filter(species__in=species, present=True)
+        trees = Tree.objects.filter(species__in=species, present=True, plot__present=True).extra(select={'geometry': "treemap_plot.geometry"})
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1397,16 +1397,29 @@ def zip_file(file_path,archive_name):
 def ogr_conversion(output_type, sql, extension=None):   
     dbsettings = settings.DATABASES['default'] 
     tmp_dir = tempfile.mkdtemp() + "/trees" 
+
     host = dbsettings['HOST']
+    port = dbsettings['PORT']
     if host == '':
         host = 'localhost'
+    if port == '':
+        port = 5432
+
     if extension != None:
         os.mkdir(tmp_dir)
         tmp_name = tmp_dir + "/sql_statement." + extension
     else: 
         tmp_name = tmp_dir
-    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+
+    if output_type == 'CSV':
+        geometry = 'GEOMETRY=AS_WKT'
+    else: 
+        geometry = ''
+    print sql
+    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    print command
     done = subprocess.call(command)
+
     if done != 0: 
         return render_to_json({'status':'error'})
     else: 
@@ -1477,15 +1490,15 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, geog_obj, tile_query = _build_tree_search_result(request)
-    sql = str(trees.query)
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        return ogr_conversion('ESRI Shapefile', sql)
+        return ogr_conversion('ESRI Shapefile', str(trees.query))
     elif format == "kml":
-        return ogr_conversion('KML', sql, 'kml')
+        print str(trees.query)
+        return ogr_conversion('KML', str(trees.query), 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', sql)
+        return ogr_conversion('CSV', str(trees.query))
         
         
     geography = None
