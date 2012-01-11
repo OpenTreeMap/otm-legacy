@@ -379,8 +379,6 @@ class Plot(models.Model):
     geometry = models.PointField(srid=4326)
     geocoded_geometry = models.PointField(null=True, srid=4326)
     owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
-   
-    region = models.CharField(max_length=256)
 
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='plot_updated_by') # TODO set to current user
@@ -587,8 +585,6 @@ class Tree(models.Model):
 #    geometry = models.PointField(srid=4326)
 #    geocoded_geometry = models.PointField(null=True, srid=4326)
 #    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
-   
-    region = models.CharField(max_length=256)
 
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user

@@ -184,9 +184,11 @@ def result_map(request):
 def plot_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
-        raise Http404
+        return HttpResponseBadRequest()
+
     distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
-    max_plots = request.GET.get('max_plots', 1)
+    max_plots = int(request.GET.get('max_plots', 1))
+
     if max_plots > 500: max_plots = 500
     
     plots = Plot.objects.filter(present=True)
@@ -198,9 +200,9 @@ def plot_location_search(request):
         plots = plots.filter(geometry__dwithin=(
             geom, float(distance))
             ).distance(geom).order_by('distance')
-    #else bbox
     else:
       plots = plots.filter(geometry__intersects=geom)
+
     # needed to be able to prioritize overlapping trees
     if plots:
         extent = plots.extent()
@@ -208,6 +210,7 @@ def plot_location_search(request):
         extent = []
 
     species = request.GET.get('species')
+
     if species:
         plots_filtered_by_species = []
         for plot in plots:
@@ -233,7 +236,6 @@ def plot_location_search(request):
                              'geocoded_address',
                              'last_updated_by_id',
                              'present',
-                             'region',
                              'powerline_conflict_potential',
                              'width',
                              'geocoded_lat',

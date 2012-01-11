@@ -22,7 +22,6 @@ CREATE TABLE treemap_plot
   geocoded_address character varying(256),
   geocoded_lat double precision,
   geocoded_lon double precision,
-  region character varying(256) NOT NULL,
   last_updated timestamp with time zone NOT NULL,
   last_updated_by_id integer NOT NULL,
   import_event_id integer NOT NULL,
@@ -123,7 +122,6 @@ CREATE TABLE treemap_plot_audit
   geocoded_address character varying(256),
   geocoded_lat double precision,
   geocoded_lon double precision,
-  region character varying(256) NOT NULL,
   last_updated timestamp with time zone NOT NULL,
   last_updated_by_id integer NOT NULL,
   import_event_id integer NOT NULL,
@@ -252,11 +250,11 @@ CREATE INDEX treemap_plot_neighborhood_plot_id
 ALTER TABLE treemap_plot DISABLE TRIGGER ALL;
 INSERT INTO treemap_plot (present, width, length, type, powerline_conflict_potential, sidewalk_damage, address_street,
   address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy, geocoded_address, geocoded_lat, geocoded_lon,
-  region, last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
+  last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
   data_owner_id,  owner_orig_id,  owner_additional_properties)
 SELECT present, plot_width AS width, plot_length AS length, plot_type AS type, powerline_conflict_potential,
   sidewalk_damage, address_street, address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy,
-  geocoded_address, geocoded_lat, geocoded_lon, region, last_updated, last_updated_by_id, import_event_id,
+  geocoded_address, geocoded_lat, geocoded_lon, last_updated, last_updated_by_id, import_event_id,
   geometry geometry, geocoded_geometry, owner_geometry, id as tree_id, data_owner_id,  owner_orig_id,  owner_additional_properties
 FROM treemap_tree;
 ALTER TABLE treemap_plot ENABLE TRIGGER ALL;
@@ -448,6 +446,7 @@ alter table treemap_tree drop column owner_geometry;
 alter table treemap_tree drop column sidewalk_damage;
 alter table treemap_tree drop column data_owner_id;
 alter table treemap_tree drop column owner_orig_id;
+alter table treemap_tree drop column region;
 alter table treemap_tree drop column owner_additional_properties;
 
 alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;
