@@ -397,8 +397,8 @@ class Tree(models.Model):
     geocoded_lon  = models.FloatField(null=True)
 
     geometry = models.PointField(srid=4326)
-    geocoded_geometry = models.PointField(null=True, srid=4326)
-    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
+#    geocoded_geometry = models.PointField(null=True, srid=4326)
+#    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
    
     region = models.CharField(max_length=256)
 
