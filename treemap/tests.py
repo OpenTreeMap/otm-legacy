@@ -1,46 +1,212 @@
 import os
-from django.test import Client, TestCase
-import simplejson
+from django.utils import unittest
+from django.test.client import Client
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point
+from django.contrib.auth.models import User, UserManager
 
-# http://www.djangoproject.com/documentation/models/test_client/
+from treemap.models import Neighborhood, ZipCode
+from treemap.models import Plot, ImportEvent, Species, Tree
 
-USER = 'dane'
-PASS = 'dane'
+from profiles.models import UserProfile
+from django_reputation.models import Reputation
 
-class ViewTests(TestCase):
+from simplejson import loads
+
+#        from IPython.Debugger import Tracer; debug_here = Tracer(); debug_here()
+
+class ViewTests(unittest.TestCase):
+
     def setUp(self):
-        self.client = Client()
-        # Log in
-        # requires a fixture of this user to be loaded into test database...
-        login = self.client.login(username=USER, password=PASS)
-        self.failUnless(login, 'Could not log in')
-        
-    def object_update(self,data):
-        
-        response = self.client.post('/update/',data=data,content_type='application/javascript; charset=utf8')
-        
-        # make sure we get proper response
-        self.failUnlessEqual(response.status_code, 200)
-        
-        json = simplejson.loads(response.content)
-        
-        # make sure we get json dict back
-        self.failUnlessEqual(isinstance(json,dict), True)
+        ######
+        # Users
+        ######
+        u = User.objects.filter(username="jim").all()
 
-        self.failUnlessEqual(json['success'], True)
-    
-    def test_tree_update(self):
-        json = simplejson.loads('{"model": "Tree", "update": {"powerline_conflict_potential": false}, "id": "105"}')
-        return self.object_update(json)
+        if u:
+            u = u[0]
+        else:
+            u = User.objects.create_user("jim","jim@test.org","jim")
+            up = UserProfile(user=u)
+            u.reputation = Reputation(user=u)
+            u.reputation.save()
+            
+            u.save()
 
-    def test_tree_status_update(self):
-        json = {"model":"TreeStatus","update":{"value":55,"key":"dbh"},"parent":{"model":"Tree","id":105}}
-        return self.object_update(json)
+        self.u = u
 
-    def test_tree_alert_update(self):
-        json = {"model":"TreeAlert","update":{"value":"2010-02-21","key":"needs_watering"},"parent":{"model":"Tree","id":1000}}
-        return self.object_update(json)
+        #######
+        # Setup geometries -> Two stacked 100x100 squares
+        #######
+        n1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
+        n2geom = MultiPolygon(Polygon(((0,100),(100,100),(100,200),(0,200),(0,100))))
+
+        n1 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PA", geometry=n1geom)
+        n2 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PA", geometry=n2geom)
+
+        n1.save()
+        n2.save()
+
+        z1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
+        z2geom = MultiPolygon(Polygon(((0,100),(100,100),(100,200),(0,200),(0,100))))
+
+        z1 = ZipCode(zip="19107",geometry=z1geom)
+        z2 = ZipCode(zip="19107",geometry=z2geom)
+
+        z1.save()
+        z2.save()
+
+        self.z1 = z1
+        self.z2 = z2
+        self.n1 = n1
+        self.n2 = n2
+
+        ######
+        # And we could use a few species...
+        ######
+        s1 = Species(symbol="s1",scientific_name="testus specieius1",genus="blah")
+        s2 = Species(symbol="s2",scientific_name="testus specieius2",genus="blah")
         
-    def test_tree_species_update(self):
-        json = {"model":"Tree","update":{"species_id":21534},"id":31793}
-        return self.object_update(json)        
+        s1.save()
+        s2.save()
+
+        self.s1 = s1
+        self.s2 = s2
+
+        #######
+        # Create some basic plots
+        #######
+        ie = ImportEvent(file_name='site_add')
+        ie.save()
+
+        p1_no_tree = Plot(geometry=Point(50,50), last_updated_by=u, import_event=ie,present=True)
+        p1_no_tree.save()
+
+        p2_tree = Plot(geometry=Point(51,51), last_updated_by=u, import_event=ie,present=True)
+        p2_tree.save()
+
+        p3_tree_species1 = Plot(geometry=Point(50,100), last_updated_by=u, import_event=ie,present=True)
+        p3_tree_species1.save()
+
+        p4_tree_species2 = Plot(geometry=Point(50,150), last_updated_by=u, import_event=ie,present=True)
+        p4_tree_species2.save()
+
+        t1 = Tree(plot=p2_tree, species=None, region="blah", last_updated_by=u, import_event=ie)
+        t1.save()
+        
+        t2 = Tree(plot=p3_tree_species1, species=s1, region="blah", last_updated_by=u, import_event=ie)
+        t2.save()
+
+        t3 = Tree(plot=p4_tree_species2, species=s2, region="blah", last_updated_by=u, import_event=ie)
+        t3.save()
+
+        self.p1_no_tree = p1_no_tree
+        self.p2_tree = p2_tree
+        self.p3_tree_species1 = p3_tree_species1;
+        self.p4_tree_species2 = p4_tree_species2;
+
+        self.plots = [p1_no_tree, p2_tree, p3_tree_species1, p4_tree_species2]
+
+        self.t1 = t1
+        self.t2 = t2
+        self.t3 = t3
+        
+    def tearDown(self):
+        self.p1_no_tree.delete()
+
+        self.t1.delete()
+        self.p2_tree.delete()
+
+        self.t2.delete()
+        self.p3_tree_species1.delete()
+
+        self.t3.delete()
+        self.p4_tree_species2.delete()
+
+    def test_plot_location_search_error_cases(self):
+        """ Test error cases for plot location search """
+        client = Client()
+
+        # The following errors should all be 400 -> Malformed Request
+
+        # Error case -> Missing get data
+        # Requires lat,lon or bbox
+        response = client.get("/plots/location/")
+        self.assertEqual(response.status_code, 400)
+        
+        response = client.get("/plots/location/?lat=-77")
+        self.assertEqual(response.status_code, 400)
+
+        response = client.get("/plots/location/?lon=-32")
+        self.assertEqual(response.status_code, 400)
+
+    def geojson_ft2id(self,geojson):
+        if geojson and "features" in geojson:
+            return set([int(ft["properties"]["id"]) for ft in geojson["features"]])
+        else:
+            return set()
+
+    def assert_geojson_has_ids(self, geojson, ids):
+        return self.assertEqual(self.geojson_ft2id(geojson), ids)
+
+    def test_plot_location_search_pt(self):
+        """ Test searching for plot by pt """
+        client = Client()
+
+        reqstr = "/plots/location/?lat=%s&lon=%s&distance=%s&max_plots=%s"
+
+        ##################################################################
+        # Limit max plots to 1 - expect to get only 1 plot back
+        response = client.get(reqstr % (50,50,1000,1))
+        geojson = loads(response.content)
+
+        self.assert_geojson_has_ids(geojson, set([self.p1_no_tree.pk]))
+
+        ##################################################################
+        # Limit distance to 5, expect to get only two (50,50) and (51,51) back
+        response = client.get(reqstr % (50,50,5,100))
+        geojson = loads(response.content)
+        
+        exp = set([self.p1_no_tree.pk, self.p2_tree.pk])
+
+        self.assert_geojson_has_ids(geojson, exp)
+        
+        ##################################################################
+        # Effective unlimited distance should return all plots
+        response = client.get(reqstr % (50,50,10000,100))
+        geojson = loads(response.content)
+
+        self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
+
+        ##################################################################
+        # Species filter tests
+        #
+        # The following business rules apply:
+        # -> If (as above) no species if specified, return all plots
+        # -> If a species is specifed:
+        #      AND results in matching one or more (based on distance)
+        #      THEN return only those plots with trees with the given species
+
+        reqstr = "/plots/location/?lat=50&lon=50&distance=1000&max_plots=100&species=%s"
+
+        response = client.get(reqstr % (self.s1.pk))
+        geojson = loads(response.content)
+
+        self.assert_geojson_has_ids(geojson, set([self.p3_tree_species1.pk]))
+
+        response = client.get(reqstr % (self.s2.pk))
+        geojson = loads(response.content)
+
+        self.assert_geojson_has_ids(geojson, set([self.p4_tree_species2.pk]))
+
+        ##################################################################
+        # -> If a species is specified:
+        #      AND results in NO distance matches
+        #      THEN return the original results, unfiltered
+        #
+        
+        response = client.get(reqstr % (1000000))
+        geojson = loads(response.content)
+
+        self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
+
+
