@@ -6,17 +6,43 @@ from django.contrib.auth.models import User, UserManager
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
+from treemap.models import TreePhoto
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
 
 from simplejson import loads
+from datetime import datetime, date
+from time import mktime
+
+from test_util import set_auto_now
 
 #        from IPython.Debugger import Tracer; debug_here = Tracer(); debug_here()
+
+
+import django.shortcuts
 
 class ViewTests(unittest.TestCase):
 
     def setUp(self):
+        ######
+        # Request/Render mock
+        ######
+        def local_render_to_response(*args, **kwargs):
+            from django.template import loader, RequestContext
+            from django.http import HttpResponse
+
+            httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
+            hr = HttpResponse(
+                loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
+
+            hr.request_context = args[1].dicts
+
+            return hr
+
+        django.shortcuts.render_to_response = local_render_to_response
+
+
         ######
         # Users
         ######
@@ -78,6 +104,8 @@ class ViewTests(unittest.TestCase):
         ie = ImportEvent(file_name='site_add')
         ie.save()
 
+        self.ie = ie
+
         p1_no_tree = Plot(geometry=Point(50,50), last_updated_by=u, import_event=ie,present=True)
         p1_no_tree.save()
 
@@ -91,12 +119,16 @@ class ViewTests(unittest.TestCase):
         p4_tree_species2.save()
 
         t1 = Tree(plot=p2_tree, species=None, region="blah", last_updated_by=u, import_event=ie)
-        t1.save()
+        t1.present = True
         
         t2 = Tree(plot=p3_tree_species1, species=s1, region="blah", last_updated_by=u, import_event=ie)
-        t2.save()
+        t2.present = True
 
         t3 = Tree(plot=p4_tree_species2, species=s2, region="blah", last_updated_by=u, import_event=ie)
+        t3.present = True
+
+        t1.save()
+        t2.save()
         t3.save()
 
         self.p1_no_tree = p1_no_tree
@@ -209,4 +241,75 @@ class ViewTests(unittest.TestCase):
 
         self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
 
+    def test_result_map(self):
+        ##################################################################
+        # Test main result map page
+        # Note -> This page does not depend at all on the request
+        #
+        
+        p1 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie,present=True, width=100, length=100)
+        p2 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=90, length=110)
+
+        p1.save()
+        p2.save()
+
+        # For max/min plot size
+        p3 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie,present=True, width=80, length=120)
+        p4 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=70, length=130)
+        p5 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=60, length=70)
+
+        p3.save()
+        p4.save()
+        p5.save()
+
+        t3 = Tree(plot=p3, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t3.save()
+
+        t4 = Tree(plot=p4, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t4.save()
+
+        t5 = Tree(plot=p5, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t5.save()
+
+        t1 = Tree(plot=p1, species=None, region="blah", last_updated_by=self.u, import_event=self.ie)
+        t1.present = True
+        
+        current_year = datetime.now().year    
+        t1.date_planted = date(1999,9,9)
+
+        t2 = Tree(plot=p2, species=None, region="blah", last_updated_by=self.u, import_event=self.ie)
+        t1.present = True
+
+        t1.save()
+        t2.save()
+
+        set_auto_now(t1, "last_updated", False)
+        t1.last_updated = date(1999,9,9)
+        t1.save()
+        
+        response = Client().get("/map/")
+        req = response.request_context[0]
+
+        # t1 and t2 should be in the latest trees
+        exp = set([t4.pk, t5.pk])
+        got = set([t.pk for t in req['latest_trees']])
+
+        self.assertTrue(exp <= got)
+
+        # Check to verify platting dates
+        self.assertEquals(int(req['min_year']), 1999)
+        self.assertEquals(int(req['current_year']), current_year)
+
+        # Correct min/max plot sizes
+        self.assertEqual(int(req['min_plot']), 60)
+        self.assertEqual(int(req['max_plot']), 130)
+
+        min_updated = mktime(t1.last_updated.timetuple())
+        max_updated = mktime(t2.last_updated.timetuple())
+
+        self.assertEqual(req['min_updated'], min_updated)
+        self.assertEqual(req['max_updated'], max_updated)
+        # 'min_updated': min_updated,
+        # 'max_updated': max_updated,
+        
 
