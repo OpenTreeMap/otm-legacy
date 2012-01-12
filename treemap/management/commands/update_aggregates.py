@@ -28,10 +28,13 @@ class Command(BaseCommand):
                 agg = agg[0]
             else:
                 agg = ag_model(location=n)
-            trees = models.Tree.objects.filter(plot__geometry__within=n.geometry).exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
+            trees = models.Tree.objects.filter(plot__geometry__within=n.geometry)
+            plots = models.Plot.objects.filter(geometry__within=n.geometry)
             agg.total_trees = trees.count()
+            agg.total_plots = plots.count()
             #agg.distinct_species = len(trees.values("species").annotate(Count("id")).order_by("species"))
             #TODO figure out how to summarize diff stratum stuff
+            trees = trees.exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
             for f in field_names:
                 if agg.total_trees == 0:
                     s = 0.0
