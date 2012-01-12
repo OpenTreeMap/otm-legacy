@@ -491,6 +491,7 @@ class Plot(models.Model):
                     self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
         else: 
             self.neighborhoods = ""
+            oldns = None
                 
         if self.id:
             oldn = self.neighborhood.all()
@@ -548,6 +549,7 @@ class Plot(models.Model):
         #print trees
         agg.total_trees = trees.count()
         agg.total_plots = plots.count()
+
         agg.save()
 
     def validate_proximity(self, return_trees=False, max_count=1):

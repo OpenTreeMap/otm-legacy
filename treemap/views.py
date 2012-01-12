@@ -190,17 +190,6 @@ def plot_location_search(request):
         extent = []
     
     species = request.GET.get('species')
-<<<<<<< HEAD
-
-    if species:
-        plots_filtered_by_species = []
-        for plot in plots:
-            current_tree = plot.current_tree()
-            if current_tree and current_tree.species and current_tree.species.id == int(species):
-                plots_filtered_by_species.append(plot)
-                #print plot, current_tree, current_tree.species.id
-=======
->>>>>>> v1.1
 
     if species:
         plots_filtered_by_species = plots.filter(tree__species__id=species, tree__present=True)
