@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, UserManager
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
+from treemap.models import BenefitValues,Resource,AggregateNeighborhood
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
@@ -41,6 +42,26 @@ class ViewTests(unittest.TestCase):
 
         django.shortcuts.render_to_response = local_render_to_response
 
+        ######
+        # Set up benefit values
+        ######
+        bv = BenefitValues(co2=0.02, pm10=9.41, area="InlandValleys",
+                           electricity=0.1166,voc=4.69,ozone=5.0032,natural_gas=1.25278,
+                           nox=12.79,stormwater=0.0078,sox=3.72,bvoc=4.96)
+
+        bv.save()
+        self.bv = bv
+
+
+        dbh = "[1.0 2.0 3.0]"
+        rsrc = Resource(meta_species="BDM_OTHER", electricity_dbh=dbh, co2_avoided_dbh=dbh,
+                        aq_pm10_dep_dbh=dbh, region="Sim City", aq_voc_avoided_dbh=dbh,
+                        aq_pm10_avoided_dbh=dbh, aq_ozone_dep_dbh=dbh, aq_nox_avoided_dbh=dbh,
+                        co2_storage_dbh=dbh,aq_sox_avoided_dbh=dbh, aq_sox_dep_dbh=dbh,
+                        bvoc_dbh=dbh, co2_sequestered_dbh=dbh, aq_nox_dep_dbh=dbh,
+                        hydro_interception_dbh=dbh, natural_gas_dbh=dbh)
+        rsrc.save()
+        self.rsrc = rsrc
 
         ######
         # Users
@@ -79,6 +100,52 @@ class ViewTests(unittest.TestCase):
 
         z1.save()
         z2.save()
+
+        agn1 = AggregateNeighborhood(
+            annual_stormwater_management=0.0,
+            annual_electricity_conserved=0.0,
+            annual_energy_conserved=0.0,
+            annual_natural_gas_conserved=0.0,
+            annual_air_quality_improvement=0.0,
+            annual_co2_sequestered=0.0,
+            annual_co2_avoided=0.0,
+            annual_co2_reduced=0.0,
+            total_co2_stored=0.0,
+            annual_ozone=0.0,
+            annual_nox=0.0,
+            annual_pm10=0.0,
+            annual_sox=0.0,
+            annual_voc=0.0,
+            annual_bvoc=0.0,
+            total_trees=0,
+            total_plots=0,
+            location = n1)
+
+        agn2 = AggregateNeighborhood(
+            annual_stormwater_management=0.0,
+            annual_electricity_conserved=0.0,
+            annual_energy_conserved=0.0,
+            annual_natural_gas_conserved=0.0,
+            annual_air_quality_improvement=0.0,
+            annual_co2_sequestered=0.0,
+            annual_co2_avoided=0.0,
+            annual_co2_reduced=0.0,
+            total_co2_stored=0.0,
+            annual_ozone=0.0,
+            annual_nox=0.0,
+            annual_pm10=0.0,
+            annual_sox=0.0,
+            annual_voc=0.0,
+            annual_bvoc=0.0,
+            total_trees=0,
+            total_plots=0,
+            location = n2)
+
+        agn1.save()
+        agn2.save()
+
+        self.agn1 = agn1
+        self.agn2 = agn2
 
         self.z1 = z1
         self.z2 = z2
@@ -141,6 +208,15 @@ class ViewTests(unittest.TestCase):
         self.t3 = t3
         
     def tearDown(self):
+        self.agn1.delete()
+        self.agn2.delete()
+
+        self.bv.delete()
+        self.rsrc.delete()
+
+        self.n1.delete()
+        self.n2.delete()
+
         self.p1_no_tree.delete()
 
         self.t1.delete()
@@ -260,22 +336,22 @@ class ViewTests(unittest.TestCase):
         p4.save()
         p5.save()
 
-        t3 = Tree(plot=p3, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t3 = Tree(plot=p3, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
         t3.save()
 
-        t4 = Tree(plot=p4, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t4 = Tree(plot=p4, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
         t4.save()
 
-        t5 = Tree(plot=p5, species=None, region="blah", last_updated_by=self.u, import_event=self.ie,present=True)
+        t5 = Tree(plot=p5, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
         t5.save()
 
-        t1 = Tree(plot=p1, species=None, region="blah", last_updated_by=self.u, import_event=self.ie)
+        t1 = Tree(plot=p1, species=None, last_updated_by=self.u, import_event=self.ie)
         t1.present = True
         
         current_year = datetime.now().year    
         t1.date_planted = date(1999,9,9)
 
-        t2 = Tree(plot=p2, species=None, region="blah", last_updated_by=self.u, import_event=self.ie)
+        t2 = Tree(plot=p2, species=None, last_updated_by=self.u, import_event=self.ie)
         t1.present = True
 
         t1.save()
