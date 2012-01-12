@@ -513,22 +513,43 @@ class Plot(models.Model):
 
         super(Plot, self).save(*args,**kwargs) 
 
-        if self.current_tree() and self.neighborhoods != oldns:
+        if self.neighborhoods != oldns:
             done = []
             if n: 
                 for nhood in n:
                     if nhood.id in done: continue
-                    self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    if self.current_tree():
+                        self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    else:
+                        self.update_aggregate(AggregateNeighborhood, nhood)
                     done.append(nhood.id)
             if oldn: 
                 for nhood in oldn:
                     if nhood.id in done: continue
-                    self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    if self.current_tree():
+                        self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    else:
+                        self.update_aggregate(AggregateNeighborhood, nhood)
                     done.append(nhood.id)
              
         if self.current_tree() and z and z[0] != oldz:
             if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
             if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+
+    def update_aggregate(self, ag_model, location):        
+        agg =  ag_model.objects.filter(location=location)
+        if agg:
+            agg = agg[0]
+        else:
+            agg = ag_model(location=location)
+        #print agg.__dict__
+        #summaries = []        
+        trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        plots = Plot.objects.filter(geometry__within=location.geometry)
+        #print trees
+        agg.total_trees = trees.count()
+        agg.total_plots = plots.count()
+        agg.save()
 
     def validate_proximity(self, return_trees=False, max_count=1):
         if not self.geometry:
@@ -720,18 +741,6 @@ class Tree(models.Model):
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
         self.photo_count = self.treephoto_set.count()
-        #pnt = self.geometry
-                
-        #n = Neighborhood.objects.filter(geometry__contains=pnt)
-        #z = ZipCode.objects.filter(geometry__contains=pnt)
-        
-        #if n:
-        #    self.neighborhoods = ""
-        #    for nhood in n:
-        #        if nhood:
-        #            self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
-        #else: 
-        #    self.neighborhoods = ""
 
         self.projects = ""
         for fl in self.treeflags_set.all():
@@ -739,17 +748,6 @@ class Tree(models.Model):
 
         
         super(Tree, self).save(*args,**kwargs) 
-        #oldn = self.neighborhood.all()
-        #oldz = self.zipcode
-        #if n:
-        #    self.neighborhood.clear()
-        #    for nhood in n:
-        #        if nhood:
-        #            self.neighborhood.add(nhood)
-        #else: 
-        #    self.neighborhood.clear()
-        #if z: self.zipcode = z[0]
-        #else: self.zipcode = None
         
         self.set_environmental_summaries()
         #set new species counts
@@ -758,17 +756,6 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
           
-        #if n: 
-        #    for nhood in n:
-        #        self.update_aggregate(AggregateNeighborhood, nhood)
-        #if oldn: 
-        #    for nhood in oldn:
-        #        self.update_aggregate(AggregateNeighborhood, nhood)
-        # 
-        #if z and z[0] != oldz:
-        #    if z: self.update_aggregate(AggregateZipCode, z[0])
-        #    if oldz: self.update_aggregate(AggregateZipCode, oldz)
-        
     
     def quick_save(self,*args,**kwargs):
         super(Tree, self).save(*args,**kwargs) 
@@ -787,9 +774,13 @@ class Tree(models.Model):
             agg = ag_model(location=location)
         #print agg.__dict__
         #summaries = []        
-        trees = Tree.objects.filter(plot__geometry__within=location.geometry).exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
+        trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        plots = Plot.objects.filter(geometry__within=location.geometry)
         #print trees
         agg.total_trees = trees.count()
+        agg.total_plots = plots.count()
+
+        trees = trees.exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
         #print agg.total_trees
         #TODO figure out how to summarize diff stratum stuff
         field_names = [x.name for x in ResourceSummaryModel._meta.fields 
@@ -1100,6 +1091,7 @@ class TreeResource(ResourceSummaryModel):
 class AggregateSummaryModel(ResourceSummaryModel):
     last_updated = models.DateTimeField(auto_now=True)
     total_trees = models.IntegerField()
+    total_plots = models.IntegerField()
     #distinct_species = models.IntegerField()
 
     def ensure_recent(self, current_tree_count = ''):

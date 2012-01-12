@@ -26,7 +26,7 @@ urlpatterns = patterns('',
     (r'^zipcodes/$', zips),
     (r'^zipcodes/(?P<id>\d+)/$', zips),
 
-    (r'^plots/(?P<plot_id>\d+)/$', plot_detail),
+    url(r'^plots/(?P<plot_id>\d+)/$', plot_detail, name="treemap_plot_detail"),
     (r'^plots/(?P<plot_id>\d+)/addtree/$', plot_add_tree),
     (r'^plots/(?P<plot_id>\d+)/edit/$', plot_edit),
     (r'^plots/(?P<plot_id>\d+)/delete/$', plot_delete),

@@ -1153,11 +1153,9 @@ var tm = {
     },
         
     display_summaries : function(summaries){
-        //var callout = ['You selected ', summaries.total_trees, ' trees'].join('');
-        //console.log(summaries);
-        //jQuery('#callout').html(callout);
         jQuery(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
-        if (summaries.total_trees == '0')
+        jQuery(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
+        if (summaries.total_trees == '0' && summaries.total_plots == '0')
         {
             // todo.. http://sftrees.securemaps.com/ticket/148
             jQuery(".moretrees").html("");
