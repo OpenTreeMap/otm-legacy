@@ -292,13 +292,14 @@ def trees(request, tree_id=''):
     # testing - to match what you get in /location query and in map tiles.
     favorite = False
     recent_edits = []
+    trees = Tree.objects.all()
     if tree_id:
-        tree = Tree.objects.get(pk=tree_id)
+        trees = trees.filter(pk=tree_id)
         
-        if not tree:
+        if trees.count() == 0:
             raise Http404
         
-        if tree.present == False:
+        if trees[0].present == False:
             plot = tree.plot
             if plot.present == False:
                 raise Http404
@@ -306,16 +307,16 @@ def trees(request, tree_id=''):
                 return HttpResponseRedirect('/plots/%s/' % plot.id)
 
         # get the last 5 edits to each tree piece
-        history = tree.history.order_by('-last_updated')[:5]
+        history = trees[0].history.order_by('-last_updated')[:5]
         
         recent_edits = unified_history(history)
     
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
-                tree=trees, tree__present=True).count() > 0
+                tree=trees[0], tree__present=True).count() > 0
     else:
-        trees = trees.filter(Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None))
-
+	#TODO: do we ever call this w/o id???
+        trees = Tree.objects.filter(present=True)
     
     if request.GET.get('format','') == 'json':
         return render_to_geojson(trees, geom_field='geometry')
@@ -329,7 +330,7 @@ def trees(request, tree_id=''):
     if request.GET.get('format','') == 'eco_infowindow':
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
-        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'plot': tree.plot, 'recent': recent_edits}))
+        return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':first, 'plot': first.plot, 'recent': recent_edits}))
 
 def plot_detail(request, plot_id=''):
     plots = Plot.objects.filter(present=True)
