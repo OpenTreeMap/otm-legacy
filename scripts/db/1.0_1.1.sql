@@ -22,13 +22,10 @@ CREATE TABLE treemap_plot
   geocoded_address character varying(256),
   geocoded_lat double precision,
   geocoded_lon double precision,
-  region character varying(256) NOT NULL,
   last_updated timestamp with time zone NOT NULL,
   last_updated_by_id integer NOT NULL,
   import_event_id integer NOT NULL,
   geometry geometry NOT NULL,
-  geocoded_geometry geometry,
-  owner_geometry geometry,
   tree_id integer NOT NULL,
   data_owner_id integer,
   owner_orig_id character varying(256),
@@ -48,25 +45,14 @@ CREATE TABLE treemap_plot
       REFERENCES auth_user (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
   
-  CONSTRAINT enforce_dims_geocoded_geometry CHECK (st_ndims(geocoded_geometry) = 2),
   CONSTRAINT enforce_dims_geometry CHECK (st_ndims(geometry) = 2),
-  CONSTRAINT enforce_dims_owner_geometry CHECK (st_ndims(owner_geometry) = 2),
-  CONSTRAINT enforce_geotype_geocoded_geometry CHECK (geometrytype(geocoded_geometry) = 'POINT'::text OR geocoded_geometry IS NULL),
   CONSTRAINT enforce_geotype_geometry CHECK (geometrytype(geometry) = 'POINT'::text OR geometry IS NULL),
-  CONSTRAINT enforce_geotype_owner_geometry CHECK (geometrytype(owner_geometry) = 'POINT'::text OR owner_geometry IS NULL),
-  CONSTRAINT enforce_srid_geocoded_geometry CHECK (st_srid(geocoded_geometry) = 4326),
-  CONSTRAINT enforce_srid_geometry CHECK (st_srid(geometry) = 4326),
-  CONSTRAINT enforce_srid_owner_geometry CHECK (st_srid(owner_geometry) = 4326)
+  CONSTRAINT enforce_srid_geometry CHECK (st_srid(geometry) = 4326)
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE treemap_plot OWNER TO phillytreemap;
-
-CREATE INDEX treemap_plot_geocoded_geometry_id
-  ON treemap_plot
-  USING gist
-  (geocoded_geometry);
 
 CREATE INDEX treemap_plot_geometry_id
   ON treemap_plot
@@ -82,11 +68,6 @@ CREATE INDEX treemap_plot_last_updated_by_id
   ON treemap_plot
   USING btree
   (last_updated_by_id);
-
-CREATE INDEX treemap_plot_owner_geometry_id
-  ON treemap_plot
-  USING gist
-  (owner_geometry);
 
 CREATE INDEX treemap_plot_zipcode_id
   ON treemap_plot
@@ -123,7 +104,6 @@ CREATE TABLE treemap_plot_audit
   geocoded_address character varying(256),
   geocoded_lat double precision,
   geocoded_lon double precision,
-  region character varying(256) NOT NULL,
   last_updated timestamp with time zone NOT NULL,
   last_updated_by_id integer NOT NULL,
   import_event_id integer NOT NULL,
@@ -132,8 +112,6 @@ CREATE TABLE treemap_plot_audit
   _audit_change_type character varying(1) NOT NULL,
   id integer NOT NULL,
   geometry geometry NOT NULL,
-  geocoded_geometry geometry,
-  owner_geometry geometry,
   data_owner_id integer,
   owner_orig_id character varying(256),
   owner_additional_properties text,
@@ -150,15 +128,9 @@ CREATE TABLE treemap_plot_audit
   CONSTRAINT treemap_plot_data_owner_id_fkey FOREIGN KEY (data_owner_id)
       REFERENCES auth_user (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT enforce_dims_geocoded_geometry CHECK (st_ndims(geocoded_geometry) = 2),
   CONSTRAINT enforce_dims_geometry CHECK (st_ndims(geometry) = 2),
-  CONSTRAINT enforce_dims_owner_geometry CHECK (st_ndims(owner_geometry) = 2),
-  CONSTRAINT enforce_geotype_geocoded_geometry CHECK (geometrytype(geocoded_geometry) = 'POINT'::text OR geocoded_geometry IS NULL),
   CONSTRAINT enforce_geotype_geometry CHECK (geometrytype(geometry) = 'POINT'::text OR geometry IS NULL),
-  CONSTRAINT enforce_geotype_owner_geometry CHECK (geometrytype(owner_geometry) = 'POINT'::text OR owner_geometry IS NULL),
-  CONSTRAINT enforce_srid_geocoded_geometry CHECK (st_srid(geocoded_geometry) = 4326),
-  CONSTRAINT enforce_srid_geometry CHECK (st_srid(geometry) = 4326),
-  CONSTRAINT enforce_srid_owner_geometry CHECK (st_srid(owner_geometry) = 4326)
+  CONSTRAINT enforce_srid_geometry CHECK (st_srid(geometry) = 4326)
 )
 WITH (
   OIDS=FALSE
@@ -169,11 +141,6 @@ CREATE INDEX treemap_plot_audit__audit_timestamp
   ON treemap_plot_audit
   USING btree
   (_audit_timestamp);
-
-CREATE INDEX treemap_plot_audit_geocoded_geometry_id
-  ON treemap_plot_audit
-  USING gist
-  (geocoded_geometry);
 
 CREATE INDEX treemap_plot_audit_geometry_id
   ON treemap_plot_audit
@@ -195,11 +162,6 @@ CREATE INDEX treemap_plot_audit_last_updated_by_id
   USING btree
   (last_updated_by_id);
 
-CREATE INDEX treemap_plot_audit_owner_geometry_id
-  ON treemap_plot_audit
-  USING gist
-  (owner_geometry);
-
 CREATE INDEX treemap_plot_audit_zipcode_id
   ON treemap_plot_audit
   USING btree
@@ -207,6 +169,8 @@ CREATE INDEX treemap_plot_audit_zipcode_id
 
 ALTER TABLE treemap_tree_audit ALTER COLUMN geocoded_address DROP NOT NULL;
 ALTER TABLE treemap_tree_audit ALTER COLUMN geometry DROP NOT NULL;
+
+ALTER TABLE treemap_aggregatesummarymodel ADD COLUMN total_plots integer DEFAULT 0 NOT NULL;
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -252,12 +216,12 @@ CREATE INDEX treemap_plot_neighborhood_plot_id
 ALTER TABLE treemap_plot DISABLE TRIGGER ALL;
 INSERT INTO treemap_plot (present, width, length, type, powerline_conflict_potential, sidewalk_damage, address_street,
   address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy, geocoded_address, geocoded_lat, geocoded_lon,
-  region, last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
+  last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
   data_owner_id,  owner_orig_id,  owner_additional_properties)
 SELECT present, plot_width AS width, plot_length AS length, plot_type AS type, powerline_conflict_potential,
   sidewalk_damage, address_street, address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy,
-  geocoded_address, geocoded_lat, geocoded_lon, region, last_updated, last_updated_by_id, import_event_id,
-  geometry geometry, geocoded_geometry, owner_geometry, id as tree_id, data_owner_id,  owner_orig_id,  owner_additional_properties
+  geocoded_address, geocoded_lat, geocoded_lon, last_updated, last_updated_by_id, import_event_id,
+  geometry geometry, id as tree_id, data_owner_id,  owner_orig_id,  owner_additional_properties
 FROM treemap_tree;
 ALTER TABLE treemap_plot ENABLE TRIGGER ALL;
 
@@ -448,6 +412,7 @@ alter table treemap_tree drop column owner_geometry;
 alter table treemap_tree drop column sidewalk_damage;
 alter table treemap_tree drop column data_owner_id;
 alter table treemap_tree drop column owner_orig_id;
+alter table treemap_tree drop column region;
 alter table treemap_tree drop column owner_additional_properties;
 
 alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;

@@ -6,7 +6,6 @@ from django.contrib.auth.models import User, UserManager
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
-from treemap.models import TreePhoto
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
@@ -64,10 +63,10 @@ class ViewTests(unittest.TestCase):
         # Setup geometries -> Two stacked 100x100 squares
         #######
         n1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
-        n2geom = MultiPolygon(Polygon(((0,100),(100,100),(100,200),(0,200),(0,100))))
+        n2geom = MultiPolygon(Polygon(((0,101),(101,101),(101,200),(0,200),(0,101))))
 
-        n1 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PA", geometry=n1geom)
-        n2 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PA", geometry=n2geom)
+        n1 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PAC", geometry=n1geom)
+        n2 = Neighborhood(name="n2", region_id=2, city="c2", state="NY", county="NYC", geometry=n2geom)
 
         n1.save()
         n2.save()
@@ -76,7 +75,7 @@ class ViewTests(unittest.TestCase):
         z2geom = MultiPolygon(Polygon(((0,100),(100,100),(100,200),(0,200),(0,100))))
 
         z1 = ZipCode(zip="19107",geometry=z1geom)
-        z2 = ZipCode(zip="19107",geometry=z2geom)
+        z2 = ZipCode(zip="10001",geometry=z2geom)
 
         z1.save()
         z2.save()
@@ -89,8 +88,8 @@ class ViewTests(unittest.TestCase):
         ######
         # And we could use a few species...
         ######
-        s1 = Species(symbol="s1",scientific_name="testus specieius1",genus="blah")
-        s2 = Species(symbol="s2",scientific_name="testus specieius2",genus="blah")
+        s1 = Species(symbol="s1",genus="testus1",species="specieius1")
+        s2 = Species(symbol="s2",genus="testus2",species="specieius2")
         
         s1.save()
         s2.save()
@@ -118,17 +117,16 @@ class ViewTests(unittest.TestCase):
         p4_tree_species2 = Plot(geometry=Point(50,150), last_updated_by=u, import_event=ie,present=True)
         p4_tree_species2.save()
 
-        t1 = Tree(plot=p2_tree, species=None, region="blah", last_updated_by=u, import_event=ie)
+        t1 = Tree(plot=p2_tree, species=None, last_updated_by=u, import_event=ie)
         t1.present = True
-        
-        t2 = Tree(plot=p3_tree_species1, species=s1, region="blah", last_updated_by=u, import_event=ie)
-        t2.present = True
-
-        t3 = Tree(plot=p4_tree_species2, species=s2, region="blah", last_updated_by=u, import_event=ie)
-        t3.present = True
-
         t1.save()
+        
+        t2 = Tree(plot=p3_tree_species1, species=s1, last_updated_by=u, import_event=ie)
+        t2.present = True
         t2.save()
+
+        t3 = Tree(plot=p4_tree_species2, species=s2, last_updated_by=u, import_event=ie)
+        t3.present = True
         t3.save()
 
         self.p1_no_tree = p1_no_tree
