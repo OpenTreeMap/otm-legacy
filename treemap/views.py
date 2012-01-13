@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 from time import mktime, strptime
 from datetime import timedelta
 import tempfile
@@ -21,7 +22,7 @@ from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, Min, Max
 from django.views.decorators.csrf import csrf_view_exempt
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
@@ -107,54 +108,40 @@ def get_all_kmz(request):
 
 #@cache_page(60*1)
 def result_map(request):
-    #top_species = Species.objects.all().annotate(
-    #    num_trees=Count('tree')).order_by('-num_trees')[:20]
-    
-    #latest_maint = MaintenanceRecord.objects.filter(
-    #    tree__species__gt=0).filter(tree__dbh__gt=0).order_by('-date')[:5]
-        
-    #interesting_trees = Tree.objects.filter(species=30).filter(dbh__gt=0)[:5]
-    
-    # neighborhoods = {}
-    # zipcodes = {}
-    # for n in Neighborhood.objects.all():
-        # neighborhoods[n.id] = {'distinct_species' : n.aggregates.distinct_species, 
-                              # 'total_trees' : n.aggregates.total_trees, 
-                              # 'geom' : eval(n.geometry.simplify(.0002).geojson)['coordinates'][0], 
-                              # 'name' : n.name}
-    # for z in ZipCode.objects.all():
-        # zipcode[z.id] = {'distinct_species' : z.aggregates.distinct_species, 
-                            # 'total_trees' : z.aggregates.total_trees, 
-                            # 'geom' : eval(z.geometry.simplify(.0002).geojson)['coordinates'][0], 
-                            # 'name' : z.zipcode}
-                      
-
     # get enviro attributes for 'selected' trees
     min_year = 1970
-    planted_trees = Tree.objects.exclude(date_planted=None).exclude(present=False).order_by("date_planted")
-    if planted_trees.count():
-        min_year = Tree.objects.exclude(date_planted=None).exclude(present=False).order_by("date_planted")[0].date_planted.year
+
+    min_tree_year = Tree.objects.exclude(date_planted=None).exclude(present=False).aggregate(Min("date_planted"))
+
+    if "date_planted__min" in min_tree_year:
+        min_year = min_tree_year['date_planted__min'].year
+
     current_year = datetime.now().year    
 
     # TODO: Fix this to include updates to treeflag objects
     min_updated = 0
     max_updated = 0 
-    updated = Tree.objects.exclude(last_updated=None, present=False).order_by("last_updated")
-    if updated.exists():
-        min_updated = mktime(updated[0].last_updated.timetuple())
-        max_updated = mktime(updated[updated.count()-1].last_updated.timetuple())
 
-    min_plot = 0
-    max_plot = 0
-    plot_w = Tree.objects.exclude(last_updated=None, present=False).filter(plot__width__isnull=False).order_by('plot__width')
-    plot_l = Tree.objects.exclude(last_updated=None, present=False).filter(plot__length__isnull=False).order_by('plot__length')
-    if plot_w.exists():
-        min_plot = plot_w[0].plot.width
-        max_plot = plot_w[plot_w.count()-1].plot.width
+    updated = Tree.objects.exclude(last_updated=None, present=False).aggregate(Max("last_updated"), Min("last_updated"))
 
-    if plot_l.exists():
-        if plot_l[0].plot.length < min_plot: min_plot = plot_l[0].plot.length
-        if plot_l[plot_l.count()-1].plot.length > max_plot: max_plot = plot_l[plot_l.count()-1].plot.length
+    if "last_updated__min" in updated:
+        min_updated = mktime(updated['last_updated__min'].timetuple())
+
+    if "last_updated__max" in updated:
+        max_updated = mktime(updated['last_updated__max'].timetuple())
+
+
+    minmax_plot = Tree.objects.exclude(last_updated=None, present=False).filter(plot__width__isnull=False)
+    minmax_plot = minmax_plot.aggregate(Max('plot__width'), Max('plot__length'), Min('plot__width'), Min('plot__length'))
+
+    max_plot = max(minmax_plot.get('plot__length__max', 0),
+                   minmax_plot.get('plot__width__max', 0))
+
+    min_plot = min(minmax_plot.get('plot__length__min', sys.maxint),
+                   minmax_plot.get('plot__width__min', sys.maxint))
+
+    if min_plot == sys.maxint:
+        min_plot = 0
 
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
     recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]

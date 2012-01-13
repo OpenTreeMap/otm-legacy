@@ -7,18 +7,64 @@ from django.contrib.auth.models import User, UserManager
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
+from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.forms import TreeAddForm
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
 
 from simplejson import loads
+from datetime import datetime, date
+from time import mktime
+
+from test_util import set_auto_now
 
 #        from IPython.Debugger import Tracer; debug_here = Tracer(); debug_here()
+
+
+import django.shortcuts
 
 class ViewTests(unittest.TestCase):
 
     def setUp(self):
+        ######
+        # Request/Render mock
+        ######
+        def local_render_to_response(*args, **kwargs):
+            from django.template import loader, RequestContext
+            from django.http import HttpResponse
+
+            httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
+            hr = HttpResponse(
+                loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
+
+            hr.request_context = args[1].dicts
+
+            return hr
+
+        django.shortcuts.render_to_response = local_render_to_response
+
+        ######
+        # Set up benefit values
+        ######
+        bv = BenefitValues(co2=0.02, pm10=9.41, area="InlandValleys",
+                           electricity=0.1166,voc=4.69,ozone=5.0032,natural_gas=1.25278,
+                           nox=12.79,stormwater=0.0078,sox=3.72,bvoc=4.96)
+
+        bv.save()
+        self.bv = bv
+
+
+        dbh = "[1.0, 2.0, 3.0]"
+        rsrc = Resource(meta_species="BDM_OTHER", electricity_dbh=dbh, co2_avoided_dbh=dbh,
+                        aq_pm10_dep_dbh=dbh, region="Sim City", aq_voc_avoided_dbh=dbh,
+                        aq_pm10_avoided_dbh=dbh, aq_ozone_dep_dbh=dbh, aq_nox_avoided_dbh=dbh,
+                        co2_storage_dbh=dbh,aq_sox_avoided_dbh=dbh, aq_sox_dep_dbh=dbh,
+                        bvoc_dbh=dbh, co2_sequestered_dbh=dbh, aq_nox_dep_dbh=dbh,
+                        hydro_interception_dbh=dbh, natural_gas_dbh=dbh)
+        rsrc.save()
+        self.rsrc = rsrc
+
         ######
         # Users
         ######
@@ -57,6 +103,52 @@ class ViewTests(unittest.TestCase):
         z1.save()
         z2.save()
 
+        agn1 = AggregateNeighborhood(
+            annual_stormwater_management=0.0,
+            annual_electricity_conserved=0.0,
+            annual_energy_conserved=0.0,
+            annual_natural_gas_conserved=0.0,
+            annual_air_quality_improvement=0.0,
+            annual_co2_sequestered=0.0,
+            annual_co2_avoided=0.0,
+            annual_co2_reduced=0.0,
+            total_co2_stored=0.0,
+            annual_ozone=0.0,
+            annual_nox=0.0,
+            annual_pm10=0.0,
+            annual_sox=0.0,
+            annual_voc=0.0,
+            annual_bvoc=0.0,
+            total_trees=0,
+            total_plots=0,
+            location = n1)
+
+        agn2 = AggregateNeighborhood(
+            annual_stormwater_management=0.0,
+            annual_electricity_conserved=0.0,
+            annual_energy_conserved=0.0,
+            annual_natural_gas_conserved=0.0,
+            annual_air_quality_improvement=0.0,
+            annual_co2_sequestered=0.0,
+            annual_co2_avoided=0.0,
+            annual_co2_reduced=0.0,
+            total_co2_stored=0.0,
+            annual_ozone=0.0,
+            annual_nox=0.0,
+            annual_pm10=0.0,
+            annual_sox=0.0,
+            annual_voc=0.0,
+            annual_bvoc=0.0,
+            total_trees=0,
+            total_plots=0,
+            location = n2)
+
+        agn1.save()
+        agn2.save()
+
+        self.agn1 = agn1
+        self.agn2 = agn2
+
         self.z1 = z1
         self.z2 = z2
         self.n1 = n1
@@ -80,6 +172,8 @@ class ViewTests(unittest.TestCase):
         ie = ImportEvent(file_name='site_add')
         ie.save()
 
+        self.ie = ie
+
         p1_no_tree = Plot(geometry=Point(50,50), last_updated_by=u, import_event=ie,present=True)
         p1_no_tree.save()
 
@@ -93,12 +187,15 @@ class ViewTests(unittest.TestCase):
         p4_tree_species2.save()
 
         t1 = Tree(plot=p2_tree, species=None, last_updated_by=u, import_event=ie)
+        t1.present = True
         t1.save()
         
         t2 = Tree(plot=p3_tree_species1, species=s1, last_updated_by=u, import_event=ie)
+        t2.present = True
         t2.save()
 
         t3 = Tree(plot=p4_tree_species2, species=s2, last_updated_by=u, import_event=ie)
+        t3.present = True
         t3.save()
 
         self.p1_no_tree = p1_no_tree
@@ -113,6 +210,15 @@ class ViewTests(unittest.TestCase):
         self.t3 = t3
         
     def tearDown(self):
+        self.agn1.delete()
+        self.agn2.delete()
+
+        self.bv.delete()
+        self.rsrc.delete()
+
+        self.n1.delete()
+        self.n2.delete()
+
         self.p1_no_tree.delete()
 
         self.t1.delete()
@@ -233,6 +339,77 @@ class ViewTests(unittest.TestCase):
 
         self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
 
+    def test_result_map(self):
+        ##################################################################
+        # Test main result map page
+        # Note -> This page does not depend at all on the request
+        #
+        
+        p1 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie,present=True, width=100, length=100)
+        p2 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=90, length=110)
+
+        p1.save()
+        p2.save()
+
+        # For max/min plot size
+        p3 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie,present=True, width=80, length=120)
+        p4 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=70, length=130)
+        p5 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=60, length=70)
+
+        p3.save()
+        p4.save()
+        p5.save()
+
+        t3 = Tree(plot=p3, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
+        t3.save()
+
+        t4 = Tree(plot=p4, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
+        t4.save()
+
+        t5 = Tree(plot=p5, species=None, last_updated_by=self.u, import_event=self.ie,present=True)
+        t5.save()
+
+        t1 = Tree(plot=p1, species=None, last_updated_by=self.u, import_event=self.ie)
+        t1.present = True
+        
+        current_year = datetime.now().year    
+        t1.date_planted = date(1999,9,9)
+
+        t2 = Tree(plot=p2, species=None, last_updated_by=self.u, import_event=self.ie)
+        t1.present = True
+
+        t1.save()
+        t2.save()
+
+        set_auto_now(t1, "last_updated", False)
+        t1.last_updated = date(1999,9,9)
+        t1.save()
+        
+        response = Client().get("/map/")
+        req = response.request_context[0]
+
+        # t1 and t2 should be in the latest trees
+        exp = set([t4.pk, t5.pk])
+        got = set([t.pk for t in req['latest_trees']])
+
+        self.assertTrue(exp <= got)
+
+        # Check to verify platting dates
+        self.assertEquals(int(req['min_year']), 1999)
+        self.assertEquals(int(req['current_year']), current_year)
+
+        # Correct min/max plot sizes
+        self.assertEqual(int(req['min_plot']), 60)
+        self.assertEqual(int(req['max_plot']), 130)
+
+        min_updated = mktime(t1.last_updated.timetuple())
+        max_updated = mktime(t2.last_updated.timetuple())
+
+        self.assertEqual(req['min_updated'], min_updated)
+        self.assertEqual(req['max_updated'], max_updated)
+        # 'min_updated': min_updated,
+        # 'max_updated': max_updated,
+        
 
 #############################################
 #  New Plot Tests
