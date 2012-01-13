@@ -53,7 +53,8 @@ class ViewTests(unittest.TestCase):
         self.bv = bv
 
 
-        dbh = "[1.0 2.0 3.0]"
+        dbh = "[1.0, 2.0, 3.0]"
+
         rsrc = Resource(meta_species="BDM_OTHER", electricity_dbh=dbh, co2_avoided_dbh=dbh,
                         aq_pm10_dep_dbh=dbh, region="Sim City", aq_voc_avoided_dbh=dbh,
                         aq_pm10_avoided_dbh=dbh, aq_ozone_dep_dbh=dbh, aq_nox_avoided_dbh=dbh,
