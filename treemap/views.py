@@ -113,7 +113,7 @@ def result_map(request):
 
     min_tree_year = Tree.objects.exclude(date_planted=None).exclude(present=False).aggregate(Min("date_planted"))
 
-    if "date_planted__min" in min_tree_year:
+    if "date_planted__min" in min_tree_year and min_tree_year["date_planted__min"]:
         min_year = min_tree_year['date_planted__min'].year
 
     current_year = datetime.now().year    
@@ -124,21 +124,28 @@ def result_map(request):
 
     updated = Tree.objects.exclude(last_updated=None, present=False).aggregate(Max("last_updated"), Min("last_updated"))
 
-    if "last_updated__min" in updated:
+    if "last_updated__min" in updated and updated["last_updated__min"]:
         min_updated = mktime(updated['last_updated__min'].timetuple())
 
-    if "last_updated__max" in updated:
+    if "last_updated__max" in updated and updated["last_updated__max"]:
         max_updated = mktime(updated['last_updated__max'].timetuple())
 
 
     minmax_plot = Tree.objects.exclude(last_updated=None, present=False).filter(plot__width__isnull=False)
     minmax_plot = minmax_plot.aggregate(Max('plot__width'), Max('plot__length'), Min('plot__width'), Min('plot__length'))
 
-    max_plot = max(minmax_plot.get('plot__length__max', 0),
-                   minmax_plot.get('plot__width__max', 0))
+    max_plot = 0
+    min_plot = sys.maxint
 
-    min_plot = min(minmax_plot.get('plot__length__min', sys.maxint),
-                   minmax_plot.get('plot__width__min', sys.maxint))
+    if "plot__length__max" in minmax_plot and minmax_plot["plot__length__max"]:
+        max_plot = minmax_plot["plot__length__max"]
+    if "plot__width__max" in minmax_plot and minmax_plot["plot__width__max"]:
+        max_plot = max(max_plot, minmax_plot["plot__width__max"])
+
+    if "plot__length__min" in minmax_plot and minmax_plot["plot__length__min"]:
+        min_plot = minmax_plot["plot__length__min"]
+    if "plot__width__min" in minmax_plot and minmax_plot["plot__width__min"]:
+        min_plot = min(min_plot, minmax_plot["plot__width__min"])
 
     if min_plot == sys.maxint:
         min_plot = 0
@@ -146,18 +153,18 @@ def result_map(request):
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
     recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
-    
+
     return render_to_response('treemap/results.html',RequestContext(request,{
-        'latest_trees': recent_trees,
-        'latest_plots' : recent_plots,
-        'latest_photos': latest_photos,
-        'min_year': min_year,
-        'current_year': current_year,
-        'min_updated': min_updated,
-        'max_updated': max_updated,
-        'min_plot': min_plot,
-        'max_plot': max_plot,
-        }))
+                'latest_trees': recent_trees,
+                'latest_plots' : recent_plots,
+                'latest_photos': latest_photos,
+                'min_year': min_year,
+                'current_year': current_year,
+                'min_updated': min_updated,
+                'max_updated': max_updated,
+                'min_plot': min_plot,
+                'max_plot': max_plot,
+                }))
 
 
 def plot_location_search(request):

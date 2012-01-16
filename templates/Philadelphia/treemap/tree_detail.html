@@ -2,7 +2,7 @@
 
 {% load thumbnail dynamic_attribute humanize %}
 {% load maths %}
-{% load comments %}
+{% load threadedcommentstags %}
 {% load tree_tags %}
 
 {% get_comment_count for tree as comment_count %}
@@ -317,40 +317,31 @@
 									<h2>Comments</h2>
 								</div>
 								<div class="comment_list">
-								{% get_comment_list for tree as comment_list %}
-								{% for comment in comment_list %}
-									<div class="comment_item">
+                                                                {% get_threaded_comment_tree for tree as comment_tree %}
+								{% for comment in comment_tree %}
+									<div class="comment_item" style="margin-left: {{ comment.depth }}em">
 										<div class="comment_head">
 											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
 											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
-										</div>
+										</div>                                             
+								                {% if user.is_authenticated %}
+                                                                                {% get_threaded_comment_form as form %}
+                                                                                <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url tree comment %}','{{ comment.name }}')">Reply</a>
+                                                                                {% endif %}
 									</div>
 								{% empty %}
 									<div class="comment_item">No comments yet!</div>
 								{% endfor %}
 								</div>
-
+                                                                
 								{% if user.is_authenticated %}
-									{% get_comment_form for tree as form %}
-									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+									{% get_threaded_comment_form as form %}
+									<form action="{% get_comment_url tree %}" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
-										{% for field in form %}
-										{% if field.is_hidden %}
-										  {{ field }}
-										{% else %}
-										  {% if field.errors %}{{ field.errors }}{% endif %}
-										  <div class="comment_field {% if field.errors %} error{% endif %}"
-											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
-											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
-											{{ field.label_tag }} {{ field }}
-										  </div>
-										{% endif %}
-										{% endfor %}
+                                                                                {{ form.as_ul }}
 										<div class="submit">
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
