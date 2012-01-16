@@ -30,6 +30,7 @@ CREATE TABLE treemap_plot
   data_owner_id integer,
   owner_orig_id character varying(256),
   owner_additional_properties text,
+  readonly boolean,
 
   CONSTRAINT treemap_plot_pkey PRIMARY KEY (id),
   CONSTRAINT treemap_plot_import_event_id_fkey FOREIGN KEY (import_event_id)
@@ -115,6 +116,8 @@ CREATE TABLE treemap_plot_audit
   data_owner_id integer,
   owner_orig_id character varying(256),
   owner_additional_properties text,
+  readonly boolean,
+
   CONSTRAINT treemap_plot_audit_pkey PRIMARY KEY (_audit_id),
   CONSTRAINT treemap_plot_audit_import_event_id_fkey FOREIGN KEY (import_event_id)
       REFERENCES treemap_importevent (id) MATCH SIMPLE
@@ -169,6 +172,7 @@ CREATE INDEX treemap_plot_audit_zipcode_id
 
 ALTER TABLE treemap_tree_audit ALTER COLUMN geocoded_address DROP NOT NULL;
 ALTER TABLE treemap_tree_audit ALTER COLUMN geometry DROP NOT NULL;
+ALTER TABLE treemap_tree_audit ADD COLUMN readonly boolean default false;
 
 ALTER TABLE treemap_aggregatesummarymodel ADD COLUMN total_plots integer DEFAULT 0 NOT NULL;
 

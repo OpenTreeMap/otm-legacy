@@ -113,7 +113,7 @@ def result_map(request):
 
     min_tree_year = Tree.objects.exclude(date_planted=None).exclude(present=False).aggregate(Min("date_planted"))
 
-    if "date_planted__min" in min_tree_year:
+    if "date_planted__min" in min_tree_year and min_tree_year['date_planted__min']:
         min_year = min_tree_year['date_planted__min'].year
 
     current_year = datetime.now().year    

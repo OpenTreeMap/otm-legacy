@@ -393,7 +393,7 @@ class Plot(models.Model):
     owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
-
+    readonly = models.BooleanField(default=False)
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -565,7 +565,6 @@ class Plot(models.Model):
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
-        #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
     plot = models.ForeignKey(Plot)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
@@ -573,42 +572,14 @@ class Tree(models.Model):
     steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
-    #original data to help owners associate back to their own db
-    #data_owner = models.ForeignKey(User, related_name="owner", null=True)
-    #owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
-    #owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
-
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
-    #special = models.BooleanField(help_text="Landmark or other Special status")
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     height = models.FloatField(null=True, blank=True)
     canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
-#    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
-#        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     present = models.BooleanField(default=True)
-
-#    plot_width = models.FloatField(null=True, blank=True)
-#    plot_length = models.FloatField(null=True, blank=True)
-#    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
-#
-#    address_street = models.CharField(max_length=256, blank=True, null=True)
-#    address_city = models.CharField(max_length=256, blank=True, null=True)
-#    address_zip = models.CharField(max_length=30,blank=True, null=True)
-#    neighborhood = models.ManyToManyField(Neighborhood, null=True)
-#    neighborhoods = models.CharField(max_length=150, null=True)
-#    zipcode = models.ForeignKey(ZipCode, null=True)
-#
-#    geocoded_accuracy = models.IntegerField(null=True)
-#    geocoded_address = models.CharField(max_length=256, null=True)
-#    geocoded_lat = models.FloatField(null=True)
-#    geocoded_lon  = models.FloatField(null=True)
-#
-#    geometry = models.PointField(srid=4326)
-#    geocoded_geometry = models.PointField(null=True, srid=4326)
-#    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
 
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
@@ -622,10 +593,10 @@ class Tree(models.Model):
     
     import_event = models.ForeignKey(ImportEvent)
     
-#    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
     condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
     canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
 
+    readonly = models.BooleanField(default=False)
 
     def has_common_attributes(self):
         if self.get_flag_count > 0:

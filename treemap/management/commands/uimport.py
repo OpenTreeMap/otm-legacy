@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
 
 class Command(BaseCommand):
-    args = '<input_file_name, data_owner_id, base_srid>'
+    args = '<input_file_name, data_owner_id, base_srid, read_only>'
     option_list = BaseCommand.option_list + (
         make_option('--verbose',
             action='store_true',
@@ -59,6 +59,11 @@ class Command(BaseCommand):
                 print "Using transformaton object: %s" % self.tf
             else:
                 self.base_srid = 4326
+	    if len(args) > 3:
+		self.readonly = bool(args[3])
+                print "Setting readonly flag to %s" % self.readonly
+	    else:
+		self.readonly = False
         except:
             print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
             print "Options:    --verbose"
@@ -303,6 +308,7 @@ class Command(BaseCommand):
         plot.last_updated_by = self.updater
         plot.data_owner = self.data_owner
         plot.owner_additional_properties = self.file_name
+        plot.readonly = self.readonly
 
         if row.get('PLOTTYPE'):
             for k, v in Choices().get_field_choices('plot_type'):
@@ -360,6 +366,7 @@ class Command(BaseCommand):
 
         if tree:
             tree.plot = plot
+            tree.readonly = self.readonly
             tree.import_event = self.import_event
             tree.last_updated_by = self.updater
             
