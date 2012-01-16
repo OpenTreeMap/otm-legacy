@@ -35,7 +35,7 @@ from django.forms.models import inlineformset_factory, modelformset_factory
 from models import *
 from forms import *
 from profiles.models import UserProfile
-from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
+from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits, validate_form
 
 try:
     from cStringIO import StringIO
@@ -1020,13 +1020,15 @@ def plot_location_update(request):
         content_type = 'text/plain'
     )
 
-@login_required    
+@login_required
 def tree_add(request, tree_id = ''):
             
     if request.method == 'POST':
         form = TreeAddForm(request.POST,request.FILES)
-        if form.is_valid():
-            new_tree = form.save(request)
+
+        if validate_form(form, request):
+            new_tree = form.result
+
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()

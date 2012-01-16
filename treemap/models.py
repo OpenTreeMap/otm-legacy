@@ -14,6 +14,8 @@ import audit
 import simplejson
 from itertools import chain
 
+from django.core.exceptions import ValidationError
+
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
                      'AQ NOx dep',
@@ -394,6 +396,8 @@ class Plot(models.Model):
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
 
+    def validate(self):
+        raise ValidationError("something is afoot!")
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -478,6 +482,8 @@ class Plot(models.Model):
         super(Plot, self).save(*args,**kwargs) 
 
     def save(self, *args, **kwargs):
+        self.validate()
+
         pnt = self.geometry
                 
         n = Neighborhood.objects.filter(geometry__contains=pnt)
