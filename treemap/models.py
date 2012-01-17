@@ -370,13 +370,13 @@ class Plot(models.Model):
     address_city = models.CharField(max_length=256, blank=True, null=True)
     address_zip = models.CharField(max_length=30,blank=True, null=True)
     neighborhood = models.ManyToManyField(Neighborhood, null=True)
-    neighborhoods = models.CharField(max_length=150, null=True)
-    zipcode = models.ForeignKey(ZipCode, null=True)
+    neighborhoods = models.CharField(max_length=150, null=True, blank=True) # Really this should be 'blank=True' and null=False
+    zipcode = models.ForeignKey(ZipCode, null=True, blank=True) # Because it is calculated in the save method
     
-    geocoded_accuracy = models.IntegerField(null=True)
-    geocoded_address = models.CharField(max_length=256, null=True)
-    geocoded_lat = models.FloatField(null=True)
-    geocoded_lon  = models.FloatField(null=True)
+    geocoded_accuracy = models.IntegerField(null=True, blank=True)
+    geocoded_address = models.CharField(max_length=256, null=True, blank=True)
+    geocoded_lat = models.FloatField(null=True, blank=True)
+    geocoded_lon  = models.FloatField(null=True, blank=True)
 
     geometry = models.PointField(srid=4326)
 
@@ -397,7 +397,7 @@ class Plot(models.Model):
 
 
     def validate(self):
-        raise ValidationError("something is afoot!")
+        self.full_clean()
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):
@@ -485,7 +485,7 @@ class Plot(models.Model):
         self.validate()
 
         pnt = self.geometry
-                
+
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
         

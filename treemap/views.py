@@ -14,7 +14,7 @@ import simplejson
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -752,8 +752,6 @@ def object_update(request):
       parent: model/id the posted data should be added to
     
     """ 
-    # FIXME: sleep for debugging time delays
-    time.sleep(1)
            
     response_dict = {'success': False, 'errors': []}
         
@@ -1010,6 +1008,104 @@ def object_update(request):
             simplejson.dumps(response_dict, sort_keys=True, indent=4),
             content_type = 'text/plain'
             )
+
+
+def create_pending_records(self, plot_base, plot_new_flds, user):
+    pends = []
+    for fld, new_field_val in plot_new_flds.iteritems():
+        if getattr(plot_base, fld) is not new_fld_val:
+            pend = PlotPending(plot=plot_base, field=fld, value=new_field_val, status='pending')
+            pend.submitted_by = pend.updated_by = user
+        
+            if fld == 'geometry':
+                pend.geometry = plot_new_flds
+
+            pends.append(pend)
+
+    return pends
+
+def parse_post(request):
+    if request.META['SERVER_NAME'] == 'testserver':
+        post = request.POST        
+    else:
+        post = simplejson.loads(request.raw_post_data)
+
+    return post
+
+@login_required
+@csrf_view_exempt
+def update_plot(request, plot_id):
+    """ Update items for a given plot """
+    response_dict = {'success': False, 'errors': []}
+    valid_fields = ["present","width","length","type","powerline_conflict_potential",
+                    "sidewalk_damage","address_street","address_city","address_zip" ]
+
+    post = {}
+    rep_gained_by_editing_field = 5
+    
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    plot = get_object_or_404(Plot, pk=plot_id)
+
+    # Update fields
+    for k,v in post.items():
+        if hasattr(plot, k) and k in valid_fields:
+            setattr(plot, k, v)
+        else:
+            response_dict["errors"].append("Unknown or invalid update field: %s" % k)
+
+    try:
+        plot.validate()
+
+        # if the tree was added by the public, or the current user is not public, skip pending
+        insert_event_mgmt = plot.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+        mgmt_user = request.user.has_perm('auth.change_user')
+
+        if settings.PENDING_ON and insert_event_mgmt and not mgmt_user:
+                # Get a clean plot object
+                plot = get_object_or_404(Plot, pk=plot_id)
+
+                for r in create_pending_records(plot, post, request.user):
+                    r.save()
+        else:
+            plot.last_updated_by = request.user
+
+            # finally save the instance...
+            plot._audit_diff = simplejson.dumps(post)
+            plot.save()
+
+            Reputation.objects.log_reputation_action(request.user, request.user, 
+                                                     "edit plot", rep_gained_by_editing_field, plot)
+    except ValidationError, e:
+        if e.message_dict:
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages        
+        
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}
+        
+        plot = get_object_or_404(Plot, pk=plot_id)
+        for k,v in post.items():
+            response_dict['update'][k] = get_attr_or_display(plot,k)        
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+#TODO: This should be fixed by providing a "__dict__" method on the plot
+def get_attr_or_display(model, attr):
+    disp = "get_%s_display" % attr
+    if hasattr(model, disp):
+        return getattr(model, disp)()
+    else:
+        return getattr(model, attr)
+
 #for auto reverse-geocode saving of new address, from search page map click
 def plot_location_update(request):
     response_dict = {}
