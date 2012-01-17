@@ -1,4 +1,5 @@
 import os
+from django import forms
 from django.utils import unittest
 from django.test.client import Client
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
@@ -6,7 +7,8 @@ from django.contrib.auth.models import User, UserManager
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
-from treemap.models import BenefitValues,Resource,AggregateNeighborhood
+from treemap.models import BenefitValues, Resource, AggregateNeighborhood
+from treemap.forms import TreeAddForm
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
@@ -229,6 +231,36 @@ class ViewTests(unittest.TestCase):
         self.t3.delete()
         self.p4_tree_species2.delete()
 
+##############################################
+#  Assertion helpers
+
+    def assert_geojson_has_ids(self, geojson, ids):
+        return self.assertEqual(self.geojson_ft2id(geojson), ids)
+
+
+    def assert_point_in_nhood(self, point, nhood):
+        test_set = Neighborhood.objects.filter(geometry__contains=point)
+        for t in test_set:
+            if t == nhood:
+                return
+        self.fail("Point not in Neighborhood: %s" % nhood.name)
+        
+
+
+##############################################
+#  Data conversion helpers
+
+    def geojson_ft2id(self,geojson):
+        if geojson and "features" in geojson:
+            return set([int(ft["properties"]["id"]) for ft in geojson["features"]])
+        else:
+            return set()
+
+
+
+#############################################
+#  Search Tests
+
     def test_plot_location_search_error_cases(self):
         """ Test error cases for plot location search """
         client = Client()
@@ -246,14 +278,6 @@ class ViewTests(unittest.TestCase):
         response = client.get("/plots/location/?lon=-32")
         self.assertEqual(response.status_code, 400)
 
-    def geojson_ft2id(self,geojson):
-        if geojson and "features" in geojson:
-            return set([int(ft["properties"]["id"]) for ft in geojson["features"]])
-        else:
-            return set()
-
-    def assert_geojson_has_ids(self, geojson, ids):
-        return self.assertEqual(self.geojson_ft2id(geojson), ids)
 
     def test_plot_location_search_pt(self):
         """ Test searching for plot by pt """
@@ -387,4 +411,116 @@ class ViewTests(unittest.TestCase):
         # 'min_updated': min_updated,
         # 'max_updated': max_updated,
         
+
+#############################################
+#  New Plot Tests
+
+    def test_add_plot(self):
+        request = self.factory.post('/trees/add/')
+        form = {}
+        ##################################################################
+        # Test required information: 
+        #     lat,lon,entered address and geocoded address
+        
+        self.assertRaises(forms.ValidationError, form.save(request))
+        form.lat=50
+        self.assertRaises(forms.ValidationError, form.save(request))
+        form.lon=50
+        self.assertRaises(forms.ValidationError, form.save(request))
+        form.edit_address_street = "100 N Broad"
+        self.assertRaises(forms.ValidationError, form.save(request))
+        form.edit_address_street = None
+        form.geocoded_address = "100 N Broad St"
+        self.assertRaises(forms.ValidationError, form.save(request))
+        form.edit_address_street = "100 N Broad"
+        new_plot = form.save(request)
+        self.assertNotEqual(new_plot, None)
+        new_plot.delete()
+        new_plot = None
+
+        ##################################################################
+        # Test plot-only creation: 
+        #     Info in these fields creates a plot object, and does not
+        #     create a tree object
+        
+        form.edit_address_city = "Philadelphia"
+        form.edit_address_zip = "19107"
+        form.plot_width = "50"  
+        form.plot_width_in = "0"  
+        form.plot_length = "6"
+        form.plot_length_in = "6"
+        form.plot_type = "Open"  
+        form.powerline_conflict_potential = 1  
+        form.sidewalk_damage = 1  
+
+        # plot width < 15
+        self.assertRaises(forms.ValidationError, form.save(request))        
+        form.plot_width = "5"
+        # plot width < 12
+        form.plot_width_in = "20"
+        self.assertRaises(forms.ValidationError, form.save(request))   
+        form.plot_width_in = "0"
+        # plot type in type list
+        self.plot_type = "Blargh"
+        self.assertRaises(forms.ValidationError, form.save(request))   
+        self.plot_type = "Open"
+        # powerlines = 1, 2, or 3
+        self.powerline_conflict_potential = 15
+        self.assertRaises(forms.ValidationError, form.save(request))   
+        self.powerline_conflict_potential = 1
+        # powerlines = 1, 2, or 3
+        self.sidewalk_damage = 15
+        self.assertRaises(forms.ValidationError, form.save(request))   
+        self.sidewalk_damage = 1
+    
+        new_plot = form.save()
+        self.assertAlmostEqual(new_plot.width, 5.0)
+        self.assertAlmostEqual(new_plot.length, 6.5)
+        self.assertEqual(new_plot.current_tree(), None)
+        self.assertEqual(new_plot.zipcode, z1)
+        self.assert_point_in_nhood(new_plot.geometry, n1)
+
+        new_plot.delete()
+        new_plot = None
+        
+        ##################################################################
+        # Test tree creation: 
+        #     Info in the rest of the fields creates a tree object as well as a plot
+
+        form.species_id = "s1"
+        form.height = 50  
+        form.canopy_height = 40  
+        form.dbh = 2 
+        form.dbh_type = "circumference"
+        form.condition = "Good"  
+        form.canopy_condition = "Full - No Gaps"
+        
+        # height <= 300
+        form.height = 500
+        self.assertRaises(forms.ValidationError, form.save(request)) 
+        form.height = 60 
+        # canopy height <= 300
+        form.canopy_height = 550
+        self.assertRaises(forms.ValidationError, form.save(request))  
+        # canopy height <= height
+        form.canopy_height = 80
+        self.assertRaises(forms.ValidationError, form.save(request))  
+        form.canopy_height = 40
+        # condition in list
+        form.condition = "Blah"
+        self.assertRaises(forms.ValidationError, form.save(request))  
+        form.condition = "Good"
+        # canopy condition in list
+        form.canopy_condition = "Blah"
+        self.assertRaises(forms.ValidationError, form.save(request))  
+        form.canopy_condition = "Full - No Gaps"
+
+        new_plot = form.save()
+        new_tree = new_plot.current_tree()
+        self.assertNotEqual(new_tree, None)
+        self.assertEqual(new_tree.species, s1)
+        self.assertAlmostEqual(new_tree.dbh, 2/math.pi)
+        self.assertEqual(new_tree.plot, new_plot)
+        
+
 
