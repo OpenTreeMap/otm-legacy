@@ -1,17 +1,16 @@
 import os
 from django import forms
-from django.utils import unittest
-from django.test.client import Client
+from django.test import TestCase
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User, UserManager, Permission as P
 
 from treemap.models import Neighborhood, ZipCode
 from treemap.models import Plot, ImportEvent, Species, Tree
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
-from treemap.forms import TreeAddForm
+from treemap.views import *
 
 from profiles.models import UserProfile
-from django_reputation.models import Reputation
+from django_reputation.models import Reputation, ReputationAction
 
 from simplejson import loads
 from datetime import datetime, date
@@ -24,7 +23,7 @@ from test_util import set_auto_now
 
 import django.shortcuts
 
-class ViewTests(unittest.TestCase):
+class ViewTests(TestCase):
 
     def setUp(self):
         ######
@@ -38,12 +37,13 @@ class ViewTests(unittest.TestCase):
             hr = HttpResponse(
                 loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
 
-            hr.request_context = args[1].dicts
+            if hasattr(args[1], 'dicts'):
+                hr.request_context = args[1].dicts
 
             return hr
 
         django.shortcuts.render_to_response = local_render_to_response
-
+    
         ######
         # Set up benefit values
         ######
@@ -68,19 +68,24 @@ class ViewTests(unittest.TestCase):
         ######
         # Users
         ######
-        u = User.objects.filter(username="jim").all()
-
+        u = User.objects.filter(username="jim")
+            
         if u:
             u = u[0]
         else:
             u = User.objects.create_user("jim","jim@test.org","jim")
+            u.is_staff = True
+            u.is_superuser = True
+            u.save()
             up = UserProfile(user=u)
             u.reputation = Reputation(user=u)
             u.reputation.save()
-            
-            u.save()
 
         self.u = u
+
+        ra1 = ReputationAction(name="add tree", description="User added a tree")
+        ra1.save()
+        
 
         #######
         # Setup geometries -> Two stacked 100x100 squares
@@ -262,38 +267,34 @@ class ViewTests(unittest.TestCase):
 
     def test_plot_location_search_error_cases(self):
         """ Test error cases for plot location search """
-        client = Client()
-
-        # The following errors should all be 400 -> Malformed Request
+         # The following errors should all be 400 -> Malformed Request
 
         # Error case -> Missing get data
         # Requires lat,lon or bbox
-        response = client.get("/plots/location/")
+        response = self.client.get("/plots/location/")
         self.assertEqual(response.status_code, 400)
         
-        response = client.get("/plots/location/?lat=-77")
+        response = self.client.get("/plots/location/?lat=-77")
         self.assertEqual(response.status_code, 400)
 
-        response = client.get("/plots/location/?lon=-32")
+        response = self.client.get("/plots/location/?lon=-32")
         self.assertEqual(response.status_code, 400)
 
 
     def test_plot_location_search_pt(self):
         """ Test searching for plot by pt """
-        client = Client()
-
         reqstr = "/plots/location/?lat=%s&lon=%s&distance=%s&max_plots=%s"
 
         ##################################################################
         # Limit max plots to 1 - expect to get only 1 plot back
-        response = client.get(reqstr % (50,50,1000,1))
+        response = self.client.get(reqstr % (50,50,1000,1))
         geojson = loads(response.content)
 
         self.assert_geojson_has_ids(geojson, set([self.p1_no_tree.pk]))
 
         ##################################################################
         # Limit distance to 5, expect to get only two (50,50) and (51,51) back
-        response = client.get(reqstr % (50,50,5,100))
+        response = self.client.get(reqstr % (50,50,5,100))
         geojson = loads(response.content)
         
         exp = set([self.p1_no_tree.pk, self.p2_tree.pk])
@@ -302,7 +303,7 @@ class ViewTests(unittest.TestCase):
         
         ##################################################################
         # Effective unlimited distance should return all plots
-        response = client.get(reqstr % (50,50,10000,100))
+        response = self.client.get(reqstr % (50,50,10000,100))
         geojson = loads(response.content)
 
         self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
@@ -318,12 +319,12 @@ class ViewTests(unittest.TestCase):
 
         reqstr = "/plots/location/?lat=50&lon=50&distance=1000&max_plots=100&species=%s"
 
-        response = client.get(reqstr % (self.s1.pk))
+        response = self.client.get(reqstr % (self.s1.pk))
         geojson = loads(response.content)
 
         self.assert_geojson_has_ids(geojson, set([self.p3_tree_species1.pk]))
 
-        response = client.get(reqstr % (self.s2.pk))
+        response = self.client.get(reqstr % (self.s2.pk))
         geojson = loads(response.content)
 
         self.assert_geojson_has_ids(geojson, set([self.p4_tree_species2.pk]))
@@ -334,7 +335,7 @@ class ViewTests(unittest.TestCase):
         #      THEN return the original results, unfiltered
         #
         
-        response = client.get(reqstr % (1000000))
+        response = self.client.get(reqstr % (1000000))
         geojson = loads(response.content)
 
         self.assert_geojson_has_ids(geojson, set([p.pk for p in self.plots]))
@@ -385,7 +386,7 @@ class ViewTests(unittest.TestCase):
         t1.last_updated = date(1999,9,9)
         t1.save()
         
-        response = Client().get("/map/")
+        response = self.client.get("/map/")
         req = response.request_context[0]
 
         # t1 and t2 should be in the latest trees
@@ -415,26 +416,34 @@ class ViewTests(unittest.TestCase):
 #  New Plot Tests
 
     def test_add_plot(self):
-        request = self.factory.post('/trees/add/')
+        self.client.login(username='jim',password='jim')
         form = {}
+        form['target']="edit"
         ##################################################################
         # Test required information: 
         #     lat,lon,entered address and geocoded address
         
-        self.assertRaises(forms.ValidationError, form.save(request))
-        form.lat=50
-        self.assertRaises(forms.ValidationError, form.save(request))
-        form.lon=50
-        self.assertRaises(forms.ValidationError, form.save(request))
-        form.edit_address_street = "100 N Broad"
-        self.assertRaises(forms.ValidationError, form.save(request))
-        form.edit_address_street = None
-        form.geocoded_address = "100 N Broad St"
-        self.assertRaises(forms.ValidationError, form.save(request))
-        form.edit_address_street = "100 N Broad"
-        new_plot = form.save(request)
-        self.assertNotEqual(new_plot, None)
-        new_plot.delete()
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        form['lat'] = 50
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        form['lon'] = 50
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        form['edit_address_street'] = "100 N Broad"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        del form['edit_address_street']
+        form['geocode_address'] = "100 N Broad St"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        form['edit_address_street'] = "100 N Broad"
+
+        response = self.client.post("/trees/add/", form)
+        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+
+        response = self.client.get('/trees/new/%i/' % self.u.id)
+        self.assertNotEqual(len(response.context['plots']), 0)
+        new_plot = response.context['plots'][0]        
+        
+        self.assertTrue(new_plot.geocoded_address, form['geocode_address'])
+    
         new_plot = None
 
         ##################################################################
@@ -442,82 +451,89 @@ class ViewTests(unittest.TestCase):
         #     Info in these fields creates a plot object, and does not
         #     create a tree object
         
-        form.edit_address_city = "Philadelphia"
-        form.edit_address_zip = "19107"
-        form.plot_width = "50"  
-        form.plot_width_in = "0"  
-        form.plot_length = "6"
-        form.plot_length_in = "6"
-        form.plot_type = "Open"  
-        form.powerline_conflict_potential = 1  
-        form.sidewalk_damage = 1  
+        form['edit_address_city'] = "Philadelphia"
+        form['edit_address_zip'] = "19107"
+        form['plot_width'] = "50"   #bad
+        form['plot_width_in'] = "0"  
+        form['plot_length'] = "6"
+        form['plot_length_in'] = "6"
+        form['plot_type'] = "Open"  
+        form['power_lines'] = 1  
+        form['sidewalk_damage'] = 1  
 
         # plot width < 15
-        self.assertRaises(forms.ValidationError, form.save(request))        
-        form.plot_width = "5"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')      
+        form['plot_width'] = "5"
         # plot width < 12
-        form.plot_width_in = "20"
-        self.assertRaises(forms.ValidationError, form.save(request))   
-        form.plot_width_in = "0"
+        form['plot_width_in'] = "20"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        form['plot_width_in'] = ""
         # plot type in type list
-        self.plot_type = "Blargh"
-        self.assertRaises(forms.ValidationError, form.save(request))   
-        self.plot_type = "Open"
+        form['plot_type'] = "Blargh"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        form['plot_type'] = 1
         # powerlines = 1, 2, or 3
-        self.powerline_conflict_potential = 15
-        self.assertRaises(forms.ValidationError, form.save(request))   
-        self.powerline_conflict_potential = 1
-        # powerlines = 1, 2, or 3
-        self.sidewalk_damage = 15
-        self.assertRaises(forms.ValidationError, form.save(request))   
-        self.sidewalk_damage = 1
+        form['power_lines'] = 15
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        form['power_lines'] = 1
+        # sidewalk damage = 1, 2, or 3
+        form['sidewalk_damage'] = 15
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        form['sidewalk_damage'] = 1
     
-        new_plot = form.save()
+        response = self.client.post("/trees/add/", form)
+        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+        
+        response = self.client.get('/trees/new/%i/' % self.u.id)
+        new_plot = response.context['plots'][0]   
         self.assertAlmostEqual(new_plot.width, 5.0)
         self.assertAlmostEqual(new_plot.length, 6.5)
         self.assertEqual(new_plot.current_tree(), None)
-        self.assertEqual(new_plot.zipcode, z1)
-        self.assert_point_in_nhood(new_plot.geometry, n1)
+        self.assertEqual(new_plot.zipcode, self.z1)
+        self.assert_point_in_nhood(new_plot.geometry, self.n1)
 
-        new_plot.delete()
         new_plot = None
         
         ##################################################################
         # Test tree creation: 
         #     Info in the rest of the fields creates a tree object as well as a plot
 
-        form.species_id = "s1"
-        form.height = 50  
-        form.canopy_height = 40  
-        form.dbh = 2 
-        form.dbh_type = "circumference"
-        form.condition = "Good"  
-        form.canopy_condition = "Full - No Gaps"
+        form['species_id'] = "s1"
+        form['height'] = 50  
+        form['canopy_height'] = 40  
+        form['dbh'] = 2 
+        form['dbh_type'] = "circumference"
+        form['condition'] = "Good"  
+        form['canopy_condition'] = "Full - No Gaps"
         
         # height <= 300
-        form.height = 500
-        self.assertRaises(forms.ValidationError, form.save(request)) 
-        form.height = 60 
+        form['height'] = 500
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        form['height'] = 60 
         # canopy height <= 300
-        form.canopy_height = 550
-        self.assertRaises(forms.ValidationError, form.save(request))  
+        form['canopy_height'] = 550
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
         # canopy height <= height
-        form.canopy_height = 80
-        self.assertRaises(forms.ValidationError, form.save(request))  
-        form.canopy_height = 40
+        form['canopy_height'] = 80
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        form['canopy_height'] = 40
         # condition in list
-        form.condition = "Blah"
-        self.assertRaises(forms.ValidationError, form.save(request))  
-        form.condition = "Good"
+        form['condition'] = "Blah"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        form['condition'] = 1
         # canopy condition in list
-        form.canopy_condition = "Blah"
-        self.assertRaises(forms.ValidationError, form.save(request))  
-        form.canopy_condition = "Full - No Gaps"
+        form['canopy_condition'] = "Blah"
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        form['canopy_condition'] = 1
 
-        new_plot = form.save()
+        response = self.client.post("/trees/add/", form)
+        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+        
+        response = self.client.get('/trees/new/%i/' % self.u.id)
+        new_plot = response.context['plots'][0]   
         new_tree = new_plot.current_tree()
         self.assertNotEqual(new_tree, None)
-        self.assertEqual(new_tree.species, s1)
+        self.assertEqual(new_tree.species.genus, "testus1")
         self.assertAlmostEqual(new_tree.dbh, 2/math.pi)
         self.assertEqual(new_tree.plot, new_plot)
         

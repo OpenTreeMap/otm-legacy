@@ -1035,9 +1035,9 @@ def tree_add(request, tree_id = ''):
                 messages.success(request, "Your tree was successfully added!")
                 pass
             elif form.cleaned_data.get('target') == "edit":
-                return HttpResponseRedirect('/trees/new/%i' % request.user.id)
+                return HttpResponseRedirect('/trees/new/%i/' % request.user.id)
             else:
-                return HttpResponseRedirect('/trees/%i' % new_tree.id)
+                return HttpResponseRedirect('/trees/%i/' % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
