@@ -4,6 +4,8 @@ from django.utils import simplejson
 from django.core.serializers import json 
 from django.http import HttpResponse
 
+import re
+
 def get_summaries_and_benefits(obj):
     try:
         # Note: 'aggregate' is a queryset method
@@ -34,15 +36,18 @@ def get_pt_or_bbox(rg):
     """
     parse out lat/lon or bbox from request.get and return geos geom
     """
+    dec_num_re = "(\d+?(\.\d+))"
+    bbox_re = '%s,%s.*?%s,%s' % (dec_num_re,dec_num_re,dec_num_re,dec_num_re)
+
     lat = rg.get('lat','')
     lon = rg.get('lon','')
     if lat and lon: 
         return Point(float(lon), float(lat), srid=4326)
     bbox = rg.get('bbox','')
     if bbox:
-        b = eval(bbox)
-        p1 = Point((b[0][1],b[0][0]))
-        p2 = Point((b[1][1],b[1][0]))
+        b = re.search(rg.get('bbox',''), bbox_re).groups()
+        p1 = Point((b[2],b[0]))
+        p2 = Point((b[6],b[4]))
         return p1.union(p2).envelope
     return None
 

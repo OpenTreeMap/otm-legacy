@@ -1100,9 +1100,11 @@ def _build_tree_search_result(request):
             print '  .. now we have %d species' % len(species)
             
     cur_species_count = species.count()
-    if max_species_count != cur_species_count:
-        trees = trees.filter(species__in=species)
-	plots = Plot.objects.none()
+
+    if max_species_count == cur_species_count:
+        trees = Tree.objects.filter(present=True)
+    else:
+        trees = Tree.objects.filter(species__in=species, present=True)
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1435,7 +1437,7 @@ def ogr_conversion(output_type, sql, extension=None):
 
     if output_type == 'CSV':
         geometry = 'GEOMETRY=AS_WKT'
-    else: 
+    else:
         geometry = ''
 
     command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]

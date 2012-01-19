@@ -36,7 +36,7 @@ class UserProfile(models.Model):
         verbose_name_plural = _('Profiles')
         
     def recently_edited_trees(self):
-        trees = Tree.history.filter(last_updated_by=self.user, present=True).order_by('-last_updated')[:7]
+        trees = Tree.history.filter(last_updated_by=self.user, present=True).exclude(_audit_change_type="U",_audit_diff="").order_by('-last_updated')[:7]
         print trees        
         recent_edits = []
         for t in trees:

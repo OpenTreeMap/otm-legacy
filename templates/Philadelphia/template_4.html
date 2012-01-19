@@ -65,8 +65,8 @@
                     <h3>Most Common Trees</h3>
                       {% for trees in feeds.species %}
                       <div class="tree_stat_group">
-                        <a class="tree_link" href="/map/#?species={{trees.symbol}}">{{trees}}&nbsp;&raquo;</a>
-                        <a class="tree_stat" href="/map/#?species={{trees.symbol}}">{{trees.tree_count}} </a>
+                        <a class="tree_link" href="/map/#?species={{trees.id}}">{{trees}}&nbsp;&raquo;</a>
+                        <a class="tree_stat" href="/map/#?species={{trees.id}}">{{trees.tree_count}} </a>
                       </div>
                       {% endfor %}
                   </div>    
