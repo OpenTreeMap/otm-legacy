@@ -345,6 +345,18 @@ CREATE OR REPLACE VIEW plots_with_trees AS
 
 ALTER TABLE plots_with_trees OWNER TO phillytreemap;
 
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+-- Create exclusion mask layer
+
+CREATE TABLE "treemap_exclusionmask" (
+    "id" serial NOT NULL PRIMARY KEY,
+    "type" varchar(50)
+)
+;
+SELECT AddGeometryColumn('treemap_exclusionmask', 'geometry', 4326, 'MULTIPOLYGON', 2);
+ALTER TABLE "treemap_exclusionmask" ALTER "geometry" SET NOT NULL;
+CREATE INDEX "treemap_exclusionmask_geometry_id" ON "treemap_exclusionmask" USING GIST ( "geometry" GIST_GEOMETRY_OPS );
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------

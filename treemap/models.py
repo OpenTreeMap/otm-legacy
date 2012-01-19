@@ -126,7 +126,7 @@ class Choices(models.Model):
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
     """
-    from zillow
+    Restricts point placement to within these boundaries.
     """
     name = models.CharField(max_length=255)
     region_id = models.IntegerField()
@@ -141,7 +141,7 @@ class Neighborhood(models.Model):
 
 class SupervisorDistrict(models.Model):
     """
-    from sfgov
+    not used currently
     """
     id = models.IntegerField(primary_key=True)
     supervisor = models.CharField(max_length=255)
@@ -153,7 +153,7 @@ class SupervisorDistrict(models.Model):
     
 class ZipCode(models.Model):
     """
-    from sfgov
+    Display and searching only
     """
     zip = models.CharField(max_length=255)
     geometry = models.MultiPolygonField(srid=4326)
@@ -161,6 +161,14 @@ class ZipCode(models.Model):
     
     def __unicode__(self): return '%s (%s)' % (self.id, self.zip)
     
+
+class ExclusionMask(models.Model):
+    """
+    Further restrict point placement if settings.MASKING_ON = True 
+    """
+    geometry = models.MultiPolygonField(srid=4326)
+    type = models.CharField(max_length=50, blank=True, null=True)
+    objects=models.GeoManager()
     
 class Factoid(models.Model):
     category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
@@ -399,6 +407,10 @@ class Plot(models.Model):
 
     def validate(self):
         self.full_clean()
+        em = ExclusionMask.objects.filter(geometry__contains=self.geometry)
+        if em.count() > 0:
+            raise ValidationError("Geometry may not be within an exclusion zone.")
+
 
     def get_plot_type_display(self):
         for key, value in Choices().get_field_choices('plot_type'):

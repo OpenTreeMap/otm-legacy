@@ -1,5 +1,6 @@
 import os
 from django import forms
+from django.conf import settings
 from django.test import TestCase
 
 from django.conf import settings
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.contrib.auth.models import User, UserManager, Permission as P
 
-from treemap.models import Neighborhood, ZipCode
+from treemap.models import Neighborhood, ZipCode, ExclusionMask
 from treemap.models import Plot, ImportEvent, Species, Tree
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.views import *
@@ -125,6 +126,11 @@ class ViewTests(TestCase):
 
         z1.save()
         z2.save()
+
+        exgeom1 = MultiPolygon(Polygon(((0,0),(25,0),(25,25),(0,25),(0,0))))
+        ex1 = ExclusionMask(geometry=exgeom1, type="building")
+
+        ex1.save()
 
         agn1 = AggregateNeighborhood(
             annual_stormwater_management=0.0,
@@ -518,6 +524,17 @@ class ViewTests(TestCase):
 
         new_plot = None
         
+        ##################################################################
+        # Test exclusion zones: 
+        #     Turn on exclusions in the settings and move point into exclusion zone
+
+        form['lat'] = 20
+        form['lon'] = 20
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        
+        form['lat'] = 50
+        form['lon'] = 50
+
         ##################################################################
         # Test tree creation: 
         #     Info in the rest of the fields creates a tree object as well as a plot
