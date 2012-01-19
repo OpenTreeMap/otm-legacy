@@ -30,7 +30,6 @@ urlpatterns = patterns('',
         {'document_root': settings.MEDIA_ROOT}),   
     (r'^admin_media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.ADMIN_MEDIA_ROOT}), 
-#    (r'^comments/', include('django.contrib.comments.urls')), 
     (r'^comments/', include('threadedcomments.urls')), 
 
     (r'^', include('treemap.urls')),

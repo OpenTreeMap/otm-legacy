@@ -3,6 +3,21 @@ from django.contrib.gis.geos import Point
 from django.utils import simplejson
 from django.core.serializers import json 
 from django.http import HttpResponse
+from django.core.exceptions import ValidationError
+from django.forms.forms import NON_FIELD_ERRORS
+
+def validate_form(form, request):
+    if form.is_valid():
+        try:
+            new_stuff = form.save(request)
+            form.result = new_stuff
+            return True
+        except ValidationError, e:
+            form._errors[NON_FIELD_ERRORS] = form.error_class(e.messages)
+            return False
+    else:
+        return False
+
 
 import re
 

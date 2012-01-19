@@ -93,6 +93,7 @@ class TreeAddForm(forms.Form):
         from django.contrib.gis.geos import Point
 
         plot = Plot()
+        plot.data_owner = request.user
 
         address = self.cleaned_data.get('edit_address_street')
         if address:
