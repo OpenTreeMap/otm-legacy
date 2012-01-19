@@ -14,7 +14,7 @@ import simplejson
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -35,7 +35,7 @@ from django.forms.models import inlineformset_factory, modelformset_factory
 from models import *
 from forms import *
 from profiles.models import UserProfile
-from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits
+from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits, validate_form
 
 try:
     from cStringIO import StringIO
@@ -124,21 +124,28 @@ def result_map(request):
 
     updated = Tree.objects.exclude(last_updated=None, present=False).aggregate(Max("last_updated"), Min("last_updated"))
 
-    if "last_updated__min" in updated:
+    if "last_updated__min" in updated and updated["last_updated__min"]:
         min_updated = mktime(updated['last_updated__min'].timetuple())
 
-    if "last_updated__max" in updated:
+    if "last_updated__max" in updated and updated["last_updated__max"]:
         max_updated = mktime(updated['last_updated__max'].timetuple())
 
 
     minmax_plot = Tree.objects.exclude(last_updated=None, present=False).filter(plot__width__isnull=False)
     minmax_plot = minmax_plot.aggregate(Max('plot__width'), Max('plot__length'), Min('plot__width'), Min('plot__length'))
 
-    max_plot = max(minmax_plot.get('plot__length__max', 0),
-                   minmax_plot.get('plot__width__max', 0))
+    max_plot = 0
+    min_plot = sys.maxint
 
-    min_plot = min(minmax_plot.get('plot__length__min', sys.maxint),
-                   minmax_plot.get('plot__width__min', sys.maxint))
+    if "plot__length__max" in minmax_plot and minmax_plot["plot__length__max"]:
+        max_plot = minmax_plot["plot__length__max"]
+    if "plot__width__max" in minmax_plot and minmax_plot["plot__width__max"]:
+        max_plot = max(max_plot, minmax_plot["plot__width__max"])
+
+    if "plot__length__min" in minmax_plot and minmax_plot["plot__length__min"]:
+        min_plot = minmax_plot["plot__length__min"]
+    if "plot__width__min" in minmax_plot and minmax_plot["plot__width__min"]:
+        min_plot = min(min_plot, minmax_plot["plot__width__min"])
 
     if min_plot == sys.maxint:
         min_plot = 0
@@ -146,18 +153,18 @@ def result_map(request):
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
     recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
-    
+
     return render_to_response('treemap/results.html',RequestContext(request,{
-        'latest_trees': recent_trees,
-        'latest_plots' : recent_plots,
-        'latest_photos': latest_photos,
-        'min_year': min_year,
-        'current_year': current_year,
-        'min_updated': min_updated,
-        'max_updated': max_updated,
-        'min_plot': min_plot,
-        'max_plot': max_plot,
-        }))
+                'latest_trees': recent_trees,
+                'latest_plots' : recent_plots,
+                'latest_photos': latest_photos,
+                'min_year': min_year,
+                'current_year': current_year,
+                'min_updated': min_updated,
+                'max_updated': max_updated,
+                'min_plot': min_plot,
+                'max_plot': max_plot,
+                }))
 
 
 def plot_location_search(request):
@@ -745,8 +752,6 @@ def object_update(request):
       parent: model/id the posted data should be added to
     
     """ 
-    # FIXME: sleep for debugging time delays
-    time.sleep(1)
            
     response_dict = {'success': False, 'errors': []}
         
@@ -1003,6 +1008,104 @@ def object_update(request):
             simplejson.dumps(response_dict, sort_keys=True, indent=4),
             content_type = 'text/plain'
             )
+
+
+def create_pending_records(self, plot_base, plot_new_flds, user):
+    pends = []
+    for fld, new_field_val in plot_new_flds.iteritems():
+        if getattr(plot_base, fld) is not new_fld_val:
+            pend = PlotPending(plot=plot_base, field=fld, value=new_field_val, status='pending')
+            pend.submitted_by = pend.updated_by = user
+        
+            if fld == 'geometry':
+                pend.geometry = plot_new_flds
+
+            pends.append(pend)
+
+    return pends
+
+def parse_post(request):
+    if request.META['SERVER_NAME'] == 'testserver':
+        post = request.POST        
+    else:
+        post = simplejson.loads(request.raw_post_data)
+
+    return post
+
+@login_required
+@csrf_view_exempt
+def update_plot(request, plot_id):
+    """ Update items for a given plot """
+    response_dict = {'success': False, 'errors': []}
+    valid_fields = ["present","width","length","type","powerline_conflict_potential",
+                    "sidewalk_damage","address_street","address_city","address_zip" ]
+
+    post = {}
+    rep_gained_by_editing_field = 5
+    
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    plot = get_object_or_404(Plot, pk=plot_id)
+
+    # Update fields
+    for k,v in post.items():
+        if hasattr(plot, k) and k in valid_fields:
+            setattr(plot, k, v)
+        else:
+            response_dict["errors"].append("Unknown or invalid update field: %s" % k)
+
+    try:
+        plot.validate()
+
+        # if the tree was added by the public, or the current user is not public, skip pending
+        insert_event_mgmt = plot.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+        mgmt_user = request.user.has_perm('auth.change_user')
+
+        if settings.PENDING_ON and insert_event_mgmt and not mgmt_user:
+                # Get a clean plot object
+                plot = get_object_or_404(Plot, pk=plot_id)
+
+                for r in create_pending_records(plot, post, request.user):
+                    r.save()
+        else:
+            plot.last_updated_by = request.user
+
+            # finally save the instance...
+            plot._audit_diff = simplejson.dumps(post)
+            plot.save()
+
+            Reputation.objects.log_reputation_action(request.user, request.user, 
+                                                     "edit plot", rep_gained_by_editing_field, plot)
+    except ValidationError, e:
+        if e.message_dict:
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages        
+        
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}
+        
+        plot = get_object_or_404(Plot, pk=plot_id)
+        for k,v in post.items():
+            response_dict['update'][k] = get_attr_or_display(plot,k)        
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+#TODO: This should be fixed by providing a "__dict__" method on the plot
+def get_attr_or_display(model, attr):
+    disp = "get_%s_display" % attr
+    if hasattr(model, disp):
+        return getattr(model, disp)()
+    else:
+        return getattr(model, attr)
+
 #for auto reverse-geocode saving of new address, from search page map click
 def plot_location_update(request):
     response_dict = {}
@@ -1020,13 +1123,15 @@ def plot_location_update(request):
         content_type = 'text/plain'
     )
 
-@login_required    
+@login_required
 def tree_add(request, tree_id = ''):
             
     if request.method == 'POST':
         form = TreeAddForm(request.POST,request.FILES)
-        if form.is_valid():
-            new_tree = form.save(request)
+
+        if validate_form(form, request):
+            new_tree = form.result
+
             Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
@@ -1093,9 +1198,11 @@ def _build_tree_search_result(request):
             print '  .. now we have %d species' % len(species)
             
     cur_species_count = species.count()
-    if max_species_count != cur_species_count:
-        trees = trees.filter(species__in=species)
-	plots = Plot.objects.none()
+
+    if max_species_count == cur_species_count:
+        trees = Tree.objects.filter(present=True)
+    else:
+        trees = Tree.objects.filter(species__in=species, present=True)
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
@@ -1428,7 +1535,7 @@ def ogr_conversion(output_type, sql, extension=None):
 
     if output_type == 'CSV':
         geometry = 'GEOMETRY=AS_WKT'
-    else: 
+    else:
         geometry = ''
 
     command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]

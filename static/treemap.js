@@ -1102,7 +1102,7 @@ var tm = {
                 
                 tm.trackEvent('Search', 'Map Detail', 'Tree', p.id);
                 
-                if (!p.street_address) {
+                if (!p.address_street) {
                     latlng = new google.maps.LatLng(coords[1], coords[0])
                     tm.geocoder.geocode({
                         latLng: latlng
@@ -1366,7 +1366,65 @@ var tm = {
                 editableOptions[key] = options[key];
             }
         }
-        $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+
+        if (model == "Plot") {
+            $('#edit_'+field).editable(tm.updatePlotServerCall, editableOptions);
+        } else {
+            $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+        }
+    },
+
+    coerceFromString: function(value) {
+        if (Number(value) == value) {
+            value = Number(value);
+        }
+        if (value == "true") {
+            value = true;
+        } 
+        if (value == "false") {
+            value = false;
+        }    
+        if (value == "null") {
+            value = null;
+        }            
+
+        return value;
+    },
+
+    updatePlotServerCall: function(value, settings) {
+        var data = {};
+        var plotId = settings.objectId;
+        var field = settings.fieldName;
+        
+        data[field] = tm.coerceFromString(value)
+
+        this.innerHTML = "Saving...";
+        var jsonString = JSON.stringify(data);
+        settings.obj = this;
+        $.ajax({
+            url: '/plots/' + plotId + '/update/',
+            type: 'POST',
+            data: jsonString,
+            complete: function(xhr, textStatus) {
+                var response =  JSON.parse(xhr.responseText);
+                if (response['success'] != true) {
+                    settings.obj.className = "errorResponse";
+                    settings.obj.innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                        settings.obj.innerHTML += err;
+                    });
+                } else {
+                    var value = response['update'][settings.fieldName];
+                    
+                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                        if (value == 99.0) {value = "15+"}
+                    }
+
+                    settings.obj.innerHTML = value 
+                    tm.trackEvent("Edit", settings.fieldName)
+                }
+            }});
+        return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
     },
     updateEditableServerCall: function(value, settings) {
         var data = {
