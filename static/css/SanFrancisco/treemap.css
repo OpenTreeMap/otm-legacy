@@ -162,7 +162,7 @@ ul.edit .activeEdit input {
 ul.edit .activeEdit button, input.button {
 	float:left;
 	width:50px;
-	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
+	background: #fff url(../images/v2/buttonsm_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
 	text-align:center;
 	color:#FFFFFF;
@@ -178,7 +178,7 @@ ul.edit .activeEdit button:hover {
 } 
 .activeEdit button, input.button {
 	clear:both;
-	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
+	background: #fff url(../images/v2/buttonsm_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
 	text-align:center;
 	color:#FFFFFF;
@@ -263,7 +263,7 @@ cursor:pointer;
     top: 10px !important;
 }
 .olControlPanPanel div {
-    background-image: url("/static/images/pan-sprite.png") !important;
+    background-image: url("../images/pan-sprite.png") !important;
 	position:absolute
 }
 .olControlPanPanel .olControlPanNorthItemInactive {
@@ -314,7 +314,7 @@ cursor:pointer;
 }
 
 .olControlZoomPanel div {
-	background-image: url("/static/images/zoom-sprite.png") !important;
+	background-image: url("../images/zoom-sprite.png") !important;
 	background-repeat: no-repeat;
 	position:absolute
 }
