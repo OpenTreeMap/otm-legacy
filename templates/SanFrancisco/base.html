@@ -7,21 +7,20 @@
         {% block tophead %}
         {% endblock %}
 
-        <script type="text/javascript" src="/static/all_misc.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
-        <script type="text/javascript" src="/static/treemap.js"></script>
-        <script type="text/javascript" src="/static/js/threaded.js"></script>
-        <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/css/ufmp1.1.css" media="all" />
-        <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
-        <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
-        <link rel="shortcut icon" href="/static/images/favicon.ico" />
-        <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
+        <script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ufmp1.1.css" media="all" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
+        <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" />
         
                 
         {% block js_ready %}
         <script type="text/javascript">
+	  var tm_static = "{{ SITE_ROOT }}";
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}
@@ -36,14 +35,14 @@
         
 <!-- start: header -->
     	<div id="header">
-            <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
+            <h1 class="logo"><a href="{{ SITE_ROOT }}">Urban Forest Map</a></h1>
             <ul id="nav">
                 <li>
                     {% if user.is_authenticated %}
 
-                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
+                            Hello, <b><a href="{% url profiles.views.profile_detail user.username %}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
                     {% else %}
-                        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
+                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}/" class="buttomSm globalAdd">Add a tree</a>
                     {% endif %}
                 </li>
             </ul>
@@ -56,11 +55,11 @@
         <div id="searchBox">
             <div id="searchBoxContainer">
                 <ul id="searchTitles">
-                    <li id="searchSpecies"><img src="/static/images/v2/search_species.gif" width="300" alt="Species or common name" /></li>
-                    <li id="searchLocation"><img src="/static/images/v2/search_location.gif" width="120" alt="Location" /></li>
+                    <li id="searchSpecies"><img src="{{ STATIC_URL }}images/v2/search_species.gif" width="300" alt="Species or common name" /></li>
+                    <li id="searchLocation"><img src="{{ STATIC_URL }}images/v2/search_location.gif" width="120" alt="Location" /></li>
                 </ul>
                 <ul id="searchBoxes">
-                <form method="get" action="/map/" name="address" class="address" id="search_form">
+                <form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
                     <li id="searchSpeciesBox">
                       <div id="searchSpeciesBrowse">List</div>
                       <input type="text"  id="species_search_input" value="All trees"
@@ -90,7 +89,7 @@
                         <a onclick='$("#location_search_input").val("North Beach"); $("#location_search_input").change(); return false;' href="#">North Beach</a>,
                         <a onclick='$("#location_search_input").val("94133"); $("#location_search_input").change(); return false;' href="#">94133</a>
                     </li>
-                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
+                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters</span></em><img id="arrow" src="{{ STATIC_URL }}images/v2/arrow1.gif" /></a> </li>
                 </ul>
             <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
 			<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
@@ -357,15 +356,15 @@
                         <h2>How you can help</h2> 
                         <div class="box"> 
                             <span class="number">1</span> 
-                            <p><span class="mark"><a href="/map/">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="/map/#?advanced=open" class="more">Go  &raquo;</a></p> 
+                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="{% url treemap.views.result_map %}#?advanced=open" class="more">Go  &raquo;</a></p> 
                         </div> 
                         <div class="box"> 
                             <span class="number">2</span> 
-                            <p><span class="mark"><a href="/trees/add/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="/trees/add/" class="more">Go  &raquo;</a></p> 
+                            <p><span class="mark"><a href="{% url treemap.views.tree_add %}/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="{% url treemap.views.tree_add %}/" class="more">Go  &raquo;</a></p> 
                         </div> 
                         <div class="box" id="boxLast"> 
                             <span class="number">3</span> 
-                            <p><span class="mark"><a href="/map/">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="/map/" class="more">Go  &raquo;</a></p> 
+                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="{% url treemap.views.result_map %}" class="more">Go  &raquo;</a></p> 
                         </div> 
                     </div> 
                 </div>
@@ -382,29 +381,29 @@
                     <div class="ad"> 
                         <strong>Our Partners</strong> 
                         <ul> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
-                            <li><a href="http://www.fuf.net/"><img src="/static/images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
-                            <li><a href="http://www.fire.ca.gov/"><img src="/static/images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
-                            <li><a href="http://www.sfgov.org/"><img src="/static/images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
+                            <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
+                            <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
+                            <li><a href="http://www.fire.ca.gov/"><img src="{{ STATIC_URL }}images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
+                            <li><a href="http://www.sfgov.org/"><img src="{{ STATIC_URL }}images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
                         </ul> 
                     </div> 
                     <ul class="footer-nav"> 
-                        <li><a href="/trees/add/">Add a tree</a></li> 
-                        <li><a href="/about/">About</a></li> 
-                        <li><a href="/resources/">Resources</a></li> 
-                        <li><a href="/contact/">Contact</a></li> 
-                        <li><a href="/donate/">Donate</a></li> 
+                        <li><a href="{% url treemap.views.tree_add %}">Add a tree</a></li> 
+                        <li><a href="{{ SITE_ROOT }}about/">About</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/resources/">Resources</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/contact/">Contact</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/donate/">Donate</a></li> 
                         {% if user.is_authenticated %}
-                           <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
-                           <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
+                           <li>Logged in as <a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}</a>
+                           <span id="logout"><a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
                            {% if user.is_superuser %}
-                               <li><a href="/_admin_/">Admin</a></li>
+                               <li><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
                            {% endif %}
                            {% if user.reputation.reputation > 1000 %}
-                               <li><a href="/verify/">Recent Changes</a></li>
+                               <li><a href="{% url treemap.views.verify_edits %}">Recent Changes</a></li>
                            {% endif %}
                         {% else %}
-                            <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
+                            <li><a href="{{ SITE_ROOT }}/accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/" class="buttomSm">Sign up</a></li>
                         {% endif %}
                     </ul> 
                 </div> 

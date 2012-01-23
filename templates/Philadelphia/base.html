@@ -31,6 +31,7 @@
 
         {% block js_ready %}
         <script type="text/javascript">
+	  var tm_static = "{{ SITE_ROOT }}";
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}
