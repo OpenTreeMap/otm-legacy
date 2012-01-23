@@ -1,0 +1,168 @@
+{% extends "template_1.html" %}
+{% load maths dynamic_attribute thumbnail %}
+
+{%block body_class%}inner{%endblock %}
+
+    
+            {% block heading %}
+                <div class="heading">
+                    <div class="holder">
+                        <ul id="resultsContainer">
+                            <li id="totals">
+                                <ul>
+                                    <li id="title">Results:</li>
+                                    <li id="first"><span class="tree_count">0</span> trees selected <span class="notrees"></span></li> 
+                                    <!-- <li>XX trees need more info to be included</li> -->
+                                    <li><a href="{% url treemap.views.tree_add %}">Add a tree!</a></li>
+                                </ul>
+                            </li>
+                            <li id="export">
+                                <ul>
+                                    <li id="title">Export options:</li>
+                                    <li id="firstOption">
+                                    <a id="kml_link">KML</a></li> 
+                                    <li><a id="csv_link">CSV</a></li>
+                                    <li><a id="shp_link">Shapefile</a></li> 
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            {% endblock heading %}
+
+
+    
+
+        {% block top_left_panel %}
+        
+            <div id="results_aside" class="aside">
+            <h2>Yearly Eco Impact</h2>
+            <div id="summary_subset">Selected trees in <span id="summary_subset_val">..</span></div>
+              <!-- <strong class="sub-title">Based on select data. <a href="{% url treemap.views.tree_add %}">Add a tree &raquo;</a></strong> -->
+            
+            <div id="results_wrapper" style="display:none;">
+                <ul id="messageStats">
+                    <li class="impact" id="cost">Total Benefits</li>
+                    <li class="impactStat">$<span id="benefits_total"></span><span class="subnote"> saved</span></li>
+                </ul>
+                <ul id="messageStats">
+                    <li class="impact" id="gas">Greenhouse Gas Benefits</li>
+                    <li class="impactStat"><span id="annual_co2_avoided"> </span> lbs CO2 <span class="subnote">reduced</span></li>
+                    <li class="impactStat">$<span id="benefits_greenhouse"> </span><span class="subnote"> saved</span></li>
+                </ul>
+                <ul id="messageStats">
+                    <li class="impact" id="water">Water Benefits</li>
+                    <li class="impactStat"><span id="annual_stormwater_management"></span> gallons <span class="subnote">conserved</span></li>
+                    <li class="impactStat">$<span id="benefits_water"> </span><span class="subnote"> saved</span></li>
+                </ul>
+                <ul id="messageStats">
+                    <li class="impact" id="energy">Energy Benefits</li>
+                    <li class="impactStat"><span id="annual_electricity_conserved"> </span> kWh <span class="subnote">conserved</span></li>
+                    <li class="impactStat">$<span id="benefits_energy"> </span><span class="subnote"> saved</span></li>
+                </ul>
+                <ul id="messageStats">
+                    <li class="impact" id="air">Air Quality Benefits</li>
+                    <li class="impactStat"><span id="annual_air_quality_improvement"></span> lbs pollutants <span class="subnote">reduced</span></li>
+                    <li class="impactStat">$<span id="benefits_air_quality"> </span><span class="subnote"> saved</span></li>
+                </ul>
+            </div>
+            </div>
+        
+        {% endblock %}
+
+        {% block top_right_panel %}
+            <div class="wrap">
+                <div id="results_map">
+					<div class="mapToggle buttomSm">View Satellite</div>
+                </div>
+            </div>
+        {% endblock %}        
+        
+        
+{% block bottom_left_panel %}
+        <div class="box-1"> 
+        <h2>Recent updates</h2> 
+        <p>Our database of trees comes from public records and citizen foresters like you.
+            Your help will make it better. <!--<a href="#">Find out how to add and edit trees near you!</a>-->
+        </p> 
+        <table width="100%"> 
+        {% for tree in latest_trees %}
+            <tr> 
+                <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
+                
+                {% if tree.last_updated_by.get_profile.photo %}
+                    <img src="/media/{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
+                        alt="image description" width="33" height="32" /></td> 
+                {% else %}
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>              
+                {% endif %}
+                
+                {% comment %}
+                {% if tree.treephoto_set.count %}
+                    <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
+                        alt="image description" width="33" height="32" /></td> 
+                {% else %}
+                    <img src="{{ STATIC_URL }}images/es/image10.gif" alt="image description" width="33" height="32" /></a></td> 
+                {% endif %}
+                {% endcomment %}
+                <td> 
+                    <span>Neighborhood</span>  <br />
+
+                    {{tree.neighborhood.all.0}} 
+                </td> 
+                <td> 
+                    <span>Tree species</span>  <br />
+
+                    <em>{{tree.species.common_name}}</em> 
+                </td> 
+                <td> 
+                    <span>Updated by</span>  <br />
+
+                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a> 
+                </td> 
+            </tr>
+       {% endfor %}
+        </table> 
+    </div> 
+        
+{% endblock bottom_left_panel %}
+
+{% block bottom_right_panel %}
+
+        <div class="box-2"> 
+            <div class="title"> 
+                <h2>Recent photos from users</h2> 
+<!--                             <a href="#">Upload your own</a>  -->
+            </div> 
+            <ul class="photos">
+            
+            {% for pic in latest_photos %}
+                <li>
+                    <a href="{{ pic.tree.get_absolute_url }}">
+                        <img src="/media/{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
+                    </a>
+                </li>
+            {% endfor %}
+            
+            </ul> 
+            
+            <!-- Where is this info supposed to come from? -->
+            <!--
+            <div class="title"> 
+                <h2>Comments and stories</h2> 
+                <a href="#">Add your own</a>
+            </div> 
+            <div class="comments"> 
+                <p>Lorem ipsum dolor sit amet consecteturadipiscing elit. Sed eget nibh nisi, tincidunt interdum magna. Nam consectetur, nibh non sagittis iaculis, lleo elit lobortis tellus, sit amet fermentum augue neque vitae odio nibh nor agittis iaculis... <a href="#" class="more">More</a></p> 
+            </div>
+            -->
+        </div> 
+        {% endblock bottom_right_panel %}
+{% block endpage %}
+	<script type="text/javascript">
+		//jQuery().ready(function() {
+			tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}}, 0, '15+');
+		//});
+	</script>
+{% endblock endpage %}
+

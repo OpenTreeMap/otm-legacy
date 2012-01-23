@@ -1,5 +1,7 @@
 import os
 
+SITE_ROOT = '/'
+
 #from settings_philadelphia import *
 #from settings_sanfrancisco import *
 from settings_greenprint import *

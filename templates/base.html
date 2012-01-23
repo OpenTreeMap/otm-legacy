@@ -1,0 +1,442 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>{% block title %}Urban Forest Map{% endblock %}</title>
+
+        <script type="text/javascript">
+	  var tm_static = "{{ SITE_ROOT }}";
+        </script>
+        
+        {% block tophead %}
+        {% endblock %}
+
+        <script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ufmp1.1.css" media="all" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
+        <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" />
+        
+                
+        {% block js_ready %}
+        <script type="text/javascript">
+	  var tm_static = "{{ SITE_ROOT }}";
+            jQuery().ready(tm.baseTemplatePageLoad);
+        </script>
+        {% endblock %}
+
+        {% block extrahead %}
+        {% endblock %}
+
+</head>
+
+<body {% block body_load %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
+    <div id="wrapper">
+        
+<!-- start: header -->
+    	<div id="header">
+            <h1 class="logo"><a href="{{ SITE_ROOT }}">Urban Forest Map</a></h1>
+            <ul id="nav">
+                <li>
+                    {% if user.is_authenticated %}
+
+                            Hello, <b><a href="{% url profiles.views.profile_detail user.username %}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
+                    {% else %}
+                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}/" class="buttomSm globalAdd">Add a tree</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+        
+<!-- end: header -->
+
+<!-- start: search box -->
+        
+        <div id="searchBox">
+            <div id="searchBoxContainer">
+                <ul id="searchTitles">
+                    <li id="searchSpecies"><img src="{{ STATIC_URL }}images/v2/search_species.gif" width="300" alt="Species or common name" /></li>
+                    <li id="searchLocation"><img src="{{ STATIC_URL }}images/v2/search_location.gif" width="120" alt="Location" /></li>
+                </ul>
+                <ul id="searchBoxes">
+                <form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
+                    <li id="searchSpeciesBox">
+                      <div id="searchSpeciesBrowse">List</div>
+                      <input type="text"  id="species_search_input" value="All trees"
+                       onFocus='if (this.value == "All trees") { this.value=""; };' />
+                      <input type='hidden' name='species_search_id' id="species_search_id" />
+                      <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+                    </li>
+                    <li id="searchJoiner">near</li>
+                    <li id="searchLocationBox">
+						<div id="searchLocationBrowse">List</div>
+                        <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="San Francisco, CA" />
+                    </li>
+                    <li id="searchButton"><input class="go" id="location_go" type="button" value="Search San Francisco" /></li>
+                </form>
+                </ul>
+                <ul id="searchSuggest">
+                    <li id="searchSpeciesSuggest">Examples: 
+                    
+                        <a onclick='$("#species_search_input").val("Monterey Pine"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">Monterey Pine</a> 
+                        or <a onclick='$("#species_search_input").val("Cupressus macrocarpa"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#">Cupressus macrocarpa</a>
+                    
+                    </li>
+                    
+                    <li id="searchLocationSuggest">Examples: 
+                    
+                        <a onclick='$("#location_search_input").val("210 Columbus Ave."); $("#location_search_input").change(); return false;' href="#">210 Columbus Ave</a>, 
+                        <a onclick='$("#location_search_input").val("North Beach"); $("#location_search_input").change(); return false;' href="#">North Beach</a>,
+                        <a onclick='$("#location_search_input").val("94133"); $("#location_search_input").change(); return false;' href="#">94133</a>
+                    </li>
+                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters</span></em><img id="arrow" src="{{ STATIC_URL }}images/v2/arrow1.gif" /></a> </li>
+                </ul>
+            <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
+			<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
+
+            </div>
+        </div>
+
+        
+              
+                <div class="filter-box" style="display:none"> 
+                    <div class="wrap"> 
+                        <div class="parameter"> 
+                            <ul> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Diameter</strong> 
+                                        <em><span id="min_diam">0</span> inches - <span id="max_diam">50</span> inches</em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="diameter_slider"></div>
+                                </li> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Height</strong> 
+                                        <em><span id="min_height">0</span> feet - <span id="max_height">200</span> feet</em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="height_slider"></div>
+                                </li> 
+
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Plant Date</strong> 
+                                        <em><span id="min_planted">1700</span> - 
+                                        <span id="max_planted">2010</span></em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="planted_slider"></div>
+                                </li> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Last Tree Update</strong> 
+                                        <em><span id="min_updated">0</span> - 
+                                        <span id="max_updated">365</span></em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="updated_slider"></div>
+                                </li> 
+                                <li> 
+                                    <div class="title"> 
+                                        <strong>Plot Size</strong> 
+                                        <em><span id="min_plot">0</span> feet - <span id="max_plot">15+</span> feet</em> 
+                                    </div> 
+                                    <div style="width:200px; height:10px;" id="plot_slider"></div>
+                                </li> 
+
+                            </ul> 
+                        </div> 
+                        <form id="options_form" action="#" class="options"> 
+                            <fieldset> 
+                                <div class="characteristics"> 
+                                    <strong>Characteristics</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="flowering" /> 
+                                            <label for="flowering">Flowering</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="color" /> 
+                                            <label for="color">Fall color</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="edible" /> 
+                                            <label for="edible">Edible (fruits/nuts)</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="native" /> 
+                                            <label for="native">Native to region</label> 
+                                        </li> 
+                                    </ul> 
+                                    <strong>Powerlines</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="yes" /> 
+                                            <label for="pl_yes">Yes</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="no" /> 
+                                            <label for="pl_no">No</label> 
+                                        </li> 
+                                    </ul> 
+                                    <strong>Photos</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="photos" /> 
+                                            <label for="photos">Present</label> 
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                                <div class="project_trees"> 
+                                    <strong>Project trees</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="project1" /> 
+                                            <label for="project1">San Francisco Landmark</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="project2" /> 
+                                            <label for="project2">San Francisco Carbon Fund</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="project3" /> 
+                                            <label for="project3">Fruit Gleaning Project</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="project4" /> 
+                                            <label for="project4">Historic Tree</label> 
+                                        </li> 
+                                    </ul> 
+                                    <strong>Condition</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="excellent" /> 
+                                            <label for="excellent">Excellent</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="very_good" /> 
+                                            <label for="very_good">Very good</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="good" /> 
+                                            <label for="good">Good</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="fair" /> 
+                                            <label for="fair">Fair</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="poor" /> 
+                                            <label for="poor">Poor</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="critical" /> 
+                                            <label for="critical">Critical</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="dead" /> 
+                                            <label for="dead">Dead</label> 
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                                <div class="plot_type"> 
+                                    <strong>Sidewalk Damage</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="minor" /> 
+                                            <label for="less">Minor or no damage</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="raised" /> 
+                                            <label for="more">Raised more than 3/4 inch</label> 
+                                        </li> 
+                                    </ul> 
+                                    <strong>Plot Type</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="island" /> 
+                                            <label for="island">Island</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="median" /> 
+                                            <label for="median">Median</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="open" /> 
+                                            <label for="open">Open/Unrestricted Area</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="planter" /> 
+                                            <label for="planter">Raised Planter</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="tree_lawn" /> 
+                                            <label for="tree_lawn">Tree Lawn/Planting Strip</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="well_or_pit" /> 
+                                            <label for="well_or_pit">Tree Pit</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="other" /> 
+                                            <label for="other">Other</label> 
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                                <div class="outstanding"> 
+                                    <strong>Missing Data</strong> 
+                                    <ul> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_species" /> 
+                                            <label for="missing">Species</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_diameter" /> 
+                                            <label for="diameter">Trunk diameter</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_height" /> 
+                                            <label for="missing_height">Tree height</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_plot_size" /> 
+                                            <label for="missing_plot_size">Plot size</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_plot_type" /> 
+                                            <label for="missing_plot_type">Plot type</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_sidewalk" /> 
+                                            <label for="missing_sidewalk">Sidewalk damage</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_powerlines" /> 
+                                            <label for="missing_powerlines">Powerlines</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_condition" /> 
+                                            <label for="missing_condition">Condition</label> 
+                                        </li> 
+                                        <li> 
+                                            <input type="checkbox" id="missing_photos" /> 
+                                            <label for="missing_photos">Photos</label> 
+                                        </li> 
+                                        <li> 
+                                            <span>Missing data searches take priority </span>
+                                        </li> 
+                                    </ul> 
+                                </div> 
+                            </fieldset> 
+                        </form> 
+                    </div> 
+                    <div class="wrap2">
+                        <div class="input-box"><strong><label for="steward">Tree Steward</label></strong><br><input id="steward" /></div>
+                        <div class="input-box"><strong><label for="owner">Tree Entered By</label></strong><br><input id="owner" /></div>
+                        <div class="input-box"><strong><label for="updated_by">Last Updated By</label></strong><br><input id="updated_by" /></div>
+                        <div class="input-box"><strong><label for="funding">Sponsor</label></strong><br><input id="funding" /></div>
+                    </div>
+                </div> 
+          
+            <!-- end search-box -->
+            {% block content %}
+                main content goes here
+            {% endblock content %}
+            {% block callout %}
+                <div id="callout">
+                    {% block callout_content %}
+                        
+                    {% endblock callout_content %}
+                </div>
+            <!--end callout-->    
+            {% endblock callout %}
+            
+            {% block sub_footer %}
+                <div class="content"> 
+                <div id="subfooterContainer">
+                    <div class="threecolumns"> 
+                        <h2>How you can help</h2> 
+                        <div class="box"> 
+                            <span class="number">1</span> 
+                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="{% url treemap.views.result_map %}#?advanced=open" class="more">Go  &raquo;</a></p> 
+                        </div> 
+                        <div class="box"> 
+                            <span class="number">2</span> 
+                            <p><span class="mark"><a href="{% url treemap.views.tree_add %}/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="{% url treemap.views.tree_add %}/" class="more">Go  &raquo;</a></p> 
+                        </div> 
+                        <div class="box" id="boxLast"> 
+                            <span class="number">3</span> 
+                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="{% url treemap.views.result_map %}" class="more">Go  &raquo;</a></p> 
+                        </div> 
+                    </div> 
+                </div>
+                </div>
+                <div id="cityFade"></div>    
+             {% endblock %}    
+            
+            
+            
+           {% block global_footer %}
+            <!-- Start Global footer --> 
+            <div id="footer"> 
+                <div class="footer-holder"> 
+                    <div class="ad"> 
+                        <strong>Our Partners</strong> 
+                        <ul> 
+                            <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
+                            <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
+                            <li><a href="http://www.fire.ca.gov/"><img src="{{ STATIC_URL }}images/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
+                            <li><a href="http://www.sfgov.org/"><img src="{{ STATIC_URL }}images/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
+                        </ul> 
+                    </div> 
+                    <ul class="footer-nav"> 
+                        <li><a href="{% url treemap.views.tree_add %}">Add a tree</a></li> 
+                        <li><a href="{{ SITE_ROOT }}about/">About</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/resources/">Resources</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/contact/">Contact</a></li> 
+                        <li><a href="{{ SITE_ROOT }}/donate/">Donate</a></li> 
+                        {% if user.is_authenticated %}
+                           <li>Logged in as <a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}</a>
+                           <span id="logout"><a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
+                           {% if user.is_superuser %}
+                               <li><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
+                           {% endif %}
+                           {% if user.reputation.reputation > 1000 %}
+                               <li><a href="{% url treemap.views.verify_edits %}">Recent Changes</a></li>
+                           {% endif %}
+                        {% else %}
+                            <li><a href="{{ SITE_ROOT }}/accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/" class="buttomSm">Sign up</a></li>
+                        {% endif %}
+                    </ul> 
+                </div> 
+                <br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</a>.
+            </div> 
+            <!-- End Global footer --> 
+            {% endblock global_footer %}
+            
+        </div>
+
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-13228685-1");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+
+{% block endpage %}
+
+{% endblock endpage %}
+
+</body>
+</html>
