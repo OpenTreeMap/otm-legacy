@@ -1483,7 +1483,7 @@ def contact(request):
 
     return render_to_response('treemap/contact.html', {
         'form': form, 
-    })
+    }, RequestContext(request))
 
 def is_number(s):
     try:
