@@ -2093,7 +2093,7 @@ var tm = {
     },
     addTreeToPlot: function(plot_id) {
         $.ajax({
-            url: '/plots/' + plot_id + '/addtree/',
+            url: tm_static + '/plots/' + plot_id + '/addtree/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
@@ -2126,7 +2126,7 @@ var tm = {
         if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
         {
             $.ajax({
-                url: '/plots/' + plot_id + '/delete/',
+                url: tm_static + '/plots/' + plot_id + '/delete/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
