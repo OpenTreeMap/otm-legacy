@@ -32,12 +32,21 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
+<<<<<<< Updated upstream
     base_folder : '/static/images/map_icons/v3/', 
     small_trees : "/static/images/map_icons/v4/zoom5.png",
     small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
     focus_tree : '/static/images/map_icons/v4/marker-selected.png',
     pending_tree : '/static/images/map_icons/v4/marker-pending.png', 
     marker : '/static/openlayers/img/marker.png'
+=======
+    base_folder : tm_static + '/static/images/map_icons/v3/', 
+    small_trees : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees_complete : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    focus_tree : tm_static + '/static/images/map_icons/v4/marker-selected.png',
+    pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
+    marker : tm_static + '/static/openlayers/img/marker.png'
+>>>>>>> Stashed changes
     };
 var tm_urls = {};
 var tm = {
@@ -118,7 +127,7 @@ var tm = {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
-                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
                 //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
@@ -126,7 +135,7 @@ var tm = {
                     $('.filter-box').slideUp('slow');
                 }
                 adv_active = false;
-                $('#arrow').attr('src','/static/images/v2/arrow1.gif');
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif');
                 //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
             }
             return false;
@@ -1323,7 +1332,11 @@ var tm = {
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
         tm.trackEvent('Edit', 'Location', 'Start');
+<<<<<<< Updated upstream
         var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+=======
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + '/static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
+>>>>>>> Stashed changes
         $('#edit_tree_location').html(save_html);
         return false;
         },
@@ -1357,7 +1370,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             objectId: id,
             model: model,
@@ -1368,7 +1381,69 @@ var tm = {
                 editableOptions[key] = options[key];
             }
         }
+<<<<<<< Updated upstream
         $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+=======
+
+        if (model == "Plot") {
+            $('#edit_'+field).editable(tm.updatePlotServerCall, editableOptions);
+        } else {
+            $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+        }
+    },
+
+    coerceFromString: function(value) {
+        if (Number(value) == value) {
+            value = Number(value);
+        }
+        if (value == "true") {
+            value = true;
+        } 
+        if (value == "false") {
+            value = false;
+        }    
+        if (value == "null") {
+            value = null;
+        }            
+
+        return value;
+    },
+
+    updatePlotServerCall: function(value, settings) {
+        var data = {};
+        var plotId = settings.objectId;
+        var field = settings.fieldName;
+        
+        data[field] = tm.coerceFromString(value)
+
+        this.innerHTML = "Saving...";
+        var jsonString = JSON.stringify(data);
+        settings.obj = this;
+        $.ajax({
+            url: tm_static + '/plots/' + plotId + '/update/',
+            type: 'POST',
+            data: jsonString,
+            complete: function(xhr, textStatus) {
+                var response =  JSON.parse(xhr.responseText);
+                if (response['success'] != true) {
+                    settings.obj.className = "errorResponse";
+                    settings.obj.innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                        settings.obj.innerHTML += err;
+                    });
+                } else {
+                    var value = response['update'][settings.fieldName];
+                    
+                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                        if (value == 99.0) {value = "15+"}
+                    }
+
+                    settings.obj.innerHTML = value 
+                    tm.trackEvent("Edit", settings.fieldName)
+                }
+            }});
+        return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
+>>>>>>> Stashed changes
     },
     updateEditableServerCall: function(value, settings) {
         var data = {
@@ -1472,7 +1547,7 @@ var tm = {
                         tm.trackEvent("Edit", settings.fieldName)
                     }
                 }});
-            return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
+            return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
         //} 
     },       
     updateEditableLocation: function() {
@@ -1989,7 +2064,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             model: 'Tree',
             fieldName:  'dbh',

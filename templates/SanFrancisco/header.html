@@ -2,13 +2,13 @@
     		<b>We're in beta!</b> Please <a href="http://www.surveymonkey.com/s/HS8JFV6" target="_new">fill out our survey</a> or use our feedback button.
     	</div>
     	<div id="header">
-            <h1 class="logo"><a href="/">Urban Forest Map</a></h1>
+            <h1 class="logo"><a href="{{ SITE_ROOT }}">Urban Forest Map</a></h1>
             <ul id="nav">
                 <li>
                     {% if user.is_authenticated %}
-                            Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span>
+                            Hello, <b><a href="{{ SITE_ROOT }}profiles/{{user.username}}/">{{user.username|escape}}!</a></b>  <span id="logout">|  <a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span>
                     {% else %}
-                        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
+                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a>
                     {% endif %}
                 </li>
             </ul>
@@ -21,8 +21,8 @@
         <div id="searchBox">
             <div id="searchBoxContainer">
                 <ul id="searchTitles">
-                    <li id="searchSpecies"><img src="/static/images/SanFrancisco/v2/search_species.gif" width="300" alt="Species or common name" /></li>
-                    <li id="searchLocation"><img src="/static/images/SanFrancisco/v2/search_location.gif" width="120" alt="Location" /></li>
+                    <li id="searchSpecies"><img src="{{ STATIC_URL }}images/SanFrancisco/v2/search_species.gif" width="300" alt="Species or common name" /></li>
+                    <li id="searchLocation"><img src="{{ STATIC_URL }}images/SanFrancisco/v2/search_location.gif" width="120" alt="Location" /></li>
                 </ul>
                 <ul id="searchBoxes">
                 <form method="get" action="/map/" name="address" class="address" id="search_form">
@@ -52,7 +52,7 @@
                         <a onclick='$("#location_search_input").val("North Beach"); $("#location_search_input").change(); return false;' href="#">North Beach</a>,
                         <a onclick='$("#location_search_input").val("94133"); $("#location_search_input").change(); return false;' href="#">94133</a>
                     </li>
-                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="/static/images/SanFrancisco/v2/arrow1.gif" /></a> </li>
+                    <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="filter_name">Show advanced filters</span></em><img id="arrow" src="{{ STATIC_URL }}images/SanFrancisco/v2/arrow1.gif" /></a> </li>
                 </ul>
             </div>
         </div>
