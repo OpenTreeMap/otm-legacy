@@ -212,7 +212,7 @@ var tm = {
             if (tm.advancedClick) {
                 q = q.set('advanced', 'open');
             }    
-            window.location.href = "/map/#" + decodeURIComponent(q.toString());
+            window.location.href = tm_static + "/map/#" + decodeURIComponent(q.toString());
             return false;
         }
         //$("#search_form").submit(triggerSearch);    
@@ -2102,7 +2102,7 @@ var tm = {
             type: 'POST',
             success: function(response) {
                 tm.trackEvent('Add', 'New Tree');
-                location = "/plots/" + plot_id + "/";
+                location = tm_static + "/plots/" + plot_id + "/";
             },
             error: function(err) {
             alert("Error: " + err.status + "\nQuery: " + plot_id);
@@ -2135,7 +2135,7 @@ var tm = {
                 type: 'POST',
                 success: function(response) {
                     tm.trackEvent('Edit', 'Delete');
-                    window.location = "/map/";
+                    window.location = tm_static + "/map/";
                 },
                 error: function(err) {
                 alert("Error: " + err.status + "\nQuery: " + plot_id);
