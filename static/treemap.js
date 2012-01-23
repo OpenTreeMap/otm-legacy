@@ -1126,16 +1126,16 @@ var tm = {
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                                 }
                             });
                         } else {
-                            jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                            jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                         }
                     });
                 }
                 else {
-                    jQuery('#max_tree_infowindow').load('/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                 }
             }
         }
