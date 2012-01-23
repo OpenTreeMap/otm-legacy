@@ -11,8 +11,8 @@ sys.path.insert(0, main_path)
 import settings
 import site
 
-if VENV_PATH:
-    site.addsitedir(VENV_PATH)
+if settings.VENV_PATH:
+    site.addsitedir(settings.VENV_PATH)
 
 import django.core.management
 django.core.management.setup_environ(settings)
