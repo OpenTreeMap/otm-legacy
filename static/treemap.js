@@ -212,7 +212,7 @@ var tm = {
             if (tm.advancedClick) {
                 q = q.set('advanced', 'open');
             }    
-            window.location.href = "/map/#" + decodeURIComponent(q.toString());
+            window.location.href = tm_static + "/map/#" + decodeURIComponent(q.toString());
             return false;
         }
         //$("#search_form").submit(triggerSearch);    
@@ -2044,7 +2044,7 @@ var tm = {
                 type: 'POST',
                 success: function(response) {
                     tm.trackEvent('Edit', 'Delete');
-                    window.location = "/map/";
+                    window.location = tm_static + "/map/";
                 },
                 error: function(err) {
                 alert("Error: " + err.status + "\nQuery: " + tree_id);
