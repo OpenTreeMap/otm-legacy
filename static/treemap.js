@@ -604,7 +604,12 @@ var tm = {
             jQuery('#id_lon').val(mapCoord.lon);
         }
 
+
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
         tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+
         tm.map.setBaseLayer(tm.aerial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
