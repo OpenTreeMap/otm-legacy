@@ -1366,7 +1366,11 @@ var tm = {
         };
         if (options) {
             for (var key in options) {
-                editableOptions[key] = options[key];
+                if (key == "loadurl") {
+                    editableOptions[key] = tm_static + "/" + options[key];
+                } else {
+                    editableOptions[key] = options[key];
+                }
             }
         }
 
