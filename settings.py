@@ -1,6 +1,6 @@
 import os
 
-SITE_ROOT = '/'
+SITE_ROOT = ''
 
 #from settings_philadelphia import *
 #from settings_sanfrancisco import *
