@@ -1477,7 +1477,7 @@ def contact(request):
             from django.core.mail import send_mail
             send_mail(subject, message, sender, recipients)
 
-            return HttpResponseRedirect('%s/contact/thanks/' %s settings.SITE_ROOT) # Redirect after POST
+            return HttpResponseRedirect('%s/contact/thanks/' % settings.SITE_ROOT) # Redirect after POST
     else:
         form = ContactForm() # An unbound form
 
