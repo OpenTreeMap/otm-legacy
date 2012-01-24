@@ -91,3 +91,5 @@ try:
     from local_settings import *
 except ImportError, exp:
     pass
+
+LOGIN_URL = "%s/accounts/login" % SITE_ROOT
