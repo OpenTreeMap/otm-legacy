@@ -1,8 +1,8 @@
 		<div id="headerNavWrap">
 			<div id="headerNavContent">
 				<ul id="headerNavLinks">
-					<li id="headerNavExplore" class="active"><a href="/map/"></a></li>
-					<li id="headerNavAdd"><a href="/trees/add/"></a></li>
+					<li id="headerNavExplore" class="active"><a href="{% url treemap.views.result_map %}"></a></li>
+					<li id="headerNavAdd"><a href="{% url treemap.views.tree_add %}"></a></li>
 					<!--<li id="headerNavUpdate"><a href=""></a></li>-->
 
 				</ul>
@@ -10,13 +10,13 @@
 						<a href="https://www.pennhort.net/trees" target="_blank" id="headerNavSupport"></a>
 						 {% if user.is_authenticated %}
 							<div class="floatRight">
-								<a href="/accounts/logout/?next=/" id="logout" class="buttonSmall floatRight">Logout</a>
-								Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
+								<a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout" class="buttonSmall floatRight">Logout</a>
+								Hello, <b><a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}!</a></b>
 								<br/>{{user.reputation.reputation}} rep
 							</div>
 						{% else %}
 							<div class="floatRight">
-								<a href="/accounts/login/" class="buttonSmall">Login</a>&nbsp; or <a href="/accounts/register/" class="buttonSmall">Sign up</a>
+								<a href="{{ SITE_URL }}/accounts/login/" class="buttonSmall">Login</a>&nbsp; or <a href="{{ SITE_URL }}/accounts/register/" class="buttonSmall">Sign up</a>
 							</div>
 						{% endif %}
 
@@ -32,10 +32,10 @@
 
 	<div id="headerWrap">
 			<div id="headerContainer">
-					<h1 id="logo"><a href="/">Philly Tree Map</a></h1>
+					<h1 id="logo"><a href="{{ SITE_ROOT }}">Philly Tree Map</a></h1>
 
 			<div id="searchBox">
-					<form method="get" action="/map/" name="address" class="address" id="search_form">
+					<form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
 					<ul id="searchBoxes">
 						<li id="searchLocationBox">
 							<div id="headerLocationSearch">
@@ -67,8 +67,7 @@
 					</form>
 
 
-				<div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="/treekey/">View Tree Key for More Detail</a></div>
-				<div id="filterSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="/treekey">View Tree Key for More Detail</a></div>
+				<div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="{% url treekey.views.first_node %}">View Tree Key for More Detail</a></div>
 
 				<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
 				</div>

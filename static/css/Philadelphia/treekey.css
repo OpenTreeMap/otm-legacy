@@ -29,10 +29,10 @@ a img {border:0px;}
 	font-size:20px;
 	font-weight:bold;
 	color:#666;
-	background: url(/static/images/ptm/divider-horz.png) 0 100% repeat-x;
+	background: url(../images/ptm/divider-horz.png) 0 100% repeat-x;
 	padding-bottom:12px;
 	padding-top:10px; 
-	background: url(/static/images/ptm/divider-horz.png) repeat-x 0 100% ; 
+	background: url(../images/ptm/divider-horz.png) repeat-x 0 100% ; 
 	}
 .browse {float:right;}
 
