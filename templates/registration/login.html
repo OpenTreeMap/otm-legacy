@@ -5,7 +5,7 @@
 
 {% block form %}
 
-<form id="form1" name="form1" method="post" action="?next={{ next|default:"/map/" }}">
+<form id="form1" name="form1" method="post" action="?next={{ next|default:SITE_ROOT }}">
 
     <label class="required" {% if form.username.errors %}id="error"{% endif %}>{% trans "Username" %}
         <span class="small">Enter your username</span>

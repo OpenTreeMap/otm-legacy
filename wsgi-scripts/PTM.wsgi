@@ -11,7 +11,7 @@ sys.path.insert(0, main_path)
 import settings
 import site
 
-if settings.VENV_PATH:
+if hasattr(settings,"VENV_PATH") and settings.VENV_PATH:
     site.addsitedir(settings.VENV_PATH)
 
 import django.core.management
