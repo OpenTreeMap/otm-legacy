@@ -1559,7 +1559,18 @@ var tm = {
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
+                var response =  JSON.parse(xhr.responseText);                
+                $("#edit_map_errors")[0].innerHTML = ""
+                $("#edit_map_errors")[0].className = "";
+                if (response['success'] != true) {
+                    $("#edit_map_errors")[0].className = "errorResponse";
+                    $("#edit_map_errors")[0].innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                         $("#edit_map_errors")[0].innerHTML += err;
+                    });
+                } else {                                  
+                    $("#edit_map_errors")[0].innerHTML = "New location saved."
+                }
             }});
     },
     setupAutoComplete: function(field) {
