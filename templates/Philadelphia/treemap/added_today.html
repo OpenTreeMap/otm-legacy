@@ -36,7 +36,7 @@
         <tr><th> </th><th>Scientific Name</th><th>Common Name</th><th>Diameter</th><th>Address</th></tr>
         {% for plot in plots %}
             <tr>
-			                <td><a href="/plots/{{plot.id}}" class="buttonSmall">View&nbsp;Details</a></td>     
+			                <td><a href="{% url treemap.views.plot_detail plot.id %}" class="buttonSmall">View&nbsp;Details</a></td>     
                 <td><i>{{plot.current_tree.species.scientific_name|default:"Missing"}}</i></td>
                 <td>{{plot.current_tree.species.common_name|default:"Missing"}}</td>
                 <td>{{plot.current_tree.dbh|unit_or_missing:'inches'}}</td>
