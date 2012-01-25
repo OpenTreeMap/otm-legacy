@@ -465,7 +465,7 @@
 					<ul class="optionItem">
 						{% for update in recent %}
 							{% if forloop.counter0 < 10 %}
-							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="{% url profiles.view.profile_detail update.0 %}" target="_blank">{{ update.0 }}</a></li>
+x							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="{% url profiles.views.profile_detail update.0 %}" target="_blank">{{ update.0 }}</a></li>
 							{% endif %}
 						{% empty %}
 							<li>No edits yet!</li>
