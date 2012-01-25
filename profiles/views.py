@@ -3,6 +3,8 @@ Views for creating, editing and viewing site-specific user profiles.
 
 """
 
+from django.conf import settings
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,7 +35,7 @@ def edit_photo(request,username):
         if form.is_valid():
             profile_obj.photo = form.cleaned_data['photo']
             profile_obj.save()
-            return HttpResponseRedirect('/profiles/%s/' % username)
+            return HttpResponseRedirect('%s/profiles/%s/' % (settings.SITE_ROOT, username))
     else:
         form = EditPhotoForm()
 
