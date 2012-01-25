@@ -1,11 +1,3 @@
-var tm_urls = {
-    eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://207.245.89.246:8080/tilecache/tilecache.py/',
-    geo_url : 'http://207.245.89.246:8081/geoserver/wms?transparent=true', 
-    //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
-    qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
-};
-
 tm.map_center_lon = -75.19;
 tm.map_center_lat = 39.99;
 tm.start_zoom = 11;
@@ -78,7 +70,7 @@ tm.init_base_map = function(div_id, controls){
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,
         {
-            layername: 'PTM',
+            layername:  tm_urls.tc_layer_name,
             type: 'png',
             isBaseLayer: false,
             //opacity:0.7, causes issues with IE and bing layer. 
