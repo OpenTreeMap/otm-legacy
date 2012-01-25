@@ -5,7 +5,7 @@
 {%block body_class%}inner{%endblock %}
 
 {% block extrahead %}	    
-        <script type="text/javascript" src="/static/js/map.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
 {% endblock %}
 
 {% block body_id %}id="results"{% endblock %}
@@ -16,7 +16,7 @@
             <div id="results_aside" class="aside">
             <h2>Yearly Eco Impact</h2>
             <div id="summary_subset">Selected trees in <span id="summary_subset_val">..</span></div>
-              <!-- <strong class="sub-title">Based on select data. <a href="/trees/add/">Add a tree &raquo;</a></strong> -->
+              <!-- <strong class="sub-title">Based on select data. <a href="{% url treemap.views.tree_add %}">Add a tree &raquo;</a></strong> -->
             <div id="results_wrapper" style="display:none;">
                 <div id="no_results" style="display:none;">The selected trees do not have the species and diameter data needed to calculate the eco impact. Please add this information if you know it and help make PhillyTreeMap more complete.</div>
                 <ul class="messageStats" id="messageStatsCost">
@@ -60,10 +60,10 @@
                             <li id="totals">
                                 <ul>
                                     <li id="title">Results:</li>
-                                    <li id="first"><span class="tree_count">0</span> trees located <span class="reset_search">(<a href="/map">reset search</a>)</span><br/><span class="notrees"></span><span class="moretrees"></span></li>
+                                    <li id="first"><span class="tree_count">0</span> trees located <span class="reset_search">(<a href="{% url treemap.views.result_map %}">reset search</a>)</span><br/><span class="notrees"></span><span class="moretrees"></span></li>
 
                                     <!-- <li>XX trees need more info to be included</li> -->
-                                    <li id="add"><a href="/trees/add/" class="buttonMed"><span class="icon iconAdd"></span><span class="label">Add a Tree!</span></a></li>
+                                    <li id="add"><a href="{% url treemap.views.tree_add %}" class="buttonMed"><span class="icon iconAdd"></span><span class="label">Add a Tree!</span></a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -79,15 +79,15 @@
 				</div>
             </div>
 
-			<div id="export_search" class="export">
-					<ul>					
-						<li id="title">Export this search:</li>
-						<li id="firstOption">
-						<a id="kml_link" href="/search/kml/">KML</a></li>
-						<li><a id="csv_link" href="/search/csv/">CSV</a></li>
-                        <li><a id="shp_link" href="/search/shp/">Shapefile</a></li>
-					</ul>
-			 </div>
+	    <div id="export_search" class="export">
+	      <ul>					
+		<li id="title">Export this search:</li>
+		<li id="firstOption">
+		  <a id="kml_link">KML</a></li>
+		<li><a id="csv_link">CSV</a></li>
+                <li><a id="shp_link">Shapefile</a></li>
+	      </ul>
+	    </div>
         {% endblock %}
 
 
@@ -103,18 +103,18 @@
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
 
                 {% if tree.last_updated_by.get_profile.photo %}
-                    <img src="/media/{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
+                    <img src="{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
                         alt="image description" width="33" height="32" /></td>
                 {% else %}
-                    <img src="/static/images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>
                 {% endif %}
 
                 {% comment %}
                 {% if tree.treephoto_set.count %}
-                    <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
+                    <img src="{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
                         alt="image description" width="33" height="32" /></td>
                 {% else %}
-                    <img src="/static/images/es/image10.gif" alt="image description" width="33" height="32" /></a></td>
+                    <img src="{{ STATIC_URL }}images/es/image10.gif" alt="image description" width="33" height="32" /></a></td>
                 {% endif %}
                 {% endcomment %}
                 <td>
@@ -130,7 +130,7 @@
                 <td>
                     <span>Updated by</span>  <br />
 
-                    <a href="/profiles/{{tree.last_updated_by.username}}/">{{ tree.last_updated_by.username }}</a>
+                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a>
                 </td>
             </tr>
        {% endfor %}
@@ -151,7 +151,7 @@
             {% for pic in latest_photos %}
                 <li>
                     <a href="{{ pic.tree.get_absolute_url }}">
-                        <img src="/media/{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
+                        <img src="{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
                     </a>
                 </li>
             {% endfor %}

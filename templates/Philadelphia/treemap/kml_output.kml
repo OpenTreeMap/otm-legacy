@@ -5,14 +5,14 @@
   <Style id="highlightPlacemark">
     <IconStyle>
     <Icon>
-      <href>{{ root_url }}/static/images/map_icons/v4/marker-selected.png</href>
+      <href>{{ root_url }}{{ STATIC_URL }}images/map_icons/v4/marker-selected.png</href>
     </Icon>
     </IconStyle>
   </Style>
   <Style id="normalPlacemark">
     <IconStyle>
     <Icon>
-      <href>{{ root_url }}/static/images/map_icons/v4/zoom5.png</href>
+      <href>{{ root_url }}{{ STATIC_URL }}images/map_icons/v4/zoom5.png</href>
     </Icon>
     </IconStyle>
   </Style>

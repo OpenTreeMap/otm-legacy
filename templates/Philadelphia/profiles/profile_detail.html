@@ -2,7 +2,7 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
-        <script type="text/javascript" src="/static/js/map.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
 	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
 
 <script type="text/javascript">
@@ -35,7 +35,7 @@
         <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>{% if profile.photo %}
-                <img src="/media/{% thumbnail profile.photo 200x100 bw autocrop %}" class="mainImage" />{% else %}<img src="/static/images/v2/profile1.gif" alt="Profile image" width="180" class="mainImage" />
+                <img src="{% thumbnail profile.photo 200x100 bw autocrop %}" class="mainImage" />{% else %}<img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" class="mainImage" />
                 {% endif %}</li>
             </ul>
 
@@ -46,7 +46,7 @@
 
             <ul id="imageOptions">
                 <li id="first">
-                    <a href="/profiles/{{ profile.username }}/photo/">{% if profile.photo %}Change photo{% else %}Add photo{% endif %} &raquo;
+                    <a href="{% url profiles.views.edit_photo profile.username %}">{% if profile.photo %}Change photo{% else %}Add photo{% endif %} &raquo;
                     </a>
                 </li>
                 <!--<li><a href="#">Remove photo</a></li>-->
@@ -82,7 +82,7 @@
                 <li>
                     <ul class="edit">
                         <li>Password</li>
-                        <li class="editItem"><a href="/accounts/password/reset">Reset</a></li>
+                        <li class="editItem"><a href="{{ SITE_ROOT }}/accounts/password/reset">Reset</a></li>
                     </ul>
                 </li>
                 <li>
@@ -114,7 +114,7 @@
             </ul>
             <ul id="message">
                 <li id="title">Feedback</li>
-                <li>Got something to say? <a href="/contact">Send us feeckback!</a></li>
+                <li>Got something to say? <a href="{{ SITE_ROOT }}/contact">Send us feeckback!</a></li>
             </ul>
 
             {% else %}
@@ -124,7 +124,7 @@
             </ul>
             <ul id="message">
                 <li id="title">Your turn</li>
-                <li>Our database of trees comes from reliable sources and gets better with help from our users. <a href="/trees/add/">Add trees and help us grow!</a></li>
+                <li>Our database of trees comes from reliable sources and gets better with help from our users. <a href="{% url treemap.views.tree_add %}">Add trees and help us grow!</a></li>
             </ul>
 
             {% endif %}
@@ -159,7 +159,7 @@
             {% for fav in profile.user.treefavorite_set.all %}
                 <tr>
                     <td class="fav">
-        		       <a href="/trees/{{ fav.tree.id }}/">View</a><br>
+        		       <a href="{% url treemap.views.trees fav.tree.id %}">View</a><br>
                        <a href="#" class="favorite fav unfave" id="favorite_{{fav.tree.id}}">Unfavorite</a><br>
                     </td>
                     <td class="species">
@@ -208,7 +208,7 @@
                     {% for tree in profile.recently_edited_trees %}
                     <tr>
                         <td class="fav">
-            		       <a href="/trees/{{ tree.3 }}/">View</a><br>
+            		       <a href="{% url treemap.views.trees tree.3 %}">View</a><br>
                            <!--<a href="#" class="favorite fav unfave" id="favorite_{{tree.id}}">Unfavorite</a><br>-->
                         </td>
                         <td class="species">
@@ -244,7 +244,7 @@
                    {% for story in recent_stories %}
                     <li>
                         <div class="user-info">
-                            <img src="/static/images/es/image22.gif" alt="image description" width="40" height="40" />
+                            <img src="{{ STATIC_URL }}images/es/image22.gif" alt="image description" width="40" height="40" />
                             <span>18 posts</span>
                         </div>
                         <div class="post">
@@ -273,7 +273,7 @@
                     {% for pic in profile.recently_added_photos %}
                     <li>
                         <a href="{{ pic.tree.get_absolute_url }}">
-                            <img src="/media/{% thumbnail pic.photo 100x70 crop %}" alt="image description" width="202" height="146" />
+                            <img src="{% thumbnail pic.photo 100x70 crop %}" alt="image description" width="202" height="146" />
                         </a>
 
                         <dl>
