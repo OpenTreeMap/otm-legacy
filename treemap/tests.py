@@ -466,7 +466,8 @@ class ViewTests(TestCase):
         form['edit_address_street'] = "100 N Broad"
 
         response = self.client.post("/trees/add/", form)
-        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+        self.assertEquals(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith('/trees/new/%i/' % self.u.id), "Expected Location header to end with /trees/new/\d+ but instead it was %s" % response["Location"])
 
         response = self.client.get('/trees/new/%i/' % self.u.id)
         self.assertNotEqual(len(response.context['plots']), 0)
@@ -731,6 +732,4 @@ class ViewTests(TestCase):
         self.assertEqual(p.address_city, "Philadelphia")
         self.assertEqual(p.address_zip, "19103")
 
-
-    
 

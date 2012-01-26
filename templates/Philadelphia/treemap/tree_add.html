@@ -22,7 +22,7 @@
         jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
         jQuery("#opt_field_group").hide();
-        jQuery.getJSON('/species/json/', function(species){
+        jQuery.getJSON(tm_static + '/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
                 $("#id_species_id").val(item.symbol).change();
