@@ -39,7 +39,7 @@ var tm_icons = {
     pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
     marker : tm_static + '/static/openlayers/img/marker.png'
     };
-var tm_urls = {};
+
 var tm = {
     speciesData: null,
     speciesDataListeners: [],
