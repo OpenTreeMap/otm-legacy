@@ -524,9 +524,9 @@ var tm = {
                         transparent: 'true',
                         width: '256',
                         srs: 'EPSG:4326',
-                        layers: tm.geo_layer,
+                        layers: tm_urls.geo_layer,
                         height: '256',
-                        styles: tm.geo_layer_style,
+                        styles: tm_urls.geo_style,
                         format: 'image/png',
                         tiled: 'true',
                         tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
