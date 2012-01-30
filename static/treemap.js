@@ -737,6 +737,9 @@ var tm = {
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
         
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
         tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
         tm.drag_control.onComplete = function(feature, mousepix) {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
