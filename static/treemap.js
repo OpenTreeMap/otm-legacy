@@ -1762,9 +1762,9 @@ var tm = {
             }
             qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         }
-        $("#kml_link").attr('href',"/search/kml/"+qstr);
-        $("#csv_link").attr('href', "/search/csv/"+qstr);
-        $("#shp_link").attr('href', "/search/shp/"+qstr);
+        $("#kml_link").attr('href', tm_static + "/search/kml/"+qstr);
+        $("#csv_link").attr('href', tm_static + "/search/csv/"+qstr);
+        $("#shp_link").attr('href', tm_static + "/search/shp/"+qstr);
         return qstr;
     },
     
