@@ -1567,10 +1567,18 @@ var tm = {
                 $("#edit_map_errors")[0].className = "";
                 if (response['success'] != true) {
                     $("#edit_map_errors")[0].className = "errorResponse";
-                    $("#edit_map_errors")[0].innerHTML = "An error occurred in saving: "
+                    $("#edit_map_errors")[0].innerHTML = "An error occurred in saving: ";
+                    var newError = ""
                     $.each(response['errors'], function(i,err){
-                         $("#edit_map_errors")[0].innerHTML += err;
+                         newError += err;
                     });
+
+                    if (newError.indexOf("exclusion zone") >= 0 &&
+                        newError.indexOf("Geometry") >= 0) {
+                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the red areas.";
+                    } else {
+                        $("#edit_map_errors")[0].innerHTML = newError;
+                    }
                 } else {                                  
                     $("#edit_map_errors")[0].innerHTML = "New location saved."
                 }
