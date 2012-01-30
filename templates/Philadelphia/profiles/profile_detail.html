@@ -272,13 +272,13 @@
                 <ul>
                     {% for pic in profile.recently_added_photos %}
                     <li>
-                        <a href="{{ pic.tree.get_absolute_url }}">
+                        <a href="{% url treemap.views.trees pic.tree.id %}">
                             <img src="{% thumbnail pic.photo 100x70 crop %}" alt="image description" width="202" height="146" />
                         </a>
 
                         <dl>
                             <dt>Tree #:</dt>
-                            <dd><a href="{{ pic.tree.get_absolute_url }}">{{ pic.tree.id }}</a></dd>
+                            <dd><a href="{% url treemap.views.trees pic.tree.id %}">{{ pic.tree.id }}</a></dd>
                             <dt>Added on:</dt>
                             <dd>{{ pic.reported|date:"M d, Y"|default:"Unknown"  }}</dd>
                         </dl>
