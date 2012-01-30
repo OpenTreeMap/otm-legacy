@@ -4,8 +4,8 @@ SITE_ROOT = ''
 
 #from settings_philadelphia import *
 #from settings_sanfrancisco import *
-from settings_greenprint import *
-#from settings_dctreekit import *
+#from settings_greenprint import *
+from settings_dctreekit import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'badges',
     'pagination',
     'django_sorting',
+    'geopy_extensions',
 )
 
 try:

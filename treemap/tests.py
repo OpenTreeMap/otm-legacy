@@ -12,8 +12,6 @@ from treemap.models import Neighborhood, ZipCode, ExclusionMask
 from treemap.models import Plot, ImportEvent, Species, Tree
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.views import *
-from treemap.geocode import *
-from geopy.geocoders.base import GeocoderResultError
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation, ReputationAction
@@ -30,33 +28,6 @@ class ModelTests(TestCase):
 
     def test_plot_validate(self):
         pass
-
-class GeoCoderTests(TestCase):
-#############################################
-#  Geocoder Test
-
-    def test_geocoder_array(self):
-        place, lat, lon = geocode("200 N 10th St, Philadelphia PA")      
-
-        self.assertNotEqual(place, None)      
-        self.assertNotEqual(lat, None)      
-        self.assertNotEqual(lon, None)
-
-        self.assertRaises(GeocoderResultError, geocode, "Pizza Shark15 @pp13")
-    
-#    def test_DC_geocoder(self):
-    def fails_test_DC_geocoder(self):
-        g = DCGeocoder()
-        place, lat, lon = g.geocode("200 N 10th St, Washington DC")   
-
-        self.assertNotEqual(place, None)      
-        self.assertNotEqual(lat, None)      
-        self.assertNotEqual(lon, None)
-
-    def test_reverse_geocoding(self):
-        self.assertRaises(NotImplementedError, reverse_geocode, "stuff")
-
-
 
 class ViewTests(TestCase):
 
