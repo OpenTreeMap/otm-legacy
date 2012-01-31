@@ -75,6 +75,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'threadedcomments',
     'treemap',
+    'api',
     'registration',
     'template_utils',
     'profiles',
