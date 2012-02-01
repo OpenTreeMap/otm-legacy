@@ -114,7 +114,7 @@ var tm = {
         var adv_active = false;
         $('#advanced').click(function() {
             if (!adv_active) {
-                if (location.pathname == "/map/") {
+                if ($('#results').length > 0) {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
@@ -122,7 +122,7 @@ var tm = {
                 //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
-                if (location.pathname == "/map/") {
+                if ($('#results').length > 0) {
                     $('.filter-box').slideUp('slow');
                 }
                 adv_active = false;
