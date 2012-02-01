@@ -22,12 +22,11 @@ from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
-from django.db.models import Count, Sum, Q, Min, Max
 from django.views.decorators.csrf import csrf_view_exempt
+from django.views.decorators.http import require_http_methods
+from django.db.models import Count, Sum, Q, Min, Max
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
-from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
-from registration.signals import user_activated
 # formsets
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
@@ -36,6 +35,10 @@ from models import *
 from forms import *
 from profiles.models import UserProfile
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits, validate_form
+
+from registration.signals import user_activated
+from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
+from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
 
 try:
     from cStringIO import StringIO
@@ -105,6 +108,61 @@ def get_all_kmz(request):
     response = HttpResponse(csv_f, mimetype='application/vnd.google-earth.kmz')
     response['Content-Disposition'] = 'attachment; filename=All_Trees.kmz'
     return response
+
+@require_http_methods(["GET", "HEAD"])
+def get_geocode(request):
+    address = request.GET.get("address")  
+    geocoder_name = request.GET.get("geocoder_name") 
+    js = {}
+    if geocoder_name == "CitizenAtlas":
+        g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
+    else:
+        js["success"] = False
+        js["error"] = "No geocoder found for name: %s" % geocoder_name
+        return render_to_json(js)
+    if address:
+        try:
+            place, (lat, lng) = g.geocode(address)
+            js["success"] = True
+            js["place"] = place
+            js["lat"] = lat
+            js["lng"] = lng
+        except Exception as error:
+            js["success"] = False
+            js["error"] = str(error)
+    else:
+        js["success"] = False
+        js["error"] = "No address specified"
+    return render_to_json(js)
+       
+@require_http_methods(["GET", "HEAD"])
+def get_reverse_geocode(request):
+    lat = request.GET.get("lat")
+    lng = request.GET.get("lng")
+    geocoder_name = request.GET.get("geocoder_name") 
+    js = {}
+    if geocoder_name == "CitizenAtlas":
+        g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
+    else:
+        js["success"] = False
+        js["error"] = "No geocoder found for name: %s" % geocoder_name
+        return render_to_json(js)
+    print lat, lng
+    if lat and lng:
+        try:
+            point = (lat, lng)
+            place, new_point = g.reverse(point)
+            js["success"] = True
+            js["place"] = place
+            js["lat"] = new_point[0]
+            js["lng"] = new_point[1]
+        except Exception as error:
+            js["success"] = False
+            js["error"] = str(error)
+    else:
+        js["success"] = False
+        js["error"] = "No point specified"
+    return render_to_json(js)
 
 #@cache_page(60*1)
 def result_map(request):

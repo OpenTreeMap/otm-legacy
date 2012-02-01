@@ -44,6 +44,6 @@ urlpatterns = patterns('',
     # dispatch the remainder of the urls to the default backend...
     (r'^accounts/', include('registration.backends.default.urls')),
     (r'^profiles/', include('profiles.urls')),
-    (r'^treekey/', include('treekey.urls'))
+    (r'^treekey/', include('treekey.urls')),
 
 )

@@ -20,6 +20,9 @@ urlpatterns = patterns('',
     (r'^export/kmz$', get_all_kmz),
     
     (r'^map/$', result_map),
+
+    (r'^geocode/$', get_geocode),
+    (r'^geocode/reverse/$', get_reverse_geocode),
     
     (r'^neighborhoods/$', geographies, {'model' : Neighborhood}),
     (r'^neighborhoods/(?P<id>\d+)/$', geographies, {'model' : Neighborhood}),
