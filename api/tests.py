@@ -14,6 +14,8 @@ from django.conf import settings
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Choices, Species
 
+API_PFX = "/api/v0.1"
+
 class Version(TestCase):
     def setUp(self):
         settings.GEOSERVER_GEO_LAYER = ""
@@ -24,7 +26,7 @@ class Version(TestCase):
         settings.OTM_VERSION = "1.2.3"
         settings.API_VERSION = "0.1"
 
-        ret = self.client.get("/api/version")
+        ret = self.client.get("%s/version" % API_PFX)
 
         self.assertEqual(ret.status_code, 200)
         json = loads(ret.content)
@@ -55,7 +57,7 @@ class PlotListing(TestCase):
         p.readonly = False
         p.save()
 
-        info = self.client.get("/api/plots/")
+        info = self.client.get("%s/plots/" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -82,7 +84,7 @@ class PlotListing(TestCase):
         t.present = True
         t.save()
 
-        info = self.client.get("/api/plots/")
+        info = self.client.get("%s/plots/" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -97,7 +99,7 @@ class PlotListing(TestCase):
         t.dbh = 11.2
         t.save()
 
-        info = self.client.get("/api/plots/")
+        info = self.client.get("%s/plots/" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -119,30 +121,30 @@ class PlotListing(TestCase):
         p2 = mkPlot(self.u)
         p3 = mkPlot(self.u)
 
-        r = self.client.get("/api/plots/?offset=0&size=2")
+        r = self.client.get("%s/plots/?offset=0&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk]))
 
 
-        r = self.client.get("/api/plots/?offset=1&size=2")
+        r = self.client.get("%s/plots/?offset=1&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p2.pk, p3.pk]))
 
 
-        r = self.client.get("/api/plots/?offset=2&size=2")
+        r = self.client.get("%s/plots/?offset=2&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p3.pk]))
 
 
-        r = self.client.get("/api/plots/?offset=3&size=2")
+        r = self.client.get("%s/plots/?offset=3&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set())
 
-        r = self.client.get("/api/plots/?offset=0&size=5")
+        r = self.client.get("%s/plots/?offset=0&size=5" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
