@@ -586,7 +586,32 @@ var tm = {
         });
 
     },
-            
+    
+    update_add_address: function(ll, full_address, city, zip) {
+        if ($("#geocode_address")) {
+            $("#geocode_address").html("<b>Address Found: </b><br>" + full_address);
+        }
+        if ($("#id_geocode_address")) {
+            $('#id_geocode_address').val(full_address);
+        }
+        if ($('#edit_address_city')) {
+            $('#edit_address_city').val(city);
+            $('#edit_address_city').html(city);
+        }
+        if ($('#id_edit_address_city')) {
+            $('#id_edit_address_city').val(city);
+        }            
+        if ($('#edit_address_zip')) {
+            $('#edit_address_zip').val(zip);
+            $('#edit_address_zip').html(zip);
+        }
+        if ($('#id_edit_address_zip')) {
+            $('#id_edit_address_zip').val(zip);
+        }
+        
+        tm.update_nearby_trees_list(ll, 10, .0001);
+    },
+
     //initializes the map where a user places a new tree
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
@@ -599,9 +624,20 @@ var tm = {
         tm.drag_control.onComplete = function(feature, mousepix) {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            tm.reverse_geocode(mapCoord);
-            jQuery('#id_lat').val(mapCoord.lat);
-            jQuery('#id_lon').val(mapCoord.lon);
+            $('#id_lat').val(mapCoord.lat);
+            $('#id_lon').val(mapCoord.lon);
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+                
+            }, function (ll) {
+                if ($("#geocode_address")) {
+                    $("#geocode_address").html("<b>Address Found: </b><br>" + $('#id_geocode_address').val);
+                    tm.update_nearby_trees_list(ll, 10, .0001);                    
+                }
+                else {
+                    alert("Reverse Geocode was not successful.");
+                }
+            });
         }
 
 
@@ -645,33 +681,29 @@ var tm = {
                city = ""
             }
             if (!address || address == "Enter an Address or Intersection") {return;}
-            tm.geocoder.geocode({
-                address: address + " " + city,
-                bounds: tm.google_bounds    
-            }, function(results, status){
-                if (status == google.maps.GeocoderStatus.OK) {
-                    var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                    var zoom = tm.add_zoom;
-                    if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
-                    tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
-                    
-                    if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
-                    if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
-                    
-                    tm.load_nearby_trees(olPoint);
-                    tm.add_new_tree_marker(olPoint, true);
-                    
-                    tm.drag_control.activate();
-                    
-                    jQuery('#id_lat').val(olPoint.lat);
-                    jQuery('#id_lon').val(olPoint.lon);
-                    jQuery('#id_geocode_address').val(results[0].formatted_address)
-                    
-                    jQuery('#update_map').html("Update Map");
-                    jQuery("#mapHolder").show();
-                    jQuery("#calloutContainer").show();
-                    tm.trackEvent('Add', 'View Map');
-                }
+            geo_address = address + " " + city
+            tm.geocode(geo_address, function (lat, lng, place) {
+                var olPoint = new OpenLayers.LonLat(lng, lat);
+                var zoom = tm.add_zoom;
+                if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
+                tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+                
+                if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+                if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+                
+                tm.load_nearby_trees(olPoint);
+                tm.add_new_tree_marker(olPoint, true);
+                
+                tm.drag_control.activate();
+                
+                jQuery('#id_lat').val(olPoint.lat);
+                jQuery('#id_lon').val(olPoint.lon);
+                jQuery('#id_geocode_address').val(place)
+                
+                jQuery('#update_map').html("Update Map");
+                jQuery("#mapHolder").show();
+                jQuery("#calloutContainer").show();
+                tm.trackEvent('Add', 'View Map');
             });
             
         });
@@ -745,9 +777,16 @@ var tm = {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
-            tm.reverse_geocode(mapCoord);
-            //tm.updateEditableLocation();
-            
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                if ($('#edit_address_city')) {
+                    $('#edit_address_city').val(city);
+                    $('#edit_address_city').html(city);
+                }
+                if ($('#edit_address_zip')) {
+                    $('#edit_address_zip').val(zip);
+                    $('#edit_address_zip').html(zip);
+                }
+            });
         }
         
         tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
@@ -793,7 +832,7 @@ var tm = {
             //new_addy += ', ph';
             tm.geocoder.getLatLng(new_addy, function(ll){
                 if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
-                    tm.add_new_tree_marker(ll);
+                    tm.add_new_tree_marker(ll, false);
                     tm.map.setCenter(ll,15);
                     }
                 
@@ -883,11 +922,41 @@ var tm = {
         
         tm.add_vector_layer.addFeatures([tree_vector])
         if (do_reverse_geocode) {
-            tm.reverse_geocode(ll);
+            tm.reverse_geocode(ll, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+            });
         }
-        
-        },
-        
+    
+    },
+    
+    update_nearby_trees_list: function (ll, plots, distance) {
+        if ($('#nearby_trees')) {
+            $('#nearby_trees').html("Loading...")
+            var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
+            $.getJSON(tm_static + url, function(geojson){
+                if (geojson.features.length == 0) {
+                    $('#nearby_trees').html("No other trees nearby.")
+                }
+                else {
+                    $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                    $.each(geojson.features, function(i,f){
+                        var tree = $('#nearby_trees');
+                        if (f.properties.common_name){
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                        }
+                        else {
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        }
+                        if (f.properties.current_dbh){
+                            tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
+                        }
+                        
+                    });
+                }
+            });
+        }
+    },
+
     add_location_marker: function (ll) {
         var icon = tm.get_icon(tm_icons.marker,0);
         tm.location_marker = new OpenLayers.Marker(ll, icon);
@@ -912,117 +981,141 @@ var tm = {
     },
     
 
-    geocode : function(address, display_local_summary, callback){
+    geocode : function(address, callback, error_callback){
         if (!address){
             address = jQuery('#searchInput').text();
         }
 
         tm.geocode_address = address;
 
-        tm.geocoder.geocode({
-            address: tm.geocode_address,
-            bounds: tm.google_bounds  
-        }, function(results, status){
-            if (status == google.maps.GeocoderStatus.OK) {
-                var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                var llpoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                tm.map.setCenter(llpoint, 15);
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        callback(json.lat, json.lng, json.place)
+                    }
+                }
+                else {
+                    tm.geocoder.geocode({
+                        address: tm.geocode_address,
+                        bounds: tm.google_bounds  
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            
+                            if (callback) {
+                                callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                            }
 
-                tm.add_location_marker(llpoint);
+                        } else {
+                            if (error_callback) {
+                                error_callback(status)
+                            }
+                        }
 
-                if (callback) {
-                    callback(olPoint);
+                    });
+                }
+            });
+        }
+        else {
+            tm.geocoder.geocode({
+                address: tm.geocode_address,
+                bounds: tm.google_bounds  
+            }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    
+                    if (callback) {
+                        callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                    }
+
+                } else {
+                    if (error_callback) {
+                        error_callback(status)
+                    }
                 }
 
-            } else {
-                alert("Geocode was not successful for the following reason: " + status);
-            }
+            });
+        }
 
-        });
-                 
     },
         
         
     //pass in a GLatLng and get back closest address
-    reverse_geocode : function(ll){
-        latlng = new google.maps.LatLng(ll.lat, ll.lon)
-        tm.geocoder.geocode({
-                latLng: latlng
-            }, function(results, status){
-            if (status == google.maps.GeocoderStatus.OK) {
-                var addy = results[0].address_components;
-                
-                if ($("#geocode_address")) {
-                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                }
-                if ($("#id_geocode_address")) {
-                    $('#id_geocode_address').val(results[0].formatted_address);
-                }
-                if ($('#nearby_trees')) {
-                    $('#nearby_trees').html("Loading...")
-                    var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=10&distance=.0001'].join('');
-                    $.getJSON(tm_static + url, function(geojson){
-                        if (geojson.features.length == 0) {
-                            $('#nearby_trees').html("No other trees nearby.")
-                        }
-                        else {
-                            $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
-                            $.each(geojson.features, function(i,f){
-                                var tree = $('#nearby_trees');
-                                if (f.properties.common_name){
-                                    tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
-                                }
-                                else {
-                                    tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
-                                }
-                                if (f.properties.current_dbh){
-                                    tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
-                                }
-                                
-                            });
-                        }
-                    });
-                }
-                
-                $.each(addy, function(index, value){
-                    if ($.inArray('locality', value.types) > -1) {
-                         if ($('#edit_address_city')) {
-                            $('#edit_address_city').val(value.long_name);
-                            $('#edit_address_city').html(value.long_name);
-                        }
-                        if ($('#id_edit_address_city')) {
-                            $('#id_edit_address_city').val(value.long_name);
-                        }
+    reverse_geocode : function(ll, callback, error_callback){
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        var city = json.place.split(", ")[1] + " " + json.place.split(", ")[2];
+                        var zip = json.place.split(", ")[3];
+                        callback(ll, json.place, city, zip)
                     }
-                    else if ($.inArray('postal_code', value.types) > -1) {
-                        if ($('#edit_address_zip')) {
-                            $('#edit_address_zip').val(value.long_name);
-                            $('#edit_address_zip').html(value.long_name);
-                        }
-                        if ($('#id_edit_address_zip')) {
-                            $('#id_edit_address_zip').val(value.long_name);
-                        }
-                    }
-                    
-                });
-                
-
-            } else {
-                if ($("#geocode_address")) {
-                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                    var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
-                    $.getJSON(tm_static + url, function(geojson){
-                        $.each(geojson.features, function(i,f){
-                            alert("trees");
-                            //TODO: add each tree to list
-                        });
-                    });
                 }
                 else {
-                    alert("Reverse Geocode was not successful.");
+                   latlng = new google.maps.LatLng(ll.lat, ll.lon)
+                   tm.geocoder.geocode({
+                        latLng: latlng
+                        }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (callback) {
+                                var full_address = results[0].formatted_address
+                                var addy = results[0].address_components;
+                                var city = "";
+                                var zip = "";
+                                
+                                for (var i=0; i<addy.length; i++) {
+                                    if ($.inArray('locality', addy[i].types) > -1) {
+                                        city = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                        zip = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                        city += " " + addy[i].short_name;
+                                    }
+                                }
+
+                                callback(ll, full_address, city, zip);
+                            }
+
+                        } else {
+                            if (error_callback) {error_callback(ll);}               
+                        }        
+                    });   
                 }
-            }        
-        });        
+            });
+        }
+        else {
+            latlng = new google.maps.LatLng(ll.lat, ll.lon)
+            tm.geocoder.geocode({
+                    latLng: latlng
+                }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (callback) {
+                        var full_address = results[0].formatted_address
+                        var addy = results[0].address_components;
+                        var city = "";
+                        var zip = "";
+                        
+                        for (var i=0; i<addy.length; i++) {
+                            if ($.inArray('locality', addy[i].types) > -1) {
+                                city = addy[i].long_name;
+                            }
+                            else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                zip = addy[i].long_name;
+                            }
+                            else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                city += " " + addy[i].short_name;
+                            }
+                        }
+
+                        callback(ll, full_address, city, zip);
+                    }
+
+                } else {
+                    if (error_callback) {error_callback(ll);}               
+                }        
+            });   
+        }     
     },    
         
     /*
@@ -1891,10 +1984,7 @@ var tm = {
     updateLocationFields: function(loc){
         if (loc){
             $("#location_search_input").val(loc);
-            //var url = '/neighborhoods/?format=json&location=' + loc;
             tm.handleSearchLocation(loc);
-            //tm.geocode(loc, true, tm.display_geography);
-            //jQuery.getJSON(url, tm.display_geography);
         }
         
     },
@@ -1995,9 +2085,15 @@ var tm = {
                     tm.updateSearch();
                 } else {                 
                     delete tm.searchParams.geoName;        
-                    tm.geocode(search, true, function(point) {
-                        if (point) {
-                            tm.geocoded_locations[search] = [point.lon, point.lat];
+                    tm.geocode(search, function(lat, lng, place) {
+                        var olPoint = new OpenLayers.LonLat(lng, lat);
+                        var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                        tm.map.setCenter(llpoint, tm.add_zoom);
+
+                        tm.add_location_marker(llpoint);
+
+                        if (olPoint) {
+                            tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
                             tm.searchParams['location'] = search;       
                         } else {
                             delete tm.searchParams.location;
