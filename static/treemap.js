@@ -989,7 +989,7 @@ var tm = {
         tm.geocode_address = address;
 
         if (tm.local_geocoder) {
-            $.getJSON("/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
+            $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
                     if (callback) {
                         callback(json.lat, json.lng, json.place)
@@ -1042,7 +1042,7 @@ var tm = {
     //pass in a GLatLng and get back closest address
     reverse_geocode : function(ll, callback, error_callback){
         if (tm.local_geocoder) {
-            $.getJSON("/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
+            $.getJSON(tm_static + "/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
                     if (callback) {
                         var city = json.place.split(", ")[1] + " " + json.place.split(", ")[2];
