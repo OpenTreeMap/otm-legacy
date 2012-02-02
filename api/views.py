@@ -4,10 +4,13 @@ from django.http import HttpResponse
 
 from treemap.models import Plot, Species
 
+from functools import wraps
+
 import simplejson 
 
 def api_call(content_type="application/json"):
     def decorate(req_function):
+        @wraps(req_function)
         def newreq(request):
             outp = req_function(request)
             
@@ -30,6 +33,7 @@ def version(request):
     any API version < 1 and minor changes (i.e. 1.4,1.5,1.6) represent no break in
     existing functionality
 
+    URL: /version
     Verb: GET
     Params: None
     Output:
@@ -39,7 +43,6 @@ def version(request):
       }
 
     """
-
     return { "otm_version": settings.OTM_VERSION,
              "api_version": settings.API_VERSION }
 
@@ -51,6 +54,7 @@ def get_plot_list(request):
     Get a list of all plots in the database. This is meant to be a lightweight
     listing service. To get more details about a plot use the ^plot/{id}$ service
     
+    URL: /plots
     Verb: GET
     Params: 
       offset, integer, default = 0  -> offset to start results from

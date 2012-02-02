@@ -4,6 +4,6 @@ from views import *
 urlpatterns = patterns(
     '',
     (r'^version$', version),
-    (r'^plots/$', get_plot_list),
+    (r'^plots$', get_plot_list),
 
 )
