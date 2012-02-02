@@ -114,20 +114,18 @@ var tm = {
         var adv_active = false;
         $('#advanced').click(function() {
             if (!adv_active) {
-                if (location.pathname == "/map/") {
+                if ($('#results').length > 0) {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
                 $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
-                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
-                if (location.pathname == "/map/") {
+                if ($('#results').length > 0) {
                     $('.filter-box').slideUp('slow');
                 }
                 adv_active = false;
-                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif');
-                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif'); 
             }
             return false;
         });
