@@ -57,7 +57,7 @@ class PlotListing(TestCase):
         p.readonly = False
         p.save()
 
-        info = self.client.get("%s/plots/" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -84,7 +84,7 @@ class PlotListing(TestCase):
         t.present = True
         t.save()
 
-        info = self.client.get("%s/plots/" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -99,7 +99,7 @@ class PlotListing(TestCase):
         t.dbh = 11.2
         t.save()
 
-        info = self.client.get("%s/plots/" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
         
@@ -121,30 +121,30 @@ class PlotListing(TestCase):
         p2 = mkPlot(self.u)
         p3 = mkPlot(self.u)
 
-        r = self.client.get("%s/plots/?offset=0&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=0&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk]))
 
 
-        r = self.client.get("%s/plots/?offset=1&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=1&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p2.pk, p3.pk]))
 
 
-        r = self.client.get("%s/plots/?offset=2&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=2&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p3.pk]))
 
 
-        r = self.client.get("%s/plots/?offset=3&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=3&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set())
 
-        r = self.client.get("%s/plots/?offset=0&size=5" % API_PFX)
+        r = self.client.get("%s/plots?offset=0&size=5" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
