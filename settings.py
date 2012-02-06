@@ -39,7 +39,8 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages'
+    'django.contrib.messages.context_processors.messages',
+    'treemap.context_processors.site_root'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,3 +91,5 @@ try:
     from local_settings import *
 except ImportError, exp:
     pass
+
+LOGIN_URL = "%s/accounts/login" % SITE_ROOT

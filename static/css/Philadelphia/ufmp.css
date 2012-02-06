@@ -3,7 +3,7 @@ html{
 }
 html,body{height: 100%;}
 body{
-	background: #fff url(/static/images/es/bg-body.gif) no-repeat 50% 0;
+	background: #fff url(../images/es/bg-body.gif) no-repeat 50% 0;
 	margin:0;
 	font:11px Arial, Helvetica, sans-serif;
 	color:#666;
@@ -46,7 +46,7 @@ form, fieldset{
 	text-indent:-9999px;
 	overflow:hidden;
 	float:left;
-	background:url(/static/images/es/logo.png) no-repeat;
+	background:url(../images/es/logo.png) no-repeat;
 	margin:0;
 }
 .logo a{
@@ -56,14 +56,14 @@ form, fieldset{
 }
 .button{
 	color:#fff;
-	background: url(/static/images/es/bg-btn-right.gif) no-repeat 100% 0;
+	background: url(../images/es/bg-btn-right.gif) no-repeat 100% 0;
 	display:block;
 	padding-right:3px;
 	position:relative;
 }
 .button span{
 	display:block;
-	background: url(/static/images/es/bg-btn-left.gif) no-repeat;
+	background: url(../images/es/bg-btn-left.gif) no-repeat;
 	cursor:pointer;
 	padding:4px 3px 4px 6px;
 	position:relative;
@@ -77,7 +77,7 @@ form, fieldset{
 }
 #nav li{
 	float:left;
-	background: url(/static/images/es/separator01.gif) no-repeat 0 2px;
+	background: url(../images/es/separator01.gif) no-repeat 0 2px;
 	padding:0 4px 0 6px;
 }
 #nav li:first-child{
@@ -97,7 +97,7 @@ form, fieldset{
 }
 /* search box */
 .search-box{
-	background: url(/static/images/es/bg-search-box.gif) repeat-x;
+	background: url(../images/es/bg-search-box.gif) repeat-x;
 	margin:-20px 0 9px;
 	width:100%;
 	height:68px;
@@ -107,7 +107,7 @@ form, fieldset{
 	margin:0 auto;
 	overflow:hidden;
 	padding:14px 0;
-	background: url(/static/images/es/separator02.gif) no-repeat 480px 5px;
+	background: url(../images/es/separator02.gif) no-repeat 480px 5px;
 }
 .search-box .holder .frame{
 	width:1000px;
@@ -140,7 +140,7 @@ form, fieldset{
 	clear:left;
 }
 .address .btn{
-	background: url(/static/images/es/bg-btn.gif) no-repeat;
+	background: url(../images/es/bg-btn.gif) no-repeat;
 	width: 48px;
 	height: 21px;
 	color:#fff;
@@ -174,7 +174,7 @@ form, fieldset{
 	display:block;
 	overflow:hidden;
 	text-indent:-9999px;
-	background: url(/static/images/es/text-one-tree.gif) no-repeat;
+	background: url(../images/es/text-one-tree.gif) no-repeat;
 	width: 371px;
 	height: 119px;
 	margin-bottom:10px;
@@ -189,9 +189,9 @@ form, fieldset{
 	padding:2px 0 8px 48px;
 	margin-bottom:13px;
 }
-.aside ul li.find{background: url(/static/images/es/ico-find.gif) no-repeat;}
-.aside ul li.add{background: url(/static/images/es/ico-add.gif) no-repeat;}
-.aside ul li.support{background: url(/static/images/es/ico-support.gif) no-repeat;}
+.aside ul li.find{background: url(../images/es/ico-find.gif) no-repeat;}
+.aside ul li.add{background: url(../images/es/ico-add.gif) no-repeat;}
+.aside ul li.support{background: url(../images/es/ico-support.gif) no-repeat;}
 .promo .aside p{margin:0 0 10px;}
 .promo .visual{
 	width:551px;
@@ -225,7 +225,7 @@ form, fieldset{
 	margin:0 auto;
 	padding:7px 28px 15px;
 	overflow:hidden;
-	background:#fff url(/static/images/es/bg-threecolumns.gif) no-repeat 0 100%;
+	background:#fff url(../images/es/bg-threecolumns.gif) no-repeat 0 100%;
 	border-top:1px solid #949494;
 }
 .threecolumns .holder{
@@ -241,7 +241,7 @@ form, fieldset{
 .box h2{
 	margin:0;
 	padding:4px 0 0 33px;
-	background: url(/static/images/es/bg-title.gif) no-repeat;
+	background: url(../images/es/bg-title.gif) no-repeat;
 	font-size:18px;
 	color:#000;
 	position:relative;
@@ -251,7 +251,7 @@ form, fieldset{
 	font-size:10px;
 	font-weight:bold;
 	line-height:11px;
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right:9px;
 	margin-top:-10px;
 	position:relative;
@@ -264,7 +264,7 @@ form, fieldset{
 	padding:0;
 }
 .box ul li{
-	background: url(/static/images/es/bullet02.gif) no-repeat 0 5px !important;
+	background: url(../images/es/bullet02.gif) no-repeat 0 5px !important;
 	padding-left:8px;
 	margin-bottom:4px;
 }
@@ -272,7 +272,7 @@ form, fieldset{
 	width:100%;
 	margin:-1px 0 -3px;
 	padding-bottom:5px;
-	background: url(/static/images/es/separator04.gif) no-repeat 30px 0;
+	background: url(../images/es/separator04.gif) no-repeat 30px 0;
 }
 /* inner page */
 .inner .promo{
@@ -297,7 +297,7 @@ form, fieldset{
 	margin-bottom:3px;
 }
 .inner .promo .aside .sub-title a{
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding:0 8px 0 0;
 	font-weight:bold;
 }
@@ -309,7 +309,7 @@ form, fieldset{
 	line-height:13px;
 }
 .inner .promo .aside .select-trees li{
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x;
 	padding:3px 0 4px;
 	margin-bottom:0;
 }
@@ -353,14 +353,14 @@ form, fieldset{
 .heading{
 	width:940px;
 	margin:0 auto;
-	background: url(/static/images/es/bg-solid-line.gif) repeat-x 0 100%;	
+	background: url(../images/es/bg-solid-line.gif) repeat-x 0 100%;	
 	border:solid #666;
 	border-width:1px 1px 0;
 }
 .heading .holder{
 	height:1%;
 	overflow:hidden;
-	background: url(/static/images/es/bg-heading.png);
+	background: url(../images/es/bg-heading.png);
 	padding:12px 10px 0 22px;
 	position:relative;
 }
@@ -373,25 +373,25 @@ form, fieldset{
 .heading h2 span{color:#360;}
 .heading .advanced{
 	float:right;
-	background: url(/static/images/es/bg-advanced-r.gif) no-repeat 100% 0;
+	background: url(../images/es/bg-advanced-r.gif) no-repeat 100% 0;
 	padding-right:5px;
 	margin:8px 0 -3px;
 }
 .heading .advanced span{
 	float:left;
-	background: url(/static/images/es/bg-advanced-l.gif) no-repeat;
+	background: url(../images/es/bg-advanced-l.gif) no-repeat;
 	padding:13px 15px 12px 	18px;
 	cursor:pointer;
 }
 .heading .advanced em{
 	font-style:normal;
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right:10px;
 	float:left;
 	font-size:10px;
 }
 .heading .active em{
-	background: url(/static/images/es/bullet04.gif) no-repeat 100% 50% !important;
+	background: url(../images/es/bullet04.gif) no-repeat 100% 50% !important;
 	font-weight:bold;
 	height:12px;
 	line-height:10px;
@@ -406,7 +406,7 @@ form, fieldset{
 	width:944px;
 	margin:0 auto 4px;
 	overflow:hidden;
-	background: url(/static/images/es/bg-twocolumns.gif) no-repeat 450px 5px;
+	background: url(../images/es/bg-twocolumns.gif) no-repeat 450px 5px;
 }
 .twocolumns h2{
 	color:#360;
@@ -449,7 +449,7 @@ form, fieldset{
 .box-2 .title h2{float:left;}
 .box-2 .title a{
 	font-size:14px;
-	background: url(/static/images/es/bullet03.gif) no-repeat 100% 5px;
+	background: url(../images/es/bullet03.gif) no-repeat 100% 5px;
 	padding-right:7px;
 	float:right;
 }
@@ -459,7 +459,7 @@ form, fieldset{
 	padding:0 0 10px;
 	width:100%;
 	overflow:hidden;
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x 0 100%;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x 0 100%;
 }
 .box-2 .photos li{
 	float:left;
@@ -467,7 +467,7 @@ form, fieldset{
 }
 .box-2 .photos img{border:1px solid #999;}
 .box-2 .comments{
-	background: url(/static/images/es/bg-comments.gif) no-repeat;
+	background: url(../images/es/bg-comments.gif) no-repeat;
 	padding:0 0 0 27px;
 	height:1%;
 	overflow:hidden;
@@ -475,7 +475,7 @@ form, fieldset{
 .box-2 .comments p{margin:0;}
 .box-2 .comments .more{
 	float:right;
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 5px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 5px;
 	padding-right:7px;
 }
 .inner .threecolumns h2,
@@ -507,7 +507,7 @@ form, fieldset{
 .filter-box{
 	width:900px;
 	margin:0 auto;
-	background:#fff url(/static/images/es/bg-filter-box.gif) repeat-x;
+	background:#fff url(../images/es/bg-filter-box.gif) repeat-x;
 	overflow:hidden;
 	padding:10px 20px 6px;
 	border:1px solid;
@@ -517,7 +517,7 @@ form, fieldset{
 	width:201px;
 	float:left;
 }
-.filter-box .wrap{background: url(/static/images/es/bg-catigories.gif) no-repeat 611px 0;}
+.filter-box .wrap{background: url(../images/es/bg-catigories.gif) no-repeat 611px 0;}
 .filter-box .parameter .title{
 	width:100%;
 	overflow:hidden;
@@ -584,7 +584,7 @@ form, fieldset{
 .filter-box .search-results{
 	height:1%;
 	overflow:hidden;
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x;
 	padding:8px 0 0;
 	margin-top:6px;
 	font-weight:bold;
@@ -599,7 +599,7 @@ form, fieldset{
 .search-results .search-info li{
 	float:left;
 	color:#360;
-	background: url(/static/images/es/separator01.gif) no-repeat 0 3px;
+	background: url(../images/es/separator01.gif) no-repeat 0 3px;
 	margin:0 6px 0 -6px;
 	padding:0 6px 0 5px;
 }
@@ -613,7 +613,7 @@ form, fieldset{
 	overflow:hidden;
 }
 .search-links li{
-	background: url(/static/images/es/separator01.gif) no-repeat 0 2px;
+	background: url(../images/es/separator01.gif) no-repeat 0 2px;
 	padding:0 5px 0 6px;
 	margin:0 -6px 0 6px;
 	float:left;
@@ -629,16 +629,16 @@ form, fieldset{
 }
 #main .main-holder{
 	width:100%;
-	background: url(/static/images/es/bg-main-holder.gif) repeat-y;
+	background: url(../images/es/bg-main-holder.gif) repeat-y;
 }
 #main .main-frame{
 	width:100%;
-	background: url(/static/images/es/bg-main.gif) no-repeat 0 0;
+	background: url(../images/es/bg-main.gif) no-repeat 0 0;
 }
 #main .main-container{
 	width:100%;
 	overflow:hidden;
-	background: url(/static/images/es/bg-main-frame.gif) no-repeat 0 100%;
+	background: url(../images/es/bg-main-frame.gif) no-repeat 0 100%;
 }
 /* content */
 #contentbody{
@@ -659,7 +659,7 @@ form, fieldset{
 	width:140px;
 	display:block;
 	text-align:center;
-	background: url(/static/images/es/bg-tab-right.gif) no-repeat 100% -37px;
+	background: url(../images/es/bg-tab-right.gif) no-repeat 100% -37px;
 	padding-right: 5px;
 	height:37px;
 	overflow:hidden;
@@ -671,7 +671,7 @@ form, fieldset{
 }
 #contentbody .tabset a span{
 	display:block;
-	background: url(/static/images/es/bg-tab-left.gif) no-repeat 0 -37px;
+	background: url(../images/es/bg-tab-left.gif) no-repeat 0 -37px;
 	font-weight:bold;
 	font-size:18px;
 	line-height:21px;
@@ -680,7 +680,7 @@ form, fieldset{
 	cursor:pointer;
 }
 #contentbody .tabset-holder{
-	background: url(/static/images/es/bg-solid-line.gif) repeat-x 0 100%;
+	background: url(../images/es/bg-solid-line.gif) repeat-x 0 100%;
 	width:100%;
 	overflow:hidden;
 }
@@ -691,7 +691,7 @@ form, fieldset{
 }
 #contentbody .add-tree{
 	float:right;
-	background: url(/static/images/es/bullet03.gif) no-repeat 100% 5px;
+	background: url(../images/es/bullet03.gif) no-repeat 100% 5px;
 	padding-right:8px;
 	font-size:14px;
 	margin-top:14px;
@@ -700,7 +700,7 @@ form, fieldset{
 #contentbody .tab-content{
 	height:1%;
 	overflow:hidden;
-	background: url(/static/images/es/bg-tab-content.gif) repeat-x;
+	background: url(../images/es/bg-tab-content.gif) repeat-x;
 	padding:11px 0 0 14px;
 	border-left:1px solid #666;
 }
@@ -715,7 +715,7 @@ form, fieldset{
 }
 .tab-content .complete span{padding-right:7px;}
 .tab-content .complete .more{
-	background: url(/static/images/es/bullet03.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet03.gif) no-repeat 100% 4px;
 	padding-right:8px;
 }
 .tab-content .data{
@@ -752,7 +752,7 @@ form, fieldset{
 .common-attributes li{
 	float:left;
 	width:100%;
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x;
 	margin:-1px 0 1px;
 	padding:8px 0 5px;
 }
@@ -782,7 +782,7 @@ form, fieldset{
 	padding:2px 0 0 2px;
 }
 .common-attributes .edit{
-	background: url(/static/images/es/ico-edit.gif) no-repeat;
+	background: url(../images/es/ico-edit.gif) no-repeat;
 	width: 12px;
 	height: 12px;
 	float:right;
@@ -790,7 +790,7 @@ form, fieldset{
 	text-indent:-9999px;
 }
 .common-attributes .measurement{
-	background: url(/static/images/es/ico-measurement.gif) no-repeat;
+	background: url(../images/es/ico-measurement.gif) no-repeat;
 	padding-left:18px;
 	font-size:9px;
 	left:13px;
@@ -802,13 +802,13 @@ form, fieldset{
 }
 .tab-content .aside .title-edit{
 	font-weight:normal;
-	background: url(/static/images/es/ico-title-edit.gif) no-repeat;
+	background: url(../images/es/ico-title-edit.gif) no-repeat;
 	padding-left:24px;
 	margin:0 0 8px;
 	line-height:17px;
 }
 .tab-content .aside a{
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right:8px;
 	font-size:10px;
 	float:right;
@@ -838,7 +838,7 @@ form, fieldset{
 .tab-content .comments .title a{
 	float:right;
 	font-size:14px;
-	background: url(/static/images/es/bullet03.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet03.gif) no-repeat 100% 4px;
 	padding-right:8px;
 }
 .tab-content .comments ul{
@@ -851,7 +851,7 @@ form, fieldset{
 .comments ul li{
 	float:left;
 	width:100%;
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x;
 	margin:-1px 0 1px;
 	padding-top:7px;
 	margin-bottom:4px;
@@ -874,7 +874,7 @@ form, fieldset{
 	width:544px;
 	padding:0 70px 0 24px;
 	float:left;
-	background: url(/static/images/es/bg-comments.gif) no-repeat 0 15px;
+	background: url(../images/es/bg-comments.gif) no-repeat 0 15px;
 	position:relative;
 	color:#333;
 }
@@ -890,7 +890,7 @@ form, fieldset{
 	position:absolute;
 	right:0;
 	bottom:0;
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right:8px;
 	font-size:10px;
 }
@@ -906,7 +906,7 @@ form, fieldset{
 }
 .tab-content .comments .submit,
 .tab-content .comments .cancel{
-	background: url(/static/images/es/btn-submit.gif) no-repeat;
+	background: url(../images/es/btn-submit.gif) no-repeat;
 	width: 105px;
 	height: 21px;
 	border:0;
@@ -924,7 +924,7 @@ form, fieldset{
 	width:auto;
 }
 .tab-content .comments .submit2{
-	background: url(/static/images/es/btn-submit2.gif) no-repeat;
+	background: url(../images/es/btn-submit2.gif) no-repeat;
 	width: 105px;
 	height: 33px;
 	float:left;
@@ -950,7 +950,7 @@ form, fieldset{
 	margin-top:4px;
 }
 .tab-content .add-photo {
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x 0 100%;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x 0 100%;
 	padding-bottom:12px;
 	margin-bottom:11px;
 }
@@ -995,7 +995,7 @@ form, fieldset{
 	border:1px solid #ababab;
 }
 .tab-content .photos li .del{
-	background: url(/static/images/es/ico-delete.gif) no-repeat 0 1px;
+	background: url(../images/es/ico-delete.gif) no-repeat 0 1px;
 	padding:2px 0 2px 15px;
 	color:#666;
 	font-weight:bold;
@@ -1024,7 +1024,7 @@ form, fieldset{
 	width:35px;
 	margin-right:4px;}
 .form-add-tree .id-key{
-	background: url(/static/images/es/ico-key.gif) no-repeat;
+	background: url(../images/es/ico-key.gif) no-repeat;
 	padding-left:15px;
 }
 .form-add-tree .submit{
@@ -1044,7 +1044,7 @@ form, fieldset{
 .form-add-tree .date{width:68px;}
 .form-add-tree .calendar{
 	float:left;
-	background: url(/static/images/es/ico-calendar.gif) no-repeat;
+	background: url(../images/es/ico-calendar.gif) no-repeat;
 	width: 17px;
 	height: 14px;
 	overflow:hidden;
@@ -1092,7 +1092,7 @@ table.addet .update p{
 	color:#666;
 }
 .tab-content .all{
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 5px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 5px;
 	padding-right:7px;
 	margin:-10px 0 0 49px;
 	float:left;
@@ -1180,7 +1180,7 @@ table.addet .update p{
 	margin-right:6px;
 }
 #sidebar .add{
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right: 8px;
 	float:left;
 	line-height:12px;
@@ -1210,7 +1210,7 @@ table.addet .update p{
 	overflow:hidden;
 }
 #sidebar .updates li{
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x;
 	float:left;
 	width:100%;
 	margin:-1px 0 1px;
@@ -1231,17 +1231,17 @@ table.addet .update p{
 }
 #sidebar p{margin:0;}
 #sidebar .flag{
-	background: url(/static/images/es/ico-flag.gif) no-repeat 0 1px;
+	background: url(../images/es/ico-flag.gif) no-repeat 0 1px;
 	padding-left:17px;
 	font-size:14px;
 }
 #sidebar .feedback{
-	background: url(/static/images/es/ico-feedback.gif) no-repeat 0 1px;
+	background: url(../images/es/ico-feedback.gif) no-repeat 0 1px;
 	padding-left:17px;
 	font-size:14px;
 }
 #sidebar .dotted-line{
-	background: url(/static/images/es/bg-dotted-line.gif) repeat-x 0 50%;
+	background: url(../images/es/bg-dotted-line.gif) repeat-x 0 50%;
 	height:1px;
 	padding:6px 0 5px;
 }
@@ -1253,7 +1253,7 @@ table.addet .update p{
 	overflow:hidden;
 }
 #sidebar .gallery .add-menu li{
-	background: url(/static/images/es/separator05.gif) no-repeat 0 2px;
+	background: url(../images/es/separator05.gif) no-repeat 0 2px;
 	padding:0 5px 0 6px;
 	margin:0 5px 0 -6px;
 }
@@ -1267,7 +1267,7 @@ table.addet .update p{
 	overflow:hidden;
 }
 #sidebar .add-photo a{
-	background: url(/static/images/es/ico-add-photos.gif) no-repeat;
+	background: url(../images/es/ico-add-photos.gif) no-repeat;
 	color:#360;
 	font-size:14px;
 	padding:2px 0 2px 27px;
@@ -1275,7 +1275,7 @@ table.addet .update p{
 /*user-profile-new*/
 .tabset-holder .delete-account{
 	float:right;
-	background: url(/static/images/es/ico-stop02.gif) no-repeat;
+	background: url(../images/es/ico-stop02.gif) no-repeat;
 	padding-left:20px;
 	margin-top:15px;
 	color:#666;
@@ -1298,7 +1298,7 @@ table.addet .update p{
 	overflow:hidden;
 }
 #contentbody .aside .unfavorite li{
-	background: url(/static/images/es/ico-stop.gif) no-repeat;
+	background: url(../images/es/ico-stop.gif) no-repeat;
 	margin-bottom:28px;
 	padding:1px 0 0 14px;
 	height:13px;
@@ -1344,10 +1344,10 @@ table.addet .update p{
 	color:#666;
 }
 .comments ul .post .options-box .edit{
-	background: url(/static/images/es/ico-pen.gif) no-repeat;
+	background: url(../images/es/ico-pen.gif) no-repeat;
 }
 .comments ul .post .options-box .delete{
-	background: url(/static/images/es/ico-stop.gif) no-repeat;
+	background: url(../images/es/ico-stop.gif) no-repeat;
 }
 .new-profile .comments ul .post{
 	width:520px;
@@ -1361,7 +1361,7 @@ table.addet .update p{
 	color:#333;
 }
 #sidebar .wrap .edit{
-	background: url(/static/images/es/ico-pen.gif) no-repeat;
+	background: url(../images/es/ico-pen.gif) no-repeat;
 	width:13px;
 	height:13px;
 	float:right;
@@ -1381,7 +1381,7 @@ table.addet .update p{
 	width:100%;
 	height:1px;
 	overflow:hidden;
-	background: url(/static/images/es/separator06.gif) repeat-x;
+	background: url(../images/es/separator06.gif) repeat-x;
 	margin-bottom:6px;
 }
 .side-box strong{
@@ -1457,7 +1457,7 @@ table.addet .update p{
 	height:1%;
 	overflow:hidden;
 	display:block;
-	background: url(/static/images/es/bg-input.gif) no-repeat;
+	background: url(../images/es/bg-input.gif) no-repeat;
 }
 .login-register .holder .text{
 	float:left;
@@ -1493,7 +1493,7 @@ table.addet .update p{
 }
 .login-register .holder a{
 	font-size:10px;
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 4px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 4px;
 	padding-right:10px;
 }
 .login-register .holder .image{
@@ -1525,7 +1525,7 @@ table.addet .update p{
 	margin:0 0 2px;
 }
 #main .support-box a{
-	background: url(/static/images/es/bullet01.gif) no-repeat 100% 5px;
+	background: url(../images/es/bullet01.gif) no-repeat 100% 5px;
 	padding-right:10px;
 }
 /* footer */
@@ -1543,7 +1543,7 @@ table.addet .update p{
 }
 .side-box .feedback{
 	padding:1px 0 0 17px;
-	background: url(/static/images/es/ico-speak.gif) no-repeat;
+	background: url(../images/es/ico-speak.gif) no-repeat;
 	color:#c60;
 	font-size:14px;
 	font-weight:normal;
@@ -1563,7 +1563,7 @@ table.addet .update p{
 }
 .footer-nav li{
 	float:left;
-	background: url(/static/images/es/separator01.gif) no-repeat 100% 2px;
+	background: url(../images/es/separator01.gif) no-repeat 100% 2px;
 	padding:0 4px;
 	margin:0 -4px 0 4px;
 }
@@ -1587,17 +1587,17 @@ table.addet .update p{
 .popup{
 	width:418px;
 	padding:10px 0 0;
-	background:url(/static/images/es/bg-popup-top.png) no-repeat;
+	background:url(../images/es/bg-popup-top.png) no-repeat;
 }
 .popup .b {
 	overflow:hidden;
-	background:url(/static/images/es/bg-popup-bot.png) no-repeat;
+	background:url(../images/es/bg-popup-bot.png) no-repeat;
 	height: 30px;
 }
 .popup .c{
 	height:1%;
 	padding:0 7px 0 3px;
-	background:url(/static/images/es/bg-popup-cen.png) repeat-y;
+	background:url(../images/es/bg-popup-cen.png) repeat-y;
 }
 .popup .content-popup{overflow:hidden;}
 .popup .title{
@@ -1630,8 +1630,8 @@ table.addet .update p{
 	width: 18px;
 	height: 18px;
 }
-.popup .title .buttons a.collapse{background: url(/static/images/es/ico-collapse.gif) no-repeat;}
-.popup .title .buttons a.close{background: url(/static/images/es/ico-close.gif) no-repeat;}
+.popup .title .buttons a.collapse{background: url(../images/es/ico-collapse.gif) no-repeat;}
+.popup .title .buttons a.close{background: url(../images/es/ico-close.gif) no-repeat;}
 .popup .tabset-holder{
 	height:1%;
 	overflow:hidden;
@@ -1660,7 +1660,7 @@ table.addet .update p{
 .popup .tabset-holder .tabset a,
 .popup .tabset-holder .tabset em{float:left;}
 .popup .tabset-holder .tabset a{
-	background: url(/static/images/es/bg-tab-r.gif) no-repeat 100% 0;
+	background: url(../images/es/bg-tab-r.gif) no-repeat 100% 0;
 	padding-right:5px;
 	font-size:10px;
 	font-weight:bold;
@@ -1668,7 +1668,7 @@ table.addet .update p{
 }
 .popup .tabset-holder .tabset em{
 	font-style:normal;
-	background: url(/static/images/es/bg-tab-l.gif) no-repeat;
+	background: url(../images/es/bg-tab-l.gif) no-repeat;
 	padding:10px 21px;
 }
 .popup .tabset-holder .tabset a:hover,
@@ -1684,7 +1684,7 @@ table.addet .update p{
 .popup .tab-content{
 	height:1%;
 	overflow:hidden;
-	background:#fff url(/static/images/es/bg-tab-content.gif) repeat-x;
+	background:#fff url(../images/es/bg-tab-content.gif) repeat-x;
 	padding:10px 0 5px;
 	border-top:1px solid #666;
 	margin-top:-1px;
@@ -1692,7 +1692,7 @@ table.addet .update p{
 .popup .tab-content .col-1{
 	float:left;
 	width:238px;
-	background: url(/static/images/es/bg-col-1.gif) no-repeat 100% 0;
+	background: url(../images/es/bg-col-1.gif) no-repeat 100% 0;
 }
 .popup .tab-content dl,
 .popup .tab-content dl dt,
@@ -1722,7 +1722,7 @@ table.addet .update p{
 	padding-left:15px;
 }
 .popup .tab-content .col-2 .view-more{
-	background: url(/static/images/es/ico-details.gif) no-repeat 0 2px;
+	background: url(../images/es/ico-details.gif) no-repeat 0 2px;
 	padding-left:19px;
 	float:left;
 	font-size:14px;
@@ -1756,10 +1756,10 @@ table.addet .update p{
 	line-height:14px;
 	padding-bottom:3px;
 }
-.popup .tab-content .service .favorite{background: url(/static/images/es/ico-favorite.gif) no-repeat;}
-.popup .tab-content .service .email{background: url(/static/images/es/ico-email.gif) no-repeat;}
-.popup .tab-content .service .print{background: url(/static/images/es/ico-print.gif) no-repeat;}
-.popup .tab-content .service .twitter{background: url(/static/images/es/ico-twitter.gif) no-repeat;}
+.popup .tab-content .service .favorite{background: url(../images/es/ico-favorite.gif) no-repeat;}
+.popup .tab-content .service .email{background: url(../images/es/ico-email.gif) no-repeat;}
+.popup .tab-content .service .print{background: url(../images/es/ico-print.gif) no-repeat;}
+.popup .tab-content .service .twitter{background: url(../images/es/ico-twitter.gif) no-repeat;}
 
 
 
@@ -1902,7 +1902,7 @@ width:944px;
 	clear:both;
 	margin-left:210px;
 	height:26px;
-	background: #fff url(/static/images/buttonlg_bg.gif) repeat-x center center;
+	background: #fff url(../images/buttonlg_bg.gif) repeat-x center center;
 	border:2px solid #d8731a;
 	text-align:center;
 	line-height:18px;

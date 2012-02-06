@@ -13,16 +13,16 @@
                                     <li id="title">Results:</li>
                                     <li id="first"><span class="tree_count">0</span> trees selected <span class="notrees"></span></li> 
                                     <!-- <li>XX trees need more info to be included</li> -->
-                                    <li><a href="/trees/add/">Add a tree!</a></li>
+                                    <li><a href="{% url treemap.views.tree_add %}">Add a tree!</a></li>
                                 </ul>
                             </li>
                             <li id="export">
                                 <ul>
                                     <li id="title">Export options:</li>
                                     <li id="firstOption">
-                                    <a id="kml_link" href="/search/kml/">KML</a></li> 
-                                    <li><a id="csv_link" href="/search/csv/">CSV</a></li>
-                                    <li><a id="shp_link" href="/search/shp/">Shapefile</a></li> 
+                                    <a id="kml_link">KML</a></li> 
+                                    <li><a id="csv_link">CSV</a></li>
+                                    <li><a id="shp_link">Shapefile</a></li> 
                                 </ul>
                             </li>
                         </ul>
@@ -34,23 +34,11 @@
     
 
         {% block top_left_panel %}
-        {% comment %}
-          - the following summary variables are available to the template -
-            annual_air_quality_improvement
-            annual_stormwater_management
-            annual_natural_gas_conserved
-            last_updated
-            distinct_species
-            total_co2_stored
-            annual_co2_sequestered
-            annual_electricity_conserved
-            total_trees
-        {% endcomment %}
         
             <div id="results_aside" class="aside">
             <h2>Yearly Eco Impact</h2>
             <div id="summary_subset">Selected trees in <span id="summary_subset_val">..</span></div>
-              <!-- <strong class="sub-title">Based on select data. <a href="/trees/add/">Add a tree &raquo;</a></strong> -->
+              <!-- <strong class="sub-title">Based on select data. <a href="{% url treemap.views.tree_add %}">Add a tree &raquo;</a></strong> -->
             
             <div id="results_wrapper" style="display:none;">
                 <ul id="messageStats">
@@ -106,7 +94,7 @@
                     <img src="/media/{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
                         alt="image description" width="33" height="32" /></td> 
                 {% else %}
-                    <img src="/static/images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>              
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>              
                 {% endif %}
                 
                 {% comment %}
@@ -114,7 +102,7 @@
                     <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
                         alt="image description" width="33" height="32" /></td> 
                 {% else %}
-                    <img src="/static/images/es/image10.gif" alt="image description" width="33" height="32" /></a></td> 
+                    <img src="{{ STATIC_URL }}images/es/image10.gif" alt="image description" width="33" height="32" /></a></td> 
                 {% endif %}
                 {% endcomment %}
                 <td> 
@@ -130,7 +118,7 @@
                 <td> 
                     <span>Updated by</span>  <br />
 
-                    <a href="/profiles/{{tree.last_updated_by.username}}/">{{ tree.last_updated_by.username }}</a> 
+                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a> 
                 </td> 
             </tr>
        {% endfor %}

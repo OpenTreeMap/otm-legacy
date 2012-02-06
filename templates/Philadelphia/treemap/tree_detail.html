@@ -11,7 +11,7 @@
 
 {% block extrahead %}
 	   
-<script type="text/javascript" src="/static/js/map.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
 <script type="text/javascript">
     jQuery().ready(function() {
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
@@ -57,36 +57,36 @@
             <ul class="attributes">
             {% if tree.has_common_attributes %}
                 {% if tree.species.flower_conspicuous %}
-                <li><img src="/static/images/v2/icon_flower.gif" alt="Flowering" title="Flowering" width="20" /></li>
+                <li><img src="{{ STATIC_URL }}images/v2/icon_flower.gif" alt="Flowering" title="Flowering" width="20" /></li>
                 {% endif %}
                 {% if tree.species.fall_conspicuous %}
-                <li><img src="/static/images/v2/icon_fall.gif" alt="Fall color" title="Fall color" width="20" /></li>
+                <li><img src="{{ STATIC_URL }}images/v2/icon_fall.gif" alt="Fall color" title="Fall color" width="20" /></li>
                 {% endif %}
                 {% if tree.species.palatable_human %}
-                <li><img src="/static/images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
+                <li><img src="{{ STATIC_URL }}images/v2/icon_fruit.gif" alt="Edible (fruits/nuts)" title="Edible (fruits/nuts)" width="20" /></li>
                 {% endif %}
                 {% if tree.species.native_status %}
-                <li><img src="/static/images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
+                <li><img src="{{ STATIC_URL }}images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
                     {% comment %}
                     {% if tree.species. %}
-                    <li><img src="/static/images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
+                    <li><img src="{{ STATIC_URL }}images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
                     {% endif %}
                     {% endcomment %}
 
                 {% if tree.get_flag_count > 0 %}
                 	{% for a in tree.treeflags_set.all %}
 						{% if a.key == '2' %}
-							<li><img src="/static/images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
+							<li><img src="{{ STATIC_URL }}images/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
 						{% endif %}
 						{% if a.key == '3' %}
-							<li><img src="/static/images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
+							<li><img src="{{ STATIC_URL }}images/v2/icon_glean.gif" alt="Fruit Gleaning Project" title="Fruit Gleaning Project" width="20" /></li>
 						{% endif %}
 						{% if a.key == '1' %}
-							<li><img src="/static/images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
+							<li><img src="{{ STATIC_URL }}images/v2/icon_landmark.gif" alt="San Francisco Landmark" title="San Francisco Landmark" width="20" /></li>
 						{% endif %}
 						{% if a.key == '4' %}
-							<li><img src="/static/images/v2/icon_landmark.gif" alt="Historically Significant Tree" title="Historically Significant Tree" width="20" /></li>
+							<li><img src="{{ STATIC_URL }}images/v2/icon_landmark.gif" alt="Historically Significant Tree" title="Historically Significant Tree" width="20" /></li>
 						{% endif %}
                     {% endfor %}
 
@@ -308,7 +308,7 @@
 									<div class="comment_item">
 										<div class="comment_head">
 											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+											{% if user.is_authenticated %}<a href="{{ SITE_ROOT }}/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
@@ -369,21 +369,21 @@
             <ul id="userImage">
                 <li>
                 {% if tree.treephoto_set.count %}
-                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}" target="_blank">
-                    <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                    <a href="{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}" target="_blank">
+                    <img src="{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
-                            <li><a href="/media/{{ item.photo.url }}" target="_blank"><img alt="{{ item.title }}" title="{{ item.title }}" src="/media/{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="{{ item.photo.url }}" target="_blank"><img alt="{{ item.title }}" title="{{ item.title }}" src="{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
                     {% endfor %}
                     </ul>
                     <ul id="imageOptions">
-                        <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+                        <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="{% url treemap.views.tree_add_edit_photos tree.id %}">Add photos &raquo;</a></li>
                     </ul>
                 {% else %}
-                    <img src="/static/images/es/image14.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" id="sample" />
+                    <img src="{{ STATIC_URL }}images/es/image14.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" id="sample" />
                     <ul id="imageOptions">
-                        <li id="first"><a href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+                        <li id="first"><a href="{% url treemap.views.tree_add_edit_photos tree.id %}">Add photos &raquo;</a></li>
 					</ul>
                 {% endif %}
                 </li>
@@ -435,7 +435,7 @@
                 <li class="optionItemLastContainer">
                     <ul class="optionItemLast">
                         <li>Username</li>
-                        <li class="editItem"><a href="/profiles/{{recent.0.0}}/">{{recent.0.0}}</a></li>
+                        <li class="editItem"><a href="{% url profiles.views.profile_detail recent.0.0 %}/">{{recent.0.0}}</a></li>
                     </ul>
                     <ul class="optionItemLast">
                         <li>Date</li>
@@ -446,7 +446,7 @@
 
 			<ul id="progress">
                     <!-- TODO -->
-                    <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
+                    <!--<li id="progressBar"><img src="{{ STATIC_URL }}images/v2/progressbar.gif" width="470" /></li>-->
 
 					<li id="progressStatus">
 					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
@@ -465,7 +465,7 @@
 					<ul class="optionItem">
 						{% for update in recent %}
 							{% if forloop.counter0 < 10 %}
-							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.0}}" target="_blank">{{ update.0 }}</a></li>
+							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="{% url profiles.views.profile_detail update.0 %}" target="_blank">{{ update.0 }}</a></li>
 							{% endif %}
 						{% empty %}
 							<li>No edits yet!</li>

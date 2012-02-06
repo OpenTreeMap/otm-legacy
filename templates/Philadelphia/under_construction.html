@@ -4,27 +4,27 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Philly Tree Map - Under Construction</title>
 
-        <script type="text/javascript" src="/static/all_misc.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
-        <script type="text/javascript" src="/static/treemap.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
         
         <script type="text/javascript" src="http://use.typekit.com/oab6qgt.js"></script>
         <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
         
-        <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
-		<link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
-        <link rel="stylesheet" type="text/css" href="/static/css/ptm.css" media="all" />
-        <link rel="shortcut icon" href="/static/images/favicon.ico" /> 
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
+        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ptm.css" media="all" />
+        <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" /> 
 
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
       <!--[if IE]>
-                <link rel="stylesheet" href="/static/css/ptm.ie.css" type="text/css"/>
+                <link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.ie.css" type="text/css"/>
               <![endif]-->
       
       <!--[if lte IE 8]>
-                <link rel="stylesheet" href="/static/css/ptm.ie8.css" type="text/css"/>
+                <link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.ie8.css" type="text/css"/>
               <![endif]-->
 
        
@@ -74,12 +74,12 @@
                     <div class="partners">
 						<p>PhillyTreeMap is a collaboration of government, nonprofits, businesses and you <br/> to build an inventory of Philadelphia's urban forest. Our partners:</p>
                         <ul>
-							<li id="logo-ptm"><a href="http://www.urbanforestmap.org/"><img src="/static/images/ptm/logo-ufm.png" alt="Code contributed by Urban Forest Map" /></a></li>
-                            <li><a href="http://www.pennsylvaniahorticulturalsociety.org/"><img src="/static/images/ptm/logo-phs.png" alt="The Pennsylvania Horticultural Society" /></a></li>
-                            <li><a href="http://www.phila.gov/recreation/"><img src="/static/images/ptm/logo-city-phl.png" alt="The City of Philadelphia" /></a></li>
-                            <li><a href="http://www.lowermerion.org/"><img src="/static/images/ptm/logo-lower-marion.png" alt="The City of Lower Merion" /></a></li>
-                            <li><a href="http://www.azavea.com/"><img src="/static/images/ptm/logo-azavea.png" alt="Azavea" /></a></li>
-                            <li><a href="http://www.dvrpc.org/"><img src="/static/images/ptm/logo-dvrpc.png" alt="The Delaware County Regional Planning Commission" /></a></li>
+							<li id="logo-ptm"><a href="http://www.urbanforestmap.org/"><img src="{{ STATIC_URL }}images/ptm/logo-ufm.png" alt="Code contributed by Urban Forest Map" /></a></li>
+                            <li><a href="http://www.pennsylvaniahorticulturalsociety.org/"><img src="{{ STATIC_URL }}images/ptm/logo-phs.png" alt="The Pennsylvania Horticultural Society" /></a></li>
+                            <li><a href="http://www.phila.gov/recreation/"><img src="{{ STATIC_URL }}images/ptm/logo-city-phl.png" alt="The City of Philadelphia" /></a></li>
+                            <li><a href="http://www.lowermerion.org/"><img src="{{ STATIC_URL }}images/ptm/logo-lower-marion.png" alt="The City of Lower Merion" /></a></li>
+                            <li><a href="http://www.azavea.com/"><img src="{{ STATIC_URL }}images/ptm/logo-azavea.png" alt="Azavea" /></a></li>
+                            <li><a href="http://www.dvrpc.org/"><img src="{{ STATIC_URL }}images/ptm/logo-dvrpc.png" alt="The Delaware County Regional Planning Commission" /></a></li>
 						</ul>
                     </div>
                 </div>

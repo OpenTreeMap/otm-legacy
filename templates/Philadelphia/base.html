@@ -4,28 +4,42 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Philly Tree Map{% block title %}{% endblock %}</title>
 
+        <script type="text/javascript">
+	  var tm_static = "{{ SITE_ROOT }}";
+          var tm_urls = {
+              eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
+              tc_url : '{{ TILECACHE_URL }}',
+              geo_url : '{{ GEOSERVER_URL }}',
+              geo_layer: '{{ GEOSERVER_GEO_LAYER }}',
+              geo_style: '{{ GEOSERVER_GEO_STYLE }}',
+              tc_layer_name: '{{ TILECACHE_LAYER }}',
+              //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
+              qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
+          };
+        </script>
+
         {% block tophead %}
         {% endblock %}
-        <script type="text/javascript" src="/static/all_misc.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
-        <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
-        <script type="text/javascript" src="/static/treemap.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
 
 		<link href='http://fonts.googleapis.com/css?family=Questrial' rel='stylesheet' type='text/css'>
 		
-        <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
-		<link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
-        <link rel="stylesheet" type="text/css" href="/static/css/ptm.css" media="all" />
-        <link rel="shortcut icon" href="/static/images/favicon.ico" /> 
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
+        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ptm.css" media="all" />
+        <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" /> 
 
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
       <!--[if IE]>
-                <link rel="stylesheet" href="/static/css/ptm.ie.css" type="text/css"/>
+                <link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.ie.css" type="text/css"/>
               <![endif]-->
       
       <!--[if lte IE 8]>
-                <link rel="stylesheet" href="/static/css/ptm.ie8.css" type="text/css"/>
+                <link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.ie8.css" type="text/css"/>
               <![endif]-->
 
         {% block js_ready %}

@@ -3,30 +3,30 @@
         <div class="ad"> 
             <strong>Our Partners</strong> 
             <ul> 
-                <li><a href="http://www.fuf.net/"><img src="/static/images/SanFrancisco/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
-                <li><a href="http://www.fuf.net/"><img src="/static/images/SanFrancisco/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
-                <li><a href="http://www.fire.ca.gov/"><img src="/static/images/SanFrancisco/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
-                <li><a href="http://www.sfgov.org/"><img src="/static/images/SanFrancisco/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
+                <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/SanFrancisco/es/ad01.gif" alt="image description" width="59" height="61" /></a></li> 
+                <li><a href="http://www.fuf.net/"><img src="{{ STATIC_URL }}images/SanFrancisco/es/ad02.gif" alt="Friends of the Urban Forest" width="133" height="61" /></a></li> 
+                <li><a href="http://www.fire.ca.gov/"><img src="{{ STATIC_URL }}images/SanFrancisco/es/ad03.gif" alt="CalFire" width="46" height="61" /></a></li> 
+                <li><a href="http://www.sfgov.org/"><img src="{{ STATIC_URL }}images/SanFrancisco/es/ad04.gif" alt="City & County of San Francisco" width="56" height="59" /></a></li> 
             </ul> 
         </div> 
         <ul class="footer-nav"> 
-            <li><a href="/trees/add/">Add a tree</a></li> 
-            <li><a href="/about/">About</a></li> 
-            <li><a href="/resources/">Resources</a></li> 
+            <li><a href="{% url treemap.views.tree_add %}">Add a tree</a></li> 
+            <li><a href="{{ SITE_ROOT }}about/">About</a></li> 
+            <li><a href="{{ SITE_ROOT }}resources/">Resources</a></li> 
             <li><a href="http://blog.urbanforestmap.org/">Blog</a></li>
-            <li><a href="/contact/">Contact</a></li> 
-            <li><a href="/donate/">Donate</a></li> 
+            <li><a href="{{ SITE_ROOT }}contact/">Contact</a></li> 
+            <li><a href="{{ SITE_ROOT }}donate/">Donate</a></li> 
             {% if user.is_authenticated %}
-               <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
-               <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
+               <li>Logged in as <a href="{{ SITE_ROOT }}profiles/{{user.username}}/">{{user.username|escape}}</a>
+               <span id="logout"><a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
                {% if user.is_superuser %}
-                   <li><a href="/_admin_/">Admin</a></li>
+                   <li><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
                {% endif %}
                {% if user.reputation.reputation > 1000 %}
-                   <li><a href="/verify/">Recent Changes</a></li>
+                   <li><a href="{% url treemap.views.verify_edits %}">Recent Changes</a></li>
                {% endif %}
             {% else %}
-                <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
+                <li><a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/" class="buttomSm">Sign up</a></li>
             {% endif %}
         </ul> 
     </div> 
