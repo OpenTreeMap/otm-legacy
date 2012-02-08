@@ -7,6 +7,9 @@ SITE_ROOT = ''
 #from settings_greenprint import *
 from settings_dctreekit import *
 
+OTM_VERSION = "1.2"
+API_VERSION = "0.1"
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -75,6 +78,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'threadedcomments',
     'treemap',
+    'api',
     'registration',
     'template_utils',
     'profiles',
