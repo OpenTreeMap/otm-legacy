@@ -324,10 +324,10 @@ def species(request, selection='all', format='html'):
         return ExcelResponse(species)
 
     #render to html    
-    return render_to_response('treemap/species.html',{
+    return render_to_response('treemap/species.html',RequestContext(request,{
         'species' : species,
         'page' : page #so template can do next page kind of stuff
-        })
+        }))
         
 
 @cache_page(60*5)    
