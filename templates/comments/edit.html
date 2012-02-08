@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -39,11 +39,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/comments/all/" + qstr;
+				window.location = "{{ SITE_ROOT }}/comments/all/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/comments/all/"
+				window.location = "{{ SITE_ROOT }}/comments/all/"
 			});
 
 			//jQuery("#comment_list_table").tablesorter({sortList: [[1,1]], headers: {1:{sorter:'usLongDate'}}})
@@ -93,7 +93,7 @@
 					<td><a href="{% url profiles.views.profile_detail c.user.username %}" target="_blank">{{c.user.username}}</a></td>
 					<td>{{c.submit_date|date:"M d, Y"}}</td>
 					<td>
-						<a href="{% url treemap.views.tree_detail c.content_object.id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
+						<a href="{% url treemap.views.trees c.content_object.id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
 						<br>{{c.comment}}</td>
 					<td>
 						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>

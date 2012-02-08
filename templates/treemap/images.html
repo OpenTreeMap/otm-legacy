@@ -22,8 +22,8 @@
 		<h3>Tree Photos</h3>
 		<ul>
 		{% for image in tree_images %}
-			<li><img src="{% thumbnail image.photo '100x100' upscale  %}" />
-			<a class="view" href="{% url treemap.views.tree_detail image.tree.id %}" >View</a>
+			<li><img src="{{ SITE_ROOT }}/media/{% thumbnail image.photo '100x100' upscale  %}" />
+			<a class="view" href="{% url treemap.views.trees image.tree.id %}" >View</a>
 			<a class="delete" href="javascript:void(0)" onclick="tm.deletePhoto({{ image.tree.id }}, {{ image.id }}); return false;">X</a>
 			</li>
 		{% empty %}
@@ -38,7 +38,7 @@
 		<h3>User Photos</h3>
 		<ul>
 		{% for image in user_images %}
-			<li><img src="{% thumbnail image.photo '100x100' bw upscale  %}" />
+			<li><img src="{{ SITE_ROOT }}/media/{% thumbnail image.photo '100x100' bw upscale  %}" />
 			<a class="view" href="{% url profiles.views.profile_detail image.user.username %}" >View</a>
 			<a class="delete" href="javascript:void(0)" onclick="tm.deleteUserPhoto('{{ image.user.username }}'); return false;">X</a>
 			</li>

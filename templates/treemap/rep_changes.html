@@ -3,7 +3,7 @@
 {% load pagination_tags %}
 {% load sorting_tags %}
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -40,11 +40,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/users/" + qstr;
+				window.location = "{{ SITE_ROOT }}/users/activity/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/users/"
+				window.location = "{{ SITE_ROOT }}/users/activity/"
 			});
 
 			//jQuery("#user_list_table").tablesorter({sortList: [[0,0]], headers: {2:{sorter:'usLongDate'}}})
