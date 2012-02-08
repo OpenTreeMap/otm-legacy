@@ -20,7 +20,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point, GEOSGeometry
-from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_view_exempt
 from django.views.decorators.http import require_http_methods
@@ -30,6 +29,8 @@ from django.utils.datastructures import SortedDict
 # formsets
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
+
+from threadedcomments.models import ThreadedComment
 
 from models import *
 from forms import *
@@ -2052,26 +2053,28 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
 @login_required
 @permission_required('comments.can_moderate')
 def view_flagged(request):
-    flags = CommentFlag.objects.filter(comment__is_public=True)
+    comments = ThreadedComment.objects.annotate(num_flags=Count('comment_flags__id')).filter(is_public=True, num_flags__gt=0)
+
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
-        flags = flags.filter(user__in=u)
+        comments = comments.filter(user__in=u)
     if 'text' in request.GET:
-        flags = flags.filter(comment__comment__icontains=request.GET['text'])
+        comments = comments.filter(comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])
-        f_list = list(flags)
-        for f in f_list:            
-            if Tree.objects.filter(pk=f.comment.object_pk, neighborhood=n).count() == 0:
-                f_list.remove(f)
-        return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':f_list}))
+        c_list = list(comments)
+        for c in c_list:            
+            if Tree.objects.filter(pk=c.comment.object_pk, neighborhood=n).count() == 0:
+                c_list.remove(c)
+    else:
+        c_list = list(comments)
         
-    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'flags':flags}))
+    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': c_list}))
     
 @login_required
 @permission_required('comments.can_moderate')
 def view_comments(request):
-    comments = Comment.objects.filter(is_public=True)
+    comments = ThreadedComment.objects.filter(is_public=True)
     
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
@@ -2096,7 +2099,7 @@ def hide_comment(request):
     try:
         comment = CommentFlag.objects.get(id=flag_id).comment
     except:
-        comment = Comment.objects.get(id=flag_id)
+        comment = ThreadeComment.objects.get(id=flag_id)
     comment.is_public = False
     comment.save()
     response_dict['success'] = True
@@ -2106,6 +2109,22 @@ def hide_comment(request):
         content_type = 'text/plain'
     )
     
+@login_required
+def add_flag(request, comment_id):
+    user = request.user
+    comment = ThreadedComment.objects.get(pk=comment_id)
+    comment_flags = CommentFlag.objects.filter(comment=comment, user=user).all()
+
+    if comment_flags and len(comment_flags) > 0:
+        comment_flags[0].flagged = True
+        comment_flags[0].save()
+    else:
+        comment_flag = CommentFlag(comment=comment, flagged=True, user=user)
+        comment_flag.save()
+
+    return HttpResponseRedirect(request.REQUEST["next"])
+    
+
 def remove_flag(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
