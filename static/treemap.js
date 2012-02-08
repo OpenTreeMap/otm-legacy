@@ -641,6 +641,7 @@ var tm = {
 
         if (tm.mask) {tm.map.addLayer(tm.mask);}
         if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+        if (tm.parcel_highlight) {tm.map.addLayer(tm.parcel_highlight);}
 
         tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
 
@@ -691,6 +692,11 @@ var tm = {
                 
                 tm.load_nearby_trees(olPoint);
                 tm.add_new_tree_marker(olPoint, true);
+
+                if (tm.parcel_highlight) {    
+                    tm.parcel_highlight.mergeNewParams({'CQL_FILTER':' CONTAINS(the_geom, POINT(' + lng + ' ' + lat + ')) '});
+                    tm.parcel_highlight.setVisibility(true);     
+                }
                 
                 tm.drag_control.activate();
                 
@@ -702,6 +708,11 @@ var tm = {
                 jQuery("#mapHolder").show();
                 jQuery("#calloutContainer").show();
                 tm.trackEvent('Add', 'View Map');
+            }, function() {
+                if (tm.parcel_highlight) {
+    
+                    tm.parcel_highlight.setVisibility(false);     
+                }
             });
             
         });

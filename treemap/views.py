@@ -325,10 +325,10 @@ def species(request, selection='all', format='html'):
         return ExcelResponse(species)
 
     #render to html    
-    return render_to_response('treemap/species.html',{
+    return render_to_response('treemap/species.html',RequestContext(request,{
         'species' : species,
         'page' : page #so template can do next page kind of stuff
-        })
+        }))
         
 
 @cache_page(60*5)    
@@ -1560,24 +1560,26 @@ def _build_tree_search_result(request):
 
 
 
-def zip_file(file_path,archive_name):
+def zip_files(file_paths,archive_name):
         buffer = StringIO()
         with closing(zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)) as z:
-            for root, dirs, files in os.walk(file_path):
-                for f in files:
-                    abs_file = os.path.join(root, f)
-                    zipf = abs_file[len(file_path) + len(os.sep):]
-                    zipf = zipf.replace('sql_statement', 'trees')
-                    z.write(abs_file, zipf)
+            for path in file_paths:
+                for root, dirs, files in os.walk(path):
+                    for f in files:
+                        abs_file = os.path.join(root, f)
+                        zipf = abs_file[len(path) + len(os.sep):]
+                        zipf = zipf.replace('sql_statement', root.split("/")[-1]) # should be trees or plots
+                        z.write(abs_file, zipf)
         z.close()
         buffer.flush()
         zip_stream = buffer.getvalue()
         buffer.close()
         return zip_stream
 
-def ogr_conversion(output_type, sql, extension=None):   
+def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):   
     dbsettings = settings.DATABASES['default'] 
-    tmp_dir = tempfile.mkdtemp() + "/trees" 
+    tmp_treedir = tempfile.mkdtemp() + "/trees" 
+    tmp_plotdir = tempfile.mkdtemp() + "/plots"
 
     host = dbsettings['HOST']
     port = dbsettings['PORT']
@@ -1587,23 +1589,32 @@ def ogr_conversion(output_type, sql, extension=None):
         port = 5432
 
     if extension != None:
-        os.mkdir(tmp_dir)
-        tmp_name = tmp_dir + "/sql_statement." + extension
+        os.mkdir(tmp_treedir)
+        os.mkdir(tmp_plotdir)
+        tmp_treename = tmp_treedir + "/trees." + extension
+        tmp_plotname = tmp_plotdir + "/plots." + extension
     else: 
-        tmp_name = tmp_dir
+        tmp_treename = tmp_treedir
+        tmp_plotname = tmp_plotdir
 
     if output_type == 'CSV':
         geometry = 'GEOMETRY=AS_WKT'
     else:
         geometry = ''
 
-    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    command = ['ogr2ogr', '-sql', tree_sql, '-f', output_type, tmp_treename, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    done = subprocess.call(command)
+
+    if done != 0: 
+        return render_to_json({'status':'error'})
+
+    command = ['ogr2ogr', '-sql', plot_sql, '-f', output_type, tmp_plotname, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
     done = subprocess.call(command)
 
     if done != 0: 
         return render_to_json({'status':'error'})
     else: 
-        zipfile = zip_file(tmp_dir,'trees')
+        zipfile = zip_files([tmp_treedir, tmp_plotdir],'trees')
         response = HttpResponse(zipfile, mimetype='application/zip')
         response['Content-Disposition'] = 'attachment; filename=trees.zip'
         return response
@@ -1673,11 +1684,11 @@ def advanced_search(request, format='json'):
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        return ogr_conversion('ESRI Shapefile', str(trees.query))
+        return ogr_conversion('ESRI Shapefile', str(trees.query), str(plots.query))
     elif format == "kml":
-        return ogr_conversion('KML', str(trees.query), 'kml')
+        return ogr_conversion('KML', str(trees.query), str(plots.query), 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', str(trees.query))
+        return ogr_conversion('CSV', str(trees.query), str(plots.query))
         
         
     geography = None
