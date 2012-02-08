@@ -732,4 +732,25 @@ class ViewTests(TestCase):
         self.assertEqual(p.address_city, "Philadelphia")
         self.assertEqual(p.address_zip, "19103")
 
+##################################################################
+# ogr conversion tests
+#
+    def test_ogr(self):
+        response = self.client.get("/search/csv/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = self.client.get("/search/kml/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = self.client.get("/search/shp/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
+        self.assertNotEqual(len(response.content), 0)
 
