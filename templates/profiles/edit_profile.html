@@ -5,7 +5,7 @@
 <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_favorite_map('{{ profile.user.username }}'); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+        tm.add_favorite_handlers('{{ SITE_ROOT }}/trees/favorites/create/', '{{ SITE_ROOT }}/trees/favorites/delete/');
 
     });
     
@@ -19,8 +19,8 @@
         
             <div id="tabcontainer"> 
                 <ul id="tablist"> 
-                    <li class="first"><a href="/profiles/{{ user.username }}/" >Profile</a></li> 
-                    {% if profile.user = user %}<li><a href="/profiles/edit/" id="current">Edit profile</a></li>{% endif %}
+                    <li class="first"><a href="{% url profiles.views.profile_detail user.username %}" >Profile</a></li> 
+                    {% if profile.user = user %}<li><a href="{{ SITE_ROOT }}/profiles/edit/" id="current">Edit profile</a></li>{% endif %}
                 </ul> 
             </div> 
         
@@ -35,12 +35,12 @@
         <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>{% if profile.photo %}
-                <img src="/media/{% thumbnail profile.photo 200x100 bw autocrop %}" />{% else %}<img src="/static/images/v2/profile1.gif" alt="Profile image" width="180" />
+                <img src="{{ SITE_ROOT }}/media/{% thumbnail profile.photo 200x100 bw autocrop %}" />{% else %}<img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" />
                 {% endif %}</li>
             </ul>
             <ul id="imageOptions">
                 <li id="first">
-                    <a href="/profiles/{{ profile.username }}/photo/">{% if profile.photo %}Change photo{% else %}Add Photo{% endif %}
+                    <a href="{{ SITE_ROOT }}/profiles/{{ profile.username }}/photo/">{% if profile.photo %}Change photo{% else %}Add Photo{% endif %}
                     </a>
                 </li>
                 <!--<li><a href="#">Remove photo</a></li>-->
@@ -76,7 +76,7 @@
                 <li>
                     <ul class="edit">
                         <li>Password</li>
-                        <li class="editItem"><a href="/accounts/password/reset">Reset</a></li>
+                        <li class="editItem"><a href="{{ SITE_ROOT }}/accounts/password/reset">Reset</a></li>
                     </ul>
                 </li>
                 <li>
@@ -108,7 +108,7 @@
             </ul>
             <ul id="message">
                 <li id="title">Feedback</li>
-                <li>Got something to say? <a href="/contact">Send us feeckback!</a></li>
+                <li>Got something to say? <a href="{{ SITE_ROOT }}/contact">Send us feeckback!</a></li>
             </ul>
         </div>
 
@@ -139,13 +139,13 @@
             {% for fav in profile.user.treefavorite_set.all %}
                 <tr>
                     <td class="fav">
-		       <a href="/trees/{{ fav.tree.id }}/">View</a><br>
+		       <a href="{{ SITE_ROOT }}/trees/{{ fav.tree.id }}/">View</a><br>
                        <a href="#" class="favorite fav unfave" id="favorite_{{fav.tree.id}}">Unfavorite</a><br>
                     </td> 
                     <td class="neighborhood">
                         <span>Neighborhood</span>
                         {% if fav.tree.sanfranciscotree.neighborhood %}
-                            <a href="/map/#/?hood={{ fav.tree.sanfranciscotree.neighborhood }}">{{ fav.tree.sanfranciscotree.neighborhood }}</a>
+                            <a href="{{ SITE_ROOT }}/map/#/?hood={{ fav.tree.sanfranciscotree.neighborhood }}">{{ fav.tree.sanfranciscotree.neighborhood }}</a>
                         {% else %}
                             Unknown
                         {% endif %}
@@ -194,17 +194,17 @@
                 <table class="addet">
                     {% for tree in profile.recently_edited_trees %}
                     <tr>
-                        <td class="image"><a href="/trees/{{ tree.id }}/">
+                        <td class="image"><a href="{{ SITE_ROOT }}/trees/{{ tree.id }}/">
                         {% if tree.treephoto_set.count %}
-                            <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 40x40 crop %}" alt="image description" width="40" height="40" />                   
+                            <img src="{{ SITE_ROOT }}/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 40x40 crop %}" alt="image description" width="40" height="40" />                   
                         {% else %}
-                            <img src="/static/images/es/image22.gif" alt="image description" width="40" height="40" />
+                            <img src="{{ STATIC_URL }}images/es/image22.gif" alt="image description" width="40" height="40" />
                         {% endif %}
                          </a></td> 
                         <td class="neighborhood">
                             <span>Neighborhood</span>
                             {% if tree.sanfranciscotree.neighborhood %}
-                                <a href="/map/#/?hood={{ tree.sanfranciscotree.neighborhood }}">{{ tree.sanfranciscotree.neighborhood }}</a>
+                                <a href="{{ SITE_ROOT }}/map/#/?hood={{ tree.sanfranciscotree.neighborhood }}">{{ tree.sanfranciscotree.neighborhood }}</a>
                             {% else %}
                                 Unknown
                             {% endif %}
@@ -236,7 +236,7 @@
                    {% for story in recent_stories %}
                     <li>
                         <div class="user-info">
-                            <img src="/static/images/es/image22.gif" alt="image description" width="40" height="40" />
+                            <img src="{{ STATIC_URL }}images/es/image22.gif" alt="image description" width="40" height="40" />
                             <span>18 posts</span>
                         </div>
                         <div class="post">
@@ -264,7 +264,7 @@
                 <ul>
                     {% for pic in profile.recently_added_photos %}
                     <li>
-                        <img src="/media/{% thumbnail pic.photo 202x146 crop %}" alt="image description" width="202" height="146" />
+                        <img src="{{ SITE_ROOT }}/media/{% thumbnail pic.photo 202x146 crop %}" alt="image description" width="202" height="146" />
                         <dl>
                             <dt>Tree #:</dt>
                             <dd>12345</dd>

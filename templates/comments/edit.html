@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -76,7 +76,7 @@
 	<div id='instructions'><b>Instructions:</b> Click column headings to sort all records. The Hide Comment action will hide the comment from all users.</div>
 	<div class="clearBoth"></div>
 	{% paginate %}
-	<div><a href="/comments/moderate/">View flagged comments</a></div>
+	<div><a href="{% url treemap.views.view_flagged %}">View flagged comments</a></div>
 	<div id="comment_list">
 		<table id="comment_list_table">
 			<thead>
@@ -90,10 +90,10 @@
 			<tbody>
 				{% for c in comments %}
 				<tr id="{{c.id}}">
-					<td><a href="/profile/{{c.user.username}}" target="_blank">{{c.user.username}}</a></td>
+					<td><a href="{% url profiles.views.profile_detail c.user.username %}" target="_blank">{{c.user.username}}</a></td>
 					<td>{{c.submit_date|date:"M d, Y"}}</td>
 					<td>
-						<a href="/trees/{{c.content_object.id}}" target="_blank">Tree #{{c.content_object.id}}</a> -
+						<a href="{% url treemap.views.trees c.content_object.id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
 						<br>{{c.comment}}</td>
 					<td>
 						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>

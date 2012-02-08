@@ -6,8 +6,9 @@
 {% block body_load %}{% endblock %}
 {% block form %}
 
-<form id="form1" {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} name="form1" method="post" action="?next={{ next|default:"/accounts/profile/" }}">
-
+{% with SITE_ROOT|add:"/accounts/profile/" as next_page %}
+<form id="form1" {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} name="form1" method="post" action="?next={{ next|default:next_page }}">
+{% endwith %}
     <label class="required" {% if form.username.errors %}id="error"{% endif %}>{% trans "Username" %}
         {% if form.username.errors %}
              {% for error in form.username.errors %}

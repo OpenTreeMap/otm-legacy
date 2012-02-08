@@ -10,7 +10,7 @@
 						<a href="https://www.pennhort.net/trees" target="_blank" id="headerNavSupport"></a>
 						 {% if user.is_authenticated %}
 							<div class="floatRight">
-								<a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout" class="buttonSmall floatRight">Logout</a>
+								<a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}/map/" id="logout" class="buttonSmall floatRight">Logout</a>
 								Hello, <b><a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}!</a></b>
 								<br/>{{user.reputation.reputation}} rep
 							</div>

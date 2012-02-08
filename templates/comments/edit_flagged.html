@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -78,7 +78,7 @@
 		action will hide the comment from all users. The Remove Flag action will un-flag the comment.</div>
 	<div class="clearBoth"></div>
 	{% paginate %}
-	<div><a href="/comments/all/">View all comments</a></div>
+	<div><a href="{% url treemap.views.view_comments %}">View all comments</a></div>
 	<div id="flagged_list">
 		<table id="flagged_list_table">
 			<thead>
@@ -94,15 +94,15 @@
 				<tr id="{{c.id}}">
 					<td>
                                           {% for flag in c.comment_flags.all %}
-                                          <a href="/profile/{{c.user.username}}" target="_blank">{{flag.user.username}}</a>
+                                          <a href="{% url profiles.views.profile_detail c.user.username %}" target="_blank">{{flag.user.username}}</a>
                                           {% if not forloop.last %},{% endif %}
                                           {% endfor %}
                                         </td>
 					<td>{{c.flag_date|date:"M d, Y"}}</td>
 					<td>
-						<a href="/trees/{{c.comment.content_object.id}}">Tree #{{c.comment.content_object.id}}</a>
+						<a href="{% url treemap.views.trees c.comment.content_object.id %}">Tree #{{c.comment.content_object.id}}</a>
 						  - {{c.date_submitted|date:"M d, Y"}}
-						  - <a href="/profile/{{c.user.username}}" target="_blank">{{c.user.username}}</a> -
+						  - <a href="{% url profiles.views.profile_detail c.comment.user.username %}" target="_blank">{{c.user.username}}</a> -
 						<br>{{c.comment}}</td>
 					<td>
 						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>

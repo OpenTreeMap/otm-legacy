@@ -29,7 +29,7 @@
 			<tbody>
 			{% for s in species %}
 			<tr>
-				<td><a href="/treekey/species/{{s.id}}">{{s.common_name}}</a></td>
+				<td><a href="{{ SITE_ROOT }}/treekey/species/{{s.id}}">{{s.common_name}}</a></td>
 				<td>{{s.genus}} {{s.species}}</td>
 				<td>{{s.feature}}</td>
 				<td><a target="_blank" onclick="_gaq.push(['TreeKey', 'Browse Map Button', 'Species', {{species.id}}]);" href="{{ SITE_URL }}/map/#?species={{s.id}}">Map</a></td>
