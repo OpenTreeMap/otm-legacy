@@ -365,7 +365,7 @@ def trees(request, tree_id=''):
             if plot.present == False:
                 raise Http404
             else:
-                return HttpResponseRedirect('%s/plots/%s/' % (settings.SITE_ROOT, plot.id))
+                return redirect('plots/%s/' % plot.id)
 
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
@@ -1205,9 +1205,9 @@ def tree_add(request, tree_id = ''):
                 messages.success(request, "Your tree was successfully added!")
                 pass
             elif form.cleaned_data.get('target') == "edit":
-                return redirect("trees/new/%i" % request.user.id)
+                return redirect("trees/new/%i/" % request.user.id)
             else:
-                return redirect("trees/%i" % new_tree.id)
+                return redirect("trees/%i/" % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{

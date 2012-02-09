@@ -878,7 +878,7 @@ var tm = {
         
     load_nearby_trees : function(ll){
         //load in nearby trees as well
-        var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=70'].join('');
+        var url = ['plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=70'].join('');
         $.getJSON(tm_static + url, function(geojson){
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
@@ -941,7 +941,7 @@ var tm = {
     update_nearby_trees_list: function (ll, plots, distance) {
         if ($('#nearby_trees')) {
             $('#nearby_trees').html("Loading...")
-            var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
+            var url = ['plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
             $.getJSON(tm_static + url, function(geojson){
                 if (geojson.features.length == 0) {
                     $('#nearby_trees').html("No other trees nearby.")
