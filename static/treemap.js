@@ -726,7 +726,7 @@ var tm = {
         tm.map.addLayers([tm.tree_layer]);
         
         //load in favorite trees
-        var url = ['/trees/favorites/' + user + '/geojson/']
+        var url = ['trees/favorites/' + user + '/geojson/']
         $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
@@ -749,8 +749,8 @@ var tm = {
         tm.map.addLayers([tm.tree_layer]);
         var url = []
         //load in new trees
-        if (user) {url = ['/trees/new/' + user + '/geojson/']}
-        else {url = ['/trees/new/geojson/']}
+        if (user) {url = ['trees/new/' + user + '/geojson/']}
+        else {url = ['trees/new/geojson/']}
         $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
