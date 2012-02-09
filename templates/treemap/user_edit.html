@@ -4,7 +4,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -41,11 +41,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/users/" + qstr;
+				window.location = tm_static + "{{ SITE_ROOT }}/users/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/users/"
+				window.location = tm_static + "{{ SITE_ROOT }}/users/"
 			});
 
 			//jQuery("#user_list_table").tablesorter({sortList: [[0,0]], headers: {2:{sorter:'usLongDate'}}})
@@ -98,7 +98,7 @@
 			<tbody>
 				{% for u in users %}
 					<tr id="{{u.id}}">
-						<td><a href="/profiles/{{u.username}}">{{u.username}}</a></td>
+						<td><a href="{% url profiles.views.profile_detail u.username %}">{{u.username}}</a></td>
 						<td>{{u.get_full_name}} </td>
 						<td>{{u.email}}</td>
 						<td>{{u.last_login|date:"M d, Y"}}</td>

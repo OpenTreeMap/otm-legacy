@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 {% block title %} - Recent Edits {% endblock %}
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -39,11 +39,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/verify/" + qstr;
+				window.location = "{{ SITE_ROOT }}/verify/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/verify/"
+				window.location = "{{ SITE_ROOT }}/verify/"
 			});
 
 			//jQuery("#species_list_table").tablesorter({sortList: [[3,1]], headers: {3:{sorter:'usLongDate'}}})
@@ -90,7 +90,7 @@
 		consider the change carefully. Responding negatively to an edit does not remove the edit
 		from the record. You must edit the record directly to return it to its original state.
 		Once an advanced user has responded to a recent edit, that edit will no longer be visible
-		on this page. More information is available in the <a href="/faq/#reputation">FAQ</a>.
+		on this page. More information is available in the <a href="{{ SITE_ROOT }}/faq/#reputation">FAQ</a>.
 	</div>
 	{% paginate %}
 	<div id="species_list">
@@ -108,9 +108,9 @@
 			<tbody>
 				{% for c in changes %}
 				<tr id="{{c.type}}_{{c.change_id}}">
-					<td><i>{{c.species}}</i><br><a href="/{{c.type}}s/{{c.id}}" target="_blank">View Record</a></td>
+					<td><i>{{c.species}}</i><br><a href="{{ SITE_ROOT }}/{{c.type}}s/{{c.id}}" target="_blank">View Record</a></td>
 					<td>{{c.address_street}}</td>
-					<td><a href="/profiles/{{c.last_updated_by}}" target="_blank">{{c.last_updated_by}}</a></td>
+					<td><a href="{{ SITE_ROOT }}/profiles/{{c.last_updated_by}}" target="_blank">{{c.last_updated_by}}</a></td>
 					<td>{{c.last_updated|date:"M d, Y"}}</td>
 					{% if c.change_description.key %}
 						<td><b>{{c.change_description.key}}</b> - {{c.change_description.value}}<br>
@@ -130,9 +130,9 @@
 						{% endif %}
 					{% endif %}
 					<td>
-						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'down');return false;"><img src="/static/images/es/ico-thumbs-down.gif" width="17" height="17" alt="Down"></a> 
-						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'neutral');return false;"><img src="/static/images/es/ico-neutral.gif" width="17" height="17" alt="Neutral"></a>
-						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'up');return false;"><img src="/static/images/es/ico-thumbs-up.gif" width="17" height="17" alt="Up"></a>
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'down');return false;"><img src="{{ STATIC_URL }}images/es/ico-thumbs-down.gif" width="17" height="17" alt="Down"></a> 
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'neutral');return false;"><img src="{{ STATIC_URL }}images/es/ico-neutral.gif" width="17" height="17" alt="Neutral"></a>
+						<a href="#" onclick="tm.updateReputation('{{c.type}}', {{c.change_id}}, 'up');return false;"><img src="{{ STATIC_URL }}images/es/ico-thumbs-up.gif" width="17" height="17" alt="Up"></a>
 						
 					</td>
 				</tr>

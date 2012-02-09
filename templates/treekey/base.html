@@ -1,14 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<script type="text/javascript" src="/static/all_misc.js"></script>
-	<script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
-	<script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
-    <script type="text/javascript" src="/static/treemap.js"></script>
+	<script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
+	<script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
+	<script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
 
-	<link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
-	<link rel="stylesheet" href="/static/css/treekey.css" type="text/css"/>
-	<link rel="stylesheet" href="/static/css/ptm.css" type="text/css"/>
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/treekey.css" type="text/css"/>
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.css" type="text/css"/>
 	{% block extra_head %} {% endblock extra_head %}
 	<script type="text/javascript">
 		//var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
