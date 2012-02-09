@@ -46,6 +46,12 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+def redirect(rel):
+    # Trim off slash
+    if rel[0] == "/":
+        rel = rel[1:]
+
+    return HttpResponseRedirect('%s%s' % (settings.SITE_ROOT, rel))
 
 app_models = {'UserProfile':'profiles','User':'auth'}
 
@@ -526,7 +532,7 @@ def tree_add_edit_photos(request, tree_id = ''):
             # gets saved at the right time when calling add()
             #photo.save()
             tree.treephoto_set.add(photo)
-            return HttpResponseRedirect('%s/trees/%s/edit/' % (settings.SITE_ROOT, tree.id))
+            return redirect('trees/%s/edit/' % tree.id)
     else:
         form = TreeEditPhotoForm(instance=tree)
 
@@ -1199,9 +1205,9 @@ def tree_add(request, tree_id = ''):
                 messages.success(request, "Your tree was successfully added!")
                 pass
             elif form.cleaned_data.get('target') == "edit":
-                return HttpResponseRedirect('%s/trees/new/%i/' % (settings.SITE_ROOT, request.user.id))
+                return redirect("trees/new/%i" % request.user.id)
             else:
-                return HttpResponseRedirect('%s/trees/%i/' % (settings.SITE_ROOT, new_tree.id))
+                return redirect("trees/%i" % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
@@ -1857,7 +1863,7 @@ def contact(request):
             from django.core.mail import send_mail
             send_mail(subject, message, sender, recipients)
 
-            return HttpResponseRedirect('%s/contact/thanks/' % settings.SITE_ROOT) # Redirect after POST
+            return redirect("contact/thanks")
     else:
         form = ContactForm() # An unbound form
 
