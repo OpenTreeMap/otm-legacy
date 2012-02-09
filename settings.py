@@ -92,4 +92,8 @@ try:
 except ImportError, exp:
     pass
 
-LOGIN_URL = "%s/accounts/login" % SITE_ROOT
+if SITE_ROOT is not "/":
+    LOGIN_URL = "%s/accounts/login" % SITE_ROOT
+else:
+    LOGIN_URL = "/accounts/login"
+
