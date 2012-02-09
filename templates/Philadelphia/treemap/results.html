@@ -156,7 +156,7 @@
             {% for pic in latest_photos %}
                 <li>
                     <a href="{% url treemap.views.trees pic.tree.id %}">
-                        <img src="{{ SITE_ROOT }}/media/{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
+                        <img src="{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
                     </a>
                 </li>
             {% endfor %}
