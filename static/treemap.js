@@ -32,12 +32,12 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
-    base_folder : tm_static + '/static/images/map_icons/v3/', 
+    base_folder : tm_static + 'static/images/map_icons/v3/', 
     small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
-    focus_tree : tm_static + '/static/images/map_icons/v4/marker-selected.png',
-    pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
-    marker : tm_static + '/static/openlayers/img/marker.png'
+    focus_tree : tm_static + 'static/images/map_icons/v4/marker-selected.png',
+    pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png', 
+    marker : tm_static + 'static/openlayers/img/marker.png'
     };
 
 var tm = {
@@ -89,7 +89,7 @@ var tm = {
         $("#logo").click(function() {
         //    location.href="/home";
         });        
-        jQuery.getJSON(tm_static + '/species/json/', function(species){
+        jQuery.getJSON(tm_static + 'species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
                 $("#species_search_id").val(item.id).change(); 
@@ -107,7 +107,7 @@ var tm = {
                 tm.speciesDataListeners[i]();
             }    
         });
-        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+        jQuery.getJSON(tm_static + 'neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
             tm.locations = nbhoods;
             tm.setupLocationList();
         });
@@ -118,14 +118,14 @@ var tm = {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
-                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
+                $('#arrow').attr('src',tm_static + 'static/images/v2/arrow2.gif');
             }    
             else {
                 if ($('#results').length > 0) {
                     $('.filter-box').slideUp('slow');
                 }
                 adv_active = false;
-                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif'); 
+                $('#arrow').attr('src',tm_static + 'static/images/v2/arrow1.gif'); 
             }
             return false;
         });
@@ -546,7 +546,7 @@ var tm = {
         //check to see if coming for a bookmarked tree
         var bookmark_id = jQuery.urlParam('tree');
         if (bookmark_id){
-            jQuery.getJSON(tm_static + '/trees/' + bookmark_id  + '/',
+            jQuery.getJSON(tm_static + 'trees/' + bookmark_id  + '/',
                {'format' : 'json'},
                 tm.display_tree_details);
             }
@@ -563,7 +563,7 @@ var tm = {
             window.clearTimeout(tm.clckTimeOut); 
             tm.clckTimeOut = null; 
             var spp = jQuery.urlParam('species');
-            jQuery.getJSON(tm_static + '/plots/location/',
+            jQuery.getJSON(tm_static + 'plots/location/',
               {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
             tm.display_tree_details);
         } 
@@ -823,7 +823,7 @@ var tm = {
         tm.map.events.register('click', tm.map, function(e){
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            jQuery.getJSON(tm_static + '/plots/location/',
+            jQuery.getJSON(tm_static + 'plots/location/',
                 {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                 function(json) {
                     var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
@@ -998,7 +998,7 @@ var tm = {
         tm.geocode_address = address;
 
         if (tm.local_geocoder) {
-            $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
+            $.getJSON(tm_static + "geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
                     if (callback) {
                         callback(json.lat, json.lng, json.place)
@@ -1051,7 +1051,7 @@ var tm = {
     //pass in a GLatLng and get back closest address
     reverse_geocode : function(ll, callback, error_callback){
         if (tm.local_geocoder) {
-            $.getJSON(tm_static + "/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
+            $.getJSON(tm_static + "geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
                     if (callback) {
                         var city = json.place.split(", ")[1] + " " + json.place.split(", ")[2];
@@ -1227,20 +1227,20 @@ var tm = {
                             var jsonString = JSON.stringify(data);
 
                             $.ajax({
-                                url: tm_static + '/plots/location/update/',
+                                url: tm_static + 'plots/location/update/',
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                                    jQuery('#max_tree_infowindow').load(tm_static + 'plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                                 }
                             });
                         } else {
-                            jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                            jQuery('#max_tree_infowindow').load(tm_static + 'plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                         }
                     });
                 }
                 else {
-                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                    jQuery('#max_tree_infowindow').load(tm_static + 'plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                 }
             }
         }
@@ -1421,7 +1421,7 @@ var tm = {
     // unused?
     select_species : function(species){
         tm.mgr.clearMarkers();
-        jQuery.getJSON(tm_static + '/search/' + species + '/?simple=true', 
+        jQuery.getJSON(tm_static + 'search/' + species + '/?simple=true', 
             tm.display_search_results);
     },
 
@@ -1431,7 +1431,7 @@ var tm = {
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
         tm.trackEvent('Edit', 'Location', 'Start');
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + '/static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + 'static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },
@@ -1465,7 +1465,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + 'static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             objectId: id,
             model: model,
@@ -1516,7 +1516,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
         settings.obj = this;
         $.ajax({
-            url: tm_static + '/plots/' + plotId + '/update/',
+            url: tm_static + 'plots/' + plotId + '/update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
@@ -1539,7 +1539,7 @@ var tm = {
                 }
             }});
 
-        return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
+        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },
     updateEditableServerCall: function(value, settings) {
         var data = {
@@ -1611,7 +1611,7 @@ var tm = {
             var jsonString = JSON.stringify(data);
             settings.obj = this;
             $.ajax({
-                url: tm_static + '/update/',
+                url: tm_static + 'update/',
                 type: 'POST',
                 data: jsonString,
                 complete: function(xhr, textStatus) {
@@ -1643,7 +1643,7 @@ var tm = {
                         tm.trackEvent("Edit", settings.fieldName)
                     }
                 }});
-            return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
+            return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
         //} 
     },       
     updateEditableLocation: function() {
@@ -1962,7 +1962,7 @@ var tm = {
         jQuery('#displayResults').show();
         //TODO: send a geoserver CQL request also
         $.ajax({
-            url: tm_static + '/search/'+qs,
+            url: tm_static + 'search/'+qs,
             dataType: 'json',
             success: function(results) {
                 tm.display_search_results(results)
@@ -2050,7 +2050,7 @@ var tm = {
         //possible zipcode 
         tm.geocode_address = search;
         if (tm.isNumber(search)) {
-            jQuery.getJSON(tm_static + '/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
+            jQuery.getJSON(tm_static + 'zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
                             
                 if (zips.features.length > 0) {
@@ -2074,7 +2074,7 @@ var tm = {
         }
         else
         {
-            jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+            jQuery.getJSON(tm_static + 'neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
                 if (nbhoods.features.length > 0) {
@@ -2182,7 +2182,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + 'static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             model: 'Tree',
             fieldName:  'dbh',
@@ -2196,7 +2196,7 @@ var tm = {
     },
     approvePend: function(pend_id) {
         $.ajax({
-            url: tm_static + '/trees/pending/' + pend_id + '/approve/',
+            url: tm_static + 'trees/pending/' + pend_id + '/approve/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
@@ -2210,7 +2210,7 @@ var tm = {
     },
     rejectPend: function(pend_id) {
         $.ajax({
-            url: tm_static + '/trees/pending/' + pend_id + '/reject/',
+            url: tm_static + 'trees/pending/' + pend_id + '/reject/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
@@ -2224,12 +2224,12 @@ var tm = {
     },
     addTreeToPlot: function(plot_id) {
         $.ajax({
-            url: tm_static + '/plots/' + plot_id + '/addtree/',
+            url: tm_static + 'plots/' + plot_id + '/addtree/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
                 tm.trackEvent('Add', 'New Tree');
-                location = tm_static + "/plots/" + plot_id + "/";
+                location = tm_static + "plots/" + plot_id + "/";
             },
             error: function(err) {
             alert("Error: " + err.status + "\nQuery: " + plot_id);
@@ -2240,7 +2240,7 @@ var tm = {
         if (window.confirm("Are you sure you want to remove this tree permanently from the system?"))
         {
             $.ajax({
-                url: tm_static + '/trees/' + tree_id + '/delete/',
+                url: tm_static + 'trees/' + tree_id + '/delete/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
@@ -2274,7 +2274,7 @@ var tm = {
         if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
         {
             $.ajax({
-                url: tm_static + '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+                url: tm_static + 'trees/' + tree_id + '/deletephoto/' +  photo_id,
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
@@ -2291,7 +2291,7 @@ var tm = {
         if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
         {
             $.ajax({
-                url: tm_static + '/profiles/' + username + '/deletephoto/',
+                url: tm_static + 'profiles/' + username + '/deletephoto/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
@@ -2310,7 +2310,7 @@ var tm = {
     
     updateReputation: function(change_type, change_id, rep_dir) {
         $.ajax({
-        url: tm_static + '/verify/' + change_type + '/' + change_id + '/' + rep_dir,
+        url: tm_static + 'verify/' + change_type + '/' + change_id + '/' + rep_dir,
         dataType: 'json',
         success: function(response) {
             $("#" + response.change_type + "_" + response.change_id).fadeOut();
@@ -2330,7 +2330,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
         
         $.ajax({
-        url: tm_static + '/users/update/',
+        url: tm_static + 'users/update/',
         dataType: 'json',
         data: jsonString,
         type: 'POST',
@@ -2350,7 +2350,7 @@ var tm = {
             var jsonString = JSON.stringify(data);
             
         $.ajax({
-            url: tm_static + '/users/update/',
+            url: tm_static + 'users/update/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2371,7 +2371,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
 
         $.ajax({
-            url: tm_static + '/users/ban/',
+            url: tm_static + 'users/ban/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2392,7 +2392,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
 
         $.ajax({
-            url: tm_static + '/users/activate/',
+            url: tm_static + 'users/activate/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2409,7 +2409,7 @@ var tm = {
 
     updatePend: function(pend_id, pend_dir) {
         $.ajax({
-        url: tm_static + '/trees/pending/' + pend_id + '/' + pend_dir,
+        url: tm_static + 'trees/pending/' + pend_id + '/' + pend_dir,
         dataType: 'json',
         success: function(response) {
             $("#" + response.pend_id).hide();
@@ -2427,7 +2427,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: tm_static + '/watch/validate/',
+            url: tm_static + 'watch/validate/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2446,7 +2446,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: tm_static + '/comments/hide/',
+            url: tm_static + 'comments/hide/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2464,7 +2464,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: tm_static + '/comments/unflag/',
+            url: tm_static + 'comments/unflag/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
