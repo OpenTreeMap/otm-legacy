@@ -53,9 +53,9 @@
                 <li>
                     {% if user.is_authenticated %}
 
-                            Hello, <b><a href="{% url profiles.views.profile_detail user.username %}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
+                            Hello, <b><a href="{% url profiles.views.profile_detail user.username %}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
                     {% else %}
-                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}/" class="buttomSm globalAdd">Add a tree</a>
+                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}/" class="buttomSm globalAdd">Add a tree</a>
                     {% endif %}
                 </li>
             </ul>
@@ -403,12 +403,12 @@
                     <ul class="footer-nav"> 
                         <li><a href="{% url treemap.views.tree_add %}">Add a tree</a></li> 
                         <li><a href="{{ SITE_ROOT }}about/">About</a></li> 
-                        <li><a href="{{ SITE_ROOT }}/resources/">Resources</a></li> 
-                        <li><a href="{{ SITE_ROOT }}/contact/">Contact</a></li> 
-                        <li><a href="{{ SITE_ROOT }}/donate/">Donate</a></li> 
+                        <li><a href="{{ SITE_ROOT }}resources/">Resources</a></li> 
+                        <li><a href="{{ SITE_ROOT }}contact/">Contact</a></li> 
+                        <li><a href="{{ SITE_ROOT }}donate/">Donate</a></li> 
                         {% if user.is_authenticated %}
                            <li>Logged in as <a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}</a>
-                           <span id="logout"><a href="{{ SITE_ROOT }}/accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
+                           <span id="logout"><a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
                            {% if user.is_superuser %}
                                <li><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
                            {% endif %}
@@ -416,7 +416,7 @@
                                <li><a href="{% url treemap.views.verify_edits %}">Recent Changes</a></li>
                            {% endif %}
                         {% else %}
-                            <li><a href="{{ SITE_ROOT }}/accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}/accounts/register/" class="buttomSm">Sign up</a></li>
+                            <li><a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/" class="buttomSm">Sign up</a></li>
                         {% endif %}
                     </ul> 
                 </div> 
