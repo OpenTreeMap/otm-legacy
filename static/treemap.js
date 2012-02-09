@@ -680,7 +680,7 @@ var tm = {
         tm.map.addLayers([tm.tree_layer]);
         
         //load in favorite trees
-        var url = ['/trees/favorites/' + user + '/geojson/']
+        var url = ['trees/favorites/' + user + '/geojson/']
         $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
@@ -703,8 +703,8 @@ var tm = {
         tm.map.addLayers([tm.tree_layer]);
         var url = []
         //load in new trees
-        if (user) {url = ['/trees/new/' + user + '/geojson/']}
-        else {url = ['/trees/new/geojson/']}
+        if (user) {url = ['trees/new/' + user + '/geojson/']}
+        else {url = ['trees/new/geojson/']}
         $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
@@ -822,7 +822,7 @@ var tm = {
         
     load_nearby_trees : function(ll){
         //load in nearby trees as well
-        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
+        var url = ['trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
         $.getJSON(tm_static + url, function(geojson){
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
@@ -952,7 +952,7 @@ var tm = {
                 }
                 if ($('#nearby_trees')) {
                     $('#nearby_trees').html("Loading...")
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
+                    var url = ['trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
                     $.getJSON(tm_static + url, function(geojson){
                         if (geojson.features.length == 0) {
                             $('#nearby_trees').html("No other trees nearby.")
@@ -1002,7 +1002,7 @@ var tm = {
             } else {
                 if ($("#geocode_address")) {
                     $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
+                    var url = ['trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
                     $.getJSON(tm_static + url, function(geojson){
                         $.each(geojson.features, function(i,f){
                             alert("trees");
