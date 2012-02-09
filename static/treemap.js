@@ -33,8 +33,8 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
     base_folder : tm_static + '/static/images/map_icons/v3/', 
-    small_trees : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
-    small_trees_complete : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     focus_tree : tm_static + '/static/images/map_icons/v4/marker-selected.png',
     pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
     marker : tm_static + '/static/openlayers/img/marker.png'
@@ -210,7 +210,7 @@ var tm = {
             if (tm.advancedClick) {
                 q = q.set('advanced', 'open');
             }    
-            window.location.href = tm_static + "/map/#" + decodeURIComponent(q.toString());
+            window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
             return false;
         }
         //$("#search_form").submit(triggerSearch);    
@@ -1474,7 +1474,7 @@ var tm = {
         if (options) {
             for (var key in options) {
                 if (key == "loadurl") {
-                    editableOptions[key] = tm_static + "/" + options[key];
+                    editableOptions[key] = tm_static + "" + options[key];
                 } else {
                     editableOptions[key] = options[key];
                 }
@@ -1946,9 +1946,9 @@ var tm = {
             }
             qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         }
-        $("#kml_link").attr('href', tm_static + "/search/kml/"+qstr);
-        $("#csv_link").attr('href', tm_static + "/search/csv/"+qstr);
-        $("#shp_link").attr('href', tm_static + "/search/shp/"+qstr);
+        $("#kml_link").attr('href', tm_static + "search/kml/"+qstr);
+        $("#csv_link").attr('href', tm_static + "search/csv/"+qstr);
+        $("#shp_link").attr('href', tm_static + "search/shp/"+qstr);
         return qstr;
     },
     
@@ -2257,12 +2257,12 @@ var tm = {
         if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
         {
             $.ajax({
-                url: tm_static + '/plots/' + plot_id + '/delete/',
+                url: tm_static + 'plots/' + plot_id + '/delete/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
                     tm.trackEvent('Edit', 'Delete');
-                    window.location = tm_static + "/map/";
+                    window.location = tm_static + "map/";
                 },
                 error: function(err) {
                 alert("Error: " + err.status + "\nQuery: " + plot_id);
