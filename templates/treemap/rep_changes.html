@@ -40,11 +40,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "{{ SITE_ROOT }}/users/activity/" + qstr;
+				window.location = "{{ SITE_ROOT }}users/activity/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "{{ SITE_ROOT }}/users/activity/"
+				window.location = "{{ SITE_ROOT }}users/activity/"
 			});
 
 			//jQuery("#user_list_table").tablesorter({sortList: [[0,0]], headers: {2:{sorter:'usLongDate'}}})

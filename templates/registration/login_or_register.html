@@ -26,13 +26,13 @@
                               var u = $('#username')[0].value;
                               if (val == "register")
                               {
-                                var url = "{{ SITE_ROOT }}/accounts/register/";
+                                var url = "{{ SITE_ROOT }}accounts/register/";
                                 if (u){
                                     url += "?username=" + u;
                                 }
                                 window.location = url;
                               } else if (val == "login"){
-                                var url = "{{ SITE_ROOT }}/accounts/login/";
+                                var url = "{{ SITE_ROOT }}accounts/login/";
                                 if (u){
                                     url += "?username=" + u;
                                 }
@@ -51,7 +51,7 @@
                         function check_username(val)
                           {                              
                                 $.ajax({
-                                    url: '{{ SITE_ROOT }}/check_username/?u='+val,
+                                    url: '{{ SITE_ROOT }}check_username/?u='+val,
                                     dataType: 'json',
                                     success: display_availability
                                     //error: function(err) { }
@@ -81,7 +81,7 @@
 
                     {% else %}
                     <p>{% trans "You are already logged in as" %} <b><a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}</a></b>. 
-                        Do you want to <b><a href="/accounts/logout/?next={{SITE_ROOT}}/accounts/login">{% trans "logout" %}</a></b>?</p>
+                        Do you want to <b><a href="/accounts/logout/?next={{ SITE_ROOT }}accounts/login">{% trans "logout" %}</a></b>?</p>
                     {% endif %}
 
 		</div>

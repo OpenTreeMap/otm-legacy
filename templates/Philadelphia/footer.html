@@ -16,14 +16,14 @@
                     </div>
                     <ul class="footer-nav">
                         <li><a href="{% url treekey.views.first_node %}">Tree Key</a></li>
-                        <li><a href="{{ SITE_ROOT}}/resources/">Resources</a></li>
-						<li><a href="{{ SITE_ROOT}}/faq/">FAQ</a></li>
-                        <li><a href="{{ SITE_ROOT}}/about/">About</a></li>
-                        <li><a href="{{ SITE_ROOT}}/contact/">Contact</a></li>
+                        <li><a href="{{ SITE_ROOT }}resources/">Resources</a></li>
+						<li><a href="{{ SITE_ROOT }}faq/">FAQ</a></li>
+                        <li><a href="{{ SITE_ROOT }}about/">About</a></li>
+                        <li><a href="{{ SITE_ROOT }}contact/">Contact</a></li>
                     </ul>
 					<ul id="footer-admin" class="footer-nav">
 						    {% if user.is_superuser %}
-                               	<li><a href="{{ SITE_ROOT }}/_admin_/">Site Admin</a></li>
+                               	<li><a href="{{ SITE_ROOT }}_admin_/">Site Admin</a></li>
                             {% endif %}
                             {% if user.reputation.reputation > 1000 %}
                             	<li><a href="{% url treemap.views.verify_edits %}">Recent Edits</a></li>

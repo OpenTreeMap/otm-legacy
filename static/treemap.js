@@ -1660,7 +1660,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);
         $.ajax({
-            url: tm_static +'/update/',
+            url: tm_static + 'update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
