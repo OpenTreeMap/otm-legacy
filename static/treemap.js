@@ -1121,7 +1121,7 @@ var tm = {
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load(tm_static +'/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                                    jQuery('#max_tree_infowindow').load(tm_static + 'trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
                                 }
                             });
                         } else {
@@ -1495,7 +1495,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);
         $.ajax({
-            url: tm_static +'/update/',
+            url: tm_static + 'update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
