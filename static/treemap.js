@@ -1138,11 +1138,9 @@ var tm = {
         
  
     display_benefits : function(benefits){
-        //console.log(benefits);
         jQuery('#results_wrapper').show();
         jQuery("#no_results").hide();
         jQuery.each(benefits, function(k,v){
-            //console.log(k,v)
             jQuery('#benefits_' + k).html(tm.addCommas(parseInt(v)));
         });
         if (benefits['total'] == 0.0)
@@ -1154,7 +1152,6 @@ var tm = {
         
     display_summaries : function(summaries){
         //var callout = ['You selected ', summaries.total_trees, ' trees'].join('');
-        //console.log(summaries);
         //jQuery('#callout').html(callout);
         jQuery(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
         if (summaries.total_trees == '0')
@@ -1170,15 +1167,10 @@ var tm = {
         
         jQuery.each(summaries, function(k,v){
             var span = jQuery('#' + k);
-            //console.log(span);
             if (span.length > 0){
                 span.html(tm.addCommas(parseInt(v)));
             }
-            /*else{
-                console.log(k);
-            }
-            */
-            });
+        });
 
         var benefits = summaries.benefits;
         tm.display_benefits(benefits);
@@ -1219,7 +1211,6 @@ var tm = {
         //var layer_name = tm.map.getCurrentMapType().getName();
         //var u = tm_urls.tc_url + layer_name + '/' + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png';
         //var u = tm_urls.qs_tile_url + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png?' + tm.selected_tile_query;
-        //console.log(u);
         //return u;
         },
     
@@ -1382,7 +1373,6 @@ var tm = {
             'update': {
             }
         };
-        //console.log(value);
         // TODO - I think if '' then we should replace
         // with original value and if 'null' then
         // we should save None in database if its
@@ -1503,7 +1493,6 @@ var tm = {
             }});
     },
     setupAutoComplete: function(field) {
-        //console.log(field);
         return field.autocomplete(tm.speciesData, {
             matchContains: true,
             minChars: 1,
