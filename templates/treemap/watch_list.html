@@ -43,11 +43,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "{{ SITE_ROOT }}/trees/watch/" + qstr;
+				window.location = "{{ SITE_ROOT }}trees/watch/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "{{ SITE_ROOT }}/trees/watch/"
+				window.location = "{{ SITE_ROOT }}trees/watch/"
 			});
 
 			//jQuery("#species_list_table").tablesorter({sortList: [[2,1]], headers: {2:{sorter:'usLongDate'}}})

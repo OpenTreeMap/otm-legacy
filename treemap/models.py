@@ -16,6 +16,8 @@ from itertools import chain
 
 from django.core.exceptions import ValidationError
 
+from threadedcomments.models import ThreadedComment
+
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
                      'AQ NOx dep',
@@ -89,6 +91,14 @@ class BenefitValues(models.Model):
     bvoc = models.FloatField()
     
     def __unicode__(self): return '%s' % (self.area)
+
+class CommentFlag(models.Model):
+    flagged = models.BooleanField(default=False)
+    flagged_date = models.DateTimeField(auto_now=True)
+
+    comment = models.ForeignKey(ThreadedComment, related_name="comment_flags")
+    user = models.ForeignKey(User)
+    
 
 class Choices(models.Model):
     field = models.CharField(max_length=255, choices=choices_choices)

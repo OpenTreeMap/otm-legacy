@@ -86,6 +86,7 @@ urlpatterns = patterns('',
     (r'^users/activity/$', user_rep_changes),
     (r'^profiles/(?P<username>[a-zA-Z0-9_-]+)/deletephoto/', userphoto_delete),
     
+    (r'^comments/flag/(?P<comment_id>[0-9]+)/$', add_flag),
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
     (r'^comments/hide/$', hide_comment),

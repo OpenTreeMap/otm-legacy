@@ -39,11 +39,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "{{ SITE_ROOT }}/comments/all/" + qstr;
+				window.location = tm_static + "comments/all/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "{{ SITE_ROOT }}/comments/all/"
+				window.location = tm_static + "comments/all/"
 			});
 
 			//jQuery("#comment_list_table").tablesorter({sortList: [[1,1]], headers: {1:{sorter:'usLongDate'}}})
