@@ -3,9 +3,9 @@ import os
 SITE_ROOT = ''
 
 #from settings_philadelphia import *
+from settings_dctreekit import *
 #from settings_sanfrancisco import *
 #from settings_greenprint import *
-from settings_dctreekit import *
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'pagination',
     'django_sorting',
     'geopy_extensions',
+    'pipeline',
 )
 
 try:

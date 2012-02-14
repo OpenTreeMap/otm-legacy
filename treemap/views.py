@@ -1144,7 +1144,7 @@ def update_plot(request, plot_id):
             Reputation.objects.log_reputation_action(request.user, request.user, 
                                                      "edit plot", rep_gained_by_editing_field, plot)
     except ValidationError, e:
-        if e.message_dict:
+        if hasattr(e, 'message_dict'):
             for (fld,msgs) in e.message_dict.items():
                 msg = reduce(lambda (a,b): a + b, msgs)
                 response_dict["errors"].append("%s: %s" % (fld, msg))

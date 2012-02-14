@@ -14,7 +14,10 @@
         <script type="text/javascript" src="{{ STATIC_URL }}all_misc.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}treemap.js"></script>
+    
+	    {% load compressed %}
+	    {% compressed_js 'base' %}
+
         <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ufmp1.1.css" media="all" />
         <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
@@ -24,8 +27,8 @@
                 
         {% block js_ready %}
         <script type="text/javascript">
-	  var tm_static = "{{ SITE_ROOT }}";
-            jQuery().ready(tm.baseTemplatePageLoad);
+	        var tm_static = "{{ SITE_ROOT }}";
+            $.ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}
 

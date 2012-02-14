@@ -409,7 +409,7 @@ class Plot(models.Model):
     objects = models.GeoManager()
 
     #original data to help owners associate back to their own db
-    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    data_owner = models.ForeignKey(User, related_name="owner", null=True, blank=True)
     owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
