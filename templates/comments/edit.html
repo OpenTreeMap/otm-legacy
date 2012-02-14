@@ -93,7 +93,7 @@
 					<td><a href="{% url profiles.views.profile_detail c.user.username %}" target="_blank">{{c.user.username}}</a></td>
 					<td>{{c.submit_date|date:"M d, Y"}}</td>
 					<td>
-						<a href="{% url treemap.views.trees c.content_object.id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
+						<a href="{% url treemap.views.plot_detail c.object_id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
 						<br>{{c.comment}}</td>
 					<td>
 						<a href="#" onclick="tm.hideComment({{c.id}}); return false;">Hide Comment</a>
