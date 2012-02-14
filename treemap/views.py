@@ -2116,7 +2116,8 @@ def hide_comment(request):
     try:
         comment = CommentFlag.objects.get(id=flag_id).comment
     except:
-        comment = ThreadeComment.objects.get(id=flag_id)
+        comment = ThreadedComment.objects.get(id=flag_id)
+
     comment.is_public = False
     comment.save()
     response_dict['success'] = True
@@ -2146,7 +2147,8 @@ def remove_flag(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
     flag_id = post.get('flag_id')
-    flag = CommentFlag.objects.get(id=flag_id)    
+
+    flag = CommentFlag.objects.get(comment__id=flag_id)
     flag.delete()
     response_dict['success'] = True
 
