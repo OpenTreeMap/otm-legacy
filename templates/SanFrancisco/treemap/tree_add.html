@@ -25,7 +25,7 @@
         jQuery.getJSON(tm_static + '/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                $("#id_species_id").val(item.symbol).change();
+                $("#id_species_id").val(item.id).change();
             });
         });
         jQuery("#addTree").submit(function(evt) {
