@@ -17,7 +17,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
 from django.db.models import Count, Sum, Q
@@ -1313,7 +1313,7 @@ def geo_search(request):
         return h
 
     #TODO - Generate count?                                                                                                                                  
-    trees = Tree.objects.filter(plot__geometry__within=poly, species__isnull=False, dbh__isnull=False).all()
+    trees = Tree.objects.filter(geometry__within=poly, species__isnull=False, dbh__isnull=False).all()
     
     pruned = []
     for tree in trees:
