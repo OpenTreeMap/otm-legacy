@@ -750,8 +750,12 @@ tm = {
     },
 
     editDiameter: function(field, diams) {
-        if (diams == "None") {diams=[];}
+        // no value: show box
+        // one value: show box w/ value
+        // many values: show boxes w/ split values
+        if (!$.isArray(diams)) {diams=[0];}
         
+        //diams is either [0] or an array of what's there by this point
         diams = tm.currentTreeDiams || diams;
         var html = '';
 
