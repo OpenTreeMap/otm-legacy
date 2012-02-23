@@ -377,11 +377,17 @@
                 <li>
                 {% if tree.treephoto_set.count %}
                     <a href="{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}" target="_blank">
-                    <img src="{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                        {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
+                        <img src="{{ image.url }}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                        {% endthumbnail %}
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
-                            <li><a href="{{ item.photo.url }}" target="_blank"><img alt="{{ item.title }}" title="{{ item.title }}" src="{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="{{ item.photo.url }}" target="_blank">
+                                {% thumbnail item.photo "55x36" crop="center" as image %}
+                                <img alt="{{ item.title }}" title="{{ item.title }}" src="{{ image.url }}" alt="image description" width="55" height="36" />
+                                {% endthumbnail %}
+                            </a></li>
                     {% endfor %}
                     </ul>
                     <ul id="imageOptions">

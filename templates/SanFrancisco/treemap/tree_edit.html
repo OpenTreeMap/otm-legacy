@@ -289,7 +289,9 @@
                 <li>
                     {% if instance.treephoto_set.count %}
                         <a href="{{ MEDIA_URL }}{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
-                            <img src="{{ MEDIA_URL }}{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                            {% thumbnail instance.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
+                            <img src="{{ image.url }}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                            {% endthumbnail %}
                         </a>
                         {% if perms.treemap.delete_tree %}
 							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
@@ -300,7 +302,11 @@
 						{% endif %}
                         <ul id="additionalImages">
 						{% for item in instance.treephoto_set.all|slice:"1:4" %}
-							<li><div><a href="{{ MEDIA_URL }}{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="{{ MEDIA_URL }}{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a>
+							<li><div><a href="{{ MEDIA_URL }}{{ item.photo.url }}">
+                                    {% thumbnail item.photo "55x36" crop="center" as image %}
+                                    <img alt="{{ item.title }}" title="{{ item.title }}" src="{{ image.url }}" alt="image description" width="55" height="36" />
+                                    {% endthumbnail %}
+                                    </a>
 								{% if perms.treemap.delete_tree %}
 									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ item.id }}); return false;">delete?</a></span>
 								{% endif %}

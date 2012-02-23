@@ -103,12 +103,13 @@
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
 
                 {% if tree.last_updated_by.get_profile.photo %}
-                    <img src="{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
-                        alt="image description" width="33" height="32" /></td>
+                    {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
+                    <img src="{{ image.url }}" alt="image description" width="33" height="32" />
+                    {% endthumbnail %}
                 {% else %}
-                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />
                 {% endif %}
-
+                </td>
                 <td>
                     <span>Neighborhood</span>  <br />
 
@@ -143,7 +144,9 @@
             {% for pic in latest_photos %}
                 <li>
                     <a href="{% url treemap.views.trees pic.tree.id %}">
-                        <img src="{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
+                        {% thumbnail pic.photo "43x42" as image %}
+                        <img src="image.url" alt="image description" width="43" height="42" />
+                        {% endthumbnail %}
                     </a>
                 </li>
             {% endfor %}
