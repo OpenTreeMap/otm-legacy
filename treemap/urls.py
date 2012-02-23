@@ -66,6 +66,7 @@ urlpatterns = patterns('',
     (r'^species/(?P<code>[-\w]+)/$', species),
 
     (r'^search/$', advanced_search),
+    (r'^search/geo$', geo_search),
     (r'^search/(?P<format>.*)/$', advanced_search),
     
     (r'^check_username/$', check_username),

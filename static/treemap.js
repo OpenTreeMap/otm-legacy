@@ -1937,7 +1937,16 @@ var tm = {
 	    html += "<br />";
         }
 
-        tm.currentTreeDiams = $.isArray(diams) ? diams : [diams];
+        if ($.isArray(diams)) {
+            if (diams.length == 0) {
+                tm.currentTreeDiams = [0];
+            } else {
+                tm.currentTreeDiams = diams;
+            }
+        } else {
+            tm.currentTreeDiams = [diams];
+        }
+
         html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Add another trunk?</a></span> <br />";
         html += "<span class='activeEdit'>";
         html += "<button type='submit' onclick='tm.saveDiameters(); return false;'>Save</button>";

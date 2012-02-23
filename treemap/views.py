@@ -17,7 +17,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.comments.models import Comment, CommentFlag
 from django.views.decorators.cache import cache_page
 from django.db.models import Count, Sum, Q
@@ -1292,6 +1292,49 @@ def ogr_conversion(output_type, sql, extension=None):
         response = HttpResponse(zipfile, mimetype='application/zip')
         response['Content-Disposition'] = 'attachment; filename=trees.zip'
         return response
+
+def geo_search(request):
+    """
+    Given a simple polygon in format: x1 y1,x2 y2,x3 y3,...,x1 y1
+    return basic info about trees
+    """
+    if 'polygon' not in request.REQUEST:
+        h = HttpResponse("Expected 'polygon' parameter")
+        h.status_code = 500
+        return h
+
+    polyWkt = "POLYGON ((%s))" % request.REQUEST['polygon']
+
+    try:
+        poly = GEOSGeometry(polyWkt)
+    except ValueError:
+        h = HttpResponse("Polygon input must be in the format: 'x1 y1,x2 y2,x3 y3,x1 y1'")
+        h.status_code = 500
+        return h
+
+    #TODO - Generate count?                                                                                                                                  
+    trees = Tree.objects.filter(geometry__within=poly, species__isnull=False, dbh__isnull=False).all()
+    
+    pruned = []
+    for tree in trees:
+        prune = { "id": tree.pk,
+                  "dbh": tree.dbh }
+        
+        if tree.species and tree.dbh:
+            prune["itree_code"] = tree.species.itree_code,
+            prune["species"] = tree.species.scientific_name
+
+            pruned.append(prune)
+
+    json = { "count": len(trees), "trees": pruned }
+
+    jsonstr = simplejson.dumps(json)
+
+    if "callback" in request.REQUEST:
+        jsonstr = "%s(%s);" % (request.REQUEST["callback"], jsonstr)
+
+    return HttpResponse(jsonstr, mimetype='application/json')
+
 
 def advanced_search(request, format='json'):
     """
