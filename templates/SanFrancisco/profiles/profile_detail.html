@@ -43,9 +43,15 @@
 
         <div id="t2_top_left_panel">
             <ul id="userImage">
-                <li>{% if profile.photo %}
-                <img src="/media/{% thumbnail profile.photo 200x100 bw autocrop %}" class="mainImage" />{% else %}<img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" class="mainImage" />
-                {% endif %}</li>
+                <li>
+                    {% if profile.photo %}
+                        {% thumbnail profile.photo "200x100" colorspace="GRAY" crop="center" as image %}
+                        <img src="{{ image.url }}" class="mainImage" />
+                        {% endthumbnail %}
+                    {% else %}
+                        <img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" class="mainImage" />
+                    {% endif %}
+                </li>
             </ul>
 
 
@@ -280,7 +286,9 @@
                     {% for pic in profile.recently_added_photos %}
                     <li>
                         <a href="{{ pic.tree.get_absolute_url }}">
-                            <img src="/media/{% thumbnail pic.photo 100x70 crop %}" alt="image description" width="202" height="146" />
+                            {% thumbnail pic.photo "100x70" crop="center" as image %}
+                            <img src="{{ image.url }}" alt="image description" width="202" height="146" />
+                            {% endthumbnail %}
                         </a>
                         
                         <dl>

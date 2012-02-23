@@ -35,7 +35,11 @@
         <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>{% if profile.photo %}
-                <img src="{{ SITE_ROOT }}media/{% thumbnail profile.photo 200x100 bw autocrop %}" />{% else %}<img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" />
+                    {% thumbnail profile.photo "200x100" colorspace="GRAY" crop="center" as image %}
+                    <img src="{{image.url}}" />
+                    {% endthumbnail %}
+                {% else %}
+                    <img src="{{ STATIC_URL }}images/v2/profile1.gif" alt="Profile image" width="180" />
                 {% endif %}</li>
             </ul>
             <ul id="imageOptions">
@@ -196,7 +200,9 @@
                     <tr>
                         <td class="image"><a href="{{ SITE_ROOT }}trees/{{ tree.id }}/">
                         {% if tree.treephoto_set.count %}
-                            <img src="{{ SITE_ROOT }}media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 40x40 crop %}" alt="image description" width="40" height="40" />                   
+                            {% thumbnail tree.treephoto_set.all|first|get:"photo" "40x40" crop="center" as image %}
+                            <img src="{{ image.url }}" alt="image description" width="40" height="40" />   
+                            {% endthumbnail %}                
                         {% else %}
                             <img src="{{ STATIC_URL }}images/es/image22.gif" alt="image description" width="40" height="40" />
                         {% endif %}
@@ -227,33 +233,6 @@
                        
                 </table>
             </div>
-            {% comment %}
-            <div class="comments">
-                <div class="wrap">
-                  <h2>Comments and stories</h2>
-                </div>
-                <ul>
-                   {% for story in recent_stories %}
-                    <li>
-                        <div class="user-info">
-                            <img src="{{ STATIC_URL }}images/es/image22.gif" alt="image description" width="40" height="40" />
-                            <span>18 posts</span>
-                        </div>
-                        <div class="post">
-                            <p><a href="#">Josh L.</a><br />"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget nibh nisi, tincidunt interdum magna. Nam  consectetur, nibh non sagittis iaculis Nam consectetur, nibh non sagittis iaculis, leo elit lobortis tellus, sit amet fermentum augue neque vitae odio. Donec sed ipsum lectus, et convallis mauris non tellus nisl consectetur..." <a href="#" class="more">More</a></p>
-                        </div>
-                    </li>
-                     {% endfor %}
-                </ul>
-                <!--
-                <table class="addet" id="extra">
-                    <tr>
-                        <td colspan="4"><a href="#">See all comments and stories &raquo;</a></td>
-                    </tr>
-                </table>
-                -->
-            </div>
-            {% endcomment %}
             
             
             <div class="recent-photos">
@@ -264,7 +243,9 @@
                 <ul>
                     {% for pic in profile.recently_added_photos %}
                     <li>
-                        <img src="{{ SITE_ROOT }}media/{% thumbnail pic.photo 202x146 crop %}" alt="image description" width="202" height="146" />
+                        {% thumbnail pic.photo "202x146" crop="center" as image %}
+                        <img src="{{ image.url }}" alt="image description" width="202" height="146" />
+                        {% endthumbnail %}
                         <dl>
                             <dt>Tree #:</dt>
                             <dd>12345</dd>
@@ -277,13 +258,6 @@
                 {% else %}
                    No photos yet!
                 {% endif %}
-                <!--
-                <table class="addet">
-                    <tr>
-                        <td colspan="4"><a href="#">See all photos &raquo;</a></td>
-                    </tr>
-                </table>
-                -->
             </div>
                 
 {% endblock %}

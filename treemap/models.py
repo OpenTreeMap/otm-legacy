@@ -2,21 +2,23 @@ import os
 import math
 from decimal import *
 from datetime import datetime
+from itertools import chain
+
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
-from sorl.thumbnail.fields import ImageWithThumbnailsField
-from classfaves.models import FavoriteBase
-import logging
-import audit
-import simplejson
-from itertools import chain
-
 from django.core.exceptions import ValidationError
 
+import audit
+from classfaves.models import FavoriteBase
+import logging
+import simplejson
+from sorl.thumbnail import ImageField
 from threadedcomments.models import ThreadedComment
+
+
 
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
@@ -1000,16 +1002,16 @@ class TreeFlags(TreeItem):
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):
-        test_path = os.path.join(settings.MEDIA_ROOT, 'photos', str(instance.tree_id), filename)
+        test_path = os.path.join(settings.SITE_ROOT, settings.MEDIA_ROOT, 'photos', str(instance.tree_id), filename)
         extra = 1
         while os.path.exists(test_path):
            extra += 1
-           test_path = os.path.join(settings.MEDIA_ROOT, 'photos', str(instance.tree_id), str(extra) + '_' + filename)
+           test_path = os.path.join(settings.SITE_ROOT, settings.MEDIA_ROOT, 'photos', str(instance.tree_id), str(extra) + '_' + filename)
         path = os.path.join('photos', str(instance.tree_id), str(extra) + '_' + filename)
         return path
 
     title = models.CharField(max_length=256,null=True,blank=True)
-    photo = ImageWithThumbnailsField(upload_to=get_photo_path, thumbnail={'size': (50, 50)})
+    photo = ImageField(upload_to=get_photo_path)
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)

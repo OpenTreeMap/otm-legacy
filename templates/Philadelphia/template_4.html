@@ -46,7 +46,11 @@
             <div id="home_recent_additions">
               <h3>Recent Additions</h3>
               {% for photo in feeds.recent_photos %}
-              <a href="{% url treemap_tree_detail photo.tree.id %}"><img src="{% thumbnail photo.photo 60x65 crop upscale %}"></a>
+                <a href="{% url treemap_tree_detail photo.tree.id %}">
+                {% thumbnail photo.photo "60x65" crop="center" as image %}
+                <img src="{{ image.url }}">
+                {% endthumbnail %}
+                </a>
               {% endfor %}       
               
             </div>      

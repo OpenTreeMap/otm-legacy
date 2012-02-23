@@ -83,7 +83,7 @@
         <div class="box-1"> 
         <h2>Recent updates</h2> 
         <p>Our database of trees comes from public records and citizen foresters like you.
-            Your help will make it better. <!--<a href="#">Find out how to add and edit trees near you!</a>-->
+            Your help will make it better.
         </p> 
         <table width="100%"> 
         {% for tree in latest_trees %}
@@ -91,20 +91,14 @@
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
                 
                 {% if tree.last_updated_by.get_profile.photo %}
-                    <img src="/media/{% thumbnail tree.last_updated_by.get_profile.photo 32x32 crop %}"
-                        alt="image description" width="33" height="32" /></td> 
+                    {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" %}
+                    <img src="" alt="image description" width="33" height="32" />
+                    {% endthumbnail %}
                 {% else %}
-                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" /></td>              
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />            
                 {% endif %}
+                </td>  
                 
-                {% comment %}
-                {% if tree.treephoto_set.count %}
-                    <img src="/media/{% thumbnail tree.treephoto_set.all|first|get:"photo" 32x32 crop %}"
-                        alt="image description" width="33" height="32" /></td> 
-                {% else %}
-                    <img src="{{ STATIC_URL }}images/es/image10.gif" alt="image description" width="33" height="32" /></a></td> 
-                {% endif %}
-                {% endcomment %}
                 <td> 
                     <span>Neighborhood</span>  <br />
 
@@ -139,23 +133,15 @@
             {% for pic in latest_photos %}
                 <li>
                     <a href="{{ pic.tree.get_absolute_url }}">
-                        <img src="/media/{% thumbnail pic.photo 43x42 %}" alt="image description" width="43" height="42" />
+                        {% thumbnail pic.photo "43x42" as image %}
+                        <img src="{{ image.url }}" alt="image description" width="43" height="42" />
+                        {% endthumbnail %}
                     </a>
                 </li>
             {% endfor %}
             
             </ul> 
             
-            <!-- Where is this info supposed to come from? -->
-            <!--
-            <div class="title"> 
-                <h2>Comments and stories</h2> 
-                <a href="#">Add your own</a>
-            </div> 
-            <div class="comments"> 
-                <p>Lorem ipsum dolor sit amet consecteturadipiscing elit. Sed eget nibh nisi, tincidunt interdum magna. Nam consectetur, nibh non sagittis iaculis, lleo elit lobortis tellus, sit amet fermentum augue neque vitae odio nibh nor agittis iaculis... <a href="#" class="more">More</a></p> 
-            </div>
-            -->
         </div> 
         {% endblock bottom_right_panel %}
 {% block endpage %}
