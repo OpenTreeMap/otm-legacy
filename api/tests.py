@@ -149,5 +149,52 @@ class PlotListing(TestCase):
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
 
-    
+class Locations(TestCase):
+    def setUp(self):
+        settings.GEOSERVER_GEO_LAYER = ""
+        settings.GEOSERVER_GEO_STYLE = ""
+        settings.GEOSERVER_URL = ""
 
+        setupTreemapEnv()
+
+        self.user = User.objects.get(username="jim")
+
+    def test_locations_plots_endpoint(self):
+        response = self.client.get("%s/locations/0,0/plots" % API_PFX)
+        self.assertEqual(response.status_code, 200)
+
+    def test_locations_plots_endpoint_max_plots_param_must_be_a_number(self):
+        response = self.client.get("%s/locations/0,0/plots?max_plots=foo" % API_PFX)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
+
+    def test_locations_plots_endpoint_max_plots_param_cannot_be_greater_than_500(self):
+        response = self.client.get("%s/locations/0,0/plots?max_plots=501" % API_PFX)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
+        response = self.client.get("%s/locations/0,0/plots?max_plots=500" % API_PFX)
+        self.assertEqual(response.status_code, 200)
+
+    def test_locations_plots_endpoint_max_plots_param_cannot_be_less_than_1(self):
+        response = self.client.get("%s/locations/0,0/plots?max_plots=0" % API_PFX)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
+        response = self.client.get("%s/locations/0,0/plots?max_plots=1" % API_PFX)
+        self.assertEqual(response.status_code, 200)
+
+    def test_locations_plots_endpoint_distance_param_must_be_a_number(self):
+        response = self.client.get("%s/locations/0,0/plots?distance=foo" % API_PFX)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'The distance parameter must be a number')
+        response = self.client.get("%s/locations/0,0/plots?distance=42" % API_PFX)
+        self.assertEqual(response.status_code, 200)
+
+    def test_plots(self):
+        plot = mkPlot(self.user)
+        plot.present = True
+        plot.save()
+
+        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geometry.x, plot.geometry.y))
+
+        self.assertEqual(response.status_code, 200)
+        json = loads(response.content)
