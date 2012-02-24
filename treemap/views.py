@@ -1608,13 +1608,13 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
     else:
         geometry = ''
 
-    command = ['ogr2ogr', '-sql', tree_sql, '-f', output_type, tmp_treename, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
     done = subprocess.call(command)
 
     if done != 0: 
         return render_to_json({'status':'error'})
 
-    command = ['ogr2ogr', '-sql', plot_sql, '-f', output_type, tmp_plotname, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    command = ['ogr2ogr', '-sql', plot_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_plotname, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
     done = subprocess.call(command)
 
     if done != 0: 
