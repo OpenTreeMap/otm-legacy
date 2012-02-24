@@ -13,12 +13,15 @@ urlpatterns = patterns('',
     (r'^_admin_/', include(admin.site.urls)),
     (r'^databrowse/(.*)', databrowse.site.root),
     
+    (r'^static/css/images/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.STATIC_DATA + "/images/" + settings.SITE_LOCATION}),
+
     (r'^static/css/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA + "/css/" + settings.SITE_LOCATION}),
     (r'^static/images/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA + "/images/" + settings.SITE_LOCATION}),
-    (r'^static/js/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.STATIC_DATA + "/js/" + settings.SITE_LOCATION}),
+    #(r'^static/js/(?P<path>.*)$', 'django.views.static.serve',
+    #    {'document_root': settings.STATIC_DATA + "/js/" + settings.SITE_LOCATION}),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA}),

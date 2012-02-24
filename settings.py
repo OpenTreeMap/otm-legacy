@@ -3,9 +3,9 @@ import os
 SITE_ROOT = ''
 
 #from settings_philadelphia import *
+from settings_dctreekit import *
 #from settings_sanfrancisco import *
 #from settings_greenprint import *
-from settings_dctreekit import *
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
@@ -92,12 +92,15 @@ INSTALLED_APPS = (
     'pagination',
     'django_sorting',
     'geopy_extensions',
+    'pipeline',
 )
 
 try:
     from local_settings import *
 except ImportError, exp:
     pass
+
+PIPELINE_URL = SITE_ROOT
 
 if SITE_ROOT is not "/":
     LOGIN_URL = "%s/accounts/login" % SITE_ROOT

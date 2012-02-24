@@ -42,6 +42,7 @@ Required libraries from the web
     wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
     wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
     git clone git://github.com/miracle2k/webassets.git
+    pip install django-pipeline
 
 Patches:
     Fix to proj to deal with spherical mercator

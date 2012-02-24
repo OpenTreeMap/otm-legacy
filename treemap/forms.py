@@ -151,7 +151,7 @@ class TreeAddForm(forms.Form):
         if species or height or canopy_height or dbh or condition or canopy_condition:
            # print species, height, canopy_height, dbh, condition, canopy_condition
             if species:
-                spp = Species.objects.filter(symbol=species)
+                spp = Species.objects.filter(id=species)
                 if spp:
                     new_tree = Tree(species=spp[0])
                 else:
