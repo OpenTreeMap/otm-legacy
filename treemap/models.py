@@ -375,6 +375,37 @@ class ImportEvent(models.Model):
     file_name = models.CharField(max_length=256)
     import_date = models.DateField(auto_now=True) 
 
+class PlotLocateManager(models.GeoManager):
+
+    def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None):
+        '''
+        Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
+        '''
+        plots = Plot.objects.filter(present=True)
+
+        if geom.geom_type == 'Point':
+            plots = plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
+        else:
+            plots = plots.filter(geometry__intersects=geom)
+
+        if (len(plots) > 0):
+            extent = plots.extent()
+        else:
+            extent = []
+
+        if species_preferenece:
+            plots_filtered_by_species_preference = plots.filter(tree__species__id=species_preferenece, tree__present=True)
+            # If a species_preferenece is specified then any nearby trees with that species_preferenece will be
+            # returned. If there are no trees for that species_preferenece, the nearest tree from any
+            # species_preferenece will be returned.
+            if len(plots_filtered_by_species_preference) > 0:
+                plots = plots_filtered_by_species_preference
+
+        if len(plots) > 0:
+            plots = plots[:max_plots]
+
+        return plots, extent
+
 class Plot(models.Model):
     present = models.BooleanField(default=True)
     width = models.FloatField(null=True, blank=True)
@@ -407,6 +438,8 @@ class Plot(models.Model):
     history = audit.AuditTrail()
     import_event = models.ForeignKey(ImportEvent)
     objects = models.GeoManager()
+    # The locate Manager encapsulates plot search functionality
+    locate = PlotLocateManager()
 
     #original data to help owners associate back to their own db
     data_owner = models.ForeignKey(User, related_name="owner", null=True)

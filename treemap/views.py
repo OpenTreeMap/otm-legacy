@@ -241,37 +241,11 @@ def plot_location_search(request):
     max_plots = int(request.GET.get('max_plots', 1))
 
     if max_plots > 500: max_plots = 500
-    
-    plots = Plot.objects.filter(present=True)
-        #don't filter by geocode accuracy until we know why some new trees are getting -1
-        #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
-    if geom.geom_type == 'Point':
 
-        #print float(distance), geom, plots
-        plots = plots.filter(geometry__dwithin=(
-            geom, float(distance))
-            ).distance(geom).order_by('distance')
-    else:
-      plots = plots.filter(geometry__intersects=geom)
-
-    # needed to be able to prioritize overlapping trees
-
-    if plots:
-        extent = plots.extent()
-    else:
-        extent = []
-    
     species = request.GET.get('species')
 
-    if species:
-        plots_filtered_by_species = plots.filter(tree__species__id=species, tree__present=True)
-        # to allow clicking other trees still...
-        if len(plots_filtered_by_species) > 0:
-            plots = plots_filtered_by_species
-    
-    if len(plots) > 0:
-        plots = plots[:max_plots]
-    
+    plots, extent = Plot.locate.with_geometry(geom, distance, max_plots, species)
+
     return render_to_geojson(plots,
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
