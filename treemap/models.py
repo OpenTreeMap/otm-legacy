@@ -323,6 +323,7 @@ class Species(models.Model):
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True) #sometimes we just have genus/cultivar combo
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
+    gender = models.CharField(max_length=50, null=True, blank=True)
     common_name = models.CharField(max_length=255, null=True, blank=True)
     
     native_status = models.CharField(max_length=255, null=True, blank=True)
