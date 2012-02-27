@@ -53,9 +53,9 @@
         <td></td>
     </tr>
     <tr>
-    	<td class="col1">Tree diameter (inches)<a href="{{ SITE_ROOT }}resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
-        <td id="edit_dbh">{{ tree.dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{tree.dbh}}'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+    	<td class="col1">Tree diameter (inches)<a href="{{ SITE_ROOT }}faq/#measure" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+        <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', '{{instance.dbh}}'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
     {% if user.reputation.reputation > 1000 %}

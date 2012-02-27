@@ -144,7 +144,7 @@ tm = {
             if (span.length > 0){
                 span.html(tm.addCommas(parseInt(v)));
             }
-            });
+        });
 
         tm.display_benefits(summaries.benefits);
     },
@@ -248,7 +248,7 @@ tm = {
         if (options) {
             for (var key in options) {
                 if (key == "loadurl") {
-                    editableOptions[key] = tm_static + "" + options[key];
+                    editableOptions[key] =  options[key];
                 } else {
                     editableOptions[key] = options[key];
                 }
@@ -760,16 +760,32 @@ tm = {
         var html = '';
 
         tm.currentDiameter = $(field).html();
-        for (var i = 0; i < Math.max(diams.length, 1); i++) {
-            var val = '';
-            if (diams[i]) { val = parseFloat(diams[i]).toFixed(3); }
-            html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
-            if (i == 0) {
-                html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+	if ($.isArray(diams)){
+            for (var i = 0; i < Math.max(diams.length, 1); i++) {
+                var val = '';
+                if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
+                html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
+                if (i == 0) {
+                    html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+                }
+                html += "<br />";
             }
-            html += "<br />";
+	} else {
+	    html += "<input type='text' size='7' id='dbh0' name='dbh0' value='"+ parseFloat(diams).toFixed(3) + "' />";
+	    html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+	    html += "<br />";
         }
-        tm.currentTreeDiams = diams.length ? diams : [0];
+
+        if ($.isArray(diams)) {
+            if (diams.length == 0) {
+                tm.currentTreeDiams = [0];
+            } else {
+                tm.currentTreeDiams = diams;
+            }
+        } else {
+            tm.currentTreeDiams = [diams];
+        }
+
         html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Add another trunk?</a></span> <br />";
         html += "<span class='activeEdit'>";
         html += "<button type='submit' onclick='tm.saveDiameters(); return false;'>Save</button>";
