@@ -35,6 +35,7 @@
                     <th>Genus</th>
                     <th>Scientific Name</th>
                     <th>Cultivar</th>
+		    <th>Gender</th>
                     <th>Accepted Symbol</th>
                 </tr>
                 </thead>
@@ -46,6 +47,7 @@
                     <td><i>{{s.genus}}</i></td>
                     <td class="{{v.species.invasive_status}}"><i>{{s.scientific_name}}</i></td>
                     <td><i>{{s.cultivar_name}}</i></td>
+		    <td><i>{{s.gender}}</i></td>
                     <td>{{s.accepted_symbol}}</td>
                 </tr>
                 {% endfor %}
