@@ -313,9 +313,13 @@ tm = {
 
         $(this).removeClass("error");
         
-        if (settings.fieldName == 'species_id' && value == 0) {
-            $(this).addClass("error");
-            return "Please select a species from the provided list.";
+        if (settings.fieldName == 'species_id') {
+            if (value == 0) {
+                $(this).addClass("error");
+                return "Please select a species from the provided list.";
+            }
+            data['update']['species_other1'] = $('#other_species1')[0].value;
+            data['update']['species_other2'] = $('#other_species2')[0].value;
         }
 
         //do some validation for height and canopy height
@@ -360,12 +364,19 @@ tm = {
                         value = response['update']['value'];
                     }
                     if (settings.fieldName == "species_id") {
-                        for (var i = 0; i < speciesData.length; i++) {
-                            if (speciesData[i].id == value) {
-                                value = speciesData[i].sname;
-                                $("#edit_species").html(speciesData[i].cname);
+                        for (var i = 0; i < tm.speciesData.length; i++) {
+                            if (tm.speciesData[i].id == value) {
+                                value = tm.speciesData[i].sname;
+                                $("#edit_species").html(tm.speciesData[i].cname);
                             }
-                        }    
+                        }
+                        var other1 = response['update']['species_other1'];
+                        var other2 = response['update']['species_other2'];
+                        if ($('#edit_species_other').length > 0) {
+                            $('#edit_species_other')[0].innerHTML = other1 + " " + other2;
+                        } else {
+                            $("#edit_species").append('<br>' + other1 + " " + other2);
+                        }
                     }
                     if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}

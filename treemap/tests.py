@@ -541,6 +541,8 @@ class ViewTests(TestCase):
         #     Info in the rest of the fields creates a tree object as well as a plot
 
         form['species_id'] = self.s1.id
+        form['species_other1'] = 'newgenus'
+        form['species_other2'] = 'newspecies'
         form['height'] = 50  
         form['canopy_height'] = 40  
         form['dbh'] = 2 

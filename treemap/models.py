@@ -605,6 +605,8 @@ class Tree(models.Model):
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
+    species_other1 = models.CharField(max_length=255, null=True, blank=True)
+    species_other2 = models.CharField(max_length=255, null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     height = models.FloatField(null=True, blank=True)

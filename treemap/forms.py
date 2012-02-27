@@ -35,6 +35,8 @@ class TreeAddForm(forms.Form):
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
+    species_other1 = forms.CharField(required=False, initial="Genus")
+    species_other2 = forms.CharField(required=False, initial="species")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False, label="Trunk size")
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
@@ -140,6 +142,8 @@ class TreeAddForm(forms.Form):
         plot.save()
 
         species = self.cleaned_data.get('species_id')
+        species_other1 = self.cleaned_data.get('species_other1')
+        species_other2 = self.cleaned_data.get('species_other2')
         height = self.cleaned_data.get('height')
         canopy_height = self.cleaned_data.get('canopy_height')
         dbh = self.cleaned_data.get('dbh')
@@ -159,6 +163,10 @@ class TreeAddForm(forms.Form):
             else:
                 new_tree = Tree()
 
+            if species_other1:
+                new_tree.species_other1 = species_other1
+            if species_other2:
+                new_tree.species_other2 = species_other2
             if height:
                 new_tree.height = height
             if canopy_height:

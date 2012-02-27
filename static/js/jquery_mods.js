@@ -31,11 +31,23 @@ $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {
         var hiddenInput = $('<input type="hidden" class="hide">');
         var input = $("<input type='text' />");
+        var other = $("<input type='text' id='other_species1' /><input type='text' id='other_species2' /><br><span>Genus and species</span>")
         tm.setupAutoComplete(input).result(function(event, item) {
             hiddenInput[0].value = item.id; 
+            if (input[0].value.indexOf('Other') > -1) {
+                other.show();
+            } else {
+                other.hide();
+                $('#other_species1').empty();
+                $('#other_species2').empty();
+            }
         });
-        $(this).append(input);
-        $(this).append(hiddenInput);
+        var target = $(this);
+        target.append(input);
+        target.append(other);
+        other.hide();
+        target.append(hiddenInput);
+
         return (hiddenInput);
     }
 });
