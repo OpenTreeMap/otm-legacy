@@ -114,15 +114,12 @@ def plots_closest_to_point(request, lat=None, lon=None):
 
     species = request.GET.get('species', None)
 
-    plots, extent = Plot.locate.with_geometry(point, distance, species)
+    plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species)
 
     return plots_to_list_of_dict(plots)
 
 def plots_to_list_of_dict(plots):
-    plot_list = []
-    for plot in plots:
-        plot_list.append(plot_to_dict(plot))
-    return plot_list
+    return [plot_to_dict(plot) for plot in plots]
 
 def plot_to_dict(plot):
     current_tree = plot.current_tree()
