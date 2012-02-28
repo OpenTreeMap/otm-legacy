@@ -2,7 +2,7 @@ from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 
-from treemap.models import Plot, Species
+from treemap.models import Plot, Species, TreePhoto
 from django.contrib.gis.geos import Point
 
 from functools import wraps
@@ -12,6 +12,25 @@ import simplejson
 class HttpBadRequestException(Exception):
     pass
 
+def api_call_raw(content_type="image/jpeg"):
+    def decorate(req_function):
+        @wraps(req_function)
+        def newreq(request, *args, **kwargs):
+            try:
+                outp = req_function(request, *args, **kwargs)
+                response = HttpResponse(outp)
+                response['Content-length'] = str(len(response.content))
+                response['Content-Type'] = content_type
+            except HttpBadRequestException, bad_request:
+                response = HttpResponseBadRequest(bad_request.message)
+            except Exception:
+                response = HttpResponseServerError()
+
+            return response
+            
+        return newreq
+    return decorate
+      
 def api_call(content_type="application/json"):
     def decorate(req_function):
         @wraps(req_function)
@@ -54,6 +73,25 @@ def version(request):
     """
     return { "otm_version": settings.OTM_VERSION,
              "api_version": settings.API_VERSION }
+
+@require_http_methods(["GET"])
+@api_call_raw("image/jpeg")
+def get_tree_image(request, plot_id, photo_id):
+    """ API Request
+
+    URL: /plot/{plot_id}/tree/photos/#{tree_photoid}
+    Verb: GET
+    Params:
+       
+    Output:
+      image/jpeg raw data
+    """
+    treephoto = TreePhoto.objects.get(pk=photo_id)
+
+    if treephoto.tree.plot.pk == int(plot_id):
+        return open(treephoto.photo.path, 'rb').read()
+    else:
+        raise HttpBadRequestException('invalid url (missing objects)')
 
 @require_http_methods(["GET"])
 @api_call()
@@ -128,9 +166,15 @@ def plot_to_dict(plot):
 
         if current_tree.species:
             tree_dict["species"] = current_tree.species.pk
+            tree_dict["species_name"] = current_tree.species.common_name
 
         if current_tree.dbh:
             tree_dict["dbh"] = current_tree.dbh
+
+        images = current_tree.treephoto_set.all()
+
+        if len(images) > 0:
+            tree_dict["images"] = [{ "id": image.pk, "title": image.title } for image in images]
     else:
         tree_dict = None
 
@@ -141,6 +185,7 @@ def plot_to_dict(plot):
         "type": plot.type,
         "readonly": plot.readonly,
         "tree": tree_dict,
+        "address": plot.geocoded_address,
         "geometry": {
             "srid": plot.geometry.srid,
             "lat": plot.geometry.y,
