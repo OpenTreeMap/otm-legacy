@@ -134,12 +134,19 @@ class Command(BaseCommand):
             genus = str(row['GENUS']).strip()
             species = ''
             cultivar = ''
+            gender = ''
+            name = genus
             if row.get('SPECIES'):
                 species = str(row['SPECIES']).strip()
+                name = name + " " + species
             if row.get('CULTIVAR'):
                 cultivar = str(row['CULTIVAR']).strip()
-            species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar)
-            self.log_verbose("  Looking for species: %s %s %s" % (genus, species, cultivar))
+                name = name + " " + cultivar
+            if row.get('GENDER'):
+                gender = str(row['GENDER']).strip()
+                name = name + " " + gender
+            species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar).filter(gender__iexact=gender)
+            self.log_verbose("  Looking for species: %s %s %s %s" % (genus, species, cultivar, gender))
         
 
         if species: #species match found
@@ -380,8 +387,18 @@ class Command(BaseCommand):
                 tree.sponsor = str(row["SPONSOR"])
 
             if row.get('DATEPLANTED'):
-                date = str(row['DATEPLANTED'])
-                date = datetime.strptime(date, "%m/%d/%Y")
+                date_string = str(row['DATEPLANTED'])
+                try:
+                    date = datetime.strptime(date_string, "%m/%d/%Y")
+                except:
+                    pass
+                try:
+                    date = datetime.strptime(date_string, "%Y/%m/%d")
+                except:
+                    pass
+                if not date:
+                    raise ValueError("Date strings must be in mm/dd/yyyy or yyyy/mm/dd format")
+                
                 tree.date_planted = date.strftime("%Y-%m-%d")
 
             if row.get('DIAMETER'):
