@@ -13,6 +13,7 @@ class HttpBadRequestException(Exception):
     pass
 
 def api_call_raw(content_type="image/jpeg"):
+    """ Wrap an API call that writes raw binary data """
     def decorate(req_function):
         @wraps(req_function)
         def newreq(request, *args, **kwargs):
@@ -32,6 +33,9 @@ def api_call_raw(content_type="image/jpeg"):
     return decorate
       
 def api_call(content_type="application/json"):
+    """ Wrap an API call that returns an object that
+        is convertable from json
+    """
     def decorate(req_function):
         @wraps(req_function)
         def newreq(request, *args, **kwargs):
@@ -61,7 +65,6 @@ def version(request):
     any API version < 1 and minor changes (i.e. 1.4,1.5,1.6) represent no break in
     existing functionality
 
-    URL: /version
     Verb: GET
     Params: None
     Output:
@@ -79,7 +82,6 @@ def version(request):
 def get_tree_image(request, plot_id, photo_id):
     """ API Request
 
-    URL: /plot/{plot_id}/tree/photos/#{tree_photoid}
     Verb: GET
     Params:
        
@@ -101,7 +103,6 @@ def get_plot_list(request):
     Get a list of all plots in the database. This is meant to be a lightweight
     listing service. To get more details about a plot use the ^plot/{id}$ service
     
-    URL: /plots
     Verb: GET
     Params: 
       offset, integer, default = 0  -> offset to start results from
