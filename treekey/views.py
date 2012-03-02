@@ -16,7 +16,7 @@ def index_maker():
         for child in node.child_set.all():
             if child.has_children():
                 yield render_to_string('treekey/list_branch.html',
-                                           request, {'node': child,
+                                           {'node': child,
                                            'leaves': _index(child)})
                 continue
 
