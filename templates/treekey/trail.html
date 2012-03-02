@@ -9,13 +9,8 @@
 
 		{% else %}
 
-			{% if crumb.has_children %}
-				<span class="crumb"><a href="{{ SITE_ROOT }}treekey/node/{{ crumb.id }}">{{ crumb }}</a></span>
-				<span class="crumb-sep"> > </span>
-			{% else %}
-				<span class="crumb"><a href="{{ SITE_ROOT }}treekey/node/{{ crumb.id }}">{{ crumb }}</a></span>
-				<span class="crumb-sep"> > </span>
-			{% endif %}
+			<span class="crumb"><a href="{{ SITE_ROOT }}treekey/node/{{ crumb.id }}">{{ crumb }}</a></span>
+			<span class="crumb-sep"> > </span>
 
 		{% endif %}
 
