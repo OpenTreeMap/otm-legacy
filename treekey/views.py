@@ -10,19 +10,19 @@ def nodes(request):
 
 # Warning! Recursion here! Tread carefully!
 # Recursively generates a tree of nodes in their parent-child relationships
-def index_maker():
+def index_maker(request):
     rootnode = Node.objects.order_by('id')[0]
     def _index(node):
         for child in node.child_set.all():
             if child.has_children():
                 yield render_to_string('treekey/list_branch.html',
                                            {'node': child,
-                                           'leaves': _index(child)})
+                                           'leaves': _index(child)}, RequestContext(request))
                 continue
 
             yield render_to_string('treekey/list_branch.html',
                 {'node': child,
-                'leaves': None})
+                'leaves': None}, RequestContext(request))
     return _index(rootnode)
 
 # Warning! Inner-loop reassignment here! Tread carefully!
@@ -38,23 +38,23 @@ def trail_maker(n):
 # Returns the starting node for the key. Must be the first record in the database.
 def first_node(request):
     f = Node.objects.order_by('id')[0]
-    return render_to_response('treekey/node.html', RequestContext(request, {'request': request, 'node':f, 'display':index_maker(), 'trail':trail_maker(f)}))
+    return render_to_response('treekey/node.html', RequestContext(request, {'request': request, 'node':f, 'display':index_maker(request), 'trail':trail_maker(f)}))
 
 # Returns a node or leaf depending on the child objects
 def node(request, node_id):
     n = get_object_or_404(Node, pk=node_id)
     if n.has_children():
-        return render_to_response('treekey/node.html', RequestContext(request, {'request': request, 'node':n, 'display':index_maker(), 'trail':trail_maker(n)}))
-    return render_to_response('treekey/leaf.html', RequestContext(request, {request: request, 'leaf':n, 'display':index_maker(), 'trail':trail_maker(n)}))
+        return render_to_response('treekey/node.html', RequestContext(request, {'request': request, 'node':n, 'display':index_maker(request), 'trail':trail_maker(n)}))
+    return render_to_response('treekey/leaf.html', RequestContext(request, {request: request, 'leaf':n, 'display':index_maker(request), 'trail':trail_maker(n)}))
 
 # Returns species information with parent node trail/index information
 def species(request, species_id):
     s = get_object_or_404(Species, pk=species_id)
     n = s.node_set.all()[0];
-    return render_to_response('treekey/species.html', RequestContext(request, {'request': request, 'species':s, 'display':index_maker(), 'trail':trail_maker(n)}))
+    return render_to_response('treekey/species.html', RequestContext(request, {'request': request, 'species':s, 'display':index_maker(request), 'trail':trail_maker(n)}))
     
 def browse(request):
     f = Node.objects.order_by('id')[0]
     species = Species.objects.all().order_by('common_name')
-    return render_to_response('treekey/browse.html', RequestContext(request, {'request': request, 'species':species, 'display':index_maker(), 'trail':trail_maker(f)}))
+    return render_to_response('treekey/browse.html', RequestContext(request, {'request': request, 'species':species, 'display':index_maker(request), 'trail':trail_maker(f)}))
     
