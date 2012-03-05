@@ -7,6 +7,10 @@ from django.contrib.gis.geos import Point
 
 from functools import wraps
 
+import struct
+import ctypes
+import math
+
 import simplejson 
 
 class HttpBadRequestException(Exception):
@@ -24,11 +28,8 @@ def api_call_raw(content_type="image/jpeg"):
                 response['Content-Type'] = content_type
             except HttpBadRequestException, bad_request:
                 response = HttpResponseBadRequest(bad_request.message)
-            except Exception:
-                response = HttpResponseServerError()
-
-            return response
             
+            return response
         return newreq
     return decorate
       
@@ -47,14 +48,141 @@ def api_call(content_type="application/json"):
                 response['Content-Type'] = content_type
             except HttpBadRequestException, bad_request:
                 response = HttpResponseBadRequest(bad_request.message)
-            except Exception:
-                response = HttpResponseServerError()
 
             return response
             
         return newreq
     return decorate
 
+
+@require_http_methods(["GET"])
+@api_call_raw("otm/trees")
+def get_trees_in_tile(request):
+    """ API Request
+
+    Get pixel coordinates for trees in a 256x256 tile
+
+    Verb: GET
+    Params:
+       bbox - xmin,ymin,xmax,ymax projected into web mercator
+
+    Output:
+       Raw Binary format as follows:
+
+       0xA3A5EA         - 3 byte magic number
+       0x00             - 1 byte pad
+       Number of points - 4 byte uint
+       Section Header   - 4 bytes
+       Point pair - 2 bytes
+       Point pair
+       ...
+       Point pair
+       Section Header
+       ...
+
+       Section Header:
+       Position  Field          Value  Type
+       Byte N    Style Type     0-255  Enum
+       Byte N+1  Number of pts         Unsigned Short
+       Byte N+3  -----          0      Padding
+
+       Point Pair:
+       Position Field     Type
+       Byte N   X offset  Byte (Unsigned)
+       Byte N+1 Y offset  Byte (Unsigned)
+
+    """
+    
+    # This method should execute as fast as possible to avoid the django/ORM overhead we are going
+    # to execute raw SQL queries
+    from django.db import connection, transaction
+
+    cursor = connection.cursor()
+
+    # Construct the bbox
+    bbox = request.GET['bbox']
+    (xmin,ymin,xmax,ymax) = map(float,bbox.split(","))
+    bboxFilterStr = "ST_GeomFromText('POLYGON(({xmin} {ymin},{xmin} {ymax},{xmax} {ymax},{xmax} {ymin},{xmin} {ymin}))', 4326)"
+    bboxFilter = bboxFilterStr.format(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax)
+
+    (xminM,yminM) = latlng2webm(xmin,ymin) 
+    (xmaxM,ymaxM) = latlng2webm(xmax,ymax)
+    pixelsPerMeterX = 256.0/(xmaxM - xminM)
+    pixelsPerMeterY = 256.0/(ymaxM - yminM)
+
+    # Use postgis to do the SRS math, save ourselves some time
+    selectx = "ROUND((ST_X(t.geometry) - {xoffset})*{xfactor}) as x".format(xoffset=xminM,xfactor=pixelsPerMeterX)
+    selecty = "ROUND((ST_Y(t.geometry) - {yoffset})*{yfactor}) as y".format(yoffset=yminM,yfactor=pixelsPerMeterY)
+    query = "SELECT {xfield}, {yfield}".format(xfield=selectx,yfield=selecty)
+
+    where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
+    subselect = "select ST_Transform(geometry, 900913) as geometry from treemap_plot {where}".format(where=where)
+    fromq = "FROM ({subselect}) as t".format(subselect=subselect)
+
+    order = "order by x,y"
+
+    selectQuery = "{0} {1} {2}".format(query, fromq, order)
+
+    cursor.execute(selectQuery)
+    transaction.commit_unless_managed()
+
+    # We have the sorted list, now we want to remove duplicates
+    results = []
+    rows = cursor.fetchall()
+    n = len(rows)
+
+    if n > 0:
+        last = rows[0]
+        lasti = i = 1
+        while i < n:
+            if rows[i] != last:
+                rows[lasti] = last = rows[i]
+                lasti += 1
+            i += 1
+
+        rows = rows[:lasti]
+
+    # After removing duplicates, we can have at most 1 tree per square
+    # (since we are using integer values that fall on pixels)
+    assert len(rows) <= 65536 # 256*256
+
+    # right now we only show "type 1" trees so the header is
+    # 1 | n trees | 0 | size
+    sizeoffileheader = 4+4
+    sizeofheader = 1+2+1
+    sizeofrecord = 2
+    buffersize = sizeoffileheader + sizeofheader + sizeofrecord*len(rows)
+
+    buf = ctypes.create_string_buffer(buffersize)
+    bufoffset = 0
+
+    # File Header: magic (3), pad(1), length (4)
+    # Little endian, no align
+    struct.pack_into("<II", buf, bufoffset, 0xA3A5EA00, len(rows))
+    bufoffset += 8 #sizeoffileheader
+
+    # Section header: type (1), num(4)
+    # Little endian, no align
+    # Default to type 1
+    struct.pack_into("<BHx", buf, bufoffset, 1, len(rows))
+    bufoffset += 4 #sizeofheader
+
+    # Write pairs: x(1), y(1)
+    # Litle endian, no align
+    for (x,y) in rows:
+        struct.pack_into("<BB", buf, bufoffset, x, y)
+        bufoffset += 2 #sizeofrecord
+
+    return buf.raw
+
+def latlng2webm(lat,lng):
+    num = lat * 0.017453292519943295
+    x = 6378137.0 * num
+    a = lng * 0.017453292519943295
+
+    y = 3189068.5*math.log((1.0 + math.sin(a))/(1.0 - math.sin(a)))
+
+    return (x,y)
 
 @require_http_methods(["GET"])
 @api_call()

@@ -14,6 +14,8 @@ from django.conf import settings
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Choices, Species
 
+import struct
+
 API_PFX = "/api/v0.1"
 
 class Version(TestCase):
@@ -33,6 +35,109 @@ class Version(TestCase):
 
         self.assertEqual(json["otm_version"], settings.OTM_VERSION)
         self.assertEqual(json["api_version"], settings.API_VERSION)
+
+class TileRequest(TestCase):
+    def setUp(self):
+        settings.GEOSERVER_GEO_LAYER = ""
+        settings.GEOSERVER_GEO_STYLE = ""
+        settings.GEOSERVER_URL = ""
+
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+
+    def tearDown(self):
+        teardownTreemapEnv()
+        
+    def test_returns(self):
+        p1 = mkPlot(self.u)
+        p1.geometry = Point(-77,36)
+        p1.save()
+
+        p2 = mkPlot(self.u)
+        p2.geometry = Point(-77.1,36.1)
+        p2.save()
+
+        #
+        # Test #1 - Simple request
+        # bbox(-78,35,-76,37) <--> bbox(-8682920,4163881,-8460281,4439106)
+        #
+        # Origin is bottom left
+        #
+        # Expected values:
+        p1x = -77.0
+        p1y = 36.0
+        p1xM = -8571600.0
+        p1yM = 4300621.0
+        p2x = -77.1
+        p2y = 36.1
+        p2xM = -8582732.0
+        p2yM = 4314389.0
+        
+        # Offset X values
+        p1offsetx = p1xM - -8682920 #xmin
+        p2offsetx = p2xM - -8682920 #xmin
+
+        p1offsety = p1yM - 4163881.0 #ymin
+        p2offsety = p2yM - 4163881.0 #ymin
+
+        # Compute scale
+        pixelsPerMeterX = 256.0 / (-8460281.0 - -8682920.0)
+        pixelsPerMeterY = 256.0 / (4439106.0 - 4163881.0)
+
+        # Computer origin offsets
+        pixels1x = int(p1offsetx * pixelsPerMeterX + 0.5)
+        pixels2x = int(p2offsetx * pixelsPerMeterX + 0.5)
+
+        pixels1y = int(p1offsety * pixelsPerMeterY + 0.5)
+        pixels2y = int(p2offsety * pixelsPerMeterY + 0.5)
+        
+        style = 1
+        npts = 2
+
+        # Format:
+        # | File Header           | Section Header             | Pts                                        |
+        # |0xA3A5EA00 | int: size | byte: style | short: # pts | 00 | byte:x1 | byte:y1 | byte:x2 | byte:y2 |
+        testoutp = struct.pack("<IIBHxBBBB", 0xA3A5EA00, npts, style, npts, pixels2x, pixels2y, pixels1x, pixels1y)
+
+        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX)
+
+        self.assertEqual(testoutp, outp.content)
+        
+
+    def test_eats_same_point(self):
+        x = 128 # these values come from the test_returns
+        y = 127 # test case
+
+        p1 = mkPlot(self.u)
+        p1.geometry = Point(-77.0,36.0)
+        p1.save()
+
+        p2 = mkPlot(self.u)
+        p2.geometry = Point(-77.00001,36.00001)
+        p2.save()
+
+        p3 = mkPlot(self.u)
+        p3.geometry = Point(-76.99999,36)
+        p3.save()
+
+        p4 = mkPlot(self.u)
+        p4.geometry = Point(-77.0,35.9999)
+        p4.save()
+
+        # These should all map to (x,y)->(128,127)
+        npts = 1
+        style = 1
+
+        # Format:
+        # | File Header           | Section Header             | Pts                                        |
+        # |0xA3A5EA00 | int: size | byte: style | short: # pts | 00 | byte:x1 | byte:y1 | byte:x2 | byte:y2 |
+        testoutp = struct.pack("<IIBHxBB", 0xA3A5EA00, npts, style, npts, x,y)
+        
+        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX)
+
+        self.assertEqual(testoutp, outp.content)
+        
 
 class PlotListing(TestCase):
     def setUp(self):
