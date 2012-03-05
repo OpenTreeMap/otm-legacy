@@ -346,7 +346,7 @@ def favorites(request, username):
     faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
        'id':f.tree.id, 
-       'coords':[f.tree.geometry.x, f.tree.geometry.y]} for f in faves]
+       'coords':[f.tree.plot.geometry.x, f.tree.plot.geometry.y]} for f in faves]
     return render_to_json(js)
     
 def trees(request, tree_id=''):
@@ -1764,17 +1764,17 @@ def advanced_search(request, format='json'):
          trees = []
          response.update({'tile_query' : tile_query})
         
-  
+#TODO: don't return this here, it's too big. Create cql params here and pass that instead.  
     tj = [{
-          'id': t.id,
-          'lon': '%.12g' % t.plot.geometry.x, 
-          'lat' : '%.12g' % t.plot.geometry.y,
-          'cmplt' : t.is_complete()
+          'id': t.id#,
+#          'lon': '%.12g' % t.plot.geometry.x, 
+#          'lat' : '%.12g' % t.plot.geometry.y,
+#          'cmplt' : t.is_complete()
           } for t in trees]
     pj = [{
-          'id': p.id,
-          'lon': '%.12g' % p.geometry.x,
-          'lat' : '%.12g' % p.geometry.y
+          'id': p.id#,
+#          'lon': '%.12g' % p.geometry.x,
+#          'lat' : '%.12g' % p.geometry.y
           } for p in plots]
 
 
