@@ -391,7 +391,7 @@ class PlotLocateManager(models.GeoManager):
         else:
             plots = plots.filter(geometry__intersects=geom)
 
-        if (len(plots) > 0):
+        if plots.count() > 0:
             extent = plots.extent()
         else:
             extent = []
@@ -404,7 +404,7 @@ class PlotLocateManager(models.GeoManager):
             if len(plots_filtered_by_species_preference) > 0:
                 plots = plots_filtered_by_species_preference
 
-        if len(plots) > 0:
+        if plots.count() > 0:
             plots = plots[:max_plots]
 
         return plots, extent
