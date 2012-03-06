@@ -878,14 +878,14 @@ class Tree(models.Model):
         if not self.dbh or not self.species or not self.species.v_max_dbh:
             return None
         if self.dbh > self.species.v_max_dbh:
-            return self.dbh + " (species max: " + self.species.v_max_dbh + ")"
+            return "%s (species max: %s )" % (str(self.dbh), str(self.species.v_max_dbh))
         return None
         
     def validate_max_height(self):
         if not self.height or not self.species or not self.species.v_max_height:
             return None
         if self.height > self.species.v_max_height:
-            return self.height + " (species max: " + self.species.v_max_height + ")"
+	    return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
         return None
         
     def __unicode__(self): 

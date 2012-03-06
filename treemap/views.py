@@ -2159,11 +2159,6 @@ def remove_flag(request):
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users
-def build_admin_panel(request):
-    return render_to_response('treemap/admin.html',RequestContext(request))
-
-@login_required
-@permission_required('auth.change_user') #proxy for group users
 def view_images(request):
     user_images = UserProfile.objects.exclude(photo="").order_by("-user__last_login")
     tree_images = TreePhoto.objects.all().order_by("-reported")

@@ -99,7 +99,6 @@ urlpatterns = patterns('',
     url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),
     
     (r'^images/$', view_images),
-    (r'^admin/$', build_admin_panel),
     
 )
     
