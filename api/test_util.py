@@ -2,11 +2,13 @@ from django.contrib.auth.models import User, UserManager, Permission as P
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 
 from profiles.models import UserProfile
+from django.conf import settings
 from django_reputation.models import Reputation, ReputationAction
 
 from treemap.models import Neighborhood, ZipCode, ExclusionMask
 from treemap.models import Plot, ImportEvent, Species, Tree, Choices
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
+from api.models import APIKey, APILog
 
 def mkPlot(u, geom=Point(50,50)):
     p = Plot(geometry=geom, last_updated_by=u, import_event=ImportEvent.objects.all()[0],present=True, data_owner=u)
@@ -27,6 +29,12 @@ def mkTree(u, plot=None, species=None):
     return t
 
 def teardownTreemapEnv():
+    for r in APILog.objects.all():
+        r.delete()
+
+    for r in APIKey.objects.all():
+        r.delete()
+
     for r in Choices.objects.all():
         r.delete()
 
@@ -63,6 +71,10 @@ def teardownTreemapEnv():
 
 
 def setupTreemapEnv():
+    settings.GEOSERVER_GEO_LAYER = ""
+    settings.GEOSERVER_GEO_STYLE = ""
+    settings.GEOSERVER_URL = ""
+
     Choices(field="plot_type", key="blah", value="blah", key_type="str").save()
 
     r1 = ReputationAction(name="edit verified", description="blah")

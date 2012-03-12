@@ -14,21 +14,95 @@ from django.conf import settings
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Choices, Species
 
+from api.models import APIKey, APILog
+from api.views import InvalidAPIKeyException
+
 import struct
 
 API_PFX = "/api/v0.1"
 
+def create_signer_dict(user):
+    key = APIKey(user=user,key="TESTING",enabled=True,comment="")
+    key.save()
+
+    return { "X-API-Key": key.key }
+
+class Signing(TestCase):
+    def setUp(self):
+        settings.OTM_VERSION = "1.2.3"
+        settings.API_VERSION = "0.1"
+
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+
+    def test_unsigned_will_fail(self):
+        with self.assertRaises(InvalidAPIKeyException):
+            self.client.get("%s/version" % API_PFX)
+
+    def test_signed_header(self):
+        key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
+        key.save()
+        
+        ret = self.client.get("%s/version" % API_PFX, **{ "X-API-Key": key.key })
+        self.assertEqual(ret.status_code, 200)
+
+    def test_url_param(self):
+        key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
+        key.save()
+        
+        ret = self.client.get("%s/version?apikey=%s" % (API_PFX,key.key))
+        self.assertEqual(ret.status_code, 200)
+
+    def test_disabled_keys_dont_work(self):
+        key = APIKey(user=self.u,key="TESTING",enabled=False,comment="")
+        key.save()
+
+        with self.assertRaises(InvalidAPIKeyException):
+            self.client.get("%s/version" % API_PFX, **{ "X-API-Key": key.key })
+
+
+    def tearDown(self):
+        teardownTreemapEnv()
+
+class Logging(TestCase):
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+        self.sign = create_signer_dict(self.u)
+
+    def test_log_request(self):
+        ret = self.client.get("%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
+        self.assertEqual(ret.status_code, 200)
+        
+        logs = APILog.objects.all()
+
+        self.assertTrue(logs is not None and len(logs) == 1)
+
+        key = APIKey.objects.get(user=self.u)
+        log = logs[0]
+
+        self.assertEqual(log.apikey,key)
+        self.assertEqual(log.url, "%s/version?rvar=4,rvar2=5" % API_PFX)
+        self.assertEqual(log.method, "GET")
+        self.assertEqual(log.requestvars, "rvar=4,rvar2=5")
+
+    def tearDown(self):
+        teardownTreemapEnv()
+
 class Version(TestCase):
     def setUp(self):
-        settings.GEOSERVER_GEO_LAYER = ""
-        settings.GEOSERVER_GEO_STYLE = ""
-        settings.GEOSERVER_URL = ""
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+        self.sign = create_signer_dict(self.u)
 
     def test_version(self):
         settings.OTM_VERSION = "1.2.3"
         settings.API_VERSION = "0.1"
 
-        ret = self.client.get("%s/version" % API_PFX)
+        ret = self.client.get("%s/version" % API_PFX, **self.sign)
 
         self.assertEqual(ret.status_code, 200)
         json = loads(ret.content)
@@ -38,13 +112,11 @@ class Version(TestCase):
 
 class TileRequest(TestCase):
     def setUp(self):
-        settings.GEOSERVER_GEO_LAYER = ""
-        settings.GEOSERVER_GEO_STYLE = ""
-        settings.GEOSERVER_URL = ""
-
         setupTreemapEnv()
 
         self.u = User.objects.get(username="jim")
+
+        self.sign = create_signer_dict(self.u)
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -100,7 +172,7 @@ class TileRequest(TestCase):
         # |0xA3A5EA00 | int: size | byte: style | short: # pts | 00 | byte:x1 | byte:y1 | byte:x2 | byte:y2 |
         testoutp = struct.pack("<IIBHxBBBB", 0xA3A5EA00, npts, style, npts, pixels2x, pixels2y, pixels1x, pixels1y)
 
-        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX)
+        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX, **self.sign)
 
         self.assertEqual(testoutp, outp.content)
         
@@ -134,20 +206,17 @@ class TileRequest(TestCase):
         # |0xA3A5EA00 | int: size | byte: style | short: # pts | 00 | byte:x1 | byte:y1 | byte:x2 | byte:y2 |
         testoutp = struct.pack("<IIBHxBB", 0xA3A5EA00, npts, style, npts, x,y)
         
-        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX)
+        outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX, **self.sign)
 
         self.assertEqual(testoutp, outp.content)
         
 
 class PlotListing(TestCase):
     def setUp(self):
-        settings.GEOSERVER_GEO_LAYER = ""
-        settings.GEOSERVER_GEO_STYLE = ""
-        settings.GEOSERVER_URL = ""
-
         setupTreemapEnv()
 
         self.u = User.objects.get(username="jim")
+        self.sign = create_signer_dict(self.u)
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -162,7 +231,7 @@ class PlotListing(TestCase):
         p.readonly = False
         p.save()
 
-        info = self.client.get("%s/plots" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
         
@@ -189,7 +258,7 @@ class PlotListing(TestCase):
         t.present = True
         t.save()
 
-        info = self.client.get("%s/plots" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
         
@@ -204,7 +273,7 @@ class PlotListing(TestCase):
         t.dbh = 11.2
         t.save()
 
-        info = self.client.get("%s/plots" % API_PFX)
+        info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
         
@@ -226,72 +295,69 @@ class PlotListing(TestCase):
         p2 = mkPlot(self.u)
         p3 = mkPlot(self.u)
 
-        r = self.client.get("%s/plots?offset=0&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=0&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk]))
 
 
-        r = self.client.get("%s/plots?offset=1&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=1&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p2.pk, p3.pk]))
 
 
-        r = self.client.get("%s/plots?offset=2&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=2&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p3.pk]))
 
 
-        r = self.client.get("%s/plots?offset=3&size=2" % API_PFX)
+        r = self.client.get("%s/plots?offset=3&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set())
 
-        r = self.client.get("%s/plots?offset=0&size=5" % API_PFX)
+        r = self.client.get("%s/plots?offset=0&size=5" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
 
 class Locations(TestCase):
     def setUp(self):
-        settings.GEOSERVER_GEO_LAYER = ""
-        settings.GEOSERVER_GEO_STYLE = ""
-        settings.GEOSERVER_URL = ""
-
         setupTreemapEnv()
 
         self.user = User.objects.get(username="jim")
+        self.sign = create_signer_dict(self.user)
 
     def test_locations_plots_endpoint(self):
-        response = self.client.get("%s/locations/0,0/plots" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_must_be_a_number(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=foo" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?max_plots=foo" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
 
     def test_locations_plots_endpoint_max_plots_param_cannot_be_greater_than_500(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=501" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?max_plots=501" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
-        response = self.client.get("%s/locations/0,0/plots?max_plots=500" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?max_plots=500" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_cannot_be_less_than_1(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=0" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?max_plots=0" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
-        response = self.client.get("%s/locations/0,0/plots?max_plots=1" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?max_plots=1" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_distance_param_must_be_a_number(self):
-        response = self.client.get("%s/locations/0,0/plots?distance=foo" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?distance=foo" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, 'The distance parameter must be a number')
-        response = self.client.get("%s/locations/0,0/plots?distance=42" % API_PFX)
+        response = self.client.get("%s/locations/0,0/plots?distance=42" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_plots(self):
@@ -299,7 +365,7 @@ class Locations(TestCase):
         plot.present = True
         plot.save()
 
-        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geometry.x, plot.geometry.y))
+        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geometry.x, plot.geometry.y), **self.sign)
 
         self.assertEqual(response.status_code, 200)
         json = loads(response.content)

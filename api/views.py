@@ -3,6 +3,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 
 from treemap.models import Plot, Species, TreePhoto
+from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
 from functools import wraps
@@ -16,12 +17,46 @@ import simplejson
 class HttpBadRequestException(Exception):
     pass
 
+class InvalidAPIKeyException(Exception):
+    pass
+
+def validate_and_log_api_req(request):
+    # Prefer "apikey" in REQUEST, but take either that or the
+    # header value
+    key = request.META.get("X-API-Key", None)
+    key = request.REQUEST.get("apikey", key)
+
+    if key is None:
+        raise InvalidAPIKeyException("key not found as 'apikey' param or 'X-API-Key' header")
+
+    apikeys = APIKey.objects.filter(key=key)
+
+    if len(apikeys) > 0:
+        apikey = apikeys[0]
+    else:
+        raise InvalidAPIKeyException("key not found")
+
+    if not apikey.enabled:
+        raise InvalidAPIKeyException("key is not enabled")
+
+    # Log the request
+    reqstr = ",".join(["%s=%s" % (k,request.REQUEST[k]) for k in request.REQUEST])
+    APILog(url=request.get_full_path(),
+           remoteip=request.META["REMOTE_ADDR"],
+           requestvars=reqstr,
+           method=request.method,
+           apikey=apikey).save()
+
+    return apikey
+    
+
 def api_call_raw(content_type="image/jpeg"):
     """ Wrap an API call that writes raw binary data """
     def decorate(req_function):
         @wraps(req_function)
         def newreq(request, *args, **kwargs):
             try:
+                validate_and_log_api_req(request)
                 outp = req_function(request, *args, **kwargs)
                 response = HttpResponse(outp)
                 response['Content-length'] = str(len(response.content))
@@ -41,6 +76,7 @@ def api_call(content_type="application/json"):
         @wraps(req_function)
         def newreq(request, *args, **kwargs):
             try:
+                validate_and_log_api_req(request)
                 outp = req_function(request, *args, **kwargs)
                 response = HttpResponse()
                 response.write('%s' % simplejson.dumps(outp))
