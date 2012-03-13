@@ -18,6 +18,7 @@ from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException
 
 import struct
+import base64
 
 API_PFX = "/api/v0.1"
 
@@ -61,6 +62,39 @@ class Signing(TestCase):
         with self.assertRaises(InvalidAPIKeyException):
             self.client.get("%s/version" % API_PFX, **{ "X-API-Key": key.key })
 
+    def tearDown(self):
+        teardownTreemapEnv()
+
+
+class Authentication(TestCase):
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+        self.u.set_password("password")
+        self.u.save()
+
+        self.sign = create_signer_dict(self.u)
+
+    def test_401(self):
+        ret = self.client.get("%s/login" % API_PFX, **self.sign)
+        self.assertEqual(ret.status_code, 401)
+        
+
+    def test_ok(self):
+        auth = base64.b64encode("jim:password")
+        withauth = dict(self.sign.items() + [("Authorization", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 200)
+
+    def test_bad_cred(self):
+        auth = base64.b64encode("jim:passwordz")
+        withauth = dict(self.sign.items() + [("Authorization", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+        
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -109,6 +143,9 @@ class Version(TestCase):
 
         self.assertEqual(json["otm_version"], settings.OTM_VERSION)
         self.assertEqual(json["api_version"], settings.API_VERSION)
+        
+        def tearDown(self):
+            tearDownTreemapEnv()
 
 class TileRequest(TestCase):
     def setUp(self):

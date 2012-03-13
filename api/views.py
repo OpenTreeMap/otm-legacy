@@ -6,6 +6,8 @@ from treemap.models import Plot, Species, TreePhoto
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
+from api.auth import login_required
+
 from functools import wraps
 
 import struct
@@ -78,10 +80,14 @@ def api_call(content_type="application/json"):
             try:
                 validate_and_log_api_req(request)
                 outp = req_function(request, *args, **kwargs)
-                response = HttpResponse()
-                response.write('%s' % simplejson.dumps(outp))
-                response['Content-length'] = str(len(response.content))
-                response['Content-Type'] = content_type
+                if issubclass(outp.__class__, HttpResponse):
+                    response = outp
+                else:
+                    response = HttpResponse()
+                    response.write('%s' % simplejson.dumps(outp))
+                    response['Content-length'] = str(len(response.content))
+                    response['Content-Type'] = content_type
+
             except HttpBadRequestException, bad_request:
                 response = HttpResponseBadRequest(bad_request.message)
 
@@ -89,6 +95,12 @@ def api_call(content_type="application/json"):
             
         return newreq
     return decorate
+
+@require_http_methods(["GET"])
+@api_call()
+@login_required
+def verify_auth(request):
+    return { "status": "success" }
 
 
 @require_http_methods(["GET"])
