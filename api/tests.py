@@ -26,7 +26,7 @@ def create_signer_dict(user):
     key = APIKey(user=user,key="TESTING",enabled=True,comment="")
     key.save()
 
-    return { "X-API-Key": key.key }
+    return { "HTTP_X_API_KEY": key.key }
 
 class Signing(TestCase):
     def setUp(self):
@@ -45,7 +45,7 @@ class Signing(TestCase):
         key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
         key.save()
         
-        ret = self.client.get("%s/version" % API_PFX, **{ "X-API-Key": key.key })
+        ret = self.client.get("%s/version" % API_PFX, **{ "HTTP_X_API_KEY": key.key })
         self.assertEqual(ret.status_code, 200)
 
     def test_url_param(self):

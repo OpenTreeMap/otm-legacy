@@ -25,7 +25,7 @@ class InvalidAPIKeyException(Exception):
 def validate_and_log_api_req(request):
     # Prefer "apikey" in REQUEST, but take either that or the
     # header value
-    key = request.META.get("X-API-Key", None)
+    key = request.META.get("HTTP_X_API_KEY", None)
     key = request.REQUEST.get("apikey", key)
 
     if key is None:
@@ -344,9 +344,16 @@ def plot_to_dict(plot):
         if current_tree.species:
             tree_dict["species"] = current_tree.species.pk
             tree_dict["species_name"] = current_tree.species.common_name
+            tree_dict["sci_name"] = current_tree.get_scientific_name()
 
         if current_tree.dbh:
             tree_dict["dbh"] = current_tree.dbh
+
+        if current_tree.height:
+            tree_dict["height"] = current_tree.height
+
+        if current_tree.canopy_height:
+            tree_dict["canopy_height"] = current_tree.canopy_height
 
         images = current_tree.treephoto_set.all()
 
