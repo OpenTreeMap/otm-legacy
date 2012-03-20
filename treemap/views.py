@@ -1099,6 +1099,94 @@ def parse_post(request):
 
 @login_required
 @csrf_view_exempt
+def add_tree_stewardship(request, tree_id):
+    """ Add stewardship activity to a tree """
+    response_dict = {'success': False, 'errors': []}
+
+    post = {}
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    tree = get_object_or_404(Tree, pk=tree_id)
+    
+    try:
+        activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'])
+        activity.save()
+        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+    except ValidationError, e:
+        if hasattr(e, 'message_dict'):
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages    
+    
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}        
+        response_dict['update']['activity'] = activity.activity       
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def add_plot_stewardship(request, plot_id):
+    """ Add stewardship activity to a plot """
+    response_dict = {'success': False, 'errors': []}
+
+    post = {}
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    plot = get_object_or_404(Plot, pk=plot_id)
+    
+    try:
+        activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'])
+        activity.save()
+        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+    except ValidationError, e:
+        if hasattr(e, 'message_dict'):
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages    
+    
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}        
+        response_dict['update']['activity'] = activity.activity       
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def delete_tree_stewardship(request, tree_id, activity_id):
+    activity = get_object_or_404(TreeStewardship, pk=activity_id)
+    activity.delete() 
+    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    return HttpResponse(
+            simplejson.dumps({'success': True}),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def delete_plot_stewardship(request, plot_id, activity_id):
+    activity = get_object_or_404(PlotStewardship, pk=activity_id)
+    activity.delete() 
+    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    return HttpResponse(
+            simplejson.dumps({'success': True}),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
 def update_plot(request, plot_id):
     """ Update items for a given plot """
     response_dict = {'success': False, 'errors': []}
@@ -1603,18 +1691,33 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
         tmp_treename = tmp_treedir
         tmp_plotname = tmp_plotdir
 
-    if output_type == 'CSV':
-        geometry = 'GEOMETRY=AS_WKT'
-    else:
-        geometry = ''
+    command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 
+        'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+        dbsettings['PASSWORD'], dbsettings['USER'])]
 
-    command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    if output_type == 'CSV':
+        command.append('-lco')
+        command.append('GEOMETRY=AS_WKT')
+    if output_type == 'ESRI Shapefile':
+        command.append('-nlt')
+        command.append('NONE')
+
     done = subprocess.call(command)
 
     if done != 0: 
         return render_to_json({'status':'error'})
 
-    command = ['ogr2ogr', '-sql', plot_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_plotname, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    command = ['ogr2ogr', '-sql', plot_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_plotname, 
+        'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+        dbsettings['PASSWORD'], dbsettings['USER'])]
+
+    if output_type == 'CSV':  
+        command.append('-lco')
+        command.append('GEOMETRY=AS_WKT')   
+    if output_type == 'ESRI Shapefile':
+        command.append('-nlt')
+        command.append('POINT')
+
     done = subprocess.call(command)
 
     if done != 0: 

@@ -59,8 +59,10 @@ class ViewTests(TestCase):
         r4 = ReputationAction(name="add tree", description="blah")
         r5 = ReputationAction(name="edit plot", description="blah")
         r6 = ReputationAction(name="add plot", description="blah")
+        r7 = ReputationAction(name="add stewardship", description="blah")
+        r8 = ReputationAction(name="remove stewardship", description="blah")
 
-        self.ra = [r1,r2,r3,r4,r5,r6]
+        self.ra = [r1,r2,r3,r4,r5,r6,r7,r8]
 
         for r in self.ra:
             r.save()
@@ -755,4 +757,41 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
+
+
+
+##################################################################
+# stewardship tests
+#
+
+    def test_add_and_remove_stewardship_activities(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+
+        response = c.post("/trees/%s/stewardship/" % self.p2_tree.current_tree().pk, { "activity": 1 })
+        response_dict = loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_dict["success"], True)
+
+        response = c.post("/plots/%s/stewardship/" % self.p2_tree.pk, { "activity": 1 })
+        response_dict = loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_dict["success"], True)
+        
+        p = Plot.objects.get(pk=self.p2_tree.pk)
+        t = p.current_tree()
+        self.assertEqual(p.plotstewardship_set.count(), 1)
+        self.assertEqual(t.treestewardship_set.count(), 1)
+
+        plot_activities = PlotStewardship.objects.filter(plot=p)
+        tree_activities = TreeStewardship.objects.filter(tree=t)
+
+        response = c.get("/trees/%s/stewardship/%s/delete/" % (t.pk, tree_activities[0].pk))
+        self.assertEqual(response.status_code, 200)
+
+        response = c.get("/plots/%s/stewardship/%s/delete/" % (p.pk, plot_activities[0].pk))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(p.plotstewardship_set.count(), 0)
+        self.assertEqual(t.treestewardship_set.count(), 0)
 

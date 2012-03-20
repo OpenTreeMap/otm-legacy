@@ -967,6 +967,29 @@ class TreeWatch(models.Model):
 class TreeFavorite(FavoriteBase):
     tree = models.ForeignKey(Tree)
 
+class Stewardship(models.Model):
+    performed_by = models.ForeignKey(User)
+    performed_date = models.DateTimeField(auto_now=True)
+
+class TreeStewardship(Stewardship):
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
+    tree = models.ForeignKey(Tree)
+
+    def get_activity(self):
+        for key, value in Choices().get_field_choices('treestewardship'):
+            if key == self.activity:
+                return value
+        return None
+
+class PlotStewardship(Stewardship):
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plotstewardship'))
+    plot = models.ForeignKey(Plot)
+
+    def get_activity(self):
+        for key, value in Choices().get_field_choices('plotstewardship'):
+            if key == self.activity:
+                return value
+        return None
 
 class TreeItem(models.Model):
     """
