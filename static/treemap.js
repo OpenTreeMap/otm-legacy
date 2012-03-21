@@ -72,6 +72,20 @@ tm = {
         '4': 'Historically Significant Tree'
     },
    
+    localTreeActivities: {
+        '1': 'Watering',
+        '2': 'Pruning',
+        '3': 'Mulching, Adding Compost or Amending Soil',
+        '4': 'Removing Debris or Trash'
+    },
+    
+    localPlotActivities: {
+        '1': 'Enlarging the Planting Area',
+        '2': 'Adding a Guard',
+        '3': 'Removing a Guard',
+        '4': 'Herbaceous Planting'
+    },
+
     //initializes the map where a user places a new tree    
     get_icon: function(type, size) {
         var size = new OpenLayers.Size(size, size);
@@ -156,8 +170,8 @@ tm = {
             tm.display_summaries(results.summaries);
             
             if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
-                if (results.trees.length > 0) {
-                    var cql = tm.cqlizeIds(results.trees);
+                if (results.featureids) {
+                    var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
                     tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                     tm.tree_layer.setVisibility(true);     
@@ -257,6 +271,10 @@ tm = {
 
         if (model == "Plot") {
             $('#edit_'+field).editable(tm.updatePlotServerCall, editableOptions);
+        } else if (model == "TreeStewardship"){
+            $('#edit_'+field).editable(tm.addTreeStewardship, editableOptions);
+        } else if (model == "PlotStewardship"){
+            $('#edit_'+field).editable(tm.addPlotStewardship, editableOptions);
         } else {
             $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
         }
@@ -298,6 +316,72 @@ tm = {
 
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },
+
+    addTreeStewardship: function(value, settings) {
+        var data = {};
+        var treeId = settings.objectId;
+        
+        data['activity'] = tm.coerceFromString(value)
+
+        var jsonString = JSON.stringify(data);
+        settings.obj = this;
+        $.ajax({
+            url: tm_static + 'trees/' + treeId + '/stewardship/',
+            type: 'POST',
+            data: jsonString,
+            complete: function(xhr, textStatus) {
+                var response =  JSON.parse(xhr.responseText);
+                if (response['success'] != true) {
+                    settings.obj.className = "errorResponse";
+                    settings.obj.innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                        settings.obj.innerHTML += err;
+                    });
+                } else {
+                    var value = response['update']['activity'];
+
+                    settings.obj.innerHTML = value 
+                    tm.trackEvent("Edit", settings.fieldName)
+                    tm.newTreeActivity();
+                }
+            }});
+
+        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
+
+    },
+
+    addPlotStewardship: function(value, settings) {
+        var data = {};
+        var plotId = settings.objectId;
+        
+        data['activity'] = tm.coerceFromString(value)
+
+        var jsonString = JSON.stringify(data);
+        settings.obj = this;
+        $.ajax({
+            url: tm_static + 'plots/' + plotId + '/stewardship/',
+            type: 'POST',
+            data: jsonString,
+            complete: function(xhr, textStatus) {
+                var response =  JSON.parse(xhr.responseText);
+                if (response['success'] != true) {
+                    settings.obj.className = "errorResponse";
+                    settings.obj.innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                        settings.obj.innerHTML += err;
+                    });
+                } else {
+                    var value = response['update']['activity'];
+
+                    settings.obj.innerHTML = value 
+                    tm.trackEvent("Edit", settings.fieldName)
+                    tm.newPlotActivity();
+                }
+            }});
+
+        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
+    },
+
     updateEditableServerCall: function(value, settings) {
         var data = {
             'model': settings.model,
@@ -313,9 +397,13 @@ tm = {
 
         $(this).removeClass("error");
         
-        if (settings.fieldName == 'species_id' && value == 0) {
-            $(this).addClass("error");
-            return "Please select a species from the provided list.";
+        if (settings.fieldName == 'species_id') {
+            if (value == 0) {
+                $(this).addClass("error");
+                return "Please select a species from the provided list.";
+            }
+            data['update']['species_other1'] = $('#other_species1')[0].value;
+            data['update']['species_other2'] = $('#other_species2')[0].value;
         }
 
         //do some validation for height and canopy height
@@ -360,12 +448,19 @@ tm = {
                         value = response['update']['value'];
                     }
                     if (settings.fieldName == "species_id") {
-                        for (var i = 0; i < speciesData.length; i++) {
-                            if (speciesData[i].id == value) {
-                                value = speciesData[i].sname;
-                                $("#edit_species").html(speciesData[i].cname);
+                        for (var i = 0; i < tm.speciesData.length; i++) {
+                            if (tm.speciesData[i].id == value) {
+                                value = tm.speciesData[i].sname;
+                                $("#edit_species").html(tm.speciesData[i].cname);
                             }
-                        }    
+                        }
+                        var other1 = response['update']['species_other1'];
+                        var other2 = response['update']['species_other2'];
+                        if ($('#edit_species_other').length > 0) {
+                            $('#edit_species_other')[0].innerHTML = other1 + " " + other2;
+                        } else {
+                            $("#edit_species").append('<br>' + other1 + " " + other2);
+                        }
                     }
                     if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}
@@ -442,6 +537,20 @@ tm = {
 
     },
 
+    newTreeActivity: function() {
+        return tm.createAttributeRow("treeActivityTypeSelection", tm.localTreeActivities, "treeActivityTable", 
+                                     tm.handleNewTreeStewardship("treeActivityTypeSelection", 
+                                                           "TreeStewardship",
+                                                           "treeActivityTable", 
+                                                           "treeActivityCount"));
+    },
+    newPlotActivity: function() {
+        return tm.createAttributeRow("plotActivityTypeSelection", tm.localPlotActivities, "plotActivityTable", 
+                                     tm.handleNewPlotStewardship("plotActivityTypeSelection", 
+                                                           "PlotStewardship",
+                                                           "plotActivityTable", 
+                                                           "plotActivityCount"));
+    },
     newAction: function() {
         return tm.createAttributeRow("actionTypeSelection", tm.actionType, "actionTable",
                                      tm.handleNewAttribute("actionTypeSelection", 
@@ -482,7 +591,49 @@ tm = {
             )
         );
         
-        $("#" + tableName).append(tr);
+        $("#" + tableName).append(row);
+    },
+
+    handleNewTreeStewardship: function(select, model, table, count) {
+        return function() {
+            var data = $("#" + select)[0].value;
+            settings = {
+                model: model,
+                objectId: tm.currentTreeId,
+                activity: data,
+                submit: 'Save',
+                cancel: 'Cancel'
+            };    
+            
+            $(this.parentNode.parentNode).remove();
+            var d = new Date();
+            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
+            tm.addTreeStewardship(data, settings)
+            $("#" + table).append(
+                $("<tr><td>"+tm.localTreeActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
+            $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
+        };
+    },
+
+    handleNewPlotStewardship: function(select, model, table, count) {
+        return function() {
+            var data = $("#" + select)[0].value;
+            settings = {
+                model: model,
+                objectId: tm.currentPlotId,
+                activity: data,
+                submit: 'Save',
+                cancel: 'Cancel'
+            };    
+            
+            $(this.parentNode.parentNode).remove();
+            var d = new Date();
+            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
+            tm.addPlotStewardship(data, settings)
+            $("#" + table).append(
+                $("<tr><td>"+tm.localPlotActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
+            $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
+        };
     },
 
     handleNewAttribute: function(select, model, table, count) {
@@ -521,7 +672,27 @@ tm = {
     deleteLocal: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
     },
+
+    deleteTreeActivity: function(id, elem) {
+        $.ajax({
+            url: tm_static + 'trees/' + tm.currentTreeId + "/stewardship/" + id + "/delete/",
+            complete: function(xhr, textStatus) {
+                $(elem.parentNode.parentNode).remove();
+                $("#treeActivityCount").html(parseInt($("#treeActivityCount")[0].innerHTML) - 1);   
+            }
+        });
+    },
     
+    deletePlotActivity: function(id, elem) {
+        $.ajax({
+            url: tm_static + 'plots/' + tm.currentPlotId + "/stewardship/" + id + "/delete/",
+            complete: function(xhr, textStatus) {
+                $(elem.parentNode.parentNode).remove();
+                $("#plotActivityCount").html(parseInt($("#plotActivityCount")[0].innerHTML) - 1);   
+            }
+        });
+    },
+
     pageLoadSearch: function () {
         tm.loadingSearch = true;
         tm.searchparams = {};
@@ -696,7 +867,7 @@ tm = {
        
         tm.geocode_address = search;
 
-        function continueSearchWithFeature(feature) {
+        function continueSearchWithFeature(nbhoods) {
             var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
             var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
             tm.map.zoomToExtent(bbox, true);
@@ -729,7 +900,7 @@ tm = {
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
                 if (nbhoods.features.length > 0) {
-                    continueSearchWithFeature(nnhoods);
+                    continueSearchWithFeature(nbhoods);
                 } else {                 
                     delete tm.searchParams.geoName;        
                     tm.geocode(search, function(lat, lng, place) {

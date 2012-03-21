@@ -638,6 +638,8 @@ class Tree(models.Model):
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
+    species_other1 = models.CharField(max_length=255, null=True, blank=True)
+    species_other2 = models.CharField(max_length=255, null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     height = models.FloatField(null=True, blank=True)
@@ -909,14 +911,14 @@ class Tree(models.Model):
         if not self.dbh or not self.species or not self.species.v_max_dbh:
             return None
         if self.dbh > self.species.v_max_dbh:
-            return self.dbh + " (species max: " + self.species.v_max_dbh + ")"
+            return "%s (species max: %s )" % (str(self.dbh), str(self.species.v_max_dbh))
         return None
         
     def validate_max_height(self):
         if not self.height or not self.species or not self.species.v_max_height:
             return None
         if self.height > self.species.v_max_height:
-            return self.height + " (species max: " + self.species.v_max_height + ")"
+	    return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
         return None
         
     def __unicode__(self): 
@@ -998,6 +1000,29 @@ class TreeWatch(models.Model):
 class TreeFavorite(FavoriteBase):
     tree = models.ForeignKey(Tree)
 
+class Stewardship(models.Model):
+    performed_by = models.ForeignKey(User)
+    performed_date = models.DateTimeField(auto_now=True)
+
+class TreeStewardship(Stewardship):
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
+    tree = models.ForeignKey(Tree)
+
+    def get_activity(self):
+        for key, value in Choices().get_field_choices('treestewardship'):
+            if key == self.activity:
+                return value
+        return None
+
+class PlotStewardship(Stewardship):
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plotstewardship'))
+    plot = models.ForeignKey(Plot)
+
+    def get_activity(self):
+        for key, value in Choices().get_field_choices('plotstewardship'):
+            if key == self.activity:
+                return value
+        return None
 
 class TreeItem(models.Model):
     """

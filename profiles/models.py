@@ -2,7 +2,7 @@ from operator import itemgetter
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _ # internationalization translate call
 from django.contrib.gis.db import models
-from treemap.models import Tree, TreeFlags, TreePhoto, TreePending
+from treemap.models import Tree, TreeFlags, TreePhoto, TreePending, TreeStewardship, PlotStewardship
 from django_reputation.models import UserReputationAction
 from badges.models import Badge, BadgeToUser
 
@@ -37,7 +37,6 @@ class UserProfile(models.Model):
         
     def recently_edited_trees(self):
         trees = Tree.history.filter(last_updated_by=self.user, present=True).exclude(_audit_change_type="U",_audit_diff="").order_by('-last_updated')[:7]
-        print trees        
         recent_edits = []
         for t in trees:
             recent_edits.append((t.species, t.date_planted, t.last_updated, t.id))
@@ -51,6 +50,18 @@ class UserProfile(models.Model):
 
     def recently_added_pends(self):
         return TreePending.objects.filter(submitted_by=self.user).order_by('-submitted')[:7]
+
+    def recent_stewardship(self):
+        tree_s = TreeStewardship.objects.filter(performed_by=self.user)[:7]
+        plot_s = PlotStewardship.objects.filter(performed_by=self.user)[:7]
+        recent_activity = []
+        for t in tree_s:
+            recent_activity.append((t.tree.species, t.get_activity(), t.performed_date, t.tree.plot.id))
+        for p in plot_s:
+            recent_activity.append((p.plot.current_tree().species, p.get_activity(), p.performed_date, p.plot.id))
+        print recent_activity
+        return sorted(recent_activity, key=itemgetter(2), reverse=True)[:7]
+            
 
     def badges(self):
         return BadgeToUser.objects.filter(user=self)

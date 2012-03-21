@@ -304,7 +304,7 @@ tm.init_tree_map = function(editable){
         $.getJSON(tm_static + 'plots/location/',
                   {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                   function(json) {
-                      var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
+                      var html = '<a href="' + tm_static  + 'plots/' + json.features[0].properties.id + '">Planting Site #' + json.features[0].properties.id + '</a>';
                       $('#alternate_tree_div').html(html);
                   }
                  );
@@ -417,7 +417,7 @@ tm.update_nearby_trees_list = function (ll, plots, distance) {
                 $('#nearby_trees').html("No other trees nearby.")
             }
             else {
-                $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                $('#nearby_trees').html("Found " + geojson.features.length + " planting site(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
                 $.each(geojson.features, function(i,f){
                     var tree = $('#nearby_trees');
                     if (f.properties.common_name){

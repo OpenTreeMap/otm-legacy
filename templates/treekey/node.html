@@ -17,7 +17,7 @@
 			{% for image in leaf.nodeimage_set.all %}
 				<div class="leaf-image">
 					<a href="{{ SITE_ROOT }}treekey/node/{{ leaf.id }}/">
-						<img src="{{ STATIC_URL }}{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
 					{% if image.attrib_text %}
 					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>
@@ -35,7 +35,7 @@
 			{% for image in leaf.nodeimage_set.all %}
 				<div class="leaf-image">
 					<a href="{{ SITE_ROOT }}treekey/leaf/{{ leaf.id }}/">
-						<img src="{{ STATIC_URL }}{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
+						<img src="{{ image.image.url }}" alt="{{ image }} Image" title="{{ image.caption }}" />
 					</a>
 					{% if image.attrib_text %}
 					<div class="leaf-image-attrib">Credit: <a href="{{image.attrib_link}}" target="_blank">{{image.attrib_text}}</a></div>

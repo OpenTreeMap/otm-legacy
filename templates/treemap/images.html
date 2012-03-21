@@ -1,5 +1,6 @@
 {% extends "template_3.html" %}
 
+{% load pagination_tags %}
 {% load thumbnail dynamic_attribute %}
 {% block body_id %}id="images"{% endblock %}
 {% block content %}
@@ -18,8 +19,10 @@
 {% block left_panel %}
 
 
+{% autopaginate tree_images 40 %}
 	<div id="tree_image_list">
 		<h3>Tree Photos</h3>
+        {% paginate %}
 		<ul>
 		{% for image in tree_images %}
 			<li>
@@ -37,8 +40,10 @@
 {% endblock %}
 
 {% block right_panel %}
+{% autopaginate user_images 10 %}
 	<div id="profile_image_list">
 		<h3>User Photos</h3>
+        {% paginate %}
 		<ul>
 		{% for image in user_images %}
 			<li>

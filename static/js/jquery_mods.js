@@ -1,3 +1,21 @@
+Date.prototype.getMonthName = function(lang) {
+    lang = lang && (lang in Date.locale) ? lang : 'en';
+    return Date.locale[lang].month_names[this.getMonth()];
+};
+
+Date.prototype.getMonthNameShort = function(lang) {
+    lang = lang && (lang in Date.locale) ? lang : 'en';
+    return Date.locale[lang].month_names_short[this.getMonth()];
+};
+
+Date.locale = {
+    en: {
+       month_names: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+       month_names_short: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    }
+};
+
+
 $.urlParam = function(name){
     var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results) {
@@ -31,11 +49,23 @@ $.editable.addInputType("autocomplete_species", {
     element: function(settings, original) {
         var hiddenInput = $('<input type="hidden" class="hide">');
         var input = $("<input type='text' />");
+        var other = $("<input type='text' id='other_species1' /><input type='text' id='other_species2' /><br><span>Genus and species</span>")
         tm.setupAutoComplete(input).result(function(event, item) {
             hiddenInput[0].value = item.id; 
+            if (input[0].value.indexOf('Other') > -1) {
+                other.show();
+            } else {
+                other.hide();
+                $('#other_species1').empty();
+                $('#other_species2').empty();
+            }
         });
-        $(this).append(input);
-        $(this).append(hiddenInput);
+        var target = $(this);
+        target.append(input);
+        target.append(other);
+        other.hide();
+        target.append(hiddenInput);
+
         return (hiddenInput);
     }
 });

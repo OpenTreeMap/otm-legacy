@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 # Species identification info for the key
 # try to focus on what sets this species apart
@@ -26,7 +27,7 @@ class Species(models.Model):
     # Pull the first image for the node display
     def first_image_url(self):
         if self.speciesimage_set.count() == 0:
-            return "/static/Species/tree_not_found.png"
+            return settings.STATIC_URL + "/Species/tree_not_found.png"
         si_list = self.speciesimage_set.all()
         return si_list[0].image.url
             

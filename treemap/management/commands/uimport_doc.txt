@@ -7,24 +7,31 @@ Options:
 
 Input file fields:
 	
-	ID		     - number
+	ID		 - number
 	POINT_X		 - EPSG:4326
 	POINT_Y		 - EPSG:4326
-	SCIENTIFIC	 - Genus species (ex: Tilia americana) must exist in database already, case insensitive
+	GENUS		 - text, case sensitive
+	SPECIES		 - text, case sensitive
+	CULTIVAR	 - text, no quotation marks, case sensitive
+	GENDER  	 - text, case sensitive 
 	ADDRESS		 - Geocodable street address (city, state, zip and neighborhood auto generated)
 	PLOTTYPE	 - one of the db plot choices, case sensitive
 	PLOTLENGTH	 - number, feet
 	PLOTWIDTH	 - number, feet
 	POWERLINE	 - True/False
 	OWNER		 - property or tree owner name, not a site user
-    STEWARD      - steward name, not a site user
-    SPONSOR      - sponsor organization or individual
+	STEWARD		 - steward name, not a site user
+	SPONSOR		 - sponsor organization or individual
 	DATEPLANTED	 - postgres-recognizable date format
 	DIAMETER	 - number, inches
 	HEIGHT		 - number, feet
-	CANOPYHEIGHT - number, feet
+	CANOPYHEIGHT	 - number, feet
 	CONDITION	 - one of the db condition choices, case sensitive
 	CANOPYCONDITION	 - one of the db canopy condition choices, case sensitive
+	PROJECT1	 - text, one of db special project names, case sensitive
+	PROJECT2	 - text, one of db special project names, case sensitive
+	PROJECT3	 - text, one of db special project names, case sensitive
+	
 
 Output file:
 	If any row has unrecoverable errors, the row is written to <input_file_name>.err as a csv

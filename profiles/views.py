@@ -35,7 +35,7 @@ def edit_photo(request,username):
         if form.is_valid():
             profile_obj.photo = form.cleaned_data['photo']
             profile_obj.save()
-            return HttpResponseRedirect('%s/profiles/%s/' % (settings.SITE_ROOT, username))
+            return HttpResponseRedirect('%sprofiles/%s/' % (settings.SITE_ROOT, username))
     else:
         form = EditPhotoForm()
 

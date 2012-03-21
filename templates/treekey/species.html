@@ -4,7 +4,7 @@
 <div class="species">
 	<div class="species-name">
 
-		<a href="{{ SITE_ROOT }}map/#?species={{species.symbol}}" onclick="_gaq.push(['TreeKey', 'Species Map Button', 'Species', {{species.id}}]);" class="floatRight buttonMed">Show on a Map</a>
+		<a href="{{ SITE_ROOT }}map/#?species={{species.id}}" onclick="_gaq.push(['TreeKey', 'Species Map Button', 'Species', {{species.id}}]);" class="floatRight buttonMed">Show on a Map</a>
 		{{ species.common_name }}
 
 	</div>
@@ -53,7 +53,7 @@
 	<div class="species-images">
 	{% for image in species.speciesimage_set.all %}
 		<div class="species-image">
-			<img src="{{ STATIC_URL }}{{ image.image.url }}" alt="{{ image }}" />
+			<img src="{{ image.image.url }}" alt="{{ image }}" />
 			<div class="species-image-caption">
 				{{ image.caption }}
 			</div>

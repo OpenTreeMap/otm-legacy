@@ -320,7 +320,7 @@ def favorites(request, username):
     faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
        'id':f.tree.id, 
-       'coords':[f.tree.geometry.x, f.tree.geometry.y]} for f in faves]
+       'coords':[f.tree.plot.geometry.x, f.tree.plot.geometry.y]} for f in faves]
     return render_to_json(js)
     
 def trees(request, tree_id=''):
@@ -472,6 +472,7 @@ def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = Choices().get_field_choices(type_)
     data = SortedDict(choices)
+    print data
     #for item in choices: 
     #    data[item[0]] = item[1]
     if hasattr(plot, type_):
@@ -1073,6 +1074,94 @@ def parse_post(request):
 
 @login_required
 @csrf_view_exempt
+def add_tree_stewardship(request, tree_id):
+    """ Add stewardship activity to a tree """
+    response_dict = {'success': False, 'errors': []}
+
+    post = {}
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    tree = get_object_or_404(Tree, pk=tree_id)
+    
+    try:
+        activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'])
+        activity.save()
+        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+    except ValidationError, e:
+        if hasattr(e, 'message_dict'):
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages    
+    
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}        
+        response_dict['update']['activity'] = activity.activity       
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def add_plot_stewardship(request, plot_id):
+    """ Add stewardship activity to a plot """
+    response_dict = {'success': False, 'errors': []}
+
+    post = {}
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    post = parse_post(request)
+    plot = get_object_or_404(Plot, pk=plot_id)
+    
+    try:
+        activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'])
+        activity.save()
+        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+    except ValidationError, e:
+        if hasattr(e, 'message_dict'):
+            for (fld,msgs) in e.message_dict.items():
+                msg = reduce(lambda (a,b): a + b, msgs)
+                response_dict["errors"].append("%s: %s" % (fld, msg))
+        else:
+            response_dict["errors"] += e.messages    
+    
+    if len(response_dict["errors"]) == 0:
+        response_dict['success'] = True
+        response_dict['update'] = {}        
+        response_dict['update']['activity'] = activity.activity       
+
+    return HttpResponse(
+            simplejson.dumps(response_dict),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def delete_tree_stewardship(request, tree_id, activity_id):
+    activity = get_object_or_404(TreeStewardship, pk=activity_id)
+    activity.delete() 
+    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    return HttpResponse(
+            simplejson.dumps({'success': True}),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
+def delete_plot_stewardship(request, plot_id, activity_id):
+    activity = get_object_or_404(PlotStewardship, pk=activity_id)
+    activity.delete() 
+    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    return HttpResponse(
+            simplejson.dumps({'success': True}),
+            content_type = 'application/json')
+
+@login_required
+@csrf_view_exempt
 def update_plot(request, plot_id):
     """ Update items for a given plot """
     response_dict = {'success': False, 'errors': []}
@@ -1577,18 +1666,33 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
         tmp_treename = tmp_treedir
         tmp_plotname = tmp_plotdir
 
-    if output_type == 'CSV':
-        geometry = 'GEOMETRY=AS_WKT'
-    else:
-        geometry = ''
+    command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 
+        'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+        dbsettings['PASSWORD'], dbsettings['USER'])]
 
-    command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    if output_type == 'CSV':
+        command.append('-lco')
+        command.append('GEOMETRY=AS_WKT')
+    if output_type == 'ESRI Shapefile':
+        command.append('-nlt')
+        command.append('NONE')
+
     done = subprocess.call(command)
 
     if done != 0: 
         return render_to_json({'status':'error'})
 
-    command = ['ogr2ogr', '-sql', plot_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_plotname, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    command = ['ogr2ogr', '-sql', plot_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_plotname, 
+        'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+        dbsettings['PASSWORD'], dbsettings['USER'])]
+
+    if output_type == 'CSV':  
+        command.append('-lco')
+        command.append('GEOMETRY=AS_WKT')   
+    if output_type == 'ESRI Shapefile':
+        command.append('-nlt')
+        command.append('POINT')
+
     done = subprocess.call(command)
 
     if done != 0: 
@@ -1652,12 +1756,7 @@ def advanced_search(request, format='json'):
     return either
      - trees and associated summaries
      - neighborhood or zipcode and associated   summaries
-    """
-    if settings.TILED_SEARCH_RESPONSE:
-        maximum_trees_for_display = 0
-    else:
-        maximum_trees_for_display = 500   
-    maximum_trees_for_summary = 200000  
+    """   
     response = {}
 
     trees, plots, geog_obj, tile_query = _build_tree_search_result(request)
@@ -1690,69 +1789,47 @@ def advanced_search(request, format='json'):
     esj = {}
     esj['total_trees'] = tree_count
     esj['total_plots'] = plot_count
+    
+    r = ResourceSummaryModel()
+    
+    with_out_resources = trees.filter(treeresource=None).count()
+    #print 'without resourcesums:', with_out_resources
+    resources = tree_count - with_out_resources
+    #print 'have resourcesums:', resources
+    
+    EXTRAPOLATE_WITH_AVERAGE = True
 
-    if tree_count > maximum_trees_for_summary:
-        trees = []
-        if geog_obj:
-            esj = summaries
-            esj['benefits'] = benefits
-        else:
-            #someone selected a single species w/too many tree results.  dang....
-            # TODO - need to pull from cached results...
-            summaries = {}
-        
-
+    for f in r._meta.get_all_field_names():
+        if f.startswith('total') or f.startswith('annual'):
+            fn = 'treeresource__' + f
+            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
+            # which is also a location where summaries are calculated
+            # also add likely to treemap/update_aggregates.py (not really sure how this works)
+            if EXTRAPOLATE_WITH_AVERAGE and resources:
+                avg = float(s)/resources
+                s += avg * with_out_resources
+                    
+            setattr(r,f,s)
+            esj[f] = s
+    esj['benefits'] = r.get_benefits()
+    
+    # Add appropriate CQL paramater to response depending on tree count
+    if settings.TILED_SEARCH_RESPONSE:
+        maximum_trees_for_display = 0
     else:
-        #esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        #print 'we have %s  ..' % esj
-        #print 'aggregating..'
-
-        r = ResourceSummaryModel()
-        
-        with_out_resources = trees.filter(treeresource=None).count()
-        #print 'without resourcesums:', with_out_resources
-        resources = tree_count - with_out_resources
-        #print 'have resourcesums:', resources
-        
-        EXTRAPOLATE_WITH_AVERAGE = True
-
-        for f in r._meta.get_all_field_names():
-            if f.startswith('total') or f.startswith('annual'):
-                fn = 'treeresource__' + f
-                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-                # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
-                # which is also a location where summaries are calculated
-                # also add likely to treemap/update_aggregates.py (not really sure how this works)
-                if EXTRAPOLATE_WITH_AVERAGE and resources:
-                    avg = float(s)/resources
-                    s += avg * with_out_resources
-                        
-                setattr(r,f,s)
-                esj[f] = s
-        esj['benefits'] = r.get_benefits()
-
-        #print 'aggregated...'
-    
-    
+        maximum_trees_for_display = 500
     if tree_count > maximum_trees_for_display:   
-         trees = []
          response.update({'tile_query' : tile_query})
+    else:
+        cql_ids = []
+        for t in trees:
+            cql_ids.append(str(t.id))
+        featureids = ','.join(cql_ids)
+        response.update({'featureids': featureids})
         
-  
-    tj = [{
-          'id': t.id,
-          'lon': '%.12g' % t.plot.geometry.x, 
-          'lat' : '%.12g' % t.plot.geometry.y,
-          'cmplt' : t.is_complete()
-          } for t in trees]
-    pj = [{
-          'id': p.id,
-          'lon': '%.12g' % p.geometry.x,
-          'lat' : '%.12g' % p.geometry.y
-          } for p in plots]
 
-
-    response.update({'trees' : tj, 'plots': pj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
+    response.update({'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
     return render_to_json(response)
 
     
@@ -2130,11 +2207,6 @@ def remove_flag(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-
-@login_required
-@permission_required('auth.change_user') #proxy for group users
-def build_admin_panel(request):
-    return render_to_response('treemap/admin.html',RequestContext(request))
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users
