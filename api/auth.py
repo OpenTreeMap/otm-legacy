@@ -4,8 +4,8 @@ import re
 import base64
 from functools import wraps
 
-def create_401unauthorized():
-    res = HttpResponse("Unauthorized")
+def create_401unauthorized(body="Unauthorized"):
+    res = HttpResponse(body)
     res.status_code = 401
     res['WWW-Authenticate'] = 'Basic realm="Secure Area"'
     return res
@@ -37,9 +37,10 @@ def parse_basicauth(authstr):
 def login_required(view_f):
     @wraps(view_f)
     def wrapperf(request, *args, **kwargs):
-        if (request.META.has_key('Authorization')):
-            auth = request.META['Authorization']
+        if (request.META.has_key('HTTP_AUTHORIZATION')):
+            auth = request.META['HTTP_AUTHORIZATION']
             user = parse_basicauth(auth)
+
             if (user != None):
                 request.user = user
                 return view_f(request, *args, **kwargs)
