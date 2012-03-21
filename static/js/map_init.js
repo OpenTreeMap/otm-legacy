@@ -304,7 +304,7 @@ tm.init_tree_map = function(editable){
         $.getJSON(tm_static + 'plots/location/',
                   {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                   function(json) {
-                      var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
+                      var html = '<a href="' + tm_static  + 'plots/' + json.features[0].properties.id + '">Planting Site #' + json.features[0].properties.id + '</a>';
                       $('#alternate_tree_div').html(html);
                   }
                  );

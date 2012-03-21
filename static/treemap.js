@@ -170,8 +170,8 @@ tm = {
             tm.display_summaries(results.summaries);
             
             if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
-                if (results.trees.length > 0) {
-                    var cql = tm.cqlizeIds(results.trees);
+                if (results.featureids) {
+                    var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
                     tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                     tm.tree_layer.setVisibility(true);     

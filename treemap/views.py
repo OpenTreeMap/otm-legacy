@@ -498,6 +498,7 @@ def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = Choices().get_field_choices(type_)
     data = SortedDict(choices)
+    print data
     #for item in choices: 
     #    data[item[0]] = item[1]
     if hasattr(plot, type_):
@@ -1781,12 +1782,7 @@ def advanced_search(request, format='json'):
     return either
      - trees and associated summaries
      - neighborhood or zipcode and associated   summaries
-    """
-    if settings.TILED_SEARCH_RESPONSE:
-        maximum_trees_for_display = 0
-    else:
-        maximum_trees_for_display = 500   
-    maximum_trees_for_summary = 200000  
+    """   
     response = {}
 
     trees, plots, geog_obj, tile_query = _build_tree_search_result(request)
@@ -1819,69 +1815,47 @@ def advanced_search(request, format='json'):
     esj = {}
     esj['total_trees'] = tree_count
     esj['total_plots'] = plot_count
+    
+    r = ResourceSummaryModel()
+    
+    with_out_resources = trees.filter(treeresource=None).count()
+    #print 'without resourcesums:', with_out_resources
+    resources = tree_count - with_out_resources
+    #print 'have resourcesums:', resources
+    
+    EXTRAPOLATE_WITH_AVERAGE = True
 
-    if tree_count > maximum_trees_for_summary:
-        trees = []
-        if geog_obj:
-            esj = summaries
-            esj['benefits'] = benefits
-        else:
-            #someone selected a single species w/too many tree results.  dang....
-            # TODO - need to pull from cached results...
-            summaries = {}
-        
-
+    for f in r._meta.get_all_field_names():
+        if f.startswith('total') or f.startswith('annual'):
+            fn = 'treeresource__' + f
+            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
+            # which is also a location where summaries are calculated
+            # also add likely to treemap/update_aggregates.py (not really sure how this works)
+            if EXTRAPOLATE_WITH_AVERAGE and resources:
+                avg = float(s)/resources
+                s += avg * with_out_resources
+                    
+            setattr(r,f,s)
+            esj[f] = s
+    esj['benefits'] = r.get_benefits()
+    
+    # Add appropriate CQL paramater to response depending on tree count
+    if settings.TILED_SEARCH_RESPONSE:
+        maximum_trees_for_display = 0
     else:
-        #esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        #print 'we have %s  ..' % esj
-        #print 'aggregating..'
-
-        r = ResourceSummaryModel()
-        
-        with_out_resources = trees.filter(treeresource=None).count()
-        #print 'without resourcesums:', with_out_resources
-        resources = tree_count - with_out_resources
-        #print 'have resourcesums:', resources
-        
-        EXTRAPOLATE_WITH_AVERAGE = True
-
-        for f in r._meta.get_all_field_names():
-            if f.startswith('total') or f.startswith('annual'):
-                fn = 'treeresource__' + f
-                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-                # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
-                # which is also a location where summaries are calculated
-                # also add likely to treemap/update_aggregates.py (not really sure how this works)
-                if EXTRAPOLATE_WITH_AVERAGE and resources:
-                    avg = float(s)/resources
-                    s += avg * with_out_resources
-                        
-                setattr(r,f,s)
-                esj[f] = s
-        esj['benefits'] = r.get_benefits()
-
-        #print 'aggregated...'
-    
-    
+        maximum_trees_for_display = 500
     if tree_count > maximum_trees_for_display:   
-         trees = []
          response.update({'tile_query' : tile_query})
+    else:
+        cql_ids = []
+        for t in trees:
+            cql_ids.append(str(t.id))
+        featureids = ','.join(cql_ids)
+        response.update({'featureids': featureids})
         
-#TODO: don't return this here, it's too big. Create cql params here and pass that instead.  
-    tj = [{
-          'id': t.id#,
-#          'lon': '%.12g' % t.plot.geometry.x, 
-#          'lat' : '%.12g' % t.plot.geometry.y,
-#          'cmplt' : t.is_complete()
-          } for t in trees]
-    pj = [{
-          'id': p.id#,
-#          'lon': '%.12g' % p.geometry.x,
-#          'lat' : '%.12g' % p.geometry.y
-          } for p in plots]
 
-
-    response.update({'trees' : tj, 'plots': pj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
+    response.update({'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
     return render_to_json(response)
 
     

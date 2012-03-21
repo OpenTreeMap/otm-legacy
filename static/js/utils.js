@@ -53,14 +53,6 @@ tm.coerceFromString = function(value) {
     return value;
 };
 
-tm.cqlizeIds = function(trees) {
-    var cql_ids = [];
-    if (trees.length == 1) {return trees[0].id}
-    for(var i=0; i < trees.length; i++) {
-        cql_ids.push(trees[i].id);
-    }
-    return  cql_ids.join();
-};
 
 // http://www.mredkj.com/javascript/numberFormat.html
 tm.addCommas = function(nStr)
