@@ -83,14 +83,14 @@ class Authentication(TestCase):
 
     def test_ok(self):
         auth = base64.b64encode("jim:password")
-        withauth = dict(self.sign.items() + [("Authorization", "Basic %s" % auth)])
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 200)
 
     def test_bad_cred(self):
         auth = base64.b64encode("jim:passwordz")
-        withauth = dict(self.sign.items() + [("Authorization", "Basic %s" % auth)])
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
