@@ -1840,22 +1840,7 @@ def advanced_search(request, format='json'):
             esj[f] = s
     esj['benefits'] = r.get_benefits()
     
-    # Add appropriate CQL paramater to response depending on tree count
-    if settings.TILED_SEARCH_RESPONSE:
-        maximum_trees_for_display = 0
-    else:
-        maximum_trees_for_display = 500
-    if tree_count > maximum_trees_for_display:   
-         response.update({'tile_query' : tile_query})
-    else:
-        cql_ids = []
-        for t in trees:
-            cql_ids.append(str(t.id))
-        featureids = ','.join(cql_ids)
-        response.update({'featureids': featureids})
-        
-
-    response.update({'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
+    response.update({'tile_query' : tile_query, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
     return render_to_json(response)
 
     
