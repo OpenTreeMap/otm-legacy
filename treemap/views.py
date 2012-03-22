@@ -1432,7 +1432,7 @@ def _build_tree_search_result(request):
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
-        tile_query.append("dbh IS NULL")
+        tile_query.append(" (dbh IS NULL OR dbh = 0) ")
     
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
@@ -1449,7 +1449,7 @@ def _build_tree_search_result(request):
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
-        tile_query.append("height IS NULL")
+        tile_query.append(" (height IS NULL OR height = 0) ")
 
     if not missing_current_height and 'height_range' in request.GET:
         min, max = map(float,request.GET['height_range'].split("-"))
