@@ -1,6 +1,10 @@
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 
 from treemap.models import Plot, Species, TreePhoto
 from api.models import APIKey, APILog
@@ -76,6 +80,7 @@ def api_call(content_type="application/json"):
     """
     def decorate(req_function):
         @wraps(req_function)
+        @csrf_exempt
         def newreq(request, *args, **kwargs):
             try:
                 validate_and_log_api_req(request)
@@ -231,6 +236,25 @@ def latlng2webm(lat,lng):
     y = 3189068.5*math.log((1.0 + math.sin(a))/(1.0 - math.sin(a)))
 
     return (x,y)
+
+@require_http_methods(["POST"])
+@api_call()
+def reset_password(request):
+    resetform = PasswordResetForm({ "email" : request.REQUEST["email"]})
+
+    if (resetform.is_valid()):
+        opts = {
+            'use_https': request.is_secure(),
+            'token_generator': default_token_generator,
+            'from_email': None,
+            'email_template_name': 'reset_email_password.html',
+            'request': request,
+            }
+
+        resetform.save(**opts)
+        return { "status": "success" }
+    else:
+        raise HttpBadRequestException()
 
 @require_http_methods(["GET"])
 @api_call()
