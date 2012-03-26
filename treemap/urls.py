@@ -75,6 +75,8 @@ urlpatterns = patterns('',
     (r'^users/ban/$', ban_user),
     (r'^users/activate/$', unban_user),
     (r'^users/activity/$', user_rep_changes),
+    (r'^users/opt-in/$', user_opt_in_list),
+    (r'^users/opt-in/(?P<format>.*)/$', user_opt_export),
     (r'^profiles/(?P<username>[a-zA-Z0-9_-]+)/deletephoto/', userphoto_delete),
     
     (r'^comments/moderate/$', view_flagged),

@@ -529,6 +529,42 @@ def update_users(request):
     )
 
 @permission_required('auth.change_user')
+def user_opt_in_list(request):
+    users = UserProfile.objects.filter(active=True)
+    if 'username' in request.GET:
+        users = users.filter(user__username__icontains=request.GET['username'])
+    if 'email' in request.GET:
+        users = users.filter(user__email__icontains=request.GET['email'])
+    if 'status' in request.GET:
+        update_bool = request.GET['status'].lower() == "true"
+        users = users.filter(updates=update_bool)
+
+    return render_to_response('treemap/admin_emails.html',RequestContext(request, {'users': users}))
+
+@permission_required('auth.change_user')
+def user_opt_export(request, format):
+    users = UserProfile.objects.filter(active=True)
+    where = []
+    if 'username' in request.GET:
+        users = users.filter(user__username__icontains=request.GET['username'])
+        where.append(" a.username ilike '%" + request.GET['username'] + "%' ")
+    if 'email' in request.GET:
+        users = users.filter(user__email__icontains=request.GET['email'])
+        where.append(" a.email ilike '%" + request.GET['email'] + "%' ")
+    if 'status' in request.GET:
+        update_bool = request.GET['status'].lower() == "true"
+        users = users.filter(updates=update_bool)
+        where.append(" b.updates is " + str(update_bool) + " ")
+
+    sql = "select a.username, a.email, case when b.updates = 't' then 'True' when b.updates = 'f' then 'False' end as \"opt-in\" from auth_user as a, profiles_userprofile as b where b.user_id = a.id"
+    if len(where) > 0:
+        sql = sql + " and " + ' and '.join(where)
+
+    print sql
+    
+    return ogr_conversion('CSV', sql, name="emails", geo=False)    
+
+@permission_required('auth.change_user')
 def ban_user(request):
     response_dict = {}
     if request.method == 'POST':
@@ -1259,7 +1295,7 @@ def zip_file(file_path,archive_name):
                 for f in files:
                     abs_file = os.path.join(root, f)
                     zipf = abs_file[len(file_path) + len(os.sep):]
-                    zipf = zipf.replace('sql_statement', 'trees')
+                    zipf = zipf.replace('sql_statement', archive_name)
                     z.write(abs_file, zipf)
         z.close()
         buffer.flush()
@@ -1267,9 +1303,9 @@ def zip_file(file_path,archive_name):
         buffer.close()
         return zip_stream
 
-def ogr_conversion(output_type, sql, extension=None):   
+def ogr_conversion(output_type, sql, extension=None, name="trees", geo=True):   
     dbsettings = settings.DATABASES['default'] 
-    tmp_dir = tempfile.mkdtemp() + "/trees" 
+    tmp_dir = tempfile.mkdtemp() + "/" + name 
     host = dbsettings['HOST']
     if host == '':
         host = 'localhost'
@@ -1278,20 +1314,23 @@ def ogr_conversion(output_type, sql, extension=None):
         tmp_name = tmp_dir + "/sql_statement." + extension
     else: 
         tmp_name = tmp_dir
-    if output_type == 'CSV':
-        geometry = 'GEOMETRY=AS_WKT'
-    else:
-        geometry = ''
-
-    command = ['ogr2ogr', '-sql', sql, '-f', output_type, tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']), '-lco', geometry ]
+    
+    command = ['ogr2ogr', '-sql', sql, '-a_srs', 'EPSG:4326', '-f', output_type,  tmp_name, 'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, dbsettings['PORT'], dbsettings['PASSWORD'], dbsettings['USER']) ]
+    if output_type == 'ESRI SHAPEFILE':
+        command.append('-nlt')
+        command.append('POINT')
+    if output_type == 'CSV' and geo:
+        command.append('-lco')
+        command.append('GEOMETRY=AS_WKT')
     done = subprocess.call(command)
     if done != 0: 
-        return render_to_json({'status':'error'})
+        return render_to_json({'status':'error', 'command': command})
     else: 
-        zipfile = zip_file(tmp_dir,'trees')
+        zipfile = zip_file(tmp_dir, name)
         response = HttpResponse(zipfile, mimetype='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=trees.zip'
+        response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
         return response
+
 
 def geo_search(request):
     """
