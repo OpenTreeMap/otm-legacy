@@ -1,19 +1,25 @@
+from django.core.files.base import ContentFile
+
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 
 from treemap.models import Plot, Species, TreePhoto
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
+from profiles.models import UserProfile
+
 from api.auth import login_required
 
 from functools import wraps
 
+import json
 import struct
 import ctypes
 import math
@@ -107,6 +113,37 @@ def api_call(content_type="application/json"):
 def verify_auth(request):
     return { "status": "success" }
 
+@require_http_methods(["POST"])
+@api_call()
+def register(request):
+    data = json.loads(request.raw_post_data)
+
+    user = User(username=data["username"],
+                first_name=data["firstname"],
+                last_name=data["lastname"],
+                email=data["email"])
+
+    user.set_password(data["password"])
+    user.save()
+
+    profile = UserProfile(user=user,zip_code=data["zipcode"],active=True)
+    profile.save()
+
+    return { "status": "success", "id": user.pk }
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+def add_profile_photo(request, user_id, title):
+    uploaded_image = ContentFile(request.raw_post_data)
+    uploaded_image.name = "%s.png" % title
+
+    profile = UserProfile.objects.get(user__id=user_id)
+    profile.photo.save("%s.png" % title, uploaded_image)
+
+    profile.save()
+
+    return { "status": "succes" }
 
 @require_http_methods(["GET"])
 @api_call_raw("otm/trees")
