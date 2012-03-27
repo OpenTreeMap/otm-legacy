@@ -32,6 +32,14 @@ class HttpBadRequestException(Exception):
 class InvalidAPIKeyException(Exception):
     pass
 
+def route(**kwargs):
+    @csrf_exempt
+    def routed(request):
+        method = request.method
+        req_method = kwargs[method]
+        return req_method(request)
+    return routed
+
 def validate_and_log_api_req(request):
     # Prefer "apikey" in REQUEST, but take either that or the
     # header value
