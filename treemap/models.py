@@ -1,7 +1,9 @@
 import os
 import math
+import re
 from decimal import *
 from datetime import datetime
+from operator import itemgetter
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum
@@ -87,12 +89,21 @@ class BenefitValues(models.Model):
     
     def __unicode__(self): return '%s' % (self.area)
 
+
+def sorted_nicely(l, key):
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda item: [ convert(c) for c in re.split('([0-9]+)', key(item)) ]
+    return sorted(l, key = alphanum_key)
+
+
+
 class Choices(models.Model):
     field = models.CharField(max_length=255, choices=choices_choices)
     key = models.CharField(max_length=50)
     value = models.CharField(max_length=255)
     key_type = models.CharField(max_length=15)
-    
+
     def get_field_choices(self, fieldName):
         li = {}
         for c in Choices.objects.filter(field__exact=fieldName):
@@ -112,7 +123,7 @@ class Choices(models.Model):
                 raise Exception("Invalid key type %r" % c.key_type)
 
             li[c.key] = c.value
-        return sorted(li.items())
+        return sorted_nicely(li.items(), itemgetter(0))
     
     def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
         

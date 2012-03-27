@@ -55,7 +55,7 @@
 
                             Hello, <b><a href="{% url profiles.views.profile_detail user.username %}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
                     {% else %}
-                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}/" class="buttomSm globalAdd">Add a tree</a>
+                        <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}" class="buttomSm globalAdd">Add a tree</a>
                     {% endif %}
                 </li>
             </ul>
@@ -199,7 +199,7 @@
                                     </ul> 
                                 </div> 
                                 <div class="project_trees"> 
-                                    <strong>Project trees</strong> 
+                                    <strong><a href="{{ SITE_ROOT }}resources/#projects">Project trees</a></strong> 
                                     <ul> 
                                         <li> 
                                             <input type="checkbox" id="project1" /> 
@@ -215,7 +215,7 @@
                                         </li> 
                                         <li> 
                                             <input type="checkbox" id="project4" /> 
-                                            <label for="project4">Historic Tree</label> 
+                                            <label for="project4">Just One Tree</label> 
                                         </li> 
                                     </ul> 
                                     <strong>Condition</strong> 

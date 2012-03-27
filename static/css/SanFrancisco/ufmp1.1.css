@@ -251,7 +251,7 @@ ul#searchBoxes  li#searchLocationBox {
 	list-style-type: none;
 }
 ul#searchBoxes li#searchLocationBox input#location_search_input {
-	width:280px;
+	width:270px;
 	height:16px;
 	padding:5px;
 	margin:0;

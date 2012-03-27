@@ -119,7 +119,11 @@
 		    <div class="shadowTop"></div>
 	    </div>
 	    <div id="add_tree_nearby">
-		    <h1 class="title-edit">Nearby Trees</h1>
+		    <h1 class="title-edit">Support</h1>
+                    <p>Running into a problem adding trees?</p>
+                    <a href="{{ SITE_ROOT }}contact">Get in touch and we'll try to help &raquo;</a>
+
+		    <h1 class="title-edit" style="margin-top:20px;">Nearby Trees</h1>
 		    <div id="nearby_trees"></div>
 	    </div>
 
@@ -138,15 +142,12 @@
                 <span class="small">Enter tree height in feet</span>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
+                <span class="small">Where is the tree planted?</span>
+                <label class="opt_fields">Planting Site Type</label>{{ form.plot_type }}
+                <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}{{ form.plot_length_in }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}{{ form.plot_width_in }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.plot_type.label}}</label>{{ form.plot_type }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields" id="power_lines">Is there a powerline overhead?</label>{{ form.power_lines }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields">Is there damage to the sidewalk?</label>{{ form.sidewalk_damage }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">What is the tree's condition?</label>{{ form.condition }}
                 <div class="clearLeft"></div>

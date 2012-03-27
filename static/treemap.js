@@ -114,20 +114,14 @@ var tm = {
         var adv_active = false;
         $('#advanced').click(function() {
             if (!adv_active) {
-                if ($('#results').length > 0) {
-                    $('.filter-box').slideDown('slow');
-                }
+                $('.filter-box').slideDown('slow');
                 adv_active = true;
                 $('#arrow').attr('src',tm_static + 'static/images/v2/arrow2.gif');
-                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
-                if ($('#results').length > 0) {
-                    $('.filter-box').slideUp('slow');
-                }
+                $('.filter-box').slideUp('slow');
                 adv_active = false;
                 $('#arrow').attr('src',tm_static + 'static/images/v2/arrow1.gif');
-                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
             }
             return false;
         });
@@ -1668,7 +1662,7 @@ var tm = {
         '1': 'Landmark Tree',
         '2': 'Local Carbon Fund',
         '3': 'Fruit Gleaning Project',
-        '4': 'Historically Significant Tree'
+        '4': 'Just One Tree'
     },
     searchParams: {},
     pageLoadSearch: function () {
