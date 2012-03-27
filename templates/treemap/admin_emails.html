@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -23,7 +23,7 @@
 				}
 			});
 
-			$("#csv_export").attr('href', '/users/opt-in/csv/' + $.query.toString())
+			$("#csv_export").attr('href', tm_static + 'users/opt-in/csv/' + $.query.toString())
 
 			jQuery("#filter").click(function(evt) {
 				var params = {};
@@ -41,11 +41,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/users/opt-in/" + qstr;
+				window.location = tm_static + "users/opt-in/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/users/opt-in/"
+				window.location = tm_static + "users/opt-in/"
 			});
 
 		});

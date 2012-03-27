@@ -166,7 +166,7 @@ def result_map(request):
     recent_edits = unified_history(recent_trees)
 
     #TODO return the recent_edits instead
-    latest_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    latest_trees = Tree.objects.filter(present=True).exclude(last_updated_by__is_superuser=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
     
     return render_to_response('treemap/results.html',RequestContext(request,{
