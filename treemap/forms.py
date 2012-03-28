@@ -34,6 +34,7 @@ class TreeAddForm(forms.Form):
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
+    initial_map_location = forms.CharField(max_length=200, required=False, widget=forms.HiddenInput)
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False, label="Trunk size")
@@ -85,7 +86,11 @@ class TreeAddForm(forms.Form):
 
         if canopy_height and height and canopy_height > height:
             raise forms.ValidationError("Canopy height cannot be larger than tree height.")
-            
+          
+        initial_map_location = cleaned_data.get('initial_map_location').split(',')
+        initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
+        if point == initial_point:
+            raise forms.ValidationError("The tree needs a more precice location. Please move the tree marker to it's planting site.")
 
         return cleaned_data 
         

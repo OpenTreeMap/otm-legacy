@@ -37,7 +37,7 @@
         <tr><th> </th><th>Scientific Name</th><th>Common Name</th><th>Diameter</th><th>Address</th></tr>
         {% for tree in trees %}
             <tr class="treeRow">
-                <td><a href="{% url treemap.views.tree_detail tree.id %}">View Details</a></td>
+                <td><a href="{% url treemap.views.trees tree.id %}">View Details</a></td>
                 <td><i>{{tree.species.scientific_name|default:""}}</i></td>
                 <td>{{tree.species.common_name|default:""}}</td>
                 <td>{{tree.dbh|unit_or_empty:'inches'}}</td>

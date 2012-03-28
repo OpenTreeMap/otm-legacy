@@ -655,7 +655,8 @@ var tm = {
                     jQuery('#id_lat').val(olPoint.lat);
                     jQuery('#id_lon').val(olPoint.lon);
                     jQuery('#id_geocode_address').val(results[0].formatted_address)
-                    
+                    jQuery('#id_initial_map_location').val(olPoint.lat + "," + olPoint.lon);                   
+
                     jQuery('#update_map').html("Update Map");
                     jQuery("#mapHolder").show();
                     jQuery("#calloutContainer").show();
