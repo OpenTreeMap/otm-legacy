@@ -21,10 +21,6 @@
         tm.init_add_map();
         jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
-	jQuery.getJSON(tm_static + '/species/json/', function(species){
-            tm.speciesData = species;
-        });
-
         jQuery("#opt_field_group").hide();
         jQuery("#addTree").submit(function(evt) {
         	tm.trackEvent("Add", "Add Tree");

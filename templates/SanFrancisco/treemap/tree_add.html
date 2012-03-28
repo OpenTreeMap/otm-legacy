@@ -22,12 +22,6 @@
         //jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
         //jQuery("#opt_field_group").hide();
-        jQuery.getJSON(tm_static + '/species/json/', function(species){
-            tm.speciesData = species;
-            tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                $("#id_species_id").val(item.symbol).change();
-            });
-        });
         jQuery("#addTree").submit(function(evt) {
         	tm.trackEvent("Add", "Add Tree");
         });
@@ -62,6 +56,10 @@
         });
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
         jQuery("#id_target_2").attr('checked', 'checked');
+
+        tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
+            $("#id_species_id").val(item.symbol).change();
+        });
 
     });
 </script>
