@@ -247,9 +247,9 @@ class Resource(models.Model):
             br['aq_voc_avoided_dbh'] +
             br['bvoc_dbh']) * 2.2
         summaries['annual_ozone'] = br['aq_ozone_dep_dbh'] * 2.2
-        summaries['annual_nox'] = br['aq_nox_dep_dbh'] * 2.2
-        summaries['annual_pm10'] = br['aq_pm10_dep_dbh'] * 2.2
-        summaries['annual_sox'] = br['aq_sox_dep_dbh'] * 2.2
+        summaries['annual_nox'] = br['aq_nox_dep_dbh'] + br['aq_nox_avoided_dbh'] * 2.2
+        summaries['annual_pm10'] = br['aq_pm10_dep_dbh'] + br['aq_pm10_avoided_dbh'] * 2.2
+        summaries['annual_sox'] = br['aq_sox_dep_dbh'] + br['aq_sox_avoided_dbh'] * 2.2
         summaries['annual_voc'] = br['aq_voc_avoided_dbh'] * 2.2
         summaries['annual_bvoc'] = br['bvoc_dbh'] * 2.2
         summaries['annual_co2_sequestered'] = br['co2_sequestered_dbh'] * 2.2
