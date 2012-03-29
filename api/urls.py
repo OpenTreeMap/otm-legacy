@@ -11,8 +11,10 @@ urlpatterns = patterns(
     (r'^login/reset_password$', reset_password),
     (r'^login$', verify_auth),
 
-    (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),  
     (r'^user/$', route(POST=register)),
+    (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),  
+    (r'^user/(?P<user_id>\d+)/password$', update_password),  
+    (r'^user/(?P<user_id>\d+)/edits$', recent_edits),  
 
     (r'^tiles',  get_trees_in_tile),
 )

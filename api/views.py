@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServer
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django_reputation.models import Reputation, UserReputationAction
 
 from treemap.models import Plot, Species, TreePhoto
 from api.models import APIKey, APILog
@@ -15,7 +16,7 @@ from django.contrib.gis.geos import Point
 
 from profiles.models import UserProfile
 
-from api.auth import login_required
+from api.auth import login_required, create_401unauthorized
 
 from functools import wraps
 
@@ -119,7 +120,9 @@ def api_call(content_type="application/json"):
 @api_call()
 @login_required
 def verify_auth(request):
-    return { "status": "success" }
+    user_dict = user_to_dict(request.user)
+    user_dict["status"] = "success"
+    return user_dict
 
 @require_http_methods(["POST"])
 @api_call()
@@ -152,6 +155,39 @@ def add_profile_photo(request, user_id, title):
     profile.save()
 
     return { "status": "succes" }
+
+@require_http_methods(["GET"])
+@api_call()
+@login_required
+def recent_edits(request, user_id):
+    if (int(user_id) != request.user.pk):
+        return create_401unauthorized()
+
+    result_offset = int(request.REQUEST.get("offset",0))
+    num_results = min(int(request.REQUEST.get("length",15)),15)
+
+    acts = UserReputationAction.objects.filter(user=request.user).order_by('-date_created')[result_offset:(result_offset+num_results)]
+
+    acts = [dict([("id",a.pk),("name",a.action.name),("created",str(a.date_created)),("value",a.value)]) for a in acts]
+
+    return acts
+
+    
+
+@require_http_methods(["PUT"])
+@api_call()
+@login_required
+def update_password(request, user_id):
+    data = json.loads(request.raw_post_data)
+
+    pw = data["password"]
+
+    user = User.objects.get(pk=user_id)
+
+    user.set_password(pw)
+    user.save()
+
+    return { "status": "success" }
 
 @require_http_methods(["GET"])
 @api_call_raw("otm/trees")
@@ -445,3 +481,14 @@ def plot_to_dict(plot):
             "lng": plot.geometry.x
         }
     }
+
+def user_to_dict(user):
+    return {
+        "id": user.pk,
+        "firstname": user.first_name,
+        "lastname": user.last_name,
+        "email": user.email,
+        "zipcode": UserProfile.objects.get(user__pk=user.pk).zip_code,
+        "reputation": Reputation.objects.reputation_for_user(user).reputation
+        }
+
