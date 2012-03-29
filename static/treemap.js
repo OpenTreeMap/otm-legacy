@@ -1239,15 +1239,7 @@ var tm = {
         //tm.current_selected_tile_overlay = new GTileLayerOverlay(tm.selected_tree_layer);
         //tm.map.addOverlay(tm.current_selected_tile_overlay);
     },
-            
-    cqlizeIds: function(trees) {
-        var cql_ids = [];
-        if (trees.length == 1) {return trees[0].id}
-        for(var i=0; i < trees.length; i++) {
-            cql_ids.push(trees[i].id);
-        }
-        return  cql_ids.join();
-    },
+   
     display_search_results : function(results){
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
@@ -1260,8 +1252,8 @@ var tm = {
             tm.display_summaries(results.summaries);
             
             if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
-                if (results.trees.length > 0) {
-                    var cql = tm.cqlizeIds(results.trees);
+                if (results.featureids) {
+                    var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
                     tm.tree_layer.mergeNewParams({'FEATUREID':cql});
                     tm.tree_layer.setVisibility(true);     

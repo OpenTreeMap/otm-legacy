@@ -1086,7 +1086,7 @@ def _build_tree_search_result(request):
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
-        tile_query.append("dbh IS NULL")
+        tile_query.append(" (dbh IS NULL or dbh = 0) ")
     
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
@@ -1101,7 +1101,7 @@ def _build_tree_search_result(request):
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
-        tile_query.append("height IS NULL")
+        tile_query.append(" (height IS NULL or height = 0) ")
 
     if not missing_current_height and 'height_range' in request.GET:
         min, max = map(float,request.GET['height_range'].split("-"))
@@ -1387,10 +1387,6 @@ def advanced_search(request, format='json'):
      - trees and associated summaries
      - neighborhood or zipcode and associated   summaries
     """
-    if settings.TILED_SEARCH_RESPONSE:
-        maximum_trees_for_display = 0
-    else:
-        maximum_trees_for_display = 500   
     maximum_trees_for_summary = 200000  
     response = {}
 
@@ -1422,64 +1418,34 @@ def advanced_search(request, format='json'):
     full_count = Tree.objects.count()
     esj = {}
     esj['total_trees'] = tree_count
-    #print 'tree count', tree_count   
 
-    if tree_count > maximum_trees_for_summary:
-        trees = []
-        if geog_obj:
-            esj = summaries
-            esj['benefits'] = benefits
-        else:
-            #someone selected a single species w/too many tree results.  dang....
-            # TODO - need to pull from cached results...
-            summaries = {}
-        
-
-    else:
-        esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        #print 'we have %s  ..' % esj
-        #print 'aggregating..'
-
-        r = ResourceSummaryModel()
-        
-        with_out_resources = trees.filter(treeresource=None).count()
-        #print 'without resourcesums:', with_out_resources
-        resources = tree_count - with_out_resources
-        #print 'have resourcesums:', resources
-        
-        EXTRAPOLATE_WITH_AVERAGE = True
-
-        for f in r._meta.get_all_field_names():
-            if f.startswith('total') or f.startswith('annual'):
-                fn = 'treeresource__' + f
-                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-                # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
-                # which is also a location where summaries are calculated
-                # also add likely to treemap/update_aggregates.py (not really sure how this works)
-                if EXTRAPOLATE_WITH_AVERAGE and resources:
-                    avg = float(s)/resources
-                    s += avg * with_out_resources
-                        
-                setattr(r,f,s)
-                esj[f] = s
-        esj['benefits'] = r.get_benefits()
-
-        #print 'aggregated...'
+    r = ResourceSummaryModel()
     
+    with_out_resources = trees.filter(treeresource=None).count()
+    #print 'without resourcesums:', with_out_resources
+    resources = tree_count - with_out_resources
+    #print 'have resourcesums:', resources
     
-    if tree_count > maximum_trees_for_display:   
-         trees = []
-         response.update({'tile_query' : tile_query})
-        
-  
-    tj = [{
-          'id': t.id,
-          'lon': '%.12g' % t.geometry.x, 
-          'lat' : '%.12g' % t.geometry.y,
-          'cmplt' : t.is_complete()
-          } for t in trees]
+    EXTRAPOLATE_WITH_AVERAGE = True
 
-    response.update({'trees' : tj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count})
+    for f in r._meta.get_all_field_names():
+        if f.startswith('total') or f.startswith('annual'):
+            fn = 'treeresource__' + f
+            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+            # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
+            # which is also a location where summaries are calculated
+            # also add likely to treemap/update_aggregates.py (not really sure how this works)
+            if EXTRAPOLATE_WITH_AVERAGE and resources:
+                avg = float(s)/resources
+                s += avg * with_out_resources
+                    
+            setattr(r,f,s)
+            esj[f] = s
+    esj['benefits'] = r.get_benefits()
+
+    #print 'aggregated...'
+        
+    response.update({'tile_query' : tile_query, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count})
     return render_to_json(response)
 
     
