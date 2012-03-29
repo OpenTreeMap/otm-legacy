@@ -114,6 +114,7 @@ def setupTreemapEnv():
         u.is_superuser = True
         u.save()
         up = UserProfile(user=u)
+        up.save()
         u.reputation = Reputation(user=u)
         u.reputation.save()
         
