@@ -10,8 +10,6 @@ tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 
 tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.62,-122.62), new google.maps.LatLng(37.88,-122.19));
-tm.geo_layer = "sf:sf_treemap_tree"
-tm.geo_layer_style = "sanfrancisco_tree_highlight"
 tm.panoAddressControl = false;
 
 tm.init_base_map = function(div_id, controls){
@@ -58,7 +56,7 @@ tm.init_base_map = function(div_id, controls){
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,
         {
-            layername: 'SF',
+            layername: tm_urls.tc_layer_name,
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,

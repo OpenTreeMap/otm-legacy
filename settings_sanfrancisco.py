@@ -1,8 +1,5 @@
 import os
 from settings_db import *
-GEOSERVER_URL = 'http://207.245.89.246:8081/geoserver/wms?transparent=true'
-TILECACHE_URL = 'http://207.245.89.246:8080/tilecache/tilecache.py/'
-TILECACHE_LAYER = 'SF_v102'
 
 SITE_LOCATION = 'SanFrancisco'
 PENDING_ON = False
