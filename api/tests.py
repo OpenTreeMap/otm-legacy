@@ -191,8 +191,8 @@ class TileRequest(TestCase):
         p2offsety = p2yM - 4163881.0 #ymin
 
         # Compute scale
-        pixelsPerMeterX = 256.0 / (-8460281.0 - -8682920.0)
-        pixelsPerMeterY = 256.0 / (4439106.0 - 4163881.0)
+        pixelsPerMeterX = 255.0 / (-8460281.0 - -8682920.0)
+        pixelsPerMeterY = 255.0 / (4439106.0 - 4163881.0)
 
         # Computer origin offsets
         pixels1x = int(p1offsetx * pixelsPerMeterX + 0.5)
@@ -200,7 +200,7 @@ class TileRequest(TestCase):
 
         pixels1y = int(p1offsety * pixelsPerMeterY + 0.5)
         pixels2y = int(p2offsety * pixelsPerMeterY + 0.5)
-        
+
         style = 1
         npts = 2
 
@@ -223,7 +223,7 @@ class TileRequest(TestCase):
         p1.save()
 
         p2 = mkPlot(self.u)
-        p2.geometry = Point(-77.00001,36.00001)
+        p2.geometry = Point(-77.0,36.0000001)
         p2.save()
 
         p3 = mkPlot(self.u)
@@ -231,7 +231,7 @@ class TileRequest(TestCase):
         p3.save()
 
         p4 = mkPlot(self.u)
-        p4.geometry = Point(-77.0,35.9999)
+        p4.geometry = Point(-77.0,35.999999)
         p4.save()
 
         # These should all map to (x,y)->(128,127)
