@@ -1,6 +1,9 @@
 import os
 
-from settings_db import *
+try:
+    from settings_db import *
+except ImportError, exp:
+    pass
 
 OTM_VERSION="1.1"
 
