@@ -1,9 +1,5 @@
 import os
 
-try:
-    from settings_db import *
-except ImportError, exp:
-    pass
 
 OTM_VERSION="1.1"
 
@@ -89,7 +85,7 @@ SITE_ID = 1
 ROOT_URL = "http://207.245.89.214"
 
 MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'media/')
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'admin_media/')
 ADMIN_MEDIA_PREFIX = '/admin_media/'
 
@@ -103,5 +99,10 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates/Philadelphia'),
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
+
+try:
+    from settings_db import *
+except ImportError, exp:
+    pass
 
 
