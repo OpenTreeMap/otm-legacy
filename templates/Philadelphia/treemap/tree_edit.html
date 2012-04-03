@@ -4,8 +4,10 @@
 
 {% block body_id %}id="tree_edit"{% endblock %}
 
-{% block extrahead %}
-        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+{% block extrahead %}	    
+    {% load compressed %}
+    {% compressed_js 'map' %}
+
 	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
 {% endblock %}
 

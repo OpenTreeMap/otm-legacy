@@ -15,8 +15,10 @@
 
 {% block body_id %}id="tree_new"{% endblock %}
 
-{% block extrahead %}
-	<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+{% block extrahead %}	    
+    {% load compressed %}
+    {% compressed_js 'map' %}
+
     <script type="text/javascript">
         jQuery().ready(function() {
             tm.init_new_map({{user.id|default:""}});

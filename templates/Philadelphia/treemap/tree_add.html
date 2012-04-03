@@ -14,19 +14,15 @@
 
 {% block body_id %}id="tree_add"{% endblock %}
 
-{% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+{% block extrahead %}    
+    {% load compressed %}
+    {% compressed_js 'map' %}
+
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
         jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
-	jQuery.getJSON(tm_static + '/species/json/', function(species){
-            tm.speciesData = species;
-            tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                $("#id_species_id").val(item.id).change();
-            });
-        });
 
         jQuery("#opt_field_group").hide();
         jQuery("#addTree").submit(function(evt) {
@@ -60,16 +56,7 @@
 
         jQuery("#opt_field_toggle").click(function() {
             jQuery("#opt_field_group").toggle();
-
-
-
-            tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                $("#id_species_id").val(item.symbol).change();
-            });
-
-
-
-
+            tm.setupAutoComplete($('#id_species_name'));
         });
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
         jQuery("#id_target_2").attr('checked', 'checked');
