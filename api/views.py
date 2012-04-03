@@ -241,8 +241,8 @@ def get_trees_in_tile(request):
 
     (xminM,yminM) = latlng2webm(xmin,ymin) 
     (xmaxM,ymaxM) = latlng2webm(xmax,ymax)
-    pixelsPerMeterX = 256.0/(xmaxM - xminM)
-    pixelsPerMeterY = 256.0/(ymaxM - yminM)
+    pixelsPerMeterX = 255.0/(xmaxM - xminM)
+    pixelsPerMeterY = 255.0/(ymaxM - yminM)
 
     # Use postgis to do the SRS math, save ourselves some time
     selectx = "ROUND((ST_X(t.geometry) - {xoffset})*{xfactor}) as x".format(xoffset=xminM,xfactor=pixelsPerMeterX)
