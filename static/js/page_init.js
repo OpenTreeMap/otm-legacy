@@ -1,19 +1,13 @@
 tm.buildSpeciesList = function() {
     $.getJSON(tm_static + 'species/json/', function(species){
         tm.speciesData = species;
-        tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
-            $("#species_search_id").val(item.id).change(); 
-            if (item.cultivar) {
-                $("#species_search_id_cultivar").val(item.cultivar).change(); 
-            } else {
-                $("#species_search_id_cultivar").val("").change();
-            }    
-        });
+        tm.setupAutoComplete($('#species_search_input'));
 
         tm.generateSpeciesDropdown(tm.speciesData);
-        var spec = $.address.parameter("species");
-        var cultivar = $.address.parameter("cultivar");
-        tm.updateSpeciesFields("search_species",spec, cultivar);
+        var spec = $.query.GET("species");
+        if (spec) {
+            tm.updateSpeciesFields("species_search",spec, '');
+        }
     });        
 };
 
@@ -27,12 +21,6 @@ tm.buildLocationList = function() {
 tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
     tm.init_map('results_map');
 
-    var spp = $.urlParam('species');
-    if (spp) {
-        $('#heading_location').html(spp);
-    }
-    
-    $.address.externalChange(tm.pageLoadSearch);
     $(".characteristics input").change(function(evt) { 
         tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
     });
@@ -396,7 +384,7 @@ tm.baseTemplatePageLoad = function() {
         if (tm.advancedClick) {
             q = q.set('advanced', 'open');
         }    
-        window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
+        window.location.href = tm_static + "map/" + decodeURIComponent(q.toString());
         return false;
     }
     //$("#search_form").submit(triggerSearch);    

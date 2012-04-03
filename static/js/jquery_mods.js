@@ -50,8 +50,8 @@ $.editable.addInputType("autocomplete_species", {
         var hiddenInput = $('<input type="hidden" class="hide">');
         var input = $("<input type='text' />");
         var other = $("<input type='text' id='other_species1' /><input type='text' id='other_species2' /><br><span>Genus and species</span>")
-        tm.setupAutoComplete(input).result(function(event, item) {
-            hiddenInput[0].value = item.id; 
+        tm.setupAutoComplete(input).bind("autocompleteselect", function(event, item) {
+            hiddenInput[0].value = item.item.value; 
             if (input[0].value.indexOf('Other') > -1) {
                 other.show();
             } else {

@@ -563,7 +563,40 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
     vertical-align:center;
 }
 
+.ui-autocomplete {
+	max-height: 100px;
+    max-width: 235px;
+	overflow-y: auto;
+	/* prevent horizontal scrollbar */
+	overflow-x: hidden;
+	/* add padding to account for vertical scrollbar */
+	padding-right: 20px;
+    border-color: #ccc;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+	border-radius: 0;	
+}
+/* IE 6 doesn't support max-height
+ * we use height instead, but this forces the menu to always be this tall
+ */
+* html .ui-autocomplete {
+	height: 100px;
+}
 
+.ui-autocomplete .ui-menu-item a {
+    line-height: auto;
+    padding: 0.1em;
+}
+
+.ui-autocomplete a.ui-state-hover {
+    background: #3fab82;
+    cursor: pointer;
+    border-color: #3fab82;
+    color: white;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+	border-radius: 0;	
+}
 
 /*
 .search-box{

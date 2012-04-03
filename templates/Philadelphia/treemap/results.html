@@ -5,7 +5,8 @@
 {%block body_class%}inner{%endblock %}
 
 {% block extrahead %}	    
-        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
 {% endblock %}
 
 {% block body_id %}id="results"{% endblock %}
@@ -25,7 +26,7 @@
                 </ul>
                 <ul class="messageStats">
                     <li class="impact" id="gas">Greenhouse Gas Benefits</li>
-                    <li class="impactStat"><span id="annual_co2_avoided"></span><span class="subnote">lbs CO2 reduced</span></li>
+                    <li class="impactStat"><span id="annual_co2_reduced"></span><span class="subnote">lbs CO2 reduced</span></li>
                     <li class="impactStat">$<span id="benefits_greenhouse"></span><span class="subnote">saved</span></li>
                 </ul>
                 <ul class="messageStats">
@@ -35,7 +36,7 @@
                 </ul>
                 <ul class="messageStats">
                     <li class="impact" id="energy">Energy Benefits</li>
-                    <li class="impactStat"><span id="annual_electricity_conserved"></span><span class="subnote">kWh conserved</span></li>
+                    <li class="impactStat"><span id="annual_energy_conserved"></span><span class="subnote">kWh conserved</span></li>
                     <li class="impactStat">$<span id="benefits_energy"> </span><span class="subnote"> saved</span></li>
                 </ul>
                 <ul class="messageStats">
@@ -145,7 +146,7 @@
                 <li>
                     <a href="{% url treemap.views.trees pic.tree.id %}">
                         {% thumbnail pic.photo "43x42" as image %}
-                        <img src="image.url" alt="image description" width="43" height="42" />
+                        <img src="{{image}}" alt="image description" width="43" height="42" />
                         {% endthumbnail %}
                     </a>
                 </li>

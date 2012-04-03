@@ -371,6 +371,8 @@ class Command(BaseCommand):
 
         if z: plot.zipcode = z[0]
 
+	plot.quick_save()
+
         if tree:
             tree.plot = plot
             tree.readonly = self.readonly

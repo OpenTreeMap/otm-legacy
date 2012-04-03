@@ -513,25 +513,27 @@ tm = {
     },
 
     setupAutoComplete: function(field) {
-        return field.autocomplete(tm.speciesData, {
-            matchContains: true,
-            minChars: 1,
-            max:50,
-
-            formatItem: function(row, i, max) {
-                var text = row.cname;
-                text += "  [" + row.sname;
-                if (row.cultivar) {
-                    text += " '" + row.cultivar + "'";
+        return field.autocomplete({
+            source:function(request, response){
+                response( $.map( tm.speciesData, function( item ) {
+                    if (item.cname.toLowerCase().indexOf(request.term.toLowerCase()) != -1 ||
+                        item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1) 
+                    {
+					    return {
+						    label: item.cname + " [ " + item.sname + " ]",
+						    value: item.id
+					    }
+                    }
+				}));
+            }, 
+            minLength: 1,
+            select: function(event, ui) {
+                field.val(ui.item.label);
+                $("#species_search_id").val(ui.item.value).change(); 
+                if ($("#id_species_id").length > 0) {
+                    $("#id_species_id").val(ui.item.value).change();
                 }
-                text += "]";
-                return text;
-            },
-            formatMatch: function(row, i, max) {
-                return row.symbol + " " + row.cname + " " + row.sname;
-            },
-            formatResult: function(row) {
-                return row.cname + " / " + row.sname;
+                return false;
             }
         });
 
@@ -696,49 +698,46 @@ tm = {
     pageLoadSearch: function () {
         tm.loadingSearch = true;
         tm.searchparams = {};
-        var params = $.address.parameterNames();
+        var params = $.query.GET();
         if (params.length) {
             for (var i = 0; i < params.length; i++) {
                 var key = params[i];
-                var val = $.address.parameter(key);
+                var val = $.query.get(key);
                 tm.searchParams[key] = val;
                 if (val == "true") {
                     $("#"+key).attr('checked', true);
                 }
                 if (key == "diameter_range") {
-                    var dvals = $.address.parameter(key).split("-");
+                    var dvals = $.query.get(key).split("-");
                     $("#diameter_slider").slider('values', 0, dvals[0]);
                     $("#diameter_slider").slider('values', 1, dvals[1]);
                 }   
                 if (key == "planted_range") {
-                    var pvals = $.address.parameter(key).split("-");
+                    var pvals = $.query.get(key).split("-");
                     $("#planted_slider").slider('values', 0, pvals[0]);
                     $("#planted_slider").slider('values', 1, pvals[1]);
                 }   
                 if (key == "updated_range") {
-                    var uvals = $.address.parameter(key).split("-");
+                    var uvals = $.query.get(key).split("-");
                     $("#updated_slider").slider('values', 0, uvals[0]);
                     $("#updated_slider").slider('values', 1, uvals[1]);
                 }   
                 if (key == "height_range") {
-                    var hvals = $.address.parameter(key).split("-");
+                    var hvals = $.query.get(key).split("-");
                     $("#height_slider").slider('values', 0, hvals[0]);
                     $("#height_slider").slider('values', 1, hvals[1]);
                 }   
                 if (key == "plot_range") {
-                    var plvals = $.address.parameter(key).split("-");
+                    var plvals = $.query.get(key).split("-");
                     $("#plot_slider").slider('values', 0, plvals[0]);
                     $("#plot_slider").slider('values', 1, plvals[1]);
                 }   
                 if (key == "species") {
                     var cultivar = null;
-                    if ($.address.parameter("cultivar")) {
-                        cultivar = $.address.parameter("cultivar");
-                    }    
-                    tm.updateSpeciesFields('species_search',$.address.parameter(key), cultivar);
+                    tm.updateSpeciesFields('species_search',$.query.get(key), '');
                 } 
                 if (key == "location") {
-                    tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
+                    tm.updateLocationFields($.query.get(key).replace(/\+/g, " "));
                 }    
             }    
         }
@@ -756,9 +755,9 @@ tm = {
             q = q.set(key, val);
         }
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
-        if (qstr != '?'+$.address.queryString()) {
+        if (qstr != '?'+$.query.toString()) {
             if (!tm.loadingSearch) { 
-                $.address.value(qstr);
+                $.query.load(qstr);
             }
         }
        
@@ -821,15 +820,11 @@ tm = {
 
         if (spec) {
             $("#" + field_prefix + "_id").val(spec);
-            if (cultivar) {
-                $("#" + field_prefix + "_id_cultivar").val(cultivar);
-            } else {
-                $("#" + field_prefix + "_id_cultivar").val("");
-            }    
 
             for (var i = 0; i < tm.speciesData.length; i++) {
-                if (tm.speciesData[i].symbol == spec && (cultivar ? tm.speciesData[i].cultivar == cultivar : tm.speciesData[i].cultivar == '')) {
-                    $("#" + field_prefix + "_input").val(tm.speciesData[i].cname + " / " + tm.speciesData[i].sname);
+                if (tm.speciesData[i].id == spec) {
+                    $("#" + field_prefix + "_input").val(tm.speciesData[i].cname + " [ " + tm.speciesData[i].sname + " ]");
+                    break;
                 }
             }
         }    
