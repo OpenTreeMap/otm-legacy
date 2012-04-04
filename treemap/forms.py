@@ -90,7 +90,7 @@ class TreeAddForm(forms.Form):
         initial_map_location = cleaned_data.get('initial_map_location').split(',')
         initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
         if point == initial_point:
-            raise forms.ValidationError("The tree needs a more precice location. Please move the tree marker to it's planting site.")
+            raise forms.ValidationError("We need a more precise location for the tree. Please move the tree marker from the default location for this address to the specific location of the tree planting site. ")
 
         return cleaned_data 
         
