@@ -20,6 +20,7 @@ from api.auth import login_required, create_401unauthorized
 
 from functools import wraps
 
+from omgeo import Geocoder
 from omgeo.places import PlaceQuery
 
 import json
@@ -495,17 +496,19 @@ def user_to_dict(user):
         }
 
 
+
 @require_http_methods(["GET"])
 @api_call()
 def geocode_address(request, address):
-    if not settings.OMGEO_GEOCODER:
-        raise HttpResponseServerError("A geocoder has not been specified in the settings.")
-
     if address is None or len(address) == 0:
         raise HttpBadRequestException("No address specfified")
 
     query = PlaceQuery(address)
-    geocoder = settings.OMGEO_GEOCODER
+    if 'OMGEO_GEOCODER_SOURCES' in dir(settings) and settings.OMGEO_GEOCODER_SOURCES is not None:
+        geocoder = Geocoder(settings.OMGEO_GEOCODER_SOURCES)
+    else:
+        geocoder = Geocoder()
+
     results = geocoder.geocode(query)
     if results != False:
         response = []

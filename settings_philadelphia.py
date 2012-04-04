@@ -104,5 +104,5 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
-from omgeo import Geocoder
-OMGEO_GEOCODER = Geocoder()
+# See http://github.com/azavea/python-omgeo for source configuration options
+# OMGEO_GEOCODER_SOURCES = [...]
