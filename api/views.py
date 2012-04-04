@@ -20,6 +20,8 @@ from api.auth import login_required, create_401unauthorized
 
 from functools import wraps
 
+from omgeo.places import PlaceQuery
+
 import json
 import struct
 import ctypes
@@ -492,3 +494,33 @@ def user_to_dict(user):
         "reputation": Reputation.objects.reputation_for_user(user).reputation
         }
 
+
+@require_http_methods(["GET"])
+@api_call()
+def geocode_address(request, address):
+    if not settings.OMGEO_GEOCODER:
+        raise HttpResponseServerError("A geocoder has not been specified in the settings.")
+
+    if address is None or len(address) == 0:
+        raise HttpBadRequestException("No address specfified")
+
+    query = PlaceQuery(address)
+    geocoder = settings.OMGEO_GEOCODER
+    results = geocoder.geocode(query)
+    if results != False:
+        response = []
+        for result in results:
+            response.append({
+                 "match_addr": result.match_addr,
+                 "x": result.x,
+                 "y": result.y,
+                 "score": result.score,
+                 "locator": result.locator,
+                 "geoservice": result.geoservice,
+                 "wkid": result.wkid,
+            })
+        return response
+    else:
+        # This is not a very helpful error message, but omgeo as of v1.2 does not
+        # report failure details.
+        return {"error": "The geocoder failed to generate a list of results."}

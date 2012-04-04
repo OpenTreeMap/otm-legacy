@@ -8,6 +8,8 @@ urlpatterns = patterns(
     (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
     (r'^locations/(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})/plots', plots_closest_to_point),
 
+    (r'^addresses/(?P<address>.+)', geocode_address),
+
     (r'^login/reset_password$', reset_password),
     (r'^login$', verify_auth),
 
