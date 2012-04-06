@@ -342,7 +342,7 @@ tm.baseTemplatePageLoad = function() {
                 if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
                 if (tm.map) {
                     tm.map.setCenter(
-                        new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+                        new OpenLayers.LonLat(treemap_settings.map_center_lon, treemap_settings.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
                         , tm.start_zoom);
                 }
                 tm.updateSearch();

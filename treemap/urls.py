@@ -15,6 +15,12 @@ urlpatterns = patterns('',
     (r'^home/$', home_feeds),
     (r'^home/feeds/$', home_feeds),
     (r'^robots.txt/$', static, {'template':'robots.txt'}),
+
+    # This is intentionally _not_ attached to the start of the url with ^
+    # allowing a template rendered at any depth to always include a simple
+    # <script> tag with src="treemap_settings.js" to include this global
+    # settings file
+    (r'treemap_settings\.js$', treemap_settings_js),
     
     (r'^export/csv$', get_all_csv),
     (r'^export/kmz$', get_all_kmz),

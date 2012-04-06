@@ -2199,3 +2199,18 @@ def view_images(request):
     user_images = UserProfile.objects.exclude(photo="").order_by("-user__last_login")
     tree_images = TreePhoto.objects.all().order_by("-reported")
     return render_to_response('treemap/images.html',RequestContext(request, {'user_images':user_images, 'tree_images':tree_images}))
+
+def treemap_settings_js(request):
+
+    context = {
+        'map_center_lat': settings.MAP_CENTER_LAT,
+        'map_center_lon': settings.MAP_CENTER_LON,
+        'bounding_box_left': settings.BOUNDING_BOX['left'],
+        'bounding_box_bottom': settings.BOUNDING_BOX['bottom'],
+        'bounding_box_top': settings.BOUNDING_BOX['top'],
+        'bounding_box_right': settings.BOUNDING_BOX['right'],
+    }
+
+    response = render_to_response('treemap/treemap_settings.js', RequestContext(request,context))
+    response['Content-Type'] = 'application/javascript'
+    return response

@@ -12,7 +12,15 @@ GOOGLE_API_KEY = 'abcdf'
 
 COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
-        
+
+BOUNDING_BOX = { # WKID 4326
+    'left': -122.62,
+    'bottom': 37.62,
+    'right': -122.19,
+    'top': 37.88
+}
+MAP_CENTER_LAT = 37.752809
+MAP_CENTER_LON = -122.437821
 
 # must end with trees/ because of odd tilecache deployment issue
 # will be populated with layer name /trees/{layername} dynamically

@@ -1,5 +1,3 @@
-tm.map_center_lon = -122.437821;
-tm.map_center_lat = 37.752809;
 tm.start_zoom = 12;
 tm.add_start_zoom = 11;
 tm.add_zoom = 18;
@@ -9,7 +7,11 @@ tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.62,-122.62), new google.maps.LatLng(37.88,-122.19));
+tm.google_bounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(treemap_settings.boundingBox.bottom,treemap_settings.boundingBox.left),
+    new google.maps.LatLng(treemap_settings.boundingBox.top, treemap_settings.boundingBox.right)
+);
+
 tm.geo_layer = "sf:sf_treemap_tree"
 tm.geo_layer_style = "sanfrancisco_tree_highlight"
 tm.panoAddressControl = false;
