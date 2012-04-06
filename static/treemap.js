@@ -868,9 +868,17 @@ tm = {
             tm.map.zoomToExtent(bbox, true);
             
             tm.add_location_marker(bbox.getCenterLonLat());
-            tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
-            tm.searchParams['location'] = search;
-            tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
+            var featureName = nbhoods.features[0].properties.name;
+            if (featureName) {
+                tm.searchParams['geoName'] = featureName;
+                tm.searchParams['location'] = search;
+                tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
+            }
+            else {    
+                featureName = nbhoods.features[0].properties.zip;
+                tm.searchParams['location'] = featureName;
+                tm.geocoded_locations[search] = featureName;
+            }
             
             tm.updateSearch();
         }

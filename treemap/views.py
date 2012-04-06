@@ -1374,8 +1374,8 @@ def _build_tree_search_result(request):
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
-                ns = ns.filter(plot__geometry__contains=pt)
-
+                ns = ns.filter(geometry__contains=pt)
+            print ns.count()
             if ns.count():   
                 trees = trees.filter(plot__neighborhood = ns[0])
 		plots = plots.filter(neighborhood = ns[0])

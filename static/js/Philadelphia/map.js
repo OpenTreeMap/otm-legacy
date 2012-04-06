@@ -22,7 +22,7 @@ tm.init_base_map = function(div_id, controls){
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
             units: 'm',
-            projection: new OpenLayers.Projection("EPSG:102100"),
+            projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: [new OpenLayers.Control.Attribution(),
                        new OpenLayers.Control.Navigation(),
@@ -36,7 +36,7 @@ tm.init_base_map = function(div_id, controls){
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: new OpenLayers.Bounds(-8552949.884372,4608577.702163,-8187275.141121,5011248.307428), 
             units: 'm',
-            projection: new OpenLayers.Projection("EPSG:102100"),
+            projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: controls
         });
