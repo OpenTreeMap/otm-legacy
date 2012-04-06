@@ -167,7 +167,7 @@ class ZipCode(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s' % (self.zip)
+    def __unicode__(self): return '%s (%s)' % (self.id, self.zip)
     
     
 class Factoid(models.Model):
