@@ -114,12 +114,12 @@
                 <td>
                     <span>Neighborhood</span>  <br />
 
-                    {{tree.neighborhood.all.0}}
+                    {{tree.plot.neighborhood.all.0}}
                 </td>
                 <td>
                     <span>Tree species</span>  <br />
 
-                    <em>{{tree.species.common_name}}</em>
+                    <em>{{tree.species.common_name|default:"Missing"}}</em>
                 </td>
                 <td>
                     <span>Updated by</span>  <br />
