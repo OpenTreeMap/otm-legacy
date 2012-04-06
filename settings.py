@@ -1,7 +1,5 @@
 import os
 
-SITE_ROOT = ''
-
 #from settings_philadelphia import *
 from settings_dctreekit import *
 #from settings_sanfrancisco import *
@@ -99,8 +97,6 @@ try:
     from local_settings import *
 except ImportError, exp:
     pass
-
-PIPELINE_URL = SITE_ROOT
 
 if SITE_ROOT is not "/":
     LOGIN_URL = "%s/accounts/login" % SITE_ROOT
