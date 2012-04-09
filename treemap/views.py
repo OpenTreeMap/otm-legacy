@@ -209,7 +209,7 @@ def tree_location_search(request):
     species = request.GET.get('species')
     if species:
         # first try to restrict search to the active tree species
-        species_trees = trees.filter(species__symbol=species)
+        species_trees = trees.filter(species__id=species)
         # to allow clicking other trees still...
         if species_trees.exists():
             trees = species_trees

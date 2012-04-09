@@ -97,8 +97,13 @@ var tm = {
                     $("#species_search_id_cultivar").val(item.cultivar).change(); 
                 } else {
                     $("#species_search_id_cultivar").val("").change();
-                }    
+                } 
             });
+            if ($('#id_species_name')) {
+                tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
+                    $("#id_species_id").val(item.symbol).change();
+                });
+            }
             tm.setupSpeciesList();
             var spec = $.address.parameter("species");
             var cultivar = $.address.parameter("cultivar");

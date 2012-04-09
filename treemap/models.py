@@ -609,6 +609,8 @@ class Tree(models.Model):
             self.old_species.save()
         if hasattr(self,'species') and self.species:
             self.species.save()
+
+        super(Tree, self).save(*args,**kwargs) 
           
         #if n: 
         #    for nhood in n:
