@@ -108,7 +108,7 @@
 			<tbody>
 				{% for c in changes %}
 				<tr id="{{c.type}}_{{c.change_id}}">
-					<td><i>{{c.species}}</i><br><a href="{% url treemap.views.tree_detail c.id %}" target="_blank">View Record</a></td>
+					<td><i>{{c.species}}</i><br><a href="{% url treemap.views.trees c.id %}" target="_blank">View Record</a></td>
 					<td>{{c.address_street}}</td>
 					<td><a href="{% url profiles.views.profile_detail c.last_updated_by %}" target="_blank">{{c.last_updated_by}}</a></td>
 					<td>{{c.last_updated|date:"M d, Y"}}</td>

@@ -3,6 +3,10 @@ tm.buildSpeciesList = function() {
         tm.speciesData = species;
         tm.setupAutoComplete($('#species_search_input'));
 
+        if ($('#id_species_name')) {
+            tm.setupAutoComplete($('#id_species_name'));
+        }
+
         tm.generateSpeciesDropdown(tm.speciesData);
         var spec = $.query.GET("species");
         if (spec) {

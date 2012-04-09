@@ -215,8 +215,8 @@ def result_map(request):
     if min_plot == sys.maxint:
         min_plot = 0
 
-    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
-    recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.objects.filter(present=True).exclude(last_updated_by__is_superuser=True).order_by("-last_updated")[0:3]
+    recent_plots = Plot.objects.filter(present=True).exclude(last_updated_by__is_superuser=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
 
     return render_to_response('treemap/results.html',RequestContext(request,{
@@ -688,6 +688,42 @@ def update_users(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
+
+@permission_required('auth.change_user')
+def user_opt_in_list(request):
+    users = UserProfile.objects.filter(active=True)
+    if 'username' in request.GET:
+        users = users.filter(user__username__icontains=request.GET['username'])
+    if 'email' in request.GET:
+        users = users.filter(user__email__icontains=request.GET['email'])
+    if 'status' in request.GET:
+        update_bool = request.GET['status'].lower() == "true"
+        users = users.filter(updates=update_bool)
+
+    return render_to_response('treemap/admin_emails.html',RequestContext(request, {'users': users}))
+
+@permission_required('auth.change_user')
+def user_opt_export(request, format):
+    users = UserProfile.objects.filter(active=True)
+    where = []
+    if 'username' in request.GET:
+        users = users.filter(user__username__icontains=request.GET['username'])
+        where.append(" a.username ilike '%" + request.GET['username'] + "%' ")
+    if 'email' in request.GET:
+        users = users.filter(user__email__icontains=request.GET['email'])
+        where.append(" a.email ilike '%" + request.GET['email'] + "%' ")
+    if 'status' in request.GET:
+        update_bool = request.GET['status'].lower() == "true"
+        users = users.filter(updates=update_bool)
+        where.append(" b.updates is " + str(update_bool) + " ")
+
+    sql = "select a.username, a.email, case when b.updates = 't' then 'True' when b.updates = 'f' then 'False' end as \"opt-in\" from auth_user as a, profiles_userprofile as b where b.user_id = a.id"
+    if len(where) > 0:
+        sql = sql + " and " + ' and '.join(where)
+
+    print sql
+    
+    return ogr_conversion('CSV', sql, name="emails", geo=False)    
 
 @permission_required('auth.change_user')
 def ban_user(request):
@@ -1665,6 +1701,7 @@ def zip_files(file_paths,archive_name):
                         zipf = abs_file[len(path) + len(os.sep):]
                         zipf = zipf.replace('sql_statement', root.split("/")[-1]) # should be trees or plots
                         z.write(abs_file, zipf)
+
         z.close()
         buffer.flush()
         zip_stream = buffer.getvalue()
@@ -1722,12 +1759,14 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
     done = subprocess.call(command)
 
     if done != 0: 
-        return render_to_json({'status':'error'})
+        return render_to_json({'status':'error', 'command': command})
     else: 
         zipfile = zip_files([tmp_treedir, tmp_plotdir],'trees')
+
         response = HttpResponse(zipfile, mimetype='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=trees.zip'
+        response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
         return response
+
 
 def geo_search(request):
     """
@@ -1782,7 +1821,7 @@ def advanced_search(request, format='json'):
     return either
      - trees and associated summaries
      - neighborhood or zipcode and associated   summaries
-    """   
+    """  
     response = {}
 
     trees, plots, geog_obj, tile_query = _build_tree_search_result(request)
@@ -1841,6 +1880,7 @@ def advanced_search(request, format='json'):
     esj['benefits'] = r.get_benefits()
     
     response.update({'tile_query' : tile_query, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
+
     return render_to_json(response)
 
     

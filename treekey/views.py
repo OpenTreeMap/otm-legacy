@@ -1,3 +1,4 @@
+from django.template import RequestContext
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import Context, Template, RequestContext
@@ -46,7 +47,6 @@ def node(request, node_id):
     if n.has_children():
         return render_to_response('treekey/node.html', RequestContext(request, {'request': request, 'node':n, 'display':index_maker(request), 'trail':trail_maker(n)}))
     return render_to_response('treekey/leaf.html', RequestContext(request, {request: request, 'leaf':n, 'display':index_maker(request), 'trail':trail_maker(n)}))
-
 # Returns species information with parent node trail/index information
 def species(request, species_id):
     s = get_object_or_404(Species, pk=species_id)

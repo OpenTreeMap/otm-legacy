@@ -27,7 +27,7 @@
         <div id="contentbody">
              <div id="tabcontainer"> 
                 <ul id="tablist"> 
-                    <li class="first"><a href="{% url treemap.views.tree_detail tree.id %}" id="current">Tree info</a></li> 
+                    <li class="first"><a href="{% url treemap.views.trees tree.id %}" id="current">Tree info</a></li> 
                     <li><a href="{% url treemap_tree_edit tree.id %}">Edit tree</a></li> 
                 </ul> 
             </div> 
@@ -456,11 +456,16 @@
                     -->
                     
                 </li>
+                <li><iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Furbanforestmap.org/trees/{{tree.id}}/&amp;send=false&amp;layout=button_count&amp;width=90&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:90px; height:21px;" allowTransparency="true"></iframe></li>
+                <li><a href="https://twitter.com/share" class="twitter-share-button" data-text="Check out this tree!" data-related="sactree" data-count="none">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></li>
+                <li><g:plusone size="medium" annotation="none"></g:plusone></li>
             </ul>
 
             <ul id="message">
                 <li id="title">Latest update <div class="Info note"></div></li>
                 <li class="optionItemLastContainer">
+                    {% if recent.0 %}
                     <ul class="optionItemLast">
                         <li>Username</li>
                         <li class="editItem"><a href="{% url profiles.views.profile_detail recent.0.0 %}">{{recent.0.0}}</a></li>
@@ -469,6 +474,9 @@
                         <li>Date</li>
                         <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
+                    {% else %}
+                        <ul class="optionItemLast"><li>No edits yet!</li></ul>
+                    {% endif %}
                 </li>
             </ul>
             <ul id="message">
