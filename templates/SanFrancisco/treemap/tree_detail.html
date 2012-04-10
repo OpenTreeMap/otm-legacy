@@ -183,13 +183,13 @@
     <tbody>
 
         <tr>
-        	<td class="col1Wide">Plot size</td>
+        	<td class="col1Wide">Planting site size</td>
             <td>{% if tree.plot_width > 15.99 %}15+ ft x{% else %}{{tree.plot_width|unit_or_missing:"ft x"}}{% endif %}
                 {% if tree.plot_length > 15.99 %}15+ ft{% else %}{{tree.plot_length|unit_or_empty:"ft"}}{% endif %}
             </td>
         </tr>
         <tr>
-        	<td class="col1Wide">Plot type</td>
+        	<td class="col1Wide">Planting site type</td>
             <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
@@ -400,12 +400,12 @@
             <ul id="userImage">
                 <li>
                 {% if tree.treephoto_set.count %}
-                    <a href="{{ MEDIA_URL }}{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
-                    <img src="{{ MEDIA_URL }}{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                    <a href="{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    <img src="{% thumbnail tree.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
-                            <li><a href="{{ MEDIA_URL }}{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="{{ MEDIA_URL }}{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a></li>
                     {% endfor %}
                     </ul>
                     <ul id="imageOptions">

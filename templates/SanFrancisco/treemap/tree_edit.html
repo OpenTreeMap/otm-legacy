@@ -69,7 +69,7 @@
         </tr>
     </thead>
     	<tr>
-        	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
+        	<td class="col1 activeEditRowLabel">Planting site length (feet)</td>
             {% if instance.plot_length > 15.99 %}
             <td class="activeEditRowValue" id="edit_plot_length">15+</td>
             {% else %}
@@ -79,7 +79,7 @@
             <script>tm.setupEdit("plot_length", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
     	<tr>
-        	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
+        	<td class="col1 activeEditRowLabel">Planting site width (feet)</td>
             {% if instance.plot_width > 15.99 %}
             <td class="activeEditRowValue" id="edit_plot_width">15+</td>
             {% else %}
@@ -89,7 +89,7 @@
             <script>tm.setupEdit("plot_width", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
         </tr>
 
-    	<td class="col1 activeEditRowLabel">Plot type</td>
+    	<td class="col1 activeEditRowLabel">Planting site type</td>
         <td class="activeEditRowValue" id="edit_plot_type">{{ instance.get_plot_type_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_type').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("plot_type", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/plot_type/'});</script>
@@ -288,8 +288,8 @@
             <ul id="userImage">
                 <li>
                     {% if instance.treephoto_set.count %}
-                        <a href="{{ MEDIA_URL }}{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
-                            <img src="{{ MEDIA_URL }}{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+                        <a href="{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                            <img src="{% thumbnail instance.treephoto_set.all|first|get:"photo" 181x119 crop upscale %}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                         </a>
                         {% if perms.treemap.delete_tree %}
 							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
@@ -300,7 +300,7 @@
 						{% endif %}
                         <ul id="additionalImages">
 						{% for item in instance.treephoto_set.all|slice:"1:4" %}
-							<li><div><a href="{{ MEDIA_URL }}{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="{{ MEDIA_URL }}{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a>
+							<li><div><a href="{{ item.photo.url }}"><img alt="{{ item.title }}" title="{{ item.title }}" src="{% thumbnail item.photo 55x36 crop upscale %}" alt="image description" width="55" height="36" /></a>
 								{% if perms.treemap.delete_tree %}
 									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ item.id }}); return false;">delete?</a></span>
 								{% endif %}
@@ -309,7 +309,7 @@
 						{% endfor %}
 						</ul>
                         <ul id="imageOptions">
-                            <li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="{% url treemap.views.tree_add_edit_photos tree.id %}">Add photos &raquo;</a></li>
+                            <li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="{% url treemap_add_edit_photos instance.id %}">Add photos &raquo;</a></li>
 						</ul>
                     {% else %}
                         <img src="{{ STATIC_URL }}images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" />
