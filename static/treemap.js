@@ -179,7 +179,13 @@ tm = {
                 else if (results.tile_query) {
                     var cql = results.tile_query;
                     delete tm.tree_layer.params.FEATUREID;
-                    tm.tree_layer.mergeNewParams({'CQL_FILTER':cql});
+                    if (tm.set_style) {
+                        var style = tm.set_style(results.tile_query);
+                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles':style});
+                    }
+                    else {                        
+                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls[geo_style]});
+                    }
                     tm.tree_layer.setVisibility(true);     
                 }    
                 else {
