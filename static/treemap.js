@@ -184,7 +184,7 @@ tm = {
                         tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles':style});
                     }
                     else {                        
-                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls[geo_style]});
+                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
                     }
                     tm.tree_layer.setVisibility(true);     
                 }    

@@ -175,7 +175,17 @@
 
     {% endblock %}
 
-    {% block right_panel %}
-
-    {% endblock right_panel %}
-
+{% block endpage %}
+    <script type="text/javascript">
+    if (navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            tm.reverse_geocode({lat:position.coords.latitude, lon:position.coords.longitude}, function(ll, full_address, city, zip) {
+                var short_address = full_address.split(city.split(' ')[0])[0].trim().replace(/,/g, '');
+                $('#id_edit_address_street')[0].value = short_address;
+                $('#id_edit_address_city')[0].value = city;
+                $('#update_map').click();
+            });
+        });
+    }
+    </script>
+{% endblock endpage %}
