@@ -10,6 +10,7 @@ urlpatterns = patterns(
     (r'^locations/(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})/plots', plots_closest_to_point),
 
     (r'^species', species_list),
+    (r'^addresses/(?P<address>.+)', geocode_address),
 
     (r'^login/reset_password$', reset_password),
     (r'^login$', verify_auth),

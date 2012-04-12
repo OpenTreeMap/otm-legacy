@@ -13,6 +13,15 @@ REGION_NAME = 'Philadelphia'
 PENDING_ON = False
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
 
+BOUNDING_BOX = { # WKID 4326
+    'left': -76,
+    'bottom': 39.75,
+    'right': -74.5,
+    'top': 40.5
+}
+MAP_CENTER_LAT = 39.99
+MAP_CENTER_LON = -75.19
+
 # pipeline minification settings
 PIPELINE = False
 PIPELINE_ROOT = os.path.dirname(__file__)
@@ -104,4 +113,5 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
-
+# See http://github.com/azavea/python-omgeo for source configuration options
+# OMGEO_GEOCODER_SOURCES = [...]

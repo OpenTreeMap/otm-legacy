@@ -20,6 +20,9 @@ from api.auth import login_required, create_401unauthorized
 
 from functools import wraps
 
+from omgeo import Geocoder
+from omgeo.places import PlaceQuery, Viewbox
+
 import json
 import struct
 import ctypes
@@ -535,3 +538,51 @@ def user_to_dict(user):
         "reputation": Reputation.objects.reputation_for_user(user).reputation
         }
 
+
+
+@require_http_methods(["GET"])
+@api_call()
+def geocode_address(request, address):
+    def result_in_bounding_box(result):
+        x = float(result.x)
+        y = float(result.y)
+        left = float(settings.BOUNDING_BOX['left'])
+        top = float(settings.BOUNDING_BOX['top'])
+        right = float(settings.BOUNDING_BOX['right'])
+        bottom = float(settings.BOUNDING_BOX['bottom'])
+        return x > left and x < right and y > bottom and y < top
+
+    if address is None or len(address) == 0:
+        raise HttpBadRequestException("No address specfified")
+
+    query = PlaceQuery(address, viewbox=Viewbox(
+        settings.BOUNDING_BOX['left'],
+        settings.BOUNDING_BOX['top'],
+        settings.BOUNDING_BOX['right'],
+        settings.BOUNDING_BOX['bottom'])
+    )
+
+    if 'OMGEO_GEOCODER_SOURCES' in dir(settings) and settings.OMGEO_GEOCODER_SOURCES is not None:
+        geocoder = Geocoder(settings.OMGEO_GEOCODER_SOURCES)
+    else:
+        geocoder = Geocoder()
+
+    results = geocoder.geocode(query)
+    if results != False:
+        response = []
+        for result in results:
+            if result_in_bounding_box(result): # some geocoders do not support passing a bounding box filter
+                response.append({
+                     "match_addr": result.match_addr,
+                     "x": result.x,
+                     "y": result.y,
+                     "score": result.score,
+                     "locator": result.locator,
+                     "geoservice": result.geoservice,
+                     "wkid": result.wkid,
+                })
+        return response
+    else:
+        # This is not a very helpful error message, but omgeo as of v1.2 does not
+        # report failure details.
+        return {"error": "The geocoder failed to generate a list of results."}

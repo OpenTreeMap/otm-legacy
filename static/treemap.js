@@ -24,8 +24,6 @@ tm = {
     clckTimeOut : null,
     locations: null,
 
-    map_center_lon: null,
-    map_center_lat: null,
     start_zoom: null,
     add_start_zoom: null,
     add_zoom: null,
@@ -1016,4 +1014,3 @@ tm = {
         
     }
 };
-  
