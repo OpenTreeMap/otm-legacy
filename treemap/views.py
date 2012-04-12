@@ -1708,7 +1708,7 @@ def zip_files(file_paths,archive_name):
         buffer.close()
         return zip_stream
 
-def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):   
+def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees", geo=True):   
     dbsettings = settings.DATABASES['default'] 
     tmp_treedir = tempfile.mkdtemp() + "/trees" 
     tmp_plotdir = tempfile.mkdtemp() + "/plots"
@@ -1733,7 +1733,7 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
         'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
         dbsettings['PASSWORD'], dbsettings['USER'])]
 
-    if output_type == 'CSV':
+    if output_type == 'CSV' and geo:
         command.append('-lco')
         command.append('GEOMETRY=AS_WKT')
     if output_type == 'ESRI Shapefile':
@@ -1749,7 +1749,7 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None):
         'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
         dbsettings['PASSWORD'], dbsettings['USER'])]
 
-    if output_type == 'CSV':  
+    if output_type == 'CSV' and geo:  
         command.append('-lco')
         command.append('GEOMETRY=AS_WKT')   
     if output_type == 'ESRI Shapefile':
