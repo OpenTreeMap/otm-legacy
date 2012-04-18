@@ -162,7 +162,7 @@ tm.init_add_map = function(){
             $('#id_lat').val(olPoint.lat);
             $('#id_lon').val(olPoint.lon);
             $('#id_geocode_address').val(place)
-            
+            $('#id_initial_map_location').val(olPoint.lat + "," + olPoint.lon);
             $('#update_map').html("Update Map");
             $("#mapHolder").show();
             $("#calloutContainer").show();

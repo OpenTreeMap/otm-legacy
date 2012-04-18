@@ -3,6 +3,10 @@ tm.buildSpeciesList = function() {
         tm.speciesData = species;
         tm.setupAutoComplete($('#species_search_input'));
 
+        if ($('#id_species_name')) {
+            tm.setupAutoComplete($('#id_species_name'));
+        }
+
         tm.generateSpeciesDropdown(tm.speciesData);
         var spec = $.query.GET("species");
         if (spec) {
@@ -20,6 +24,8 @@ tm.buildLocationList = function() {
 
 tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
     tm.init_map('results_map');
+
+    $.address.externalChange(tm.pageLoadSearch);
 
     $(".characteristics input").change(function(evt) { 
         tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
@@ -208,6 +214,7 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
         tm.updateSearch();
         tm.trackEvent('Search', 'Reset Advanced');
     });        
+    
 };
 
 
@@ -384,7 +391,7 @@ tm.baseTemplatePageLoad = function() {
         if (tm.advancedClick) {
             q = q.set('advanced', 'open');
         }    
-        window.location.href = tm_static + "map/" + decodeURIComponent(q.toString());
+        window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
         return false;
     }
     //$("#search_form").submit(triggerSearch);    

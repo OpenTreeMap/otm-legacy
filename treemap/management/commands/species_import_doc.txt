@@ -1,0 +1,39 @@
+Arguments:
+	input file name: dbf or csv file
+	
+Options:
+	--verbose: generate debug output to sdtout
+
+Input file fields:
+		
+	GENUS		    - text, case sensitive, EX: Acer
+	SPECIES		    - text, case sensitive, EX: rubrum
+                    - (as a cross), text, case sensitive, start with x, EX: x acerifolia
+	CULTIVAR	    - (with variety) text, case sensitive, cultivar in quotes, EX: drummondii 'Crimson'
+                    - (w/o variety) text, case sensitive, no quotes, EX: Crimson
+	GENDER  	    - text, case sensitive, usually one of: Male, Female, Sterile
+    COMMON_NAME     - text, case sensitive, EX: Red maple
+    USDA_CODE       - text, all capitals, see plants.usda.gov for data, EX: ACRU
+    ITREE_CODE      - text, all capitals, must be valid iTree codes for the region or one of the default codes, EX: BDS OTHER
+    FLOWERING       - yes/no, are the flowers conspicuous
+    FLOWER_TIME     - text, season, EX: Early Spring
+    FALL_COLOR      - yes/no, is the fall coloration conspicuous
+    EDIBLE          - yes/no
+    FRUITING_TIME   - text, season, EX: Fall
+    WILDLIFE        - yes/no, does this species have wildlife value
+    NATIVE          - yes/no, native to the local region
+    WEBPAGE_LINK    - full link, 255 character limit, EX: http://plants.usda.gov/java/profile?symbol=ACRU
+	
+
+Notes:
+    * Genus data is required, all other information is optional
+
+    * If you wish to have generic entries make rows without species, cultivar or gender entries as needed
+        EX rows:
+            Acer, rubrum, Crimson, , Crimson maple, ACRU, BDS OTHER, yes, Early Spring, yes, no, Early Fall, yes, yes, http://plants.usda.gov/java/profile?symbol=ACRU
+            Acer, rubrum, , , Red maple, ACRU, BDS OTHER, yes, Early Spring, yes, no, Early Fall, yes, yes, http://plants.usda.gov/java/profile?symbol=ACRU
+            Acer, , , , Maple, ACER, BDS OTHER, , , , , , , , 
+
+Output file:
+	If any row has unrecoverable errors, the row is written to <input_file_name>.err as a csv
+        - itree code is not available in the database

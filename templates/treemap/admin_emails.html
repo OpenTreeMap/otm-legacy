@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load pagination_tags %}
+{% load sorting_tags %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
+
+    <script type="text/javascript">
+		$(document).ready(function() {
+			if (jQuery.urlParam('username')) {
+				jQuery("#s_username").val(jQuery.urlParam('username'));
+			}
+                        if (jQuery.urlParam('email')) {
+				jQuery("#s_email").val(jQuery.urlParam('email'));
+			}
+			if (jQuery.urlParam('status')) {
+				var status = decodeURI(jQuery.urlParam('status'));
+				jQuery("#s_status").val(status);
+			}
+			jQuery("#search input").keydown(function(evt) {
+				if (evt.keyCode == 13) {
+					jQuery("#filter").click();
+				}
+			});
+
+			$("#csv_export").attr('href', tm_static + 'users/opt-in/csv/' + $.query.toString())
+
+			jQuery("#filter").click(function(evt) {
+				var params = {};
+				var q = $.query.empty();
+				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
+				if (jQuery("#s_status").val()) {params["status"] = jQuery("#s_status").val();}
+				if (jQuery("#s_email").val()) {params["email"] = jQuery("#s_email").val();}
+
+				for (var key in params) {
+					if (!params[key]) {
+						continue;
+					}
+					var val = params[key];
+					q = q.set(key, val);
+				}
+				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
+
+				window.location = tm_static + "users/opt-in/" + qstr;
+
+			});
+			jQuery("#clear").click(function(evt) {
+				window.location = tm_static + "users/opt-in/"
+			});
+
+		});
+
+    </script>
+{% endblock %}
+
+{% block body_id %}id="verify_edit"{% endblock %}
+
+{% block content %}
+
+{% autosort users %}
+{% autopaginate users 20 %}
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Email Opt-in/out List</h2>
+		{% if perms.auth.change_user %}
+			{% include "treemap/admin_nav.html" %}
+		{% endif %}
+		<div class="clearBoth"></div>
+	</div>
+	<div id="search" style="position:relative;">
+		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
+		<div id="search_email"><label for="s_email">Email: </label><input id="s_email" /></div>
+		<div id="status"><label for="s_status">Opt-In Status: </label><select id="s_status"><option value="">All</option><option value="true">Yes</option><option value="false">No</option></select></div>
+		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
+
+	</div>
+
+	{% paginate %}
+	<div id="species_list">
+        {% if users.count > 0 %}
+        	<div id="export">Export as: <a id="csv_export" href="">CSV</a></div>
+        {% endif %}
+		<table id="species_list_table">
+			<thead>
+				<tr>
+					<th>{% anchor user__username Username %}</th>
+					<th>{% anchor user__email Email %}</th>
+					<th>{% anchor updates 'Opt-In?' %}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for c in users %}
+				<tr id="{{c.id}}">
+	                            <td><a href="{% url profiles.views.profile_detail username=c.user.username %}">{{c.user.username}}</a></td>
+        	                    <td>{{c.user.email}}</td>
+	                	    <td>{{c.updates}}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% paginate %}
+</div>
+
+
+{% endblock %}
+

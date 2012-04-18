@@ -114,12 +114,12 @@
                 <td>
                     <span>Neighborhood</span>  <br />
 
-                    {{tree.neighborhood.all.0}}
+                    {{tree.plot.neighborhood.all.0}}
                 </td>
                 <td>
                     <span>Tree species</span>  <br />
 
-                    <em>{{tree.species.common_name}}</em>
+                    <em>{{tree.species.common_name|default:"Missing"}}</em>
                 </td>
                 <td>
                     <span>Updated by</span>  <br />
@@ -146,7 +146,7 @@
                 <li>
                     <a href="{% url treemap.views.trees pic.tree.id %}">
                         {% thumbnail pic.photo "43x42" as image %}
-                        <img src="{{image}}" alt="image description" width="43" height="42" />
+                        <img src="{{image.url}}" alt="image description" width="43" height="42" />
                         {% endthumbnail %}
                     </a>
                 </li>
