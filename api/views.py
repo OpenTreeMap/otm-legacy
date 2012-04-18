@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
 from django.conf import settings
@@ -10,7 +11,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 
-from treemap.models import Plot, Species, TreePhoto
+from treemap.models import Plot, Species, TreePhoto, ImportEvent
+from treemap.forms import TreeAddForm
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
@@ -543,3 +545,36 @@ def geocode_address(request, address):
         # This is not a very helpful error message, but omgeo as of v1.2 does not
         # report failure details.
         return {"error": "The geocoder failed to generate a list of results."}
+
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+def create_plot_optional_tree(request):
+    response = HttpResponse()
+
+    # Unit tests fail to access request.raw_post_data
+    try:
+        data = json.loads(request.raw_post_data)
+    except Exception, e:
+        data = request.POST
+
+    form = TreeAddForm(data, request.FILES)
+
+    if not form.is_valid():
+        response.status_code = 400
+        response.content = simplejson.dumps({"error": form.errors})
+        return response
+
+    try:
+        new_plot = form.save(request)
+    except ValidationError, ve:
+        response.status_code = 400
+        response.content = simplejson.dumps({"error": form.error_class(ve.messages)})
+        return response
+
+    Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_plot)
+
+    response.status_code = 201
+    response.content = "{\"ok\": %d}" % new_plot.id
+    return response

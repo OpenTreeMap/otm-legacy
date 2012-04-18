@@ -8,11 +8,12 @@ Replace this with more appropriate tests for your application.
 from django.contrib.auth.models import User, UserManager, Permission as P
 from django.contrib.gis.geos import Point
 from django.test import TestCase
+from django_reputation.models import UserReputationAction
 from simplejson import loads
 
 from django.conf import settings
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from treemap.models import Choices, Species
+from treemap.models import Choices, Species, Plot
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException
@@ -406,3 +407,46 @@ class Locations(TestCase):
 
         self.assertEqual(response.status_code, 200)
         json = loads(response.content)
+
+class CreatePlotAndTree(TestCase):
+
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.user = User.objects.get(username="jim")
+        self.user.set_password("password")
+        self.user.save()
+        self.sign = create_signer_dict(self.user)
+        auth = base64.b64encode("jim:password")
+        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+    def test_create_plot_with_tree(self):
+        data = {
+            "lon": 35,
+            "lat": 25,
+            "geocode_address": "1234 ANY ST",
+            "edit_address_street": "1234 ANY ST",
+            "height": 10
+        }
+
+        plot_count = Plot.objects.count()
+        reputation_count = UserReputationAction.objects.count()
+
+        response = self.client.post("%s/plots" % API_PFX, data=data, **self.sign)
+
+        self.assertEqual(201, response.status_code, "Create failed:" + response.content)
+
+        # Assert that a plot was added
+        self.assertEqual(plot_count + 1, Plot.objects.count())
+        # Assert that reputation was added
+        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+
+        response_json = loads(response.content)
+        self.assertTrue("ok" in response_json)
+        id = response_json["ok"]
+        plot = Plot.objects.get(pk=id)
+        self.assertEqual(35.0, plot.geometry.x)
+        self.assertEqual(25.0, plot.geometry.y)
+        tree = plot.current_tree()
+        self.assertIsNotNone(tree)
+        self.assertEqual(10.0, tree.height)
