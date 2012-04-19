@@ -22,6 +22,19 @@ BOUNDING_BOX = { # WKID 4326
 MAP_CENTER_LAT = 37.752809
 MAP_CENTER_LON = -122.437821
 
+REPUTATION_SCORES = {
+    'add tree': 25,
+    'edit tree': 5,
+    'edit plot': 5,
+    'add stewardship': 5,
+    'remove stewardship': -5,
+    'edit verified': {
+        'up': 5,
+        'down': -10,
+        'neutral': 1,
+    },
+}
+
 # must end with trees/ because of odd tilecache deployment issue
 # will be populated with layer name /trees/{layername} dynamically
 # in javascript depending on the google base layer being used

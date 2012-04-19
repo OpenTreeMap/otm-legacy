@@ -35,6 +35,7 @@ from threadedcomments.models import ThreadedComment
 from models import *
 from forms import *
 from profiles.models import UserProfile
+from profiles.utils import change_reputation_for_user
 from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits, validate_form
 
 from registration.signals import user_activated
@@ -413,7 +414,7 @@ def plot_add_tree(request, plot_id):
         history = list(chain(history, tree.history.order_by('-last_updated')[:5]))
     recent_edits = unified_history(history)
 
-    Reputation.objects.log_reputation_action(user, user, 'add tree', 25, tree)
+    change_reputation_for_user(user, 'add tree', tree)
     return render_to_json({'status':'success'})
 
 def unified_history(trees, plots=[]):
@@ -628,11 +629,8 @@ def update_users(request):
     if post.get('rep_total'):  
         id = post.get('user_id')
         user = User.objects.get(pk=id)
-        rep = Reputation.objects.reputation_for_user(user)
-        #rep_gain = int(post.get('rep_total')) - rep.reputation
         user.reputation.reputation = int(post.get('rep_total'))
         user.reputation.save()
-        #Reputation.objects.log_reputation_action(user, request.user, 'Administrative Action', rep_gain, user)
         response_dict['success'] = True
     elif post.get('group_id'):
         id = post.get('user_id')
@@ -645,8 +643,6 @@ def update_users(request):
             rep = Reputation.objects.reputation_for_user(user)
             #increase rep if now part of an 'admin' group and too low
             if user.has_perm('django_reputation.change_reputation') and rep.reputation < 1000:
-                #rep_gain = 100 - rep.reputation
-                #Reputation.objects.log_reputation_action(user, request.user, 'Administrative Action', rep_gain, user)
                 user.reputation.reputation = 1001
                 user.reputation.save()
                 response_dict['new_rep'] = user.reputation.reputation
@@ -734,7 +730,7 @@ def approve_pend(request, pend_id):
     if not pend:
         raise Http404
     pend.approve(request.user)
-    Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
+    change_reputation_for_user(pend.submitted_by, 'edit tree', pend.tree, change_initiated_by_user=pend.updated_by)
     return HttpResponse(
         simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -797,7 +793,6 @@ def object_update(request):
         
     parent_instance = None
     post = {}
-    save_value = 5
     
     if request.method == 'POST':
         if request.META['SERVER_NAME'] == 'testserver':
@@ -1026,7 +1021,7 @@ def object_update(request):
                             action_name = 'edit plot'
                         else:
                             action_name = 'edit tree'
-                        Reputation.objects.log_reputation_action(request.user, request.user, action_name, save_value, instance)
+                        change_reputation_for_user(request.user, action_name, instance)
                     if hasattr(instance, 'validate_all'):
                         instance.validate_all()
                 if parent_instance:
@@ -1088,7 +1083,7 @@ def add_tree_stewardship(request, tree_id):
     try:
         activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'])
         activity.save()
-        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+        change_reputation_for_user(request.user, 'add stewardship', activity)
     except ValidationError, e:
         if hasattr(e, 'message_dict'):
             for (fld,msgs) in e.message_dict.items():
@@ -1122,7 +1117,7 @@ def add_plot_stewardship(request, plot_id):
     try:
         activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'])
         activity.save()
-        Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
+        change_reputation_for_user(request.user, 'add stewardship', activity)
     except ValidationError, e:
         if hasattr(e, 'message_dict'):
             for (fld,msgs) in e.message_dict.items():
@@ -1144,8 +1139,8 @@ def add_plot_stewardship(request, plot_id):
 @csrf_view_exempt
 def delete_tree_stewardship(request, tree_id, activity_id):
     activity = get_object_or_404(TreeStewardship, pk=activity_id)
-    activity.delete() 
-    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    activity.delete()
+    change_reputation_for_user(request.user, 'remove stewardship', activity)
     return HttpResponse(
             simplejson.dumps({'success': True}),
             content_type = 'application/json')
@@ -1154,8 +1149,8 @@ def delete_tree_stewardship(request, tree_id, activity_id):
 @csrf_view_exempt
 def delete_plot_stewardship(request, plot_id, activity_id):
     activity = get_object_or_404(PlotStewardship, pk=activity_id)
-    activity.delete() 
-    Reputation.objects.log_reputation_action(request.user, request.user, "remove stewardship", -5, activity)
+    activity.delete()
+    change_reputation_for_user(request.user, 'remove stewardship', activity)
     return HttpResponse(
             simplejson.dumps({'success': True}),
             content_type = 'application/json')
@@ -1169,7 +1164,6 @@ def update_plot(request, plot_id):
                     "sidewalk_damage","address_street","address_city","address_zip" ]
 
     post = {}
-    rep_gained_by_editing_field = 5
     
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -1203,9 +1197,8 @@ def update_plot(request, plot_id):
             # finally save the instance...
             plot._audit_diff = simplejson.dumps(post)
             plot.save()
+            change_reputation_for_user(request.user, 'edit plot', plot)
 
-            Reputation.objects.log_reputation_action(request.user, request.user, 
-                                                     "edit plot", rep_gained_by_editing_field, plot)
     except ValidationError, e:
         if hasattr(e, 'message_dict'):
             for (fld,msgs) in e.message_dict.items():
@@ -1260,7 +1253,8 @@ def tree_add(request, tree_id = ''):
         if validate_form(form, request):
             new_tree = form.result
 
-            Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_tree)
+            change_reputation_for_user(request.user, 'add tree', new_tree)
+
             if form.cleaned_data.get('target') == "add":
                 form = TreeAddForm()
                 messages.success(request, "Your tree was successfully added!")
@@ -2088,17 +2082,8 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
         change = TreeFlags.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
         obj = get_object_or_404(TreeFlags, pk=change.id)
-    
-        
-    #do the rep adjustment
-    if rep_dir == 'up':
-        rep_gain = 5
-    elif rep_dir == 'down':
-        rep_gain= -10
-    elif rep_dir == 'neutral':
-        rep_gain = 1
-    
-    Reputation.objects.log_reputation_action(user, request.user, 'edit verified', rep_gain, obj)
+
+    change_reputation_for_user(user, 'edit verified', obj, sub_action=rep_dir, change_initiated_by_user=request.user)
     change._audit_verified = 1
     change.save()
     return render_to_json({'change_type': change_type, 'change_id': change_id})

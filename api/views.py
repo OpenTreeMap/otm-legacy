@@ -10,6 +10,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
+from profiles.utils import change_reputation_for_user
 
 from treemap.models import Plot, Species, TreePhoto, ImportEvent
 from treemap.forms import TreeAddForm
@@ -593,7 +594,11 @@ def create_plot_optional_tree(request):
         response.content = simplejson.dumps({"error": form.error_class(ve.messages)})
         return response
 
-    Reputation.objects.log_reputation_action(request.user, request.user, 'add tree', 25, new_plot)
+    new_tree = new_plot.current_tree()
+    if new_tree:
+        change_reputation_for_user(request.user, 'add tree', new_tree)
+    else:
+        change_reputation_for_user(request.user, 'add plot', new_plot)
 
     response.status_code = 201
     response.content = "{\"ok\": %d}" % new_plot.id

@@ -22,6 +22,19 @@ BOUNDING_BOX = { # WKID 4326
 MAP_CENTER_LAT = 39.99
 MAP_CENTER_LON = -75.19
 
+REPUTATION_SCORES = {
+    'add tree': 25,
+    'edit tree': 5,
+    'edit plot': 5,
+    'add stewardship': 5,
+    'remove stewardship': -5,
+    'edit verified': {
+        'up': 5,
+        'down': -10,
+        'neutral': 1,
+    },
+}
+
 # pipeline minification settings
 PIPELINE = False
 PIPELINE_ROOT = os.path.dirname(__file__)
