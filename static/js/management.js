@@ -54,7 +54,7 @@ tm.deleteTree = function(tree_id) {
 };
 
 tm.deletePlot = function(plot_id) {
-    if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
+    if (window.confirm("Are you sure you want to remove this planting site and it's current tree permanently from the system?"))
     {
         $.ajax({
             url: tm_static + 'plots/' + plot_id + '/delete/',

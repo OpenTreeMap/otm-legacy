@@ -38,10 +38,11 @@ class InvalidAPIKeyException(Exception):
 
 def route(**kwargs):
     @csrf_exempt
-    def routed(request):
+    def routed(request, **kwargs2):
         method = request.method
+        print " ====> %s" % method
         req_method = kwargs[method]
-        return req_method(request)
+        return req_method(request, **kwargs2)
     return routed
 
 def validate_and_log_api_req(request):
@@ -52,7 +53,7 @@ def validate_and_log_api_req(request):
 
     if key is None:
         raise InvalidAPIKeyException("key not found as 'apikey' param or 'X-API-Key' header")
-
+    
     apikeys = APIKey.objects.filter(key=key)
 
     if len(apikeys) > 0:
@@ -144,6 +145,30 @@ def register(request):
     profile.save()
 
     return { "status": "success", "id": user.pk }
+
+@require_http_methods(["POST"])
+@api_call()
+#@login_required
+def add_tree_photo(request, plot_id):
+    uploaded_image = ContentFile(request.raw_post_data)
+    uploaded_image.name = "plot_%s.png" % plot_id
+
+    plot = Plot.objects.get(pk=plot_id)
+    tree = plot.current_tree()
+
+    if tree is None:
+        tree = Tree()
+        plot.tree = tree
+        tree.save()
+        plot.save()
+
+    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=User.objects.all()[0])
+    treephoto.photo.save("plot_%s.png" % plot_id, uploaded_image)
+
+    treephoto.save()
+
+    return { "status": "succes" }
+
 
 @require_http_methods(["POST"])
 @api_call()
@@ -417,6 +442,13 @@ def get_plot_list(request):
 
 @require_http_methods(["GET"])
 @api_call()
+def species_list(request, lat=None, lon=None):
+    allspecies = Species.objects.all()
+
+    return [species_to_dict(z) for z in allspecies]
+
+@require_http_methods(["GET"])
+@api_call()
 def plots_closest_to_point(request, lat=None, lon=None):
     point = Point(float(lon), float(lat), srid=4326)
 
@@ -484,6 +516,17 @@ def plot_to_dict(plot):
             "lng": plot.geometry.x
         }
     }
+
+def species_to_dict(s):
+    return {
+        "id": s.pk,
+        "scientific_name": s.scientific_name,
+        "genus": s.genus,
+        "species": s.species,
+        "cultivar": s.cultivar_name,
+        "gender": s.gender,
+        "common_name": s.common_name }
+
 
 def user_to_dict(user):
     return {
