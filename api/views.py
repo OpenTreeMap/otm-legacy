@@ -46,6 +46,17 @@ def route(**kwargs):
         return req_method(request)
     return routed
 
+def json_from_request(request):
+    """
+    Accessing raw_post_data throws an exception when using the Django test
+    client in to make requests in unit tests.
+    """
+    try:
+        data = json.loads(request.raw_post_data)
+    except Exception, e:
+        data = request.POST
+    return data
+
 def validate_and_log_api_req(request):
     # Prefer "apikey" in REQUEST, but take either that or the
     # header value
@@ -547,6 +558,13 @@ def geocode_address(request, address):
         return {"error": "The geocoder failed to generate a list of results."}
 
 
+def flatten_plot_dict_with_tree(plot_dict):
+    if 'tree' in plot_dict:
+        tree_dict = plot_dict['tree']
+        for field_name in tree_dict.keys():
+            plot_dict[field_name] = tree_dict[field_name]
+        del plot_dict['tree']
+
 @require_http_methods(["POST"])
 @api_call()
 @login_required
@@ -554,12 +572,14 @@ def create_plot_optional_tree(request):
     response = HttpResponse()
 
     # Unit tests fail to access request.raw_post_data
-    try:
-        data = json.loads(request.raw_post_data)
-    except Exception, e:
-        data = request.POST
+    request_dict = json_from_request(request)
 
-    form = TreeAddForm(data, request.FILES)
+    # The Django form used to validate and save plot and tree information expects
+    # a flat dictionary. Allowing the tree details to be a nested dictionary in
+    # API calls clarifies, to API clients, the distinction between Plot and Tree
+    flatten_plot_dict_with_tree(request_dict)
+
+    form = TreeAddForm(request_dict, request.FILES)
 
     if not form.is_valid():
         response.status_code = 400

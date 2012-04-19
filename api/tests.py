@@ -4,14 +4,17 @@ when you run "manage.py test".
 
 Replace this with more appropriate tests for your application.
 """
+from StringIO import StringIO
 
 from django.contrib.auth.models import User, UserManager, Permission as P
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 from django_reputation.models import UserReputationAction
-from simplejson import loads
+from simplejson import loads, dumps
 
 from django.conf import settings
+from urlparse import urlparse
+import urllib
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Choices, Species, Plot
 
@@ -28,6 +31,40 @@ def create_signer_dict(user):
     key.save()
 
     return { "HTTP_X_API_KEY": key.key }
+
+def post_json(url, body_object, client, sign_dict=None):
+    """
+    Serialize a list or dictionary to JSON then POST it to an endpoint.
+    The "post" method exposed by the Django test client assumes that you
+    are posting form data, so you need to manually setup the parameters
+    to override that default functionality.
+    """
+    def _get_path(parsed_url):
+        """
+        Taken from a class method in the Django test client
+        """
+        # If there are parameters, add them
+        if parsed_url[3]:
+            return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
+        else:
+            return urllib.unquote(parsed_url[2])
+
+    body_string = dumps(body_object)
+    body_stream = StringIO(body_string)
+    parsed_url = urlparse(url)
+    client_params = {
+        'CONTENT_LENGTH': len(body_string),
+        'CONTENT_TYPE': 'application/json',
+        'PATH_INFO': _get_path(parsed_url),
+        'QUERY_STRING': parsed_url[4],
+        'REQUEST_METHOD': 'POST',
+        'wsgi.input': body_stream,
+    }
+
+    if sign_dict is not None:
+        client_params.update(sign_dict)
+
+    return client.post(url, **client_params)
 
 class Signing(TestCase):
     def setUp(self):
@@ -426,13 +463,15 @@ class CreatePlotAndTree(TestCase):
             "lat": 25,
             "geocode_address": "1234 ANY ST",
             "edit_address_street": "1234 ANY ST",
-            "height": 10
+            "tree": {
+                "height": 10
+            }
         }
 
         plot_count = Plot.objects.count()
         reputation_count = UserReputationAction.objects.count()
 
-        response = self.client.post("%s/plots" % API_PFX, data=data, **self.sign)
+        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
 
         self.assertEqual(201, response.status_code, "Create failed:" + response.content)
 
