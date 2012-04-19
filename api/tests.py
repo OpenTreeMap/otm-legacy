@@ -16,7 +16,7 @@ from django.conf import settings
 from urlparse import urlparse
 import urllib
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from treemap.models import Choices, Species, Plot
+from treemap.models import Choices, Species, Plot, Tree
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException
@@ -489,3 +489,32 @@ class CreatePlotAndTree(TestCase):
         tree = plot.current_tree()
         self.assertIsNotNone(tree)
         self.assertEqual(10.0, tree.height)
+
+    def test_create_plot_with_invalid_tree_returns_400(self):
+        data = {
+            "lon": 35,
+            "lat": 25,
+            "geocode_address": "1234 ANY ST",
+            "edit_address_street": "1234 ANY ST",
+            "tree": {
+                "height": 1000000
+            }
+        }
+
+        tree_count = Tree.objects.count()
+        reputation_count = UserReputationAction.objects.count()
+
+        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
+
+        self.assertEqual(400, response.status_code, "Expected creating a million foot tall tree to return 400:" + response.content)
+
+        body_dict = loads(response.content)
+        self.assertTrue('error' in body_dict, "Expected the body JSON to contain an 'error' key")
+        errors = body_dict['error']
+        self.assertTrue(len(errors) == 1, "Expected a single error message to be returned")
+        self.assertEqual('Height is too large.', errors[0])
+
+        # Assert that a tree was _not_ added
+        self.assertEqual(tree_count, Tree.objects.count())
+        # Assert that reputation was _not_ added
+        self.assertEqual(reputation_count, UserReputationAction.objects.count())

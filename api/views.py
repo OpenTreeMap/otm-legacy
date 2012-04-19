@@ -583,7 +583,7 @@ def create_plot_optional_tree(request):
 
     if not form.is_valid():
         response.status_code = 400
-        response.content = simplejson.dumps({"error": form.errors})
+        response.content = simplejson.dumps({"error": form.errors['__all__']})
         return response
 
     try:
