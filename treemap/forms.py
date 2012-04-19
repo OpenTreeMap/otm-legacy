@@ -88,11 +88,13 @@ class TreeAddForm(forms.Form):
 
         if canopy_height and height and canopy_height > height:
             raise forms.ValidationError("Canopy height cannot be larger than tree height.")
-          
-        initial_map_location = cleaned_data.get('initial_map_location').split(',')
-        initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
-        if point == initial_point:
-            raise forms.ValidationError("We need a more precise location for the tree. Please move the tree marker from the default location for this address to the specific location of the tree planting site. ")
+
+        # initial_map_location is an optional field so only trigger the validation if it was specified
+        if cleaned_data.get('initial_map_location'):
+            initial_map_location = cleaned_data.get('initial_map_location').split(',')
+            initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
+            if point == initial_point:
+                raise forms.ValidationError("We need a more precise location for the tree. Please move the tree marker from the default location for this address to the specific location of the tree planting site. ")
 
         return cleaned_data 
         
