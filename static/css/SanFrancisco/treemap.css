@@ -31,7 +31,13 @@ height:400px;
 position:relative;
 height:480px;
 width:622px;
+}
+#results_map_wrap{
+height:480px;
+width:622px;
 border:10px solid #eef5d8;
+overflow: hidden;
+position:relative;
 }
 #favorite_tree_map{
 height:250px;

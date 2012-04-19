@@ -421,10 +421,13 @@ class ViewTests(TestCase):
 
         set_auto_now(t1, "last_updated", True)
 
-        # t1 and t2 should be in the latest trees
-        exp = set([t4.pk, t5.pk])
+        # t1 and t2 should not be in the latest trees/plots because it excludes superuser edits
+        exp = set([])
         got = set([t.pk for t in req['latest_trees']])
 
+        self.assertTrue(exp <= got)
+
+        got = set([t.pk for t in req['latest_plots']])
         self.assertTrue(exp <= got)
 
         # Check to verify platting dates
@@ -451,6 +454,7 @@ class ViewTests(TestCase):
         self.client.login(username='jim',password='jim')
         form = {}
         form['target']="edit"
+        form['initial_map_location'] = "20,20"
         ##################################################################
         # Test required information: 
         #     lat,lon,entered address and geocoded address

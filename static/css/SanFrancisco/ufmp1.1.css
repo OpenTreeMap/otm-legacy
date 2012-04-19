@@ -251,7 +251,7 @@ ul#searchBoxes  li#searchLocationBox {
 	list-style-type: none;
 }
 ul#searchBoxes li#searchLocationBox input#location_search_input {
-	width:280px;
+	width:270px;
 	height:16px;
 	padding:5px;
 	margin:0;
@@ -1130,6 +1130,20 @@ ul#promoMap li#promoMapEmbed {
 /* SUBFOOTER 2
 ** _____________________________________________________________________________
 */
+
+.twitter-follow-button {
+    position:absolute;
+    right:300px;
+    top:63px; 
+}
+
+#___plus_0 {
+    position: absolute;
+    right: 80px;
+    bottom: 0;
+    height:57px!important;
+}
+
 
 .threecolumns {
 	margin-top:18px;

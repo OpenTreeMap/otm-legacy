@@ -177,7 +177,13 @@ tm = {
                 else if (results.tile_query) {
                     var cql = results.tile_query;
                     delete tm.tree_layer.params.FEATUREID;
-                    tm.tree_layer.mergeNewParams({'CQL_FILTER':cql});
+                    if (tm.set_style) {
+                        var style = tm.set_style(results.tile_query);
+                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles':style});
+                    }
+                    else {                        
+                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
+                    }
                     tm.tree_layer.setVisibility(true);     
                 }    
                 else {
@@ -696,46 +702,46 @@ tm = {
     pageLoadSearch: function () {
         tm.loadingSearch = true;
         tm.searchparams = {};
-        var params = $.query.GET();
+        var params = $.address.parameterNames();
         if (params.length) {
             for (var i = 0; i < params.length; i++) {
                 var key = params[i];
-                var val = $.query.get(key);
+                var val = $.address.parameter(key);
                 tm.searchParams[key] = val;
                 if (val == "true") {
                     $("#"+key).attr('checked', true);
                 }
                 if (key == "diameter_range") {
-                    var dvals = $.query.get(key).split("-");
+                    var dvals = $.address.parameter(key).split("-");
                     $("#diameter_slider").slider('values', 0, dvals[0]);
                     $("#diameter_slider").slider('values', 1, dvals[1]);
                 }   
                 if (key == "planted_range") {
-                    var pvals = $.query.get(key).split("-");
+                    var pvals = $.address.parameter(key).split("-");
                     $("#planted_slider").slider('values', 0, pvals[0]);
                     $("#planted_slider").slider('values', 1, pvals[1]);
                 }   
                 if (key == "updated_range") {
-                    var uvals = $.query.get(key).split("-");
+                    var uvals = $.address.parameter(key).split("-");
                     $("#updated_slider").slider('values', 0, uvals[0]);
                     $("#updated_slider").slider('values', 1, uvals[1]);
                 }   
                 if (key == "height_range") {
-                    var hvals = $.query.get(key).split("-");
+                    var hvals = $.address.parameter(key).split("-");
                     $("#height_slider").slider('values', 0, hvals[0]);
                     $("#height_slider").slider('values', 1, hvals[1]);
                 }   
                 if (key == "plot_range") {
-                    var plvals = $.query.get(key).split("-");
+                    var plvals = $.address.parameter(key).split("-");
                     $("#plot_slider").slider('values', 0, plvals[0]);
                     $("#plot_slider").slider('values', 1, plvals[1]);
                 }   
                 if (key == "species") {
                     var cultivar = null;
-                    tm.updateSpeciesFields('species_search',$.query.get(key), '');
+                    tm.updateSpeciesFields('species_search',$.address.parameter(key), '');
                 } 
                 if (key == "location") {
-                    tm.updateLocationFields($.query.get(key).replace(/\+/g, " "));
+                    tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
                 }    
             }    
         }
@@ -866,9 +872,17 @@ tm = {
             tm.map.zoomToExtent(bbox, true);
             
             tm.add_location_marker(bbox.getCenterLonLat());
-            tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
-            tm.searchParams['location'] = search;
-            tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
+            var featureName = nbhoods.features[0].properties.name;
+            if (featureName) {
+                tm.searchParams['geoName'] = featureName;
+                tm.searchParams['location'] = search;
+                tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
+            }
+            else {    
+                featureName = nbhoods.features[0].properties.zip;
+                tm.searchParams['location'] = featureName;
+                tm.geocoded_locations[search] = featureName;
+            }
             
             tm.updateSearch();
         }

@@ -1,9 +1,5 @@
 import os
 
-GEOSERVER_URL = 'http://207.245.89.246:8081/geoserver/wms?transparent=true'
-TILECACHE_URL = 'http://207.245.89.246:8080/tilecache/tilecache.py/'
-TILECACHE_LAYER = 'SF_v102'
-
 SITE_LOCATION = 'SanFrancisco'
 PENDING_ON = False
 REGION_NAME = 'Greenprint'
@@ -76,16 +72,6 @@ CONTACT_EMAILS = ['cbrittain@azavea.com']#,'admins@urbanforestmap.org']
 
 CACHE_BACKEND = 'file:///tmp/trees_cache'
 
-DATABASES = {
-    'default': {
-        'NAME': 'sftrees',
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'USER': 'sftrees',
-        'PASSWORD': '12345',
-        'HOST': '207.245.89.246',
-        'PORT': '5432',
-    }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -121,3 +107,8 @@ TEMPLATE_DIRS = (
 
 # See http://github.com/azavea/python-omgeo for source configuration options
 # OMGEO_GEOCODER_SOURCES = [...]
+
+try:
+    from settings_db import *
+except ImportError, exp:
+    pass

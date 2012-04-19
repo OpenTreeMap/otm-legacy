@@ -27,7 +27,7 @@
         <div id="contentbody">
              <div id="tabcontainer"> 
                 <ul id="tablist"> 
-                    <li class="first"><a href="{% url treemap.views.tree_detail tree.id %}" id="current">Tree info</a></li> 
+                    <li class="first"><a href="{% url treemap.views.trees tree.id %}" id="current">Tree info</a></li> 
                     <li><a href="{% url treemap_tree_edit tree.id %}">Edit tree</a></li> 
                 </ul> 
             </div> 
@@ -183,13 +183,13 @@
     <tbody>
 
         <tr>
-        	<td class="col1Wide">Plot size</td>
+        	<td class="col1Wide">Planting site size</td>
             <td>{% if tree.plot_width > 15.99 %}15+ ft x{% else %}{{tree.plot_width|unit_or_missing:"ft x"}}{% endif %}
                 {% if tree.plot_length > 15.99 %}15+ ft{% else %}{{tree.plot_length|unit_or_empty:"ft"}}{% endif %}
             </td>
         </tr>
         <tr>
-        	<td class="col1Wide">Plot type</td>
+        	<td class="col1Wide">Planting site type</td>
             <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
@@ -391,14 +391,14 @@
             <ul id="userImage">
                 <li>
                 {% if tree.treephoto_set.count %}
-                    <a href="{{ MEDIA_URL }}{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    <a href="{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
                         {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
                         <img src="{{ image.url }}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                         {% endthumbnail %}
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
-                            <li><a href="{{ MEDIA_URL }}{{ item.photo.url }}">
+                            <li><a href="{{ item.photo.url }}">
                             {% thumbnail item.photo "55x36" crop="center" as image %}
                                 <img alt="{{ item.title }}" title="{{ item.title }}" src="{{ image.url }}" alt="image description" width="55" height="36" />
                             {% endthumbnail %}
@@ -456,11 +456,16 @@
                     -->
                     
                 </li>
+                <li><iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Furbanforestmap.org/trees/{{tree.id}}/&amp;send=false&amp;layout=button_count&amp;width=90&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:90px; height:21px;" allowTransparency="true"></iframe></li>
+                <li><a href="https://twitter.com/share" class="twitter-share-button" data-text="Check out this tree!" data-related="sactree" data-count="none">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></li>
+                <li><g:plusone size="medium" annotation="none"></g:plusone></li>
             </ul>
 
             <ul id="message">
                 <li id="title">Latest update <div class="Info note"></div></li>
                 <li class="optionItemLastContainer">
+                    {% if recent.0 %}
                     <ul class="optionItemLast">
                         <li>Username</li>
                         <li class="editItem"><a href="{% url profiles.views.profile_detail recent.0.0 %}">{{recent.0.0}}</a></li>
@@ -469,6 +474,9 @@
                         <li>Date</li>
                         <li class="editItem">{{recent.0.1|date}}</li>
                     </ul>
+                    {% else %}
+                        <ul class="optionItemLast"><li>No edits yet!</li></ul>
+                    {% endif %}
                 </li>
             </ul>
             <ul id="message">

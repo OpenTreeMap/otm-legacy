@@ -220,7 +220,7 @@ CREATE INDEX treemap_plot_neighborhood_plot_id
 ALTER TABLE treemap_plot DISABLE TRIGGER ALL;
 INSERT INTO treemap_plot (present, width, length, type, powerline_conflict_potential, sidewalk_damage, address_street,
   address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy, geocoded_address, geocoded_lat, geocoded_lon,
-  last_updated, last_updated_by_id, import_event_id, geometry, geocoded_geometry, owner_geometry, tree_id,  
+  last_updated, last_updated_by_id, import_event_id, geometry, tree_id,  
   data_owner_id,  owner_orig_id,  owner_additional_properties)
 SELECT present, plot_width AS width, plot_length AS length, plot_type AS type, powerline_conflict_potential,
   sidewalk_damage, address_street, address_city, address_zip, neighborhoods, zipcode_id, geocoded_accuracy,
@@ -357,6 +357,8 @@ CREATE TABLE "treemap_exclusionmask" (
 SELECT AddGeometryColumn('treemap_exclusionmask', 'geometry', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE "treemap_exclusionmask" ALTER "geometry" SET NOT NULL;
 CREATE INDEX "treemap_exclusionmask_geometry_id" ON "treemap_exclusionmask" USING GIST ( "geometry" GIST_GEOMETRY_OPS );
+
+COMMIT;
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
