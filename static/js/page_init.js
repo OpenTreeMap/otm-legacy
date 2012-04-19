@@ -299,6 +299,7 @@ tm.baseTemplatePageLoad = function() {
                 $('.filter-box').slideDown('slow');
             }
             adv_active = true;
+            if (tm.open_advanced_label) { $("#close-filters").html(tm.open_advanced_label); }   
             $('#arrow').attr('src',tm_static + 'static/images/v2/arrow2.gif');
         }    
         else {
@@ -306,6 +307,7 @@ tm.baseTemplatePageLoad = function() {
                 $('.filter-box').slideUp('slow');
             }
             adv_active = false;
+            if (tm.closed_advanced_label) { $("#close-filters").html(tm.closed_advanced_label); }           
             $('#arrow').attr('src',tm_static + 'static/images/v2/arrow1.gif'); 
         }
         return false;

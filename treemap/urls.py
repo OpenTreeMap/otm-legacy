@@ -110,6 +110,8 @@ urlpatterns = patterns('',
     url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
     url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),
     
+    (r'^stewardship/', view_stewardship),
+
     (r'^images/$', view_images),
     
 )
