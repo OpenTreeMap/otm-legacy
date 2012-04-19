@@ -15,7 +15,7 @@ from simplejson import loads, dumps
 from django.conf import settings
 from urlparse import urlparse
 import urllib
-from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
+from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Choices, Species, Plot, Tree
 
 from api.models import APIKey, APILog
