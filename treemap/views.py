@@ -838,6 +838,34 @@ def view_pends(request):
     pends = list(chain(tree_pends, plot_pends)) # chain comes from itertools
     return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends': pends}))
 
+@login_required
+@permission_required('auth.change_user')
+def view_stewardship(request):
+    tree_activity = TreeStewardship.objects.all()
+    plot_activity = PlotStewardship.objects.all()
+    if 'username' in request.GET:
+        u = User.objects.filter(username__icontains=request.GET['username'])
+        tree_activity = tree_activity.filter(performed_by__in=u)
+        plot_activity = plot_activity.filter(performed_by__in=u)
+    if 'address' in request.GET:
+        tree_activity = tree_activity.filter(tree__plot__address_street__icontains=request.GET['address'])
+        plot_activity = plot_activity.filter(plot__address_street__icontains=request.GET['address'])
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        tree_activity = tree_activity.filter(tree__plot__neighborhood=n)
+        plot_activity = plot_activity.filter(plot__neighborhood=n)
+    if 'status' in request.GET:
+        tree_activity = tree_activity.filter(activity=request.GET['status'])
+        plot_activity = plot_activity.filter(activity=request.GET['status'])
+    if 'target' in request.GET:
+        if request.GET['target'] == 'plot':
+            tree_activity = TreeStewardship.objects.none()
+        if request.GET['target'] == 'tree':
+            plot_activity = PlotStewardship.objects.none()
+
+    activities = list(chain(tree_activity, plot_activity)) # chain comes from itertools
+    activities = sorted(activities, key=attrgetter('performed_date'))
+    return render_to_response('treemap/admin_stewardship.html',RequestContext(request,{'activities': activities}))
 
 @login_required
 @transaction.commit_manually
