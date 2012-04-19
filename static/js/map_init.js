@@ -110,7 +110,7 @@ tm.init_add_map = function(){
     tm.map.setBaseLayer(tm.aerial);
     tm.map.addControl(tm.drag_control);
     tm.map.setCenter(
-        new OpenLayers.LonLat(treemap_settings.map_center_lon, treemap_settings.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+        new OpenLayers.LonLat(treemap_settings.mapCenterLon, treemap_settings.mapCenterLon).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
         , tm.add_start_zoom);
     
     tm.geocoder = new google.maps.Geocoder();
