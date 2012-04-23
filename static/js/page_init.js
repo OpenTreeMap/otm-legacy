@@ -211,7 +211,7 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
             delete tm.searchParams[checks[i].id];
         }
         $("#options_form input:checked").attr('checked', false)  
-        tm.updateSearch();
+        //tm.updateSearch();
         tm.trackEvent('Search', 'Reset Advanced');
     });        
     
@@ -395,11 +395,9 @@ tm.baseTemplatePageLoad = function() {
         }    
         window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
         return false;
-    }
-    //$("#search_form").submit(triggerSearch);    
+    }  
     $("#advanced").click(function() {
         tm.advancedClick = true;
-        triggerSearch();
     });   
     
     

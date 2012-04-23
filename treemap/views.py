@@ -1176,7 +1176,8 @@ def add_tree_stewardship(request, tree_id):
     tree = get_object_or_404(Tree, pk=tree_id)
     
     try:
-        activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'])
+        date = datetime.strptime(post['performed_date'],'%m/%d/%Y')
+        activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'], performed_date=date)
         activity.save()
         Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
     except ValidationError, e:
@@ -1210,7 +1211,7 @@ def add_plot_stewardship(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
     
     try:
-        date = post['performed_date'].strftime('%b %d %Y')
+        date = datetime.strptime(post['performed_date'],'%m/%d/%Y')
         activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'], performed_date=date)
         activity.save()
         Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)

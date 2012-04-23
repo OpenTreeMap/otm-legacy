@@ -323,11 +323,12 @@ tm = {
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },
 
-    addTreeStewardship: function(value, settings) {
+    addTreeStewardship: function(value, date, settings) {
         var data = {};
         var treeId = settings.objectId;
         
         data['activity'] = tm.coerceFromString(value)
+        data['performed_date'] = tm.coerceFromString(date)
 
         var jsonString = JSON.stringify(data);
         settings.obj = this;
@@ -547,7 +548,7 @@ tm = {
     },
 
     newTreeActivity: function() {
-        return tm.createAttributeRow("treeActivityTypeSelection", tm.localTreeActivities, "treeActivityTable", 
+        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.localTreeActivities, "treeActivityTable", 
                                      tm.handleNewTreeStewardship("treeActivityTypeSelection", 
                                                            "TreeStewardship",
                                                            "treeActivityTable", 
@@ -609,7 +610,7 @@ tm = {
         }    
         var row = $("<tr />");
 
-        row.append($(""), $("<td colspan='2' />").append(select).append($("<br>")).append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" }))).append(
+        row.append($(""), $("<td colspan='2' />").append(select).append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" }))).append(
             $("<td />").append(
                 $("<input type='submit' value='Submit' class='button' />").click(submitEvent),
                 $("<input type='submit' value='Cancel' class='button' />").click(function() {
@@ -625,6 +626,8 @@ tm = {
     handleNewTreeStewardship: function(select, model, table, count) {
         return function() {
             var data = $("#" + select)[0].value;
+            var data_date = $("#" + select + "-datepicker")[0].value;
+
             settings = {
                 model: model,
                 objectId: tm.currentTreeId,
@@ -634,11 +637,9 @@ tm = {
             };    
             
             $(this.parentNode.parentNode).remove();
-            var d = new Date();
-            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
-            tm.addTreeStewardship(data, settings)
+            tm.addTreeStewardship(data, data_date, settings);
             $("#" + table).append(
-                $("<tr><td>"+tm.localTreeActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
+                $("<tr><td>"+tm.localTreeActivities[data]+"</td><td>"+data_date+"</td><td></td></tr>"));  
             $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
         };
     },
@@ -658,7 +659,7 @@ tm = {
             };    
             
             $(this.parentNode.parentNode).remove();
-            tm.addPlotStewardship(data, data_date, settings)
+            tm.addPlotStewardship(data, data_date, settings);
             $("#" + table).append(
                 $("<tr><td>"+tm.localPlotActivities[data]+"</td><td>"+data_date+"</td><td></td></tr>"));  
             $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
