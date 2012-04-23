@@ -518,3 +518,38 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(tree_count, Tree.objects.count())
         # Assert that reputation was _not_ added
         self.assertEqual(reputation_count, UserReputationAction.objects.count())
+
+    def test_create_plot_with_geometry(self):
+        data = {
+            "geometry": {
+                "lon": 35,
+                "lat": 25,
+            },
+            "geocode_address": "1234 ANY ST",
+            "edit_address_street": "1234 ANY ST",
+            "tree": {
+                "height": 10
+            }
+        }
+
+        plot_count = Plot.objects.count()
+        reputation_count = UserReputationAction.objects.count()
+
+        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
+
+        self.assertEqual(201, response.status_code, "Create failed:" + response.content)
+
+        # Assert that a plot was added
+        self.assertEqual(plot_count + 1, Plot.objects.count())
+        # Assert that reputation was added
+        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+
+        response_json = loads(response.content)
+        self.assertTrue("ok" in response_json)
+        id = response_json["ok"]
+        plot = Plot.objects.get(pk=id)
+        self.assertEqual(35.0, plot.geometry.x)
+        self.assertEqual(25.0, plot.geometry.y)
+        tree = plot.current_tree()
+        self.assertIsNotNone(tree)
+        self.assertEqual(10.0, tree.height)

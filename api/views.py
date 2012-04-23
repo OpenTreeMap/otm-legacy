@@ -601,12 +601,17 @@ def geocode_address(request, address):
         # report failure details.
         return {"error": "The geocoder failed to generate a list of results."}
 
-def flatten_plot_dict_with_tree(plot_dict):
+def flatten_plot_dict_with_tree_and_geometry(plot_dict):
     if 'tree' in plot_dict:
         tree_dict = plot_dict['tree']
         for field_name in tree_dict.keys():
             plot_dict[field_name] = tree_dict[field_name]
         del plot_dict['tree']
+    if 'geometry' in plot_dict:
+        geometry_dict = plot_dict['geometry']
+        for field_name in geometry_dict.keys():
+            plot_dict[field_name] = geometry_dict[field_name]
+        del plot_dict['geometry']
 
 @require_http_methods(["POST"])
 @api_call()
@@ -618,9 +623,10 @@ def create_plot_optional_tree(request):
     request_dict = json_from_request(request)
 
     # The Django form used to validate and save plot and tree information expects
-    # a flat dictionary. Allowing the tree details to be a nested dictionary in
-    # API calls clarifies, to API clients, the distinction between Plot and Tree
-    flatten_plot_dict_with_tree(request_dict)
+    # a flat dictionary. Allowing the tree and geometry details to be in nested
+    # dictionaries in API calls clarifies, to API clients, the distinction between
+    # Plot and Tree and groups the coordinates along with their spatial reference
+    flatten_plot_dict_with_tree_and_geometry(request_dict)
 
     form = TreeAddForm(request_dict, request.FILES)
 
