@@ -979,7 +979,7 @@ class TreeFavorite(FavoriteBase):
 
 class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
-    performed_date = models.DateTimeField(auto_now=True)
+    performed_date = models.DateTimeField()
 
 class TreeStewardship(Stewardship):
     activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))

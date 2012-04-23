@@ -1210,7 +1210,8 @@ def add_plot_stewardship(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
     
     try:
-        activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'])
+        date = post['performed_date'].strftime('%b %d %Y')
+        activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'], performed_date=date)
         activity.save()
         Reputation.objects.log_reputation_action(request.user, request.user, "add stewardship", 5, activity)
     except ValidationError, e:

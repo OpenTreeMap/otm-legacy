@@ -356,11 +356,12 @@ tm = {
 
     },
 
-    addPlotStewardship: function(value, settings) {
+    addPlotStewardship: function(value, date, settings) {
         var data = {};
         var plotId = settings.objectId;
         
         data['activity'] = tm.coerceFromString(value)
+        data['performed_date'] = tm.coerceFromString(date)
 
         var jsonString = JSON.stringify(data);
         settings.obj = this;
@@ -553,7 +554,7 @@ tm = {
                                                            "treeActivityCount"));
     },
     newPlotActivity: function() {
-        return tm.createAttributeRow("plotActivityTypeSelection", tm.localPlotActivities, "plotActivityTable", 
+        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.localPlotActivities, "plotActivityTable", 
                                      tm.handleNewPlotStewardship("plotActivityTypeSelection", 
                                                            "PlotStewardship",
                                                            "plotActivityTable", 
@@ -601,6 +602,25 @@ tm = {
         
         $("#" + tableName).append(row);
     },
+    createAttributeDateRow: function(selectId, typesArray, tableName, submitEvent) {
+        var select = $("<select id='" + selectId + "' />");
+        for (var key in typesArray) {
+            select.append($("<option value='"+key+"'>"+ typesArray[key]+"</option>"));
+        }    
+        var row = $("<tr />");
+
+        row.append($(""), $("<td colspan='2' />").append(select).append($("<br>")).append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" }))).append(
+            $("<td />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(submitEvent),
+                $("<input type='submit' value='Cancel' class='button' />").click(function() {
+                    row.remove();
+                })
+            )
+        );
+        
+        $("#" + tableName).append(row);
+
+    },
 
     handleNewTreeStewardship: function(select, model, table, count) {
         return function() {
@@ -626,20 +646,21 @@ tm = {
     handleNewPlotStewardship: function(select, model, table, count) {
         return function() {
             var data = $("#" + select)[0].value;
+            var data_date = $("#" + select + "-datepicker")[0].value;
+            
             settings = {
                 model: model,
                 objectId: tm.currentPlotId,
                 activity: data,
+                performed_date: data_date,
                 submit: 'Save',
                 cancel: 'Cancel'
             };    
             
             $(this.parentNode.parentNode).remove();
-            var d = new Date();
-            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
-            tm.addPlotStewardship(data, settings)
+            tm.addPlotStewardship(data, data_date, settings)
             $("#" + table).append(
-                $("<tr><td>"+tm.localPlotActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
+                $("<tr><td>"+tm.localPlotActivities[data]+"</td><td>"+data_date+"</td><td></td></tr>"));  
             $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
         };
     },
