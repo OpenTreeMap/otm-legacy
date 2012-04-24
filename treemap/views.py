@@ -1191,7 +1191,8 @@ def add_tree_stewardship(request, tree_id):
     if len(response_dict["errors"]) == 0:
         response_dict['success'] = True
         response_dict['update'] = {}        
-        response_dict['update']['activity'] = activity.activity       
+        response_dict['update']['activity'] = activity.activity  
+        response_dict['update']['performed_date'] = activity.performed_date.strftime("%m/%d/%Y")   
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1226,7 +1227,8 @@ def add_plot_stewardship(request, plot_id):
     if len(response_dict["errors"]) == 0:
         response_dict['success'] = True
         response_dict['update'] = {}        
-        response_dict['update']['activity'] = activity.activity       
+        response_dict['update']['activity'] = activity.activity    
+        response_dict['update']['performed_date'] = activity.performed_date.strftime("%m/%d/%Y")
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1692,6 +1694,12 @@ def _build_tree_search_result(request):
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
         plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
+
+    if 'tree_stewardship' in request.GET:
+        pass
+
+    if 'plot_stewardship' in request.GET:
+        pass
 
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
