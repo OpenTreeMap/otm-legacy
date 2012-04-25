@@ -255,7 +255,6 @@ tm.init_tree_map = function(editable){
                         dragPanOptions: {
                             enableKinetic: true
                         }
-                    })
             })];
     tm.init_base_map('edit_tree_map', controls);
     
