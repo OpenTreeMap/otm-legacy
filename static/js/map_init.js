@@ -250,7 +250,13 @@ tm.init_tree_map = function(editable){
     var controls = [new OpenLayers.Control.Attribution(),
                     new OpenLayers.Control.Navigation(),
                     new OpenLayers.Control.ArgParser(),
-                    new OpenLayers.Control.ZoomPanel()];
+                    new OpenLayers.Control.ZoomPanel(),
+                    new OpenLayers.Control.TouchNavigation({
+                        dragPanOptions: {
+                            enableKinetic: true
+                        }
+                    })
+            })];
     tm.init_base_map('edit_tree_map', controls);
     
     tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')

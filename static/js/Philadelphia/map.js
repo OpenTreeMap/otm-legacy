@@ -28,7 +28,12 @@ tm.init_base_map = function(div_id, controls){
                        new OpenLayers.Control.Navigation(),
                        new OpenLayers.Control.ArgParser(),
                        new OpenLayers.Control.PanPanel(),
-                       new OpenLayers.Control.ZoomPanel()]
+                       new OpenLayers.Control.ZoomPanel(),
+                        new OpenLayers.Control.TouchNavigation({
+                            dragPanOptions: {
+                                enableKinetic: true
+                            }
+                        })]
         });
     }
     else {

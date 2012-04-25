@@ -1695,11 +1695,30 @@ def _build_tree_search_result(request):
         plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
 
-    if 'tree_stewardship' in request.GET:
-        pass
+    stewardship_reverse = request.GET.get("stewardship_reverse", "")
+    if stewardship_reverse:
+        stewardship_reverse = "NOT"
 
-    if 'plot_stewardship' in request.GET:
-        pass
+    #TODO add range searches
+    stewardship_range = request.GET.get("stewardship_range", "")
+    tree_stewardship = request.GET.get("tree_stewardship", "")
+    if tree_stewardship:
+        if stewardship_reverse:
+            trees = trees.exclude(treestewardship__activity=tree_stewardship)
+        else:
+            trees = trees.filter(treestewardship__activity=tree_stewardship)
+
+        plots = Plot.objects.none()
+        tile_query.append("tree_stewardship_" + tree_stewardship + " IS " + stewardship_reverse + " NULL")
+
+    plot_stewardship = request.GET.get("plot_stewardship", "")
+    if plot_stewardship:
+        if stewardship_reverse:
+            plots = plots.exclude(plotstewardship__activity=plot_stewardship)
+        else:
+            plots = plots.filter(plotstewardship__activity=plot_stewardship)
+        trees = Tree.objects.none()
+        tile_query.append("plot_stewardship_" + plot_stewardship + " IS " + stewardship_reverse + " NULL")
 
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''

@@ -318,19 +318,25 @@
 									<h2>Comments</h2>
 								</div>
 								<div class="comment_list">
-                                                                {% get_threaded_comment_tree for tree as comment_tree %}
+                                                                {% get_threaded_comment_tree for plot as comment_tree %}
 								{% for comment in comment_tree %}
 									<div class="comment_item" style="margin-left: {{ comment.depth }}em">
 										<div class="comment_head">
 											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="{{ SITE_ROOT }}comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+											{% if user.is_authenticated %} 
+                                                                                        {% if comment|is_flagged:user %}
+                                                                                        Flagged
+                                                                                        {% else %}
+                                                                                        <a href="{{ SITE_ROOT }}/comments/flag/{{ comment.id }}/?next={% url treemap.views.plot_detail tree.plot.id %}">Flag</a>
+                                                                                        {% endif %}
+                                                                                        {% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
 										</div>                                             
 								                {% if user.is_authenticated %}
                                                                                 {% get_threaded_comment_form as form %}
-                                                                                <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url tree comment %}','{{ comment.name }}')">Reply</a>
+                                                                                <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url plot comment %}','{{ comment.name }}')">Reply</a>
                                                                                 {% endif %}
 									</div>
 								{% empty %}
@@ -340,14 +346,15 @@
                                                                 
 								{% if user.is_authenticated %}
 									{% get_threaded_comment_form as form %}
-									<form action="{% get_comment_url tree %}" method="post">{% csrf_token %}
+									<form action="{% get_comment_url plot %}" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
-                                                                                {{ form.as_ul }}
+                                                                                <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
+                                                                                <input type="hidden" name="markup" value="5"></input>
 										<div class="submit">
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
 									</form>
-                                    <div id="comment_disclaimer">The comment system on PhillyTreeMap does not serve as a way to report problems with a tree. {% if tree.neighborhood.city == 'Philadelphia' %} To contact the City of Philadelphia regarding a tree issue, please use the <a href="http://www.philla.gov/311" target="_blank">Philly 311</a> system. {% endif %}</div>
+				                                    <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}
