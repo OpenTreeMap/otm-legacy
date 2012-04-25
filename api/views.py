@@ -12,7 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent
+from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
 from treemap.forms import TreeAddForm
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
@@ -685,4 +685,48 @@ def create_plot_optional_tree(request):
 
     response.status_code = 201
     response.content = "{\"ok\": %d}" % new_plot.id
+    return response
+
+
+@require_http_methods(["PUT"])
+@api_call()
+@login_required
+def update_plot_and_tree(request, plot_id):
+    response = HttpResponse()
+    try:
+        plot = Plot.objects.get(pk=plot_id)
+    except Plot.DoesNotExist:
+        response.status_code = 400
+        response.content = simplejson.dumps({"error": "No plot with id %s" % plot_id})
+        return response
+
+    request_dict = json_from_request(request)
+    flatten_plot_dict_with_tree_and_geometry(request_dict)
+
+    plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street']
+
+    for plot_field in Plot._meta.fields:
+        if plot_field.name in request_dict and plot_field.name in plot_field_whitelist:
+            setattr(plot, plot_field.name, request_dict[plot_field.name])
+
+    if 'lat' in request_dict:
+        plot.geometry.y = request_dict['lat']
+
+    if 'lon' in request_dict:
+        plot.geometry.x = request_dict['lon']
+
+    plot.save()
+
+    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
+
+    tree = plot.current_tree()
+    if tree:
+        for tree_field in Tree._meta.fields:
+            if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
+                setattr(tree, tree_field.name, request_dict[tree_field.name])
+        tree.save()
+
+    return_dict = plot_to_dict(plot)
+    response.status_code = 200
+    response.content = simplejson.dumps(return_dict)
     return response

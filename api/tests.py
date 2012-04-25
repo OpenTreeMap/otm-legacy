@@ -32,9 +32,9 @@ def create_signer_dict(user):
 
     return { "HTTP_X_API_KEY": key.key }
 
-def post_json(url, body_object, client, sign_dict=None):
+def send_json_body(url, body_object, client, method, sign_dict=None):
     """
-    Serialize a list or dictionary to JSON then POST it to an endpoint.
+    Serialize a list or dictionary to JSON then send it to an endpoint.
     The "post" method exposed by the Django test client assumes that you
     are posting form data, so you need to manually setup the parameters
     to override that default functionality.
@@ -57,7 +57,7 @@ def post_json(url, body_object, client, sign_dict=None):
         'CONTENT_TYPE': 'application/json',
         'PATH_INFO': _get_path(parsed_url),
         'QUERY_STRING': parsed_url[4],
-        'REQUEST_METHOD': 'POST',
+        'REQUEST_METHOD': method,
         'wsgi.input': body_stream,
     }
 
@@ -65,6 +65,18 @@ def post_json(url, body_object, client, sign_dict=None):
         client_params.update(sign_dict)
 
     return client.post(url, **client_params)
+
+def post_json(url, body_object, client, sign_dict=None):
+    """
+    Serialize a list or dictionary to JSON then POST it to an endpoint.
+    The "post" method exposed by the Django test client assumes that you
+    are posting form data, so you need to manually setup the parameters
+    to override that default functionality.
+    """
+    return send_json_body(url, body_object, client, 'POST', sign_dict)
+
+def put_json(url, body_object, client, sign_dict=None):
+    return send_json_body(url, body_object, client, 'PUT', sign_dict)
 
 class Signing(TestCase):
     def setUp(self):
@@ -553,3 +565,43 @@ class CreatePlotAndTree(TestCase):
         tree = plot.current_tree()
         self.assertIsNotNone(tree)
         self.assertEqual(10.0, tree.height)
+
+class UpdatePlotAndTree(TestCase):
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.user = User.objects.get(username="jim")
+        self.user.set_password("password")
+        self.user.save()
+        self.sign = create_signer_dict(self.user)
+        auth = base64.b64encode("jim:password")
+        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+    def test_invalid_plot_id_returns_400_and_a_json_error(self):
+        response = put_json( "%s/plots/0"  % API_PFX, {}, self.client, self.sign)
+        self.assertEqual(400, response.status_code)
+        response_json = loads(response.content)
+        self.assertTrue("error" in response_json)
+
+    def test_update_plot(self):
+        test_plot = mkPlot(self.user)
+        test_plot.width = 1
+        test_plot.length = 2
+        test_plot.geocoded_address = 'foo'
+        test_plot.save()
+        self.assertEqual(50, test_plot.geometry.x)
+        self.assertEqual(50, test_plot.geometry.y)
+        self.assertEqual(1, test_plot.width)
+        self.assertEqual(2, test_plot.length)
+        self.assertEqual('foo', test_plot.geocoded_address)
+
+        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'width': 11, 'length': 22, 'geocoded_address': 'bar'}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+        self.assertEqual(70, response_json['geometry']['lat'])
+        self.assertEqual(60, response_json['geometry']['lng'])
+        self.assertEqual(11, response_json['width'])
+        self.assertEqual(22, response_json['length'])
+        self.assertEqual('bar', response_json['address'])
