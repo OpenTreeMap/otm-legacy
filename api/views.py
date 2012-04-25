@@ -1,3 +1,4 @@
+import datetime
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
@@ -734,16 +735,29 @@ def update_plot_and_tree(request, plot_id):
         change_reputation_for_user(request.user, 'edit plot', plot)
 
     tree_was_edited = False
+    tree_was_added = False
     tree = plot.current_tree()
-    if tree:
-        for tree_field in Tree._meta.fields:
-            if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
-                setattr(tree, tree_field.name, request_dict[tree_field.name])
-                tree_was_edited = True
+    for tree_field in Tree._meta.fields:
+        if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
+            if tree is None:
+                import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
+                tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
+                tree.plot = plot
+                tree.last_updated_by = request.user
+                tree.save()
+                tree_was_added = True
+            setattr(tree, tree_field.name, request_dict[tree_field.name])
+            tree_was_edited = True
 
-        if tree_was_edited:
-            tree.save()
-            change_reputation_for_user(request.user, 'edit tree', tree)
+    if tree_was_added or tree_was_edited:
+        tree.save()
+
+    # You cannot get reputation for both adding and editing a tree in one action
+    # so I use an elif here
+    if tree_was_added:
+        change_reputation_for_user(request.user, 'add tree', tree)
+    elif tree_was_edited:
+        change_reputation_for_user(request.user, 'edit tree', tree)
 
     return_dict = plot_to_dict(plot)
     response.status_code = 200

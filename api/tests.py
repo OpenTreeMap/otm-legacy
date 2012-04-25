@@ -617,3 +617,28 @@ class UpdatePlotAndTree(TestCase):
         response_json = loads(response.content)
         self.assertTrue("error" in response_json)
         print("Received an error message as expected:\n" + response_json['error'])
+
+    def test_update_creates_tree(self):
+        test_plot = mkPlot(self.user)
+        test_plot_id = test_plot.id
+        self.assertIsNone(test_plot.current_tree())
+        updated_values = {'tree': {'dbh': 1.2}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Plot.objects.get(pk=test_plot_id).current_tree()
+        self.assertIsNotNone(tree)
+        self.assertEqual(1.2, tree.dbh)
+
+    def test_update_tree(self):
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.dbh = 2.3
+        test_tree.save()
+
+        updated_values = {'tree': {'dbh': 3.9}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(3.9, tree.dbh)
