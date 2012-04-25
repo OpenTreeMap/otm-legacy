@@ -705,26 +705,37 @@ def update_plot_and_tree(request, plot_id):
 
     plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street']
 
+    plot_was_edited = False
     for plot_field in Plot._meta.fields:
         if plot_field.name in request_dict and plot_field.name in plot_field_whitelist:
             setattr(plot, plot_field.name, request_dict[plot_field.name])
+            plot_was_edited = True
 
     if 'lat' in request_dict:
         plot.geometry.y = request_dict['lat']
+        plot_was_edited = True
 
     if 'lon' in request_dict:
         plot.geometry.x = request_dict['lon']
+        plot_was_edited = True
 
-    plot.save()
+    if plot_was_edited:
+        plot.save()
+        change_reputation_for_user(request.user, 'edit plot', plot)
 
     tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
 
+    tree_was_edited = False
     tree = plot.current_tree()
     if tree:
         for tree_field in Tree._meta.fields:
             if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
                 setattr(tree, tree_field.name, request_dict[tree_field.name])
-        tree.save()
+                tree_was_edited = True
+
+        if tree_was_edited:
+            tree.save()
+            change_reputation_for_user(request.user, 'edit tree', tree)
 
     return_dict = plot_to_dict(plot)
     response.status_code = 200
