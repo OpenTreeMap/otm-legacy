@@ -20,6 +20,7 @@ MAP_CENTER_LON = -122.437821
 
 REPUTATION_SCORES = {
     'add tree': 25,
+    'add plot': 25,
     'edit tree': 5,
     'edit plot': 5,
     'add stewardship': 5,
