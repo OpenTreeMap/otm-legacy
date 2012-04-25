@@ -388,8 +388,8 @@ class ImportEvent(models.Model):
 
 class Plot(models.Model):
     present = models.BooleanField(default=True)
-    width = models.FloatField(null=True, blank=True)
-    length = models.FloatField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
+    length = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
     powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
         help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
@@ -617,8 +617,8 @@ class Tree(models.Model):
     species_other2 = models.CharField(max_length=255, null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
-    height = models.FloatField(null=True, blank=True)
-    canopy_height = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
+    canopy_height = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
     present = models.BooleanField(default=True)

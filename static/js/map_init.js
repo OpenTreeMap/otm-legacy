@@ -77,8 +77,14 @@ tm.init_map = function(div_id){
 tm.init_add_map = function(){
     tm.init_base_map('add_tree_map');
     
-    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
-    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+    var vector_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+    vector_style.fillColor = "yellow"; 
+    vector_style.fillOpacity = 0.8;
+    vector_style.strokeWidth = 3; 
+    vector_style.pointRadius = 8;
+
+    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style });
+    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
 
     tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
     tm.drag_control.onComplete = function(feature, mousepix) {
