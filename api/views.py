@@ -704,6 +704,16 @@ def update_plot_and_tree(request, plot_id):
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
     plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street']
+    plot_geometry_field_whitelist = ['lat', 'lon']
+    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
+    field_whitelist = plot_field_whitelist + plot_geometry_field_whitelist + tree_field_whitelist
+
+    for field_name in request_dict:
+        if field_name not in field_whitelist:
+            response.status_code = 400
+            response.content = simplejson.dumps({"error": "'%s' is not an editable field. Editable fields: %s"
+                % (field_name, ', '.join(field_whitelist))})
+            return response
 
     plot_was_edited = False
     for plot_field in Plot._meta.fields:
@@ -722,8 +732,6 @@ def update_plot_and_tree(request, plot_id):
     if plot_was_edited:
         plot.save()
         change_reputation_for_user(request.user, 'edit plot', plot)
-
-    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
 
     tree_was_edited = False
     tree = plot.current_tree()
