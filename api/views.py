@@ -485,12 +485,12 @@ def plots_closest_to_point(request, lat=None, lon=None):
 
     plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species)
 
-    return plots_to_list_of_dict(plots)
+    return plots_to_list_of_dict(plots, longform=True)
 
-def plots_to_list_of_dict(plots):
-    return [plot_to_dict(plot) for plot in plots]
+def plots_to_list_of_dict(plots,longform=False):
+    return [plot_to_dict(plot,longform=longform) for plot in plots]
 
-def plot_to_dict(plot):
+def plot_to_dict(plot,longform=False):
     current_tree = plot.current_tree()
     if current_tree:
         tree_dict = { "id" : current_tree.pk }
@@ -513,10 +513,30 @@ def plot_to_dict(plot):
 
         if len(images) > 0:
             tree_dict["images"] = [{ "id": image.pk, "title": image.title } for image in images]
+
+        if longform:
+            tree_dict['tree_owner'] = current_tree.tree_owner
+            tree_dict['steward_name'] = current_tree.steward_name
+            tree_dict['sponsor'] = current_tree.sponsor
+
+            if current_tree.steward_user:
+                tree_dict['steward_user'] = current_tree.steward_user
+
+            tree_dict['species_other1'] = current_tree.species_other1
+            tree_dict['species_other2'] = current_tree.species_other2
+            tree_dict['date_planted'] = str(current_tree.date_planted)
+            tree_dict['date_removed'] = current_tree.date_removed
+            tree_dict['present'] = current_tree.present
+            tree_dict['last_updated'] = str(current_tree.last_updated)
+            tree_dict['last_updated_by'] = current_tree.last_updated_by.pk
+            tree_dict['condition'] = current_tree.condition
+            tree_dict['canopy_condition'] = current_tree.canopy_condition
+            tree_dict['readonly'] = current_tree.readonly
+
     else:
         tree_dict = None
 
-    return {
+    base = {
         "id": plot.pk,
         "width": plot.width,
         "length": plot.length,
@@ -530,6 +550,18 @@ def plot_to_dict(plot):
             "lng": plot.geometry.x
         }
     }
+
+    if longform:
+        base['powerlines'] = plot.powerline_conflict_potential
+        base['sidewalk_damage'] = plot.sidewalk_damage
+        base['address_street'] = plot.address_street
+        base['address_city'] = plot.address_city
+        base['address_zip'] = plot.address_zip
+        base['data_owner'] = plot.data_owner.pk
+        base['last_updated'] = str(plot.last_updated)
+        base['last_updated_by'] = plot.last_updated_by.pk
+
+    return base
 
 def species_to_dict(s):
     return {
