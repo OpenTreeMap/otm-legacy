@@ -2073,6 +2073,7 @@ color: #999;
 }
 #popupContainer .infoWindowDetails {
 float:left;
+width: 245px;
 margin: 10px 0 0 15px;
 }
 #popupContainer .infoWindowDetails .infoLabel {
