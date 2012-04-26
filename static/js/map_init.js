@@ -294,6 +294,13 @@ tm.init_tree_map = function(editable){
                             enableKinetic: true
                         }
             })];
+
+    var vector_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+    vector_style.fillColor = "yellow"; 
+    vector_style.fillOpacity = 0.8;
+    vector_style.strokeWidth = 3; 
+    vector_style.pointRadius = 8;
+
     tm.init_base_map('edit_tree_map', controls);
     
     tm.singleClick = function(olLonlat) {
@@ -307,7 +314,7 @@ tm.init_tree_map = function(editable){
     };
 
 
-    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
+    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style })
     tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
     
     if (tm.mask) {tm.map.addLayer(tm.mask);}
