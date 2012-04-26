@@ -731,6 +731,8 @@ def update_plot_and_tree(request, plot_id):
         plot_was_edited = True
 
     if plot_was_edited:
+        plot.last_updated = datetime.datetime.now()
+        plot.last_updated_by = request.user
         plot.save()
         change_reputation_for_user(request.user, 'edit plot', plot)
 
@@ -748,6 +750,10 @@ def update_plot_and_tree(request, plot_id):
                 tree_was_added = True
             setattr(tree, tree_field.name, request_dict[tree_field.name])
             tree_was_edited = True
+
+    if tree_was_edited:
+        tree.last_updated = datetime.datetime.now()
+        tree.last_updated_by = request.user
 
     if tree_was_added or tree_was_edited:
         tree.save()
