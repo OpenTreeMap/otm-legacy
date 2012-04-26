@@ -704,9 +704,9 @@ def update_plot_and_tree(request, plot_id):
     request_dict = json_from_request(request)
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
-    plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street']
+    plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'powerlines', 'sidewalk_damage', 'powerline_conflict_potential']
     plot_geometry_field_whitelist = ['lat', 'lon']
-    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
+    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height', 'canopy_condition']
     field_whitelist = plot_field_whitelist + plot_geometry_field_whitelist + tree_field_whitelist
 
     plot_was_edited = False
