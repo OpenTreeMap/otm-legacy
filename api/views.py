@@ -709,13 +709,6 @@ def update_plot_and_tree(request, plot_id):
     tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
     field_whitelist = plot_field_whitelist + plot_geometry_field_whitelist + tree_field_whitelist
 
-    for field_name in request_dict:
-        if field_name not in field_whitelist:
-            response.status_code = 400
-            response.content = simplejson.dumps({"error": "'%s' is not an editable field. Editable fields: %s"
-                % (field_name, ', '.join(field_whitelist))})
-            return response
-
     plot_was_edited = False
     for plot_field in Plot._meta.fields:
         if plot_field.name in request_dict and plot_field.name in plot_field_whitelist:

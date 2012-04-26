@@ -610,13 +610,14 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual('bar', response_json['address'])
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
-    def test_invalid_field_returns_400_and_a_json_error(self):
+    def test_invalid_field_returns_200_field_is_not_in_response(self):
         test_plot = mkPlot(self.user)
         updated_values = {'foo': 'bar'}
         response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
-        self.assertTrue("error" in response_json)
-        print("Received an error message as expected:\n" + response_json['error'])
+        self.assertFalse("error" in response_json.keys(), "Did not expect an error")
+        self.assertFalse("foo" in response_json.keys(), "Did not expect foo to be added to the plot")
 
     def test_update_creates_tree(self):
         test_plot = mkPlot(self.user)
