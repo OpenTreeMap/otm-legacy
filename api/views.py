@@ -772,7 +772,8 @@ def update_plot_and_tree(request, plot_id):
     elif tree_was_edited:
         change_reputation_for_user(request.user, 'edit tree', tree)
 
-    return_dict = plot_to_dict(plot)
+    full_plot = Plot.objects.get(pk=plot.id)
+    return_dict = plot_to_dict(full_plot, longform=True)
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
