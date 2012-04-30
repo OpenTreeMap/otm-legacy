@@ -539,9 +539,9 @@ def plot_to_dict(plot,longform=False):
 
     base = {
         "id": plot.pk,
-        "width": plot.width,
-        "length": plot.length,
-        "type": plot.type,
+        "plot_width": plot.width,
+        "plot_length": plot.length,
+        "plot_type": plot.type,
         "readonly": plot.readonly,
         "tree": tree_dict,
         "address": plot.geocoded_address,
@@ -553,7 +553,7 @@ def plot_to_dict(plot,longform=False):
     }
 
     if longform:
-        base['powerlines'] = plot.powerline_conflict_potential
+        base['power_lines'] = plot.powerline_conflict_potential
         base['sidewalk_damage'] = plot.sidewalk_damage
         base['address_street'] = plot.address_street
         base['address_city'] = plot.address_city

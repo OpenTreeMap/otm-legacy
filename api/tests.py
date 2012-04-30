@@ -328,8 +328,8 @@ class PlotListing(TestCase):
         record = json[0]
 
         self.assertEqual(record["id"], p.pk)
-        self.assertEqual(record["width"], 22)
-        self.assertEqual(record["length"], 44)
+        self.assertEqual(record["plot_width"], 22)
+        self.assertEqual(record["plot_length"], 44)
         self.assertEqual(record["readonly"], False)
         self.assertEqual(record["geometry"]["srid"], 4326)
         self.assertEqual(record["geometry"]["lat"], 56)
@@ -605,8 +605,8 @@ class UpdatePlotAndTree(TestCase):
         response_json = loads(response.content)
         self.assertEqual(70, response_json['geometry']['lat'])
         self.assertEqual(60, response_json['geometry']['lng'])
-        self.assertEqual(11, response_json['width'])
-        self.assertEqual(22, response_json['length'])
+        self.assertEqual(11, response_json['plot_width'])
+        self.assertEqual(22, response_json['plot_length'])
         self.assertEqual('bar', response_json['address'])
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
