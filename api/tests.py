@@ -328,8 +328,8 @@ class PlotListing(TestCase):
         record = json[0]
 
         self.assertEqual(record["id"], p.pk)
-        self.assertEqual(record["width"], 22)
-        self.assertEqual(record["length"], 44)
+        self.assertEqual(record["plot_width"], 22)
+        self.assertEqual(record["plot_length"], 44)
         self.assertEqual(record["readonly"], False)
         self.assertEqual(record["geometry"]["srid"], 4326)
         self.assertEqual(record["geometry"]["lat"], 56)
@@ -582,6 +582,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
         self.assertTrue("error" in response_json)
+        print("Received an error message as expected:\n" + response_json['error'])
 
     def test_update_plot(self):
         test_plot = mkPlot(self.user)
@@ -595,13 +596,76 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(2, test_plot.length)
         self.assertEqual('foo', test_plot.geocoded_address)
 
-        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'width': 11, 'length': 22, 'geocoded_address': 'bar'}
+        reputation_count = UserReputationAction.objects.count()
+
+        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'plot_width': 11, 'plot_length': 22, 'geocoded_address': 'bar'}
         response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
         self.assertEqual(200, response.status_code)
 
         response_json = loads(response.content)
         self.assertEqual(70, response_json['geometry']['lat'])
         self.assertEqual(60, response_json['geometry']['lng'])
-        self.assertEqual(11, response_json['width'])
-        self.assertEqual(22, response_json['length'])
+        self.assertEqual(11, response_json['plot_width'])
+        self.assertEqual(22, response_json['plot_length'])
         self.assertEqual('bar', response_json['address'])
+        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+
+    def test_invalid_field_returns_200_field_is_not_in_response(self):
+        test_plot = mkPlot(self.user)
+        updated_values = {'foo': 'bar'}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        response_json = loads(response.content)
+        self.assertFalse("error" in response_json.keys(), "Did not expect an error")
+        self.assertFalse("foo" in response_json.keys(), "Did not expect foo to be added to the plot")
+
+    def test_update_creates_tree(self):
+        test_plot = mkPlot(self.user)
+        test_plot_id = test_plot.id
+        self.assertIsNone(test_plot.current_tree())
+        updated_values = {'tree': {'dbh': 1.2}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Plot.objects.get(pk=test_plot_id).current_tree()
+        self.assertIsNotNone(tree)
+        self.assertEqual(1.2, tree.dbh)
+
+    def test_update_tree(self):
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.dbh = 2.3
+        test_tree.save()
+
+        updated_values = {'tree': {'dbh': 3.9}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(3.9, tree.dbh)
+
+    def test_update_tree_species(self):
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+
+        first_species = Species.objects.all()[0]
+        updated_values = {'tree': {'species': first_species.id}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(first_species, tree.species)
+
+    def test_update_tree_returns_400_on_invalid_species_id(self):
+        test_plot = mkPlot(self.user)
+        mkTree(self.user, plot=test_plot)
+
+        invalid_species_id = -1
+        self.assertRaises(Exception, Species.objects.get, pk=invalid_species_id)
+
+        updated_values = {'tree': {'species': invalid_species_id}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(400, response.status_code)
+        response_json = loads(response.content)
+        self.assertTrue("error" in response_json.keys(), "Expected an 'error' key in the JSON response")
