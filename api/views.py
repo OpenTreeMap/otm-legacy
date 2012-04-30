@@ -420,6 +420,16 @@ def get_tree_image(request, plot_id, photo_id):
 
 @require_http_methods(["GET"])
 @api_call()
+def get_plot(request, plot_id):
+    """ API Request
+    
+    Get info about a specific plot
+
+    """
+    return plot_to_dict(Plots.objects.get(pk=plot_id),longform=True)
+
+@require_http_methods(["GET"])
+@api_call()
 def get_plot_list(request):
     """ API Request
 
