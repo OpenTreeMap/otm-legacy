@@ -704,12 +704,12 @@ def update_plot_and_tree(request, plot_id):
     request_dict = json_from_request(request)
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
-    plot_field_whitelist = ['plot_width','plot_length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'power_lines', 'sidewalk_damage', 'powerline_conflict_potential']
+    plot_field_whitelist = ['plot_width','plot_length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'power_lines', 'sidewalk_damage']
 
     # The Django form that creates new plots expects a 'plot_width' parameter but the
     # Plot model has a 'width' parameter so this dict acts as a translator between request
     # keys and model field names
-    plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length'}
+    plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length', 'power_lines': 'powerline_conflict_potential'}
 
     plot_was_edited = False
     for plot_field_name in request_dict.keys():
