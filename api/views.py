@@ -1,4 +1,3 @@
-import datetime
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
@@ -549,9 +548,9 @@ def plot_to_dict(plot,longform=False):
 
     base = {
         "id": plot.pk,
-        "plot_width": plot.width,
-        "plot_length": plot.length,
-        "plot_type": plot.type,
+        "width": plot.width,
+        "length": plot.length,
+        "type": plot.type,
         "readonly": plot.readonly,
         "tree": tree_dict,
         "address": plot.geocoded_address,
@@ -563,14 +562,19 @@ def plot_to_dict(plot,longform=False):
     }
 
     if longform:
-        base['power_lines'] = plot.powerline_conflict_potential
+        base['powerlines'] = plot.powerline_conflict_potential
         base['sidewalk_damage'] = plot.sidewalk_damage
         base['address_street'] = plot.address_street
         base['address_city'] = plot.address_city
         base['address_zip'] = plot.address_zip
-        base['data_owner'] = plot.data_owner.pk
+
+        if plot.data_owner:
+            base['data_owner'] = plot.data_owner.pk
+
         base['last_updated'] = str(plot.last_updated)
-        base['last_updated_by'] = plot.last_updated_by.pk
+
+        if plot.last_updated_by:
+            base['last_updated_by'] = plot.last_updated_by.pk
 
     return base
 
@@ -714,76 +718,30 @@ def update_plot_and_tree(request, plot_id):
     request_dict = json_from_request(request)
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
-    plot_field_whitelist = ['plot_width','plot_length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'power_lines', 'sidewalk_damage']
+    plot_field_whitelist = ['width','length','type','geocoded_address','edit_address_street']
 
-    # The Django form that creates new plots expects a 'plot_width' parameter but the
-    # Plot model has a 'width' parameter so this dict acts as a translator between request
-    # keys and model field names
-    plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length', 'power_lines': 'powerline_conflict_potential'}
-
-    plot_was_edited = False
-    for plot_field_name in request_dict.keys():
-        if plot_field_name in plot_field_whitelist:
-            if plot_field_name in plot_field_property_name_dict:
-                setattr(plot, plot_field_property_name_dict[plot_field_name], request_dict[plot_field_name])
-            else:
-                setattr(plot, plot_field_name, request_dict[plot_field_name])
-            plot_was_edited = True
+    for plot_field in Plot._meta.fields:
+        if plot_field.name in request_dict and plot_field.name in plot_field_whitelist:
+            setattr(plot, plot_field.name, request_dict[plot_field.name])
 
     if 'lat' in request_dict:
         plot.geometry.y = request_dict['lat']
-        plot_was_edited = True
 
     if 'lon' in request_dict:
         plot.geometry.x = request_dict['lon']
-        plot_was_edited = True
 
-    if plot_was_edited:
-        plot.last_updated = datetime.datetime.now()
-        plot.last_updated_by = request.user
-        plot.save()
-        change_reputation_for_user(request.user, 'edit plot', plot)
+    plot.save()
 
-    tree_was_edited = False
-    tree_was_added = False
+    tree_field_whitelist = ['species','species_name','sci_name','dbh','height','canopy_height']
+
     tree = plot.current_tree()
-    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition']
-    for tree_field in Tree._meta.fields:
-        if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
-            if tree is None:
-                import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
-                tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
-                tree.plot = plot
-                tree.last_updated_by = request.user
-                tree.save()
-                tree_was_added = True
-            if tree_field.name == 'species':
-                try:
-                    tree.species = Species.objects.get(pk=request_dict[tree_field.name])
-                except Exception:
-                    response.status_code = 400
-                    response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
-                    return response
-            else:
+    if tree:
+        for tree_field in Tree._meta.fields:
+            if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
                 setattr(tree, tree_field.name, request_dict[tree_field.name])
-            tree_was_edited = True
-
-    if tree_was_edited:
-        tree.last_updated = datetime.datetime.now()
-        tree.last_updated_by = request.user
-
-    if tree_was_added or tree_was_edited:
         tree.save()
 
-    # You cannot get reputation for both adding and editing a tree in one action
-    # so I use an elif here
-    if tree_was_added:
-        change_reputation_for_user(request.user, 'add tree', tree)
-    elif tree_was_edited:
-        change_reputation_for_user(request.user, 'edit tree', tree)
-
-    full_plot = Plot.objects.get(pk=plot.id)
-    return_dict = plot_to_dict(full_plot, longform=True)
+    return_dict = plot_to_dict(plot)
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
