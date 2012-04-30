@@ -646,6 +646,19 @@ def flatten_plot_dict_with_tree_and_geometry(plot_dict):
             plot_dict[field_name] = geometry_dict[field_name]
         del plot_dict['geometry']
 
+def rename_plot_request_dict_fields(request_dict):
+    '''
+    The new plot/tree form requires specific field names that do not directly match
+    up with the model objects (e.g. the form expects a 'species_id' field) so this
+    helper function renames keys in the dictionary to match what the form expects
+    '''
+    field_map = {'species': 'species_id', 'width': 'plot_width', 'length': 'plot_length'}
+    for map_key in field_map.keys():
+        if map_key in request_dict:
+            request_dict[field_map[map_key]] = request_dict[map_key]
+            del request_dict[map_key]
+    return request_dict
+
 @require_http_methods(["POST"])
 @api_call()
 @login_required
@@ -660,6 +673,11 @@ def create_plot_optional_tree(request):
     # dictionaries in API calls clarifies, to API clients, the distinction between
     # Plot and Tree and groups the coordinates along with their spatial reference
     flatten_plot_dict_with_tree_and_geometry(request_dict)
+
+    # The new plot/tree form requires specific field names that do not directly match
+    # up with the model objects (e.g. the form expects a 'species_id' field) so this
+    # helper function renames keys in the dictionary to match what the form expects
+    rename_plot_request_dict_fields(request_dict)
 
     form = TreeAddForm(request_dict, request.FILES)
 
