@@ -88,8 +88,7 @@ class Signing(TestCase):
         self.u = User.objects.get(username="jim")
 
     def test_unsigned_will_fail(self):
-        with self.assertRaises(InvalidAPIKeyException):
-            self.client.get("%s/version" % API_PFX)
+        self.assertRaises(InvalidAPIKeyException, self.client.get,"%s/version" % API_PFX)
 
     def test_signed_header(self):
         key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
@@ -109,8 +108,8 @@ class Signing(TestCase):
         key = APIKey(user=self.u,key="TESTING",enabled=False,comment="")
         key.save()
 
-        with self.assertRaises(InvalidAPIKeyException):
-            self.client.get("%s/version" % API_PFX, **{ "X-API-Key": key.key })
+        self.assertRaises(InvalidAPIKeyException, self.client.get, "%s/version" % API_PFX, **{ "X-API-Key": key.key })
+
 
     def tearDown(self):
         teardownTreemapEnv()

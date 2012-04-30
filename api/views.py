@@ -421,16 +421,6 @@ def get_tree_image(request, plot_id, photo_id):
 
 @require_http_methods(["GET"])
 @api_call()
-def get_plot(request, plot_id):
-    """ API Request
-    
-    Get info about a specific plot
-
-    """
-    return plot_to_dict(Plots.objects.get(pk=plot_id),longform=True)
-
-@require_http_methods(["GET"])
-@api_call()
 def get_plot_list(request):
     """ API Request
 
@@ -568,14 +558,9 @@ def plot_to_dict(plot,longform=False):
         base['address_street'] = plot.address_street
         base['address_city'] = plot.address_city
         base['address_zip'] = plot.address_zip
-        
-        if plot.data_owner:
-            base['data_owner'] = plot.data_owner.pk
-
+        base['data_owner'] = plot.data_owner.pk
         base['last_updated'] = str(plot.last_updated)
-
-        if plot.last_updated_by:
-            base['last_updated_by'] = plot.last_updated_by.pk
+        base['last_updated_by'] = plot.last_updated_by.pk
 
     return base
 
