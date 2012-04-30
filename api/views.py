@@ -741,7 +741,15 @@ def update_plot_and_tree(request, plot_id):
                 tree.last_updated_by = request.user
                 tree.save()
                 tree_was_added = True
-            setattr(tree, tree_field.name, request_dict[tree_field.name])
+            if tree_field.name == 'species':
+                try:
+                    tree.species = Species.objects.get(pk=request_dict[tree_field.name])
+                except Exception:
+                    response.status_code = 400
+                    response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
+                    return response
+            else:
+                setattr(tree, tree_field.name, request_dict[tree_field.name])
             tree_was_edited = True
 
     if tree_was_edited:

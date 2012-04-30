@@ -643,3 +643,29 @@ class UpdatePlotAndTree(TestCase):
         tree = Tree.objects.get(pk=test_tree_id)
         self.assertIsNotNone(tree)
         self.assertEqual(3.9, tree.dbh)
+
+    def test_update_tree_species(self):
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+
+        first_species = Species.objects.all()[0]
+        updated_values = {'tree': {'species': first_species.id}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(first_species, tree.species)
+
+    def test_update_tree_returns_400_on_invalid_species_id(self):
+        test_plot = mkPlot(self.user)
+        mkTree(self.user, plot=test_plot)
+
+        invalid_species_id = -1
+        self.assertRaises(Exception, Species.objects.get, pk=invalid_species_id)
+
+        updated_values = {'tree': {'species': invalid_species_id}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(400, response.status_code)
+        response_json = loads(response.content)
+        self.assertTrue("error" in response_json.keys(), "Expected an 'error' key in the JSON response")
