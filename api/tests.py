@@ -598,7 +598,7 @@ class UpdatePlotAndTree(TestCase):
 
         reputation_count = UserReputationAction.objects.count()
 
-        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'width': 11, 'length': 22, 'geocoded_address': 'bar'}
+        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'plot_width': 11, 'plot_length': 22, 'geocoded_address': 'bar'}
         response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
         self.assertEqual(200, response.status_code)
 

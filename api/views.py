@@ -705,14 +705,19 @@ def update_plot_and_tree(request, plot_id):
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
     plot_field_whitelist = ['plot_width','plot_length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'power_lines', 'sidewalk_damage', 'powerline_conflict_potential']
-    plot_geometry_field_whitelist = ['lat', 'lon']
-    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition']
-    field_whitelist = plot_field_whitelist + plot_geometry_field_whitelist + tree_field_whitelist
+
+    # The Django form that creates new plots expects a 'plot_width' parameter but the
+    # Plot model has a 'width' parameter so this dict acts as a translator between request
+    # keys and model field names
+    plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length'}
 
     plot_was_edited = False
-    for plot_field in Plot._meta.fields:
-        if plot_field.name in request_dict and plot_field.name in plot_field_whitelist:
-            setattr(plot, plot_field.name, request_dict[plot_field.name])
+    for plot_field_name in request_dict.keys():
+        if plot_field_name in plot_field_whitelist:
+            if plot_field_name in plot_field_property_name_dict:
+                setattr(plot, plot_field_property_name_dict[plot_field_name], request_dict[plot_field_name])
+            else:
+                setattr(plot, plot_field_name, request_dict[plot_field_name])
             plot_was_edited = True
 
     if 'lat' in request_dict:
@@ -732,6 +737,7 @@ def update_plot_and_tree(request, plot_id):
     tree_was_edited = False
     tree_was_added = False
     tree = plot.current_tree()
+    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition']
     for tree_field in Tree._meta.fields:
         if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
             if tree is None:
