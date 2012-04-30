@@ -558,9 +558,14 @@ def plot_to_dict(plot,longform=False):
         base['address_street'] = plot.address_street
         base['address_city'] = plot.address_city
         base['address_zip'] = plot.address_zip
-        base['data_owner'] = plot.data_owner.pk
+
+        if plot.data_owner:
+            base['data_owner'] = plot.data_owner.pk
+
         base['last_updated'] = str(plot.last_updated)
-        base['last_updated_by'] = plot.last_updated_by.pk
+
+        if plot.last_updated_by:
+            base['last_updated_by'] = plot.last_updated_by.pk
 
     return base
 
