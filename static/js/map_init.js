@@ -1,38 +1,39 @@
 // Create new openlayer click control, because just registering a click event
 // with the map doesn't work on mobile devices.
-OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
-    defaultHandlerOptions: {
-        'single': true,
-        'double': false,
-        'pixelTolerance': 0,
-        'stopSingle': false,
-        'stopDouble': false
-    },
+if (typeof OpenLayers != "undefined") {
+    OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
+        defaultHandlerOptions: {
+            'single': true,
+            'double': false,
+            'pixelTolerance': 0,
+            'stopSingle': false,
+            'stopDouble': false
+        },
 
-    initialize: function(options) {
-        this.handlerOptions = OpenLayers.Util.extend(
-            {}, this.defaultHandlerOptions
-        );
-        OpenLayers.Control.prototype.initialize.apply(
-            this, arguments
-        );
-        this.handler = new OpenLayers.Handler.Click(
-            this, {
-                'click': this.onClick
-            }, this.handlerOptions
-        );
-    },
+        initialize: function(options) {
+            this.handlerOptions = OpenLayers.Util.extend(
+                {}, this.defaultHandlerOptions
+            );
+            OpenLayers.Control.prototype.initialize.apply(
+                this, arguments
+            );
+            this.handler = new OpenLayers.Handler.Click(
+                this, {
+                    'click': this.onClick
+                }, this.handlerOptions
+            );
+        },
 
-    onClick: function(e) {
-        var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-        mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-        tm.clckTimeOut = window.setTimeout(function() {
-            tm.singleClick(mapCoord)
-        },500);
-    }
+        onClick: function(e) {
+            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            tm.clckTimeOut = window.setTimeout(function() {
+                tm.singleClick(mapCoord)
+            },500);
+        }
 
-});
-
+    });
+}
 
 // Search page map init
 tm.init_map = function(div_id){

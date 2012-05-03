@@ -373,6 +373,118 @@ tm.baseTemplatePageLoad = function() {
         tm.trackEvent('Search', 'List Location');
     });
 
+    if ($("#steward-box")) {
+
+        function openMenu(e) {
+            var button = $(this).addClass('active');
+            var menu = $('#' + button.attr('name'));
+            var offset = button.offset();
+            var h = (button.outerHeight) ? button.outerHeight() : button.height();
+            menu.addClass('active').css({
+                'top': offset.top + h, 'left': offset.left
+            }).click(function(e) { e.stopPropagation(); }).show(200, function() {
+                $(document).one('click', {button: button, menu: menu}, closeMenu);
+            });
+        }
+        function closeMenu(e) {
+            e.data.menu.removeClass('active').hide(100, function() {
+                e.data.button.removeClass('active');
+            });
+            e.data.button.one('click', openMenu);
+        }
+        $('button.menu').one('click', openMenu);
+
+        $("#steward-date-1").datepicker({maxDate: "+0D"});
+        $("#steward-date-2").datepicker({maxDate: "+0D"});
+
+        //default values
+        $("#steward-action-list").empty();
+        $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='1' /> Watered <br>");
+        $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='2' /> Pruned <br>");
+        $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='3' /> Mulched <br>");
+        $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='4' /> Cleared of Debris");
+
+
+        $(".steward-type").change(function() {
+            if ($(".steward-type:checked").val() == "tree") {
+                $("#steward-action-list").empty();
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='1' /> Watered <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='2' /> Pruned <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='3' /> Mulched <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='4' /> Cleared of Debris");
+                $("#ss_2").text("trees ");
+                $("#ss_5").text("... ");
+            }
+            else {
+                $("#steward-action-list").empty();
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='1' /> Enlarged <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='2' /> Added a Guard <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='3' /> Removed a Guard <br>");
+                $("#steward-action-list").append("<input type='checkbox' class='steward-action' name='steward-action' value='4' /> Herbaceous Plants");    
+                $("#ss_2").text("planting sites ");
+                $("#ss_5").text("... ");
+            }
+        });
+
+        $(".steward-reverse").change(function() {
+            if ($(".steward-reverse:checked").val() == "true") {$("#ss_4").text("have been ");}
+            else {$("#ss_4").text("have not been ");}
+        });
+        $(".steward-action").live('change', function() {
+            var actions = $(".steward-action:checked");
+            var action_string = [];
+            for (i=0;i<actions.length;i++) {
+                var dom = actions[i];
+                switch (dom.value) {
+                    case "1": 
+                        if ($(".steward-type:checked").val() == "tree") {action_string.push("watered");} else {action_string.push("enlarged");} break;
+                    case "2": 
+                        if ($(".steward-type:checked").val() == "tree") {action_string.push("pruned");} else {action_string.push("guard added");} break;
+                    case "3": 
+                        if ($(".steward-type:checked").val() == "tree") {action_string.push("mulched");} else {action_string.push("guard removed");} break;
+                    case "4": 
+                        if ($(".steward-type:checked").val() == "tree") {action_string.push("cleared");} else {action_string.push("planted");} break;
+                }
+            }
+            if (action_string.length == 0) {$("#ss_5").text("... ")}
+            else {$("#ss_5").text(action_string.join(', '))}
+            
+        });
+
+        $("#steward-date-1").change(function() {
+            if ($("#steward-date-1").val()) {
+                $("#ss_7").text($("#steward-date-1").val());
+                if (!$("#steward-date-2").val()) {
+                    $("#ss_9").text("now");
+                }
+            } 
+            else {
+                $("#ss_7").text("then");
+            }
+            if (!$("#steward-date-1").val() && ! $("#steward-date-2").val()) {
+                $("#ss_7").text("then");
+                $("#ss_9").text("now");
+            }
+        });
+        $("#steward-date-2").change(function() {            
+            if ($("#steward-date-2").val()) {
+                if (!$("#steward-date-1").val()) {
+                    $("#ss_7").text("then");
+                }
+                $("#ss_9").text($("#steward-date-2").val());
+            } 
+            else {
+                $("#ss_9").text("now");
+            }
+            if (!$("#steward-date-1").val() && ! $("#steward-date-2").val()) {
+                $("#ss_7").text("then");
+                $("#ss_9").text("now");
+            }
+        });
+        
+
+    }
+
     // todo - clean this logic up...
     if ($.urlParam('diameter') || $.urlParam('date') || $.urlParam('characteristics') ||  $.urlParam('advanced') )
     {
@@ -393,6 +505,7 @@ tm.baseTemplatePageLoad = function() {
         if (tm.advancedClick) {
             q = q.set('advanced', 'open');
         }    
+        q = tm.handleStewardship(q);
         window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
         return false;
     }  
@@ -404,3 +517,46 @@ tm.baseTemplatePageLoad = function() {
     
     tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
 };    
+
+tm.handleStewardship = function(query) {
+    if ($("#steward-box")) {
+        var target =  $(".steward-type:checked");
+        var reverse =  $(".steward-reverse:checked");
+        var actions = $(".steward-action:checked");  //could be array
+        var date1 = $("#steward-date-1").datepicker("getDate");
+        var date2 = $("#steward-date-2").datepicker("getDate");
+
+        query = query.remove('tree_stewardship');
+        query = query.remove('plot_stewardship');
+        query = query.remove('stewardship_reverse');
+        query = query.remove('stewardship_range');
+        
+        if (actions.length == 0) {
+            return query;
+        }
+
+        var action_string = [];
+        for (i=0;i<actions.length;i++) {
+            action_string.push(actions[i].value);
+        }
+
+        if (target.val() == "tree") {
+            query = query.set('tree_stewardship', action_string.toString());
+        }
+        else {
+            query = query.set('plot_stewardship', action_string.toString());
+        }
+        if (reverse.val() == "true") {
+            query = query.set('stewardship_reverse', 'NOT');
+        }
+        // if no dates, don't bother sending range info
+        if (!date1 && !date2) {
+            return query;
+        }        
+        if (!date1) {date1 = new Date(1970,1,1)}
+        if (!date2) {date2 = new Date()}
+        query = query.set('stewardship_range', (date1.getTime()/1000).toString() + "-" + (date2.getTime()/1000).toString())
+    }
+    return query;
+}
+

@@ -767,6 +767,33 @@ tm = {
                 if (key == "location") {
                     tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
                 }    
+                if (key == "tree_stewardship") {
+                    $("#steward-tree").click();
+                    var actions = val.split(',');
+                    for (j=0;j<actions.length;j++) {
+                        $(".steward-action[value=" + actions[j] + "]").click();
+                    }
+                }
+                if (key == "plot_stewardship") {
+                    $("#steward-plot").click();
+                    var actions = val.split(',');
+                    for (k=0;k<actions.length;k++) {
+                        $(".steward-action[value=" + actions[k] + "]").click();
+                    }
+                }
+                if (key == "stewardship_reverse") {
+                    if (val == "NOT") {
+                        $(".steward-reverse[value=true]").click();
+                    }
+                }
+                if (key == "stewardship_range") {
+                    var svals = $.address.parameter(key).split("-");
+                    var date1 = new Date(parseInt(svals[0] * 1000));
+                    var date2 = new Date(parseInt(svals[1] * 1000));
+
+                    $("#steward-date-1").datepicker("setDate", date1).change();
+                    $("#steward-date-2").datepicker("setDate", date2).change();
+                }
             }    
         }
         tm.loadingSearch = false;
@@ -782,6 +809,9 @@ tm = {
             var val = tm.searchParams[key];
             q = q.set(key, val);
         }
+        
+        q = tm.handleStewardship(q);
+
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         if (qstr != '?'+$.query.toString()) {
             if (!tm.loadingSearch) { 

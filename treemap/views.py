@@ -1696,29 +1696,53 @@ def _build_tree_search_result(request):
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
 
     stewardship_reverse = request.GET.get("stewardship_reverse", "")
-    if stewardship_reverse:
-        stewardship_reverse = "NOT"
 
-    #TODO add range searches
-    stewardship_range = request.GET.get("stewardship_range", "")
+    stewardship_range = request.GET.get("stewardship_range", "") 
+    if stewardship_range:
+        st_min, st_max = map(float,stewardship_range.split("-"))
+        st_min = datetime.utcfromtimestamp(st_min)
+        st_max = datetime.utcfromtimestamp(st_max)
+        print st_min, st_max
+
     tree_stewardship = request.GET.get("tree_stewardship", "")
     if tree_stewardship:
-        if stewardship_reverse:
-            trees = trees.exclude(treestewardship__activity=tree_stewardship)
-        else:
-            trees = trees.filter(treestewardship__activity=tree_stewardship)
-
         plots = Plot.objects.none()
-        tile_query.append("tree_stewardship_" + tree_stewardship + " IS " + stewardship_reverse + " NULL")
+        actions = tree_stewardship.split(',')
+        steward_ids = [s.tree_id for s in TreeStewardship.objects.order_by("tree__id").distinct("tree__id")]
+        for a in actions:
+            tile_query.append("tree_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
+            steward_ids = [s.tree_id for s in TreeStewardship.objects.filter(tree__id__in=steward_ids).filter(activity=a)]
+            if stewardship_range:
+                tile_query.append("tree_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND tree_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z") 
+            
+        if stewardship_reverse:
+            trees = trees.filter(id__in=steward_ids)  
+        else:
+            trees = trees.exclude(id__in=steward_ids)
+        if stewardship_range:
+            trees = trees.exclude(treestewardship__performed_date__lte=st_min)
+            trees = trees.exclude(treestewardship__performed_date__gte=st_max)
 
+        
     plot_stewardship = request.GET.get("plot_stewardship", "")
     if plot_stewardship:
+        trees = Tree.objects.none() 
+        actions = tree_stewardship.split(',')
+        steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
+        for a in actions:
+            tile_query.append("plot_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
+            steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=a)] 
+            if stewardship_range:
+                tile_query.append("plot_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND plot_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z")
         if stewardship_reverse:
-            plots = plots.exclude(plotstewardship__activity=plot_stewardship)
+            plots = plots.filter(id__in=steward_ids)
         else:
-            plots = plots.filter(plotstewardship__activity=plot_stewardship)
-        trees = Tree.objects.none()
-        tile_query.append("plot_stewardship_" + plot_stewardship + " IS " + stewardship_reverse + " NULL")
+            plots = plots.exclude(id__in=steward_ids)
+        if stewardship_range:
+            plots = plots.exclude(plotstewardship__performed_date__lte=st_min)
+            plots = plots.exclude(plotstewardship__performed_date__gte=st_max)   
+        
+        
 
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
