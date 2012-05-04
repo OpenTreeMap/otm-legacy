@@ -1741,7 +1741,7 @@ def _build_tree_search_result(request):
     plot_stewardship = request.GET.get("plot_stewardship", "")
     if plot_stewardship:
         trees = Tree.objects.none() 
-        actions = tree_stewardship.split(',')
+        actions = plot_stewardship.split(',')
         steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
         for a in actions:
             tile_query.append("plot_stewardship_" + a + " IS " + stewardship_reverse + " NULL")

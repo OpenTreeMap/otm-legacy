@@ -169,7 +169,7 @@ tm = {
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
+            if (results.initial_tree_count != results.full_tree_count && !(results.summaries.total_trees == 0 && results.summaries.total_plots == 0)) {
                 if (results.featureids) {
                     var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
