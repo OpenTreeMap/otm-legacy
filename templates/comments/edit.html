@@ -46,7 +46,7 @@
 				window.location = tm_static + "comments/all/"
 			});
 
-			//jQuery("#comment_list_table").tablesorter({sortList: [[1,1]], headers: {1:{sorter:'usLongDate'}}})
+			$("#csv_export").attr('href', tm_static + 'comments/all/csv/' + $.query.toString())
 
 		});
 
@@ -77,6 +77,11 @@
 	<div class="clearBoth"></div>
 	{% paginate %}
 	<div><a href="{% url treemap.views.view_flagged %}">View flagged comments</a></div>
+    
+    {% if comments.count > 0 %}
+    	<div id="export">Export as: <a id="csv_export" href="">CSV</a></div>
+    {% endif %}
+
 	<div id="comment_list">
 		<table id="comment_list_table">
 			<thead>

@@ -12,7 +12,7 @@ MAP_CLICK_RADIUS = .0015 # in decimal degrees
 # pipeline minification settings
 PIPELINE = False
 PIPELINE_ROOT = os.path.dirname(__file__)
-PIPELINE_URL = '/ptm/'
+PIPELINE_URL = '/'
 PIPELINE_YUI_BINARY = '/usr/bin/yui-compressor'
 PIPELINE_YUI_JS_ARGUMENTS = '--nomunge'
 PIPELINE_JS = {

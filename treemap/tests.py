@@ -762,6 +762,22 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
 
+        # Test the admin-only exports
+        c = self.client
+        login = c.login(username="jim",password="jim")
+
+        response = c.get("/comments/all/csv/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=comments.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = c.get("/users/opt-in/csv/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
+        self.assertNotEqual(len(response.content), 0)
+
 
 
 ##################################################################

@@ -782,9 +782,7 @@ tm = {
                     }
                 }
                 if (key == "stewardship_reverse") {
-                    if (val == "NOT") {
-                        $(".steward-reverse[value=true]").click();
-                    }
+                    $(".steward-reverse[value=" + val + "]").click();
                 }
                 if (key == "stewardship_range") {
                     var svals = $.address.parameter(key).split("-");
@@ -809,8 +807,9 @@ tm = {
             var val = tm.searchParams[key];
             q = q.set(key, val);
         }
-        
-        q = tm.handleStewardship(q);
+        if (tm.handleStewardship) {
+            q = tm.handleStewardship(q);
+        }
 
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         if (qstr != '?'+$.query.toString()) {
@@ -1051,7 +1050,7 @@ tm = {
             if ($("#dbh"+i).val()) {
             
                 var val = parseFloat($("#dbh"+i).val());
-                if ($("#circum").attr("checked") == true) {
+                if ($("#circum").attr("checked")) {
                     val = val / Math.PI;
                 }    
                 vals.push(val);

@@ -720,10 +720,8 @@ def user_opt_export(request, format):
     sql = "select a.username, a.email, case when b.updates = 't' then 'True' when b.updates = 'f' then 'False' end as \"opt-in\" from auth_user as a, profiles_userprofile as b where b.user_id = a.id"
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
-
-    print sql
     
-    return ogr_conversion('CSV', sql, name="emails", geo=False)    
+    return ogr_conversion('CSV', sql, "", name="emails", geo=False)    
 
 @permission_required('auth.change_user')
 def ban_user(request):
@@ -1260,7 +1258,8 @@ def update_plot(request, plot_id):
     """ Update items for a given plot """
     response_dict = {'success': False, 'errors': []}
     valid_fields = ["present","width","length","type","powerline_conflict_potential",
-                    "sidewalk_damage","address_street","address_city","address_zip" ]
+                    "sidewalk_damage","address_street","address_city","address_zip", 
+                    "owner_additional_id" ]
 
     post = {}
     rep_gained_by_editing_field = 5
@@ -1281,16 +1280,27 @@ def update_plot(request, plot_id):
     try:
         plot.validate()
 
-        # if the tree was added by the public, or the current user is not public, skip pending
-        insert_event_mgmt = plot.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
-        mgmt_user = request.user.has_perm('auth.change_user')
 
-        if settings.PENDING_ON and insert_event_mgmt and not mgmt_user:
+        if settings.PENDING_ON :
+            # if the tree was added by the public, or the current user is not public, skip pending
+            insert_event_mgmt = plot.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+            mgmt_user = request.user.has_perm('auth.change_user')
+            if insert_event_mgmt and not mgmt_user:
                 # Get a clean plot object
                 plot = get_object_or_404(Plot, pk=plot_id)
 
                 for r in create_pending_records(plot, post, request.user):
                     r.save()
+
+            else:
+                plot.last_updated_by = request.user
+
+                # finally save the instance...
+                plot._audit_diff = simplejson.dumps(post)
+                plot.save()
+
+                Reputation.objects.log_reputation_action(request.user, request.user, 
+                                                 "edit plot", rep_gained_by_editing_field, plot)
         else:
             plot.last_updated_by = request.user
 
@@ -1696,6 +1706,10 @@ def _build_tree_search_result(request):
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
 
     stewardship_reverse = request.GET.get("stewardship_reverse", "")
+    if stewardship_reverse == "true":
+        stewardship_reverse = "NOT"
+    else:
+        stewardship_reverse = ""
 
     stewardship_range = request.GET.get("stewardship_range", "") 
     if stewardship_range:
@@ -1791,7 +1805,7 @@ def zip_files(file_paths,archive_name):
 
 def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees", geo=True):   
     dbsettings = settings.DATABASES['default'] 
-    tmp_treedir = tempfile.mkdtemp() + "/trees" 
+    tmp_treedir = tempfile.mkdtemp() + "/" + name 
     tmp_plotdir = tempfile.mkdtemp() + "/plots"
 
     host = dbsettings['HOST']
@@ -1804,7 +1818,7 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees"
     if extension != None:
         os.mkdir(tmp_treedir)
         os.mkdir(tmp_plotdir)
-        tmp_treename = tmp_treedir + "/trees." + extension
+        tmp_treename = tmp_treedir + "/" + name + "." + extension
         tmp_plotname = tmp_plotdir + "/plots." + extension
     else: 
         tmp_treename = tmp_treedir
@@ -1842,7 +1856,7 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees"
     if done != 0: 
         return render_to_json({'status':'error', 'command': command})
     else: 
-        zipfile = zip_files([tmp_treedir, tmp_plotdir],'trees')
+        zipfile = zip_files([tmp_treedir, tmp_plotdir], name)
 
         response = HttpResponse(zipfile, mimetype='application/zip')
         response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
@@ -2290,7 +2304,32 @@ def view_comments(request):
         return render_to_response('comments/edit.html',RequestContext(request,{'comments':c_list}))
         
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments}))
+  
+@login_required  
+@permission_required('comments.can_moderate')
+def export_comments(request, format):
+    users = UserProfile.objects.filter(active=True)
+    where = []
+    if 'username' in request.GET:
+        users = users.filter(user__username__icontains=request.GET['username'])
+        where.append(" a.username ilike '%" + request.GET['username'] + "%' ")
+    if 'text' in request.GET:
+        where.append(" b.comment ilike '%" + request.GET['text'] + "%' ")
+    if 'nhood' in request.GET:
+        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        c_list = list(ThreadedComment.objects.all())
+        for c in c_list:            
+            if Tree.objects.filter(pk=c.object_pk, neighborhood=n).count() == 0:
+                c_list.remove(c)
+        where.append("b.id in " + [c.id for c in c_list] + " ")
+
+    sql = "select a.username, b.date_submitted as date, b.comment as comment, b.object_id as tree_id from auth_user as a, threadedcomments_threadedcomment as b where b.user_id = a.id"
+    if len(where) > 0:
+        sql = sql + " and " + ' and '.join(where)
     
+    return ogr_conversion('CSV', sql, "", name="comments", geo=False)    
+
+
    
 def hide_comment(request):
     response_dict = {}

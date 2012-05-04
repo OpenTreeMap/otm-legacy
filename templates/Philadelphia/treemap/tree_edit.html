@@ -134,6 +134,14 @@
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
         <script>tm.setupEdit("powerline_conflict_potential", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/powerline_conflict_potential/'});</script>
     </tr>
+    {% if user.reputation.reputation > 1000 %}
+    <tr>
+        <td class="col1 activeEditRowLabel">Additional Management Info</td>
+        <td class="activeEditRowValue" id="edit_owner_additional_id">{{ plot.owner_additional_id|default:"Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_owner_additional_id').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("owner_additional_id", "Plot", {{plot.id}});</script>
+    </tr>
+	{% endif %}
 
     {% if user.reputation.reputation > 1000 %}
     <thead>

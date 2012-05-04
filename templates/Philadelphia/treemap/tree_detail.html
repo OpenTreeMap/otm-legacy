@@ -41,7 +41,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ plot.address_street|default:"No Address" }}<br/>{{ plot.address_city }}, {{plot.neighborhood.all.0.state}}
+			{{ plot.address_street|default:"No Address" }}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -227,6 +227,12 @@
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
             <td>{{ plot.get_sidewalk_damage_display|default:"Missing" }}</td>
+        </tr>
+		{% endif %}
+        {% if user.reputation.reputation > 1000 %}
+        <tr>
+        	<td class="col1Wide">Additional Info</td>
+            <td>{{ plot.owner_additional_id }}</td>
         </tr>
 		{% endif %}
     </tbody>

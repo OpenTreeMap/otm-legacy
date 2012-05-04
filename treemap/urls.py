@@ -95,6 +95,7 @@ urlpatterns = patterns('',
     (r'^comments/flag/(?P<comment_id>[0-9]+)/$', add_flag),
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
+    (r'^comments/all/(?P<format>.*)/$', export_comments),
     (r'^comments/hide/$', hide_comment),
     (r'^comments/unflag/$', remove_flag),
 

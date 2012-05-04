@@ -422,6 +422,7 @@ class Plot(models.Model):
     #original data to help owners associate back to their own db
     data_owner = models.ForeignKey(User, related_name="owner", null=True, blank=True)
     owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    owner_additional_id = models.CharField(max_length=255, null=True, blank=True)
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
     readonly = models.BooleanField(default=False)
@@ -463,6 +464,10 @@ class Plot(models.Model):
                 return value
         return None
 
+
+    def get_stewardship_count(self):
+        return len(self.plotstewardship_set.all())
+        
     def current_tree(self):
         trees = Tree.objects.filter(present=True, plot=self)
         if len(trees) > 0:
@@ -688,6 +693,9 @@ class Tree(models.Model):
         
     def get_flag_count(self):
         return len(self.treeflags_set.all())
+
+    def get_stewardship_count(self):
+        return len(self.treestewardship_set.all())
         
     def get_active_pends(self):
         pends = self.treepending_set.filter(status='pending')
