@@ -460,6 +460,8 @@ alter table treemap_tree drop column owner_orig_id;
 alter table treemap_tree drop column region;
 alter table treemap_tree drop column owner_additional_properties;
 
+alter table treemap_tree_audit drop column region;
+
 alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;
 
 COMMIT;
