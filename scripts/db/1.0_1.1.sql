@@ -376,6 +376,33 @@ for p in plots:
        p.neighborhood.add(nhood)
    p.quick_save()
 
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+-- Add new reputation actions if they do not already exist
+
+INSERT INTO django_reputation_reputationaction (name, description)
+SELECT 'add plot', 'A new planting site has been added'
+WHERE 'add plot' NOT IN (
+  SELECT name FROM django_reputation_reputationaction
+);
+
+INSERT INTO django_reputation_reputationaction (name, description)
+SELECT 'edit plot', 'A planting site has been changed'
+WHERE 'edit plot' NOT IN (
+  SELECT name FROM django_reputation_reputationaction
+);
+
+INSERT INTO django_reputation_reputationaction (name, description)
+SELECT 'add stewardship', 'Stewardship has been added'
+WHERE 'add stewardship' NOT IN (
+  SELECT name FROM django_reputation_reputationaction
+);
+
+INSERT INTO django_reputation_reputationaction (name, description)
+SELECT 'remove stewardship', 'Stewardship has been removed'
+WHERE 'remove stewardship' NOT IN (
+  SELECT name FROM django_reputation_reputationaction
+);
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -432,6 +459,8 @@ alter table treemap_tree drop column data_owner_id;
 alter table treemap_tree drop column owner_orig_id;
 alter table treemap_tree drop column region;
 alter table treemap_tree drop column owner_additional_properties;
+
+alter table treemap_tree_audit drop column region;
 
 alter table treemap_aggregatesummarymodel drop COLUMN distinct_species ;
 
