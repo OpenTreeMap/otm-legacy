@@ -286,7 +286,14 @@ def plot_location_search(request):
                              'width',
                              'geocoded_lat',
                              'geocoded_lon',
-                             'type'],
+                             'type',
+                             'import_event_id',
+                             'owner_orig_id',
+                             'address_zip',
+                             'owner_additional_properties',
+                             'owner_additional_id',
+                             'geocoded_accuracy'
+                             ],
                              model=Plot,
                              extent=extent)
 
@@ -863,6 +870,7 @@ def view_stewardship(request):
 
     activities = list(chain(tree_activity, plot_activity)) # chain comes from itertools
     activities = sorted(activities, key=attrgetter('performed_date'))
+    print activities
     return render_to_response('treemap/admin_stewardship.html',RequestContext(request,{'activities': activities}))
 
 @login_required
@@ -1419,7 +1427,7 @@ def _build_tree_search_result(request):
 
     trees = Tree.objects.filter(present=True, plot__present=True).extra(select={'geometry': "treemap_plot.geometry"})
     plots = Plot.objects.filter(present=True)
-                        
+    
     for k in species_criteria.keys():
         v = request.GET.get(k,'')
         if v:
@@ -1431,15 +1439,13 @@ def _build_tree_search_result(request):
             
     cur_species_count = species.count()
 
-    if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True)
-    else:
-        trees = Tree.objects.filter(species__in=species, present=True)
+    if max_species_count != cur_species_count:
+        trees = trees.filter(species__in=species)
+        plots = Plot.objects.none()
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
         tile_query.append("(" + " OR ".join(species_list) + ")")
-    #filter by nhbd or zipcode if location was specified
 
     geog_obj = None
     if 'location' in request.GET:
@@ -1920,14 +1926,27 @@ def advanced_search(request, format='json'):
     response = {}
 
     trees, plots, geog_obj, tile_query = _build_tree_search_result(request)
+    tree_count = trees.count()
+    plot_count = plots.count()
+    if tree_count == 0:
+        tree_query = "";
+    else: 
+        tree_query = str(trees.query)
+    if plot_count == 0:
+        plot_query = "";
+    else: 
+        plot_query = str(plots.query)
+
+    print str(trees.query)
+
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
     elif format == "shp":
-        return ogr_conversion('ESRI Shapefile', str(trees.query), str(plots.query))
+        return ogr_conversion('ESRI Shapefile', tree_query, plot_query)
     elif format == "kml":
-        return ogr_conversion('KML', str(trees.query), str(plots.query), 'kml')
+        return ogr_conversion('KML', tree_query, plot_query, 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', str(trees.query), str(plots.query))
+        return ogr_conversion('CSV', tree_query, plot_query)
         
         
     geography = None
@@ -1942,8 +1961,6 @@ def advanced_search(request, format='json'):
             #geography['name'] = ''
         
     #else we're doing the simple json route .. ensure we return summary info
-    tree_count = trees.count()
-    plot_count = plots.count()
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
     esj = {}
@@ -2124,11 +2141,11 @@ def verify_edits(request, audit_type='tree'):
         changes.append({
             'id': actual_plot.current_tree().id,
             'species': species,
-            'address_street': actual_tree.plot.address_street,
-            'last_updated_by': tree.last_updated_by.username,
-            'last_updated': tree.last_updated,
-            'change_description': clean_key_names(tree._audit_diff),
-            'change_id': tree._audit_id,
+            'address_street': actual_plot.address_street,
+            'last_updated_by': plot.last_updated_by.username,
+            'last_updated': plot.last_updated,
+            'change_description': clean_key_names(plot._audit_diff),
+            'change_id': plot._audit_id,
             'type': 'plot'
         })
     for tree in trees:

@@ -44,7 +44,7 @@ tm.init_map = function(div_id){
         tm.clckTimeOut = null;
         var spp = $.urlParam('species');
         $.getJSON(tm_static + 'plots/location/',
-                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
+                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp, 'query': tm.searchParams},
                   tm.display_tree_details);
     };
 

@@ -594,8 +594,8 @@ tm = {
 
         row.append($(""), $("<td colspan='2' />").append(select)).append(
             $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(submitEvent),
-                $("<input type='submit' value='Cancel' class='button' />").click(function() {
+                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
+                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
                     row.remove();
                 })
             )
@@ -608,12 +608,15 @@ tm = {
         for (var key in typesArray) {
             select.append($("<option value='"+key+"'>"+ typesArray[key]+"</option>"));
         }    
-        var row = $("<tr />");
+        var row = $("<tr id='data-row' />");
 
-        row.append($(""), $("<td colspan='2' />").append(select).append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" }))).append(
+        row.append(
+            $(""), 
+            $("<td />").append(select),
+            $("<td />").append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" })),
             $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(submitEvent),
-                $("<input type='submit' value='Cancel' class='button' />").click(function() {
+                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
+                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
                     row.remove();
                 })
             )
@@ -627,6 +630,8 @@ tm = {
         return function() {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
+            
+            if (data == "" || data_date == "") {return;}
 
             settings = {
                 model: model,
@@ -649,6 +654,8 @@ tm = {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
             
+            if (data == "" || data_date == "") {return;}
+
             settings = {
                 model: model,
                 objectId: tm.currentPlotId,
@@ -869,10 +876,7 @@ tm = {
     
     updateSpeciesFields: function(field_prefix, spec, cultivar){
         if (!tm.speciesData) {
-            if (console) {
-                console.log("*error* Species list not yet loaded");
-                return;
-            }
+            return;
         }
 
         if (spec) {
