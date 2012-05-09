@@ -1037,12 +1037,6 @@ class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField(auto_now=True)
 
-    #def save(self,*args,**kwargs):
-    #   print "save flag"
-    #    super(TreeFlags, self).save(*args,**kwargs) 
-    #    self.tree._audit_diff = '{"flag": "' + self.key + '"}'
-    #    print "save tree"
-    #    self.tree.save()
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):
@@ -1056,6 +1050,12 @@ class TreePhoto(TreeItem):
 
     title = models.CharField(max_length=256,null=True,blank=True)
     photo = ImageField(upload_to=get_photo_path)
+
+    
+    def save(self,*args,**kwargs):
+        super(TreeItem, self).save(*args,**kwargs) 
+        self.tree._audit_diff = '{"new photo": "' + self.title + '"}'
+        self.tree.save()
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
