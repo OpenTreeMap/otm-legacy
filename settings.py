@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'profiles',
     'django_reputation',
     'tagging',
+    'south',
     'sorl.thumbnail',
     'classfaves',
     'qs_tiles',
