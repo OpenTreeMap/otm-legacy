@@ -1769,7 +1769,6 @@ ul#resultsContainer li#totals ul li#add {
 	font-size: 14px;
 	}
 
-
 ul#resultsContainer li#totals ul li#first .tree_count {
 	font-size:38px;
     font-weight:bold;
@@ -1785,11 +1784,13 @@ ul#resultsContainer li#totals ul li .moretrees {
     font-weight: bold;
     font-size:	14px;
 }
-ul#resultsContainer li#totals ul li#first .reset_search  {
+ul#resultsContainer li#totals ul li#add .reset_search  {
     font-size: 18px;
     color: #999;
+    margin-bottom: 13px;
+    text-align: center;
 }
-ul#resultsContainer li#totals ul li#first .reset_search  a {
+ul#resultsContainer li#totals ul li#add .reset_search  a {
 	color: #999;
 	text-decoration: underline;
 }
