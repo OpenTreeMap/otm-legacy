@@ -631,7 +631,10 @@ tm = {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
             
-            if (data == "" || data_date == "") {return;}
+            if (data == "" || data_date == "") {
+                alert("You must enter a date for the tree activity.");
+                return;
+            }
 
             settings = {
                 model: model,
@@ -654,7 +657,10 @@ tm = {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
             
-            if (data == "" || data_date == "") {return;}
+            if (data == "" || data_date == "") {
+                alert("You must enter a date for the planting site activity.");
+                return;
+            }
 
             settings = {
                 model: model,

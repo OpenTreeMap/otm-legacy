@@ -2116,6 +2116,7 @@ def verify_edits(request, audit_type='tree'):
     trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
     newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     treeactions = []
     
     if 'username' in request.GET:
@@ -2123,17 +2124,37 @@ def verify_edits(request, audit_type='tree'):
         trees = trees.filter(last_updated_by__in=u)
         plots = plots.filter(last_updated_by__in=u)
         newtrees = newtrees.filter(last_updated_by__in=u)
+        newplots = newplots.filter(last_updated_by__in=u)
     if 'address' in request.GET:
         trees = trees.filter(plot__address_street__icontains=request.GET['address'])
         plots = plots.filter(address_street__icontains=request.GET['address'])
         newtrees = newtrees.filter(plot__address_street__icontains=request.GET['address'])
+        newplots = newplots.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])[0].geometry
-        trees = trees.filter(plot__geometry__within=n)
+        geo_trees = Tree.objects.filter(plot__geometry__within=n)
+        ids = [t.id for t in geo_trees]
+        trees = trees.filter(id__in=ids)
         plots = plots.filter(geometry__within=n)
-        newtrees = newtrees.filter(plot__geometry__within=n)
+        newtrees = newtrees.filter(id__in=ids)
+        newplots = newplots.filter(geometry__within=n)
     
     for plot in plots:
+        species = 'no species name'
+        actual_plot = Plot.objects.get(pk=plot.id)
+        if actual_plot.current_tree():
+            species = actual_plot.current_tree().species.common_name
+        changes.append({
+            'id': actual_plot.current_tree().id,
+            'species': species,
+            'address_street': actual_plot.address_street,
+            'last_updated_by': plot.last_updated_by.username,
+            'last_updated': plot.last_updated,
+            'change_description': clean_key_names(plot._audit_diff),
+            'change_id': plot._audit_id,
+            'type': 'plot'
+        })
+    for plot in newplots:
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
         if actual_plot.current_tree():
