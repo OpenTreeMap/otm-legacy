@@ -235,7 +235,7 @@ tm = {
         tm.trackEvent('Edit', 'Location', 'Save');
 
         tm.drag_control.activate();
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a>'
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation(tm.currentPlotId);
     },
@@ -510,7 +510,7 @@ tm = {
 
                     if (newError.indexOf("exclusion zone") >= 0 &&
                         newError.indexOf("Geometry") >= 0) {
-                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the red areas.";
+                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the white areas.";
                     } else {
                         $("#edit_map_errors")[0].innerHTML = newError;
                     }

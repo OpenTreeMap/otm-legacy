@@ -41,7 +41,9 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
     });
     
     $(".input-box input").change(function(evt) { 
-        tm.searchParams[this.id] = this.value; 
+        if (this.value != "") {
+            tm.searchParams[this.id] = this.value; 
+        }
     });
     var curmin = 0;
     var curmax = 50;

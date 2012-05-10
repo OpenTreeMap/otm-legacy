@@ -154,7 +154,7 @@ def get_reverse_geocode(request):
         js["success"] = False
         js["error"] = "No geocoder found for name: %s" % geocoder_name
         return render_to_json(js)
-    print lat, lng
+
     if lat and lng:
         try:
             point = (lat, lng)
@@ -471,7 +471,6 @@ def unified_history(trees, plots=[]):
                 edit = ""
         recent_edits.append((p.last_updated_by.username, p.last_updated, edit))
 
-    print recent_edits
 
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
@@ -505,7 +504,6 @@ def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = Choices().get_field_choices(type_)
     data = SortedDict(choices)
-    print data
     #for item in choices: 
     #    data[item[0]] = item[1]
     if hasattr(plot, type_):
@@ -870,7 +868,6 @@ def view_stewardship(request):
 
     activities = list(chain(tree_activity, plot_activity)) # chain comes from itertools
     activities = sorted(activities, key=attrgetter('performed_date'))
-    print activities
     return render_to_response('treemap/admin_stewardship.html',RequestContext(request,{'activities': activities}))
 
 @login_required
@@ -1434,8 +1431,6 @@ def _build_tree_search_result(request):
             attrib = species_criteria[k]
             if v == 'true': v = True
             species = species.filter(**{attrib:v})
-            print 'filtered species by %s = %s' % (species_criteria[k],v)
-            print '  .. now we have %d species' % len(species)
             
     cur_species_count = species.count()
 
@@ -1459,7 +1454,6 @@ def _build_tree_search_result(request):
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
                 ns = ns.filter(geometry__contains=pt)
-            print ns.count()
             if ns.count():   
                 trees = trees.filter(plot__neighborhood = ns[0])
 		plots = plots.filter(neighborhood = ns[0])
@@ -1493,8 +1487,6 @@ def _build_tree_search_result(request):
             attrib = tree_criteria[k]
             trees = trees.filter(treeflags__key__exact=attrib)
             plots = Plot.objects.none()
-            print 'filtered trees by %s = %s' % (tree_criteria[k],v)
-            print '  .. now we have %d trees' % len(trees)
             tile_query.append("projects LIKE '%" + tree_criteria[k] + "%'")
 
     #filter by missing data params:
@@ -1502,8 +1494,6 @@ def _build_tree_search_result(request):
     if missing_species:
         trees = trees.filter(species__isnull=True)
         plots = Plot.objects.none()
-        print 'filtered trees by missing species only - %s - %s' % (tree_criteria[k],v)
-        print '  .. now we have %d trees' % len(trees)
         tile_query.append("species_id IS NULL")
     
     #
@@ -1514,7 +1504,6 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
         plots = Plot.objects.none()
         # TODO: What about ones with 0 dbh?
-        print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
         tile_query.append(" (dbh IS NULL OR dbh = 0) ")
     
@@ -1531,7 +1520,6 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(height__isnull=True) | Q(height=0))
         plots = Plot.objects.none()
         # TODO: What about ones with 0 dbh?
-        print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
         tile_query.append(" (height IS NULL OR height = 0) ")
 
@@ -1549,7 +1537,6 @@ def _build_tree_search_result(request):
         trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
         # TODO: What about ones with 0 dbh?
-        print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
         tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
 
@@ -1566,7 +1553,6 @@ def _build_tree_search_result(request):
         trees = trees.filter(plot__type__isnull=True)
         plots = plots.filter(type__isnull=True)
         # TODO: What about ones with 0 dbh?
-        print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
         tile_query.append(" plot_type IS NULL ")
     else:
@@ -1722,7 +1708,6 @@ def _build_tree_search_result(request):
         st_min, st_max = map(float,stewardship_range.split("-"))
         st_min = datetime.utcfromtimestamp(st_min)
         st_max = datetime.utcfromtimestamp(st_max)
-        print st_min, st_max
 
     tree_stewardship = request.GET.get("tree_stewardship", "")
     if tree_stewardship:
@@ -1936,8 +1921,6 @@ def advanced_search(request, format='json'):
         plot_query = "";
     else: 
         plot_query = str(plots.query)
-
-    print str(trees.query)
 
     if format == "geojson":    
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
