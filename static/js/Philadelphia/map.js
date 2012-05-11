@@ -29,11 +29,12 @@ tm.init_base_map = function(div_id, controls){
                        new OpenLayers.Control.ArgParser(),
                        new OpenLayers.Control.PanPanel(),
                        new OpenLayers.Control.ZoomPanel(),
-                        new OpenLayers.Control.TouchNavigation({
-                            dragPanOptions: {
-                                enableKinetic: true
-                            }
-                        })]
+                       new OpenLayers.Control.TouchNavigation({
+                          dragPanOptions: {
+                               enableKinetic: true
+                           }
+                       })
+                       ]
         });
     }
     else {
@@ -57,7 +58,6 @@ tm.init_base_map = function(div_id, controls){
       tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
         type: VEMapStyle.Shaded,
         sphericalMercator: true,
-        animationEnabled: false,
         numZoomLevels: 20,
         MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0
@@ -66,7 +66,6 @@ tm.init_base_map = function(div_id, controls){
     tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
         type: VEMapStyle.Hybrid,            
         sphericalMercator: true,
-        animationEnabled: false, 
         numZoomLevels: 20,
         MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0

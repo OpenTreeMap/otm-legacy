@@ -899,20 +899,22 @@ tm = {
 
 
     add_favorite_handlers : function(base_create, base_delete) {
-        $('a.favorite.fave').live('click', function(e) {
+        $('.favorite.fave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_create + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
+                $('#favorite_' + pk).removeClass('fave').addClass('unfave');
+                $('#favorite_' + pk).html('Remove as favorite');
             });
             tm.trackEvent('Favorite', 'Add Favorite', 'Tree', pk);
             return false;
         });
-        $('a.favorite.unfave').live('click', function(e) {
+        $('.favorite.unfave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_delete + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
+                $('#favorite_' + pk).removeClass('unfave').addClass('fave');
+                $('#favorite_' + pk).html('Add as favorite');
             });
             tm.trackEvent('Favorite', 'Remove Favorite', 'Tree', pk);
             return false;

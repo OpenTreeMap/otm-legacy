@@ -368,7 +368,7 @@ def trees(request, tree_id=''):
             raise Http404
         
         if trees[0].present == False:
-            plot = tree.plot
+            plot = trees[0].plot
             if plot.present == False:
                 raise Http404
             else:

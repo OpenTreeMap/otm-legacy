@@ -87,7 +87,7 @@
 			<thead>
 				<tr>
 					<th>{% anchor user__username 'Added By' %}</th>
-					<th>{% anchor submit_date Date %}</th>
+					<th>{% anchor date_submitted Date %}</th>
 					<th>{% anchor object_pk Comment %}</th>
 					<th>Actions</th>
 				</tr>
@@ -96,7 +96,7 @@
 				{% for c in comments %}
 				<tr id="{{c.id}}">
 					<td><a href="{% url profiles.views.profile_detail c.user.username %}" target="_blank">{{c.user.username}}</a></td>
-					<td>{{c.submit_date|date:"M d, Y"}}</td>
+					<td>{{c.date_submitted|date:"M d, Y"}}</td>
 					<td>
 						<a href="{% url treemap.views.plot_detail c.object_id %}" target="_blank">Tree #{{c.content_object.id}}</a> -
 						<br>{{c.comment}}</td>

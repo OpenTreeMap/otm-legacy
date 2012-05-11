@@ -423,38 +423,17 @@
                     <ul class="optionItem">
                     <li>
                     {% if favorite %}
-                        Favorited (<a href="#" id="favorite_{{ tree.id }}" class="favorite fav unfave">Unfavorite</a>)
+                        <button id="favorite_{{ tree.id }}" class="favorite fav unfave">Remove as Favorite</button>
                     {% else %}
-                        <a href="#" id="favorite_{{ tree.id }}"
-                         class="favorite fav fave">Add as favorite</a>
-                        {% if tree.treefavorite_set.all.count %}
-                            ({{tree.treefavorite_set.all.count}} others have)
-                        {% endif %}
+                        <button id="favorite_{{ tree.id }}" class="favorite fav fave">Add as favorite</button>
                     {% endif %}
                     </li>
                     </ul>
                 {% else %}
                     <li>
-                    <a href="#" class="fav" id="favorite_{{ tree.id }}" class="favorite">Add as favorite</a>
+                    <button class="fav" id="favorite_{{ tree.id }}" class="favorite fav fave">Add as favorite</button>
                     </li>
-                    <!-- needed? -->
-                    <!--<li class="editItem"><a href="#">Edit</a>
-                    </li>
-                    </ul>-->
                 {% endif %}
-                    <!-- todo -->
-                    <!--
-                    <ul class="optionItem">
-                        <li><a href="#">Email to a friend</a></li>
-                    </ul>
-                    <ul class="optionItem">
-                        <li><a href="#">Print</a></li>
-                    </ul>
-                    <ul class="optionItem">
-                        <li><a href="#">Tweet this page</a></li>
-                    </ul>
-                    -->
-
                 </li>
             </ul>
 
@@ -516,7 +495,7 @@
 		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
 		tm.currentTreeId = {% if tree %}{{tree.id}} {% else %} {{plot.id}} {% endif %};
 		tm.init_tree_map(false); //not editable
-		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+		tm.add_favorite_handlers('trees/favorites/create/', 'trees/favorites/delete/');
 	</script>
 {% endblock endpage %}
 

@@ -411,7 +411,7 @@ tm.baseTemplatePageLoad = function() {
     });   
     
     
-    tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+    //tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
 };    
 
 

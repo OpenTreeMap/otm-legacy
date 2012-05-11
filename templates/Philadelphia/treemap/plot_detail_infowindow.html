@@ -18,8 +18,8 @@
 	});
 	function fav_click(evt) {
 		var pk = $('a.favorite').attr('id').replace('favorite_', '');
-		var url = '/trees/favorites/create/' + pk + '/';
-		var url2 = '/trees/favorites/delete/' + pk + '/';
+		var url = tm_static + 'trees/favorites/create/' + pk + '/';
+		var url2 = tm_static + 'trees/favorites/delete/' + pk + '/';
 		if ($('a.favorite').hasClass('fave')) {
 			$.getJSON(url, function(data, textStatus) {
 				$('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
