@@ -314,7 +314,6 @@ class Command(BaseCommand):
         plot.import_event = self.import_event
         plot.last_updated_by = self.updater
         plot.data_owner = self.data_owner
-        plot.owner_additional_properties = self.file_name
         plot.readonly = self.readonly
 
         if row.get('PLOTTYPE'):
@@ -335,15 +334,14 @@ class Command(BaseCommand):
         if row.get('ORIGID'):
             plot.owner_additional_properties = "ORIGID=" + str(row['ORIGID'])
 
-        # if powerline is specified, then we want to set our boolean
-        # attribute; otherwise leave it alone.
-        powerline = row.get('POWERLINE')
-        if powerline is None or powerline.strip() == "":
-            pass
-        elif powerline is True or powerline.lower() == "true" or powerline.lower() == 'yes':
-            plot.powerline_conflict_potential = 1
-        else:
-            plot.powerline_conflict_potential = 2
+        if row.get('OWNER_ADDITIONAL_PROPERTIES'):
+            plot.owner_additional_properties = str(plot.owner_additional_properties) + " " + str(row['OWNER_ADDITIONAL_PROPERTIES'])
+    
+        if row.get('POWERLINE'):
+            for k, v in Choices().get_field_choices('powerline'):
+                if v == row['POWERLINE']:
+                    plot.powerline = k
+                    break;
 
         sidewalk_damage = row.get('SIDEWALK')
         if sidewalk_damage is None or sidewalk_damage.strip() == "":
