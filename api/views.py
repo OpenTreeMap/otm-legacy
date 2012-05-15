@@ -747,6 +747,10 @@ def update_plot_and_tree(request, plot_id):
         plot.geometry.y = request_dict['lat']
         plot_was_edited = True
 
+    # TODO: Standardize on lon or lng
+    if 'lng' in request_dict:
+        plot.geometry.x = request_dict['lng']
+        plot_was_edited = True
     if 'lon' in request_dict:
         plot.geometry.x = request_dict['lon']
         plot_was_edited = True
