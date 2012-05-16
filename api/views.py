@@ -530,7 +530,7 @@ def plot_to_dict(plot,longform=False):
             tree_dict['date_removed'] = current_tree.date_removed
             tree_dict['present'] = current_tree.present
             tree_dict['last_updated'] = str(current_tree.last_updated)
-            tree_dict['last_updated_by'] = current_tree.last_updated_by.pk
+            tree_dict['last_updated_by'] = current_tree.last_updated_by.username
             tree_dict['condition'] = current_tree.condition
             tree_dict['canopy_condition'] = current_tree.canopy_condition
             tree_dict['readonly'] = current_tree.readonly
@@ -566,7 +566,7 @@ def plot_to_dict(plot,longform=False):
         base['last_updated'] = str(plot.last_updated)
 
         if plot.last_updated_by:
-            base['last_updated_by'] = plot.last_updated_by.pk
+            base['last_updated_by'] = plot.last_updated_by.username
 
     return base
     annual_stormwater_management = models.FloatField(help_text="gallons")
