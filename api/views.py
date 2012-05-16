@@ -519,6 +519,7 @@ def plot_to_dict(plot,longform=False):
             tree_dict['tree_owner'] = current_tree.tree_owner
             tree_dict['steward_name'] = current_tree.steward_name
             tree_dict['sponsor'] = current_tree.sponsor
+            tree_dict['eco'] = tree_resource_to_dict(current_tree.treeresource)
 
             if current_tree.steward_user:
                 tree_dict['steward_user'] = current_tree.steward_user
@@ -568,6 +569,43 @@ def plot_to_dict(plot,longform=False):
             base['last_updated_by'] = plot.last_updated_by.pk
 
     return base
+    annual_stormwater_management = models.FloatField(help_text="gallons")
+    annual_electricity_conserved = models.FloatField(help_text="kWh")
+    annual_energy_conserved = models.FloatField(help_text="kWh")
+    annual_natural_gas_conserved = models.FloatField(help_text="kWh")
+    annual_air_quality_improvement = models.FloatField(help_text="lbs")
+    annual_co2_sequestered = models.FloatField(help_text="lbs")
+    annual_co2_avoided = models.FloatField(help_text="lbs")
+    annual_co2_reduced = models.FloatField(help_text="lbs") 
+    total_co2_stored = models.FloatField(help_text="lbs")
+    annual_ozone = models.FloatField(help_text="lbs")
+    annual_nox = models.FloatField(help_text="lbs")
+    annual_pm10 = models.FloatField(help_text="lbs")
+    annual_sox = models.FloatField(help_text="lbs")
+    annual_voc = models.FloatField(help_text="lbs")
+    annual_bvoc = models.FloatField(help_text="lbs")
+
+def tree_resource_to_dict(tr):
+    return {
+    "annual_stormwater_management": with_unit(tr.annual_stormwater_management, "gallos"),
+    "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, "kWh"),
+    "annual_energy_conserved": with_unit(tr.annual_energy_conserved, "kWh"),
+    "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, "kWh"),
+    "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, "lbs"),
+    "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, "lbs"),
+    "annual_co2_avoided": with_unit(tr.annual_co2_avoided, "lbs"),
+    "annual_co2_reduced": with_unit(tr.annual_co2_reduced, "lbs"),
+    "total_co2_stored": with_unit(tr.total_co2_stored, "lbs"),
+    "annual_ozone": with_unit(tr.annual_ozone, "lbs"),
+    "annual_nox": with_unit(tr.annual_nox, "lbs"),
+    "annual_pm10": with_unit(tr.annual_pm10, "lbs"),
+    "annual_sox": with_unit(tr.annual_sox, "lbs"),
+    "annual_voc": with_unit(tr.annual_voc, "lbs"),
+    "annual_bvoc": with_unit(tr.annual_bvoc, "lbs") }
+    
+def with_unit(val,unit):
+    return { "value": val, "unit": unit }
+        
 
 def species_to_dict(s):
     return {
