@@ -476,10 +476,10 @@ tm.update_nearby_trees_list = function (ll, plots, distance) {
                 $.each(geojson.features, function(i,f){
                     var tree = $('#nearby_trees');
                     if (f.properties.common_name){
-                        tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                     }
                     else {
-                        tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
                     }
                     if (f.properties.current_dbh){
                         tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");

@@ -1914,11 +1914,11 @@ def advanced_search(request, format='json'):
     tree_count = trees.count()
     plot_count = plots.count()
     if tree_count == 0:
-        tree_query = "";
+        tree_query = "SELECT * FROM treemap_tree LIMIT 0";
     else: 
         tree_query = str(trees.query)
     if plot_count == 0:
-        plot_query = "";
+        plot_query = "SELECT * FROM treemap_plot LIMIT 0";
     else: 
         plot_query = str(plots.query)
 
@@ -2128,7 +2128,7 @@ def verify_edits(request, audit_type='tree'):
         if actual_plot.current_tree():
             species = actual_plot.current_tree().species.common_name
         changes.append({
-            'id': actual_plot.current_tree().id,
+            'id': actual_plot.id,
             'species': species,
             'address_street': actual_plot.address_street,
             'last_updated_by': plot.last_updated_by.username,
@@ -2143,7 +2143,7 @@ def verify_edits(request, audit_type='tree'):
         if actual_plot.current_tree():
             species = actual_plot.current_tree().species.common_name
         changes.append({
-            'id': actual_plot.current_tree().id,
+            'id': actual_plot.id,
             'species': species,
             'address_street': actual_plot.address_street,
             'last_updated_by': plot.last_updated_by.username,

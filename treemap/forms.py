@@ -184,8 +184,9 @@ class TreeAddForm(forms.Form):
                 new_tree.canopy_height = canopy_height
             if dbh:
                 if dbh_type == 'circumference':
-                    dbh = dbh / math.pi
-                new_tree.dbh = dbh
+                    new_tree.dbh = dbh / math.pi
+                else:
+                    new_tree.dbh = dbh
             if condition:
                 new_tree.condition = condition
             if canopy_condition:
