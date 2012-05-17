@@ -2085,6 +2085,7 @@ def clean_diff(jsonstr):
     return diff_no_old
 
 def clean_key_names(jsonstr):
+    if not jsonstr: return ""
     diff = simplejson.JSONDecoder().decode(jsonstr)
     diff_clean = {}
     for key in diff:
@@ -2126,7 +2127,9 @@ def verify_edits(request, audit_type='tree'):
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
         if actual_plot.current_tree():
-            species = actual_plot.current_tree().species.common_name
+            species_obj = actual_plot.current_tree().species
+            if species_obj:
+                species = species_obj.common_name
         changes.append({
             'id': actual_plot.id,
             'species': species,
@@ -2141,7 +2144,9 @@ def verify_edits(request, audit_type='tree'):
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
         if actual_plot.current_tree():
-            species = actual_plot.current_tree().species.common_name
+            species_obj = actual_plot.current_tree().species
+            if species_obj:
+                species = species_obj.common_name
         changes.append({
             'id': actual_plot.id,
             'species': species,
@@ -2154,11 +2159,11 @@ def verify_edits(request, audit_type='tree'):
         })
     for tree in trees:
         species = 'no species name'
-        if tree.species:
-            species = tree.species.common_name
         actual_tree = Tree.objects.get(pk=tree.id)
+        if actual_tree.species:
+            species = actual_tree.species.common_name
         changes.append({
-            'id': tree.id,
+            'id': actual_tree.id,
             'species': species,
             'address_street': actual_tree.plot.address_street,
             'last_updated_by': tree.last_updated_by.username,
@@ -2169,11 +2174,11 @@ def verify_edits(request, audit_type='tree'):
         })
     for tree in newtrees:
         species = 'no species name'
-        if tree.species:
-            species = tree.species.common_name
         actual_tree = Tree.objects.get(pk=tree.id)
+        if actual_tree.species:
+            species = actual_tree.species.common_name
         changes.append({
-            'id': tree.id,
+            'id': actual_tree.id,
             'species': species,
             'address_street': actual_tree.plot.address_street,
             'last_updated_by': tree.last_updated_by,
