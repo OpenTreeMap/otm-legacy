@@ -1422,7 +1422,7 @@ def _build_tree_search_result(request):
                         'cultivar' : 'cultivar_name',
                         'flowering' : 'flower_conspicuous'}
 
-    trees = Tree.objects.filter(present=True, plot__present=True).extra(select={'geometry': "treemap_plot.geometry"})
+    trees = Tree.objects.filter(present=True).extra(select={'geometry': "treemap_plot.geometry"})
     plots = Plot.objects.filter(present=True)
     
     for k in species_criteria.keys():
