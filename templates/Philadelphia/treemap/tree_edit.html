@@ -74,21 +74,6 @@
             <script>tm.setupEdit("canopy_height", "Tree", {{tree.id}});</script>
     </tr>
     {% endif %}
-	<tr>
-    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
-        <td class="activeEditRowValue" id="edit_address_street">{{ tree.plot.address_street }}</td>
-        
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">City</td>
-        <td class="activeEditRowValue" id="edit_address_city">{{ tree.plot.address_city }}</td>
-       
-    </tr>
-    <tr>
-    	<td class="col1 activeEditRowLabel">Zip Code</td>
-        <td class="activeEditRowValue" id="edit_address_zip">{{ tree.plot.address_zip }}</td>
-       
-    </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Date Planted</td>
         <td class="activeEditRowValue" id="edit_date_planted">{{ tree.date_planted|default:"Click to edit"}}</td>
@@ -110,18 +95,24 @@
         	<th scope="col" colspan="4">Environment</th>
         </tr>
     </thead>
-    	<tr>
-        	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
-            <td class="activeEditRowValue" id="edit_length">{{ plot.length|default:"Click to edit" }}</td>
-            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_length').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("length", "Plot", {{plot.id}});</script>
-        </tr>
-    	<tr>
-        	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
-            <td class="activeEditRowValue" id="edit_width">{{ plot.width|default:"Click to edit" }}</td>
-            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_width').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("width", "Plot", {{plot.id}});</script>
-        </tr>
+	<tr>
+    	<td class="col1 activeEditRowLabel">Nearby Street Address</td>
+        <td class="activeEditRowValue" id="edit_address_street">{{ plot.address_street }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_address_street).trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("address_street", "Plot", {{plot.id}});</script>
+    </tr>
+	<tr>
+    	<td class="col1 activeEditRowLabel">Plot length (feet)</td>
+        <td class="activeEditRowValue" id="edit_length">{{ plot.length|default:"Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_length').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("length", "Plot", {{plot.id}});</script>
+    </tr>
+	<tr>
+    	<td class="col1 activeEditRowLabel">Plot width (feet)</td>
+        <td class="activeEditRowValue" id="edit_width">{{ plot.width|default:"Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_width').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("width", "Plot", {{plot.id}});</script>
+    </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>(?)</a></td>
         <td class="activeEditRowValue" id="edit_type">{{ plot.get_plot_type_display|default:"Click to edit" }}</td>

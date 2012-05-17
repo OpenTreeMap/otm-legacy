@@ -2,6 +2,7 @@ tm_icons = {
     //base folder for shadow and other icon specific stuff
     base_folder : tm_static + 'static/images/map_icons/v3/', 
     small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_plots : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7_plot.png",
     small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     focus_tree : tm_static + 'static/images/map_icons/v4/marker-selected.png',
     pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png', 
@@ -480,7 +481,8 @@ tm = {
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },       
 
-    updateEditableLocation: function(currentPlotId) {        
+    updateEditableLocation: function(currentPlotId) {                    
+        $("#edit_map_errors")[0].innerHTML = "Saving..."  
         var wkt = $('#id_geometry').val();
         var geoaddy = $("#id_geocode_address").val();
         var data = {

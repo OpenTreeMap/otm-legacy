@@ -139,6 +139,9 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
                 d['common_name'] = item.current_tree().species.common_name
                 d['dbh'] = item.current_tree().dbh
                 d['height'] = item.current_tree().height
+                d['tree'] = True
+            else:
+                d['tree'] = False
                 
 
         if d.has_key('distance'):

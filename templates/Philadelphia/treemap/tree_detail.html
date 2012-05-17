@@ -41,7 +41,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ plot.address_street|default:"No Address" }} {{plot.address_city}} {{plot.address_zip}}
+			{{ plot.address_street|default:"No Address" }}{% if plot.address_street %}, {{plot.address_city}} {{plot.neighborhood.all.0.state}} {{plot.address_zip}} {% endif %}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -135,11 +135,6 @@
             <td>{{tree.canopy_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
-        <tr>
-        	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.plot.address_street|default:"Missing"}}</td>
-            <td></td>
-        </tr>
     {% else %}
         <thead>
         	<tr>
@@ -210,7 +205,11 @@
         </tr>
     </thead>
     <tbody>
-
+        <tr>
+        	<td class="col1Wide">Nearby address</td>
+            <td>{{plot.address_street|default:"Missing"}}{% if plot.address_street %} {{plot.address_city}} {{plot.neighborhood.all.0.state}} {{plot.zipcode}} {% endif %}</td>
+            <td></td>
+        </tr>
         <tr>
         	<td class="col1Wide">Plot size</td>
             <td>{{ plot.width|unit_or_missing:"ft x " }}{{ plot.length|unit_or_empty:"ft" }} </td>

@@ -390,6 +390,7 @@ tm.load_nearby_trees = function(ll){
             var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
             if (f.properties.id == tm.currentTreeId) {return;}
             var icon = tm.get_icon(tm_icons.small_trees, 19);
+            if (f.properties.tree == false) {icon = tm.get_icon(tm_icons.small_plots, 19);}
             var marker = new OpenLayers.Marker(ll, icon);
             marker.tid = f.properties.id;
             

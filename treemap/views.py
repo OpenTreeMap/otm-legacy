@@ -1348,7 +1348,7 @@ def plot_location_update(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
     plot = Plot.objects.filter(pk=post.get('plot_id'))[0]
-    plot.address_street = post.get('address')
+    plot.address_street = post.get('address').split(',')[0]
     plot.geocoded_address = post.get('address')
     plot.address_city = post.get('city')
     plot.quick_save()
