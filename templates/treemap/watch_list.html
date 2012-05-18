@@ -106,7 +106,7 @@
 			<tbody>
 				{% for w in watches %}
 				<tr id="{{w.id}}">
-					<td><i>{{w.tree.species}}</i><br><a href="{% url treemap.views.tree_edit w.tree.id %}" target="_blank">View Record</a></td>
+					<td><i>{{w.tree.species}}</i><br><a href="{% url treemap.views.tree_edit w.tree_id %}" target="_blank">View Record</a></td>
 					<td>{{w.tree.address_street}}</td>
 					<td>{{w.tree.last_updated|date:"M d, Y"}}
 						<br/><a href="{% url profiles.views.profile_detail w.tree.last_updated_by.username %}" target="_blank">{{w.tree.last_updated_by}}</a>

@@ -2208,7 +2208,7 @@ def watch_list(request):
                 break;
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(name=request.GET['nhood'])
-        watch_failures = watch_failures.filter(tree__neighborhood=n)
+        watch_failures = watch_failures.filter(tree__plot__neighborhood=n)
     
     return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures}))
 
@@ -2238,6 +2238,14 @@ def user_rep_changes(request):
         end_time = date.replace(hour = 23, minute = 59, second = 59)
         
         date_users = UserReputationAction.objects.filter(date_created__range=(start_time, end_time)).values('user').distinct('user')
+
+        if 'username' in request.GET:
+            u = User.objects.filter(username__icontains=request.GET['username'])
+            date_users = date_users.filter(user__in=u)
+        if 'group' in request.GET: 
+            g = Group.objects.filter(name__icontains=request.GET['group'])
+            date_users = date_users.filter(user__groups__in=g)
+
         for user_id in date_users:
             user = User.objects.get(pk=user_id['user'])
             user_date_newtrees = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='I', _audit_timestamp__range=(start_time, end_time))

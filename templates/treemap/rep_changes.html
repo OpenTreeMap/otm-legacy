@@ -11,9 +11,6 @@
 			if (jQuery.urlParam('username')) {
 				jQuery("#s_username").val(jQuery.urlParam('username'));
 			}
-			if (jQuery.urlParam('user')) {
-				jQuery("#s_user").val(jQuery.urlParam('user'));
-			}
 			if (jQuery.urlParam('group')) {
 				jQuery("#s_group").val(jQuery.urlParam('group'));
 			}
@@ -28,7 +25,6 @@
 				var params = {};
 				var q = $.query.empty();
 				if (jQuery("#s_username").val()) {params["username"] = jQuery("#s_username").val();}
-				if (jQuery("#s_user").val()) {params["user"] = jQuery("#s_user").val();}
 				if (jQuery("#s_group").val()) {params["group"] = jQuery("#s_group").val();}
 
 				for (var key in params) {
@@ -70,7 +66,6 @@
 	</div>
 	<div id="search">
 		<div id="search_username"><label for="s_username">Username: </label><input id="s_username" /></div>
-		<div id="search_user"><label for="s_user">User: </label><input id="s_user" /></div>
 		<div id="search_group"><label for="s_group">Group: </label><input id="s_group" /></div>
 		<div class="button_group"><button id="clear" >Clear</button> <button id="filter" >Filter</button></div>
 	</div>
