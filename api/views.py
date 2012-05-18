@@ -13,7 +13,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
+from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource
 from treemap.forms import TreeAddForm
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
@@ -520,7 +520,7 @@ def plot_to_dict(plot,longform=False):
             tree_dict['steward_name'] = current_tree.steward_name
             tree_dict['sponsor'] = current_tree.sponsor
 
-            if current_tree.treeresource:
+            if len(TreeResource.objects.filter(tree=current_tree)) > 0:
                 tree_dict['eco'] = tree_resource_to_dict(current_tree.treeresource)
 
             if current_tree.steward_user:
