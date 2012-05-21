@@ -8,7 +8,7 @@ tm.initial_location_string = "Address, City, State";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(39.8,-75.4), new google.maps.LatLng(40.2,-74.9));
 
 tm.geo_layer = "philly:ph_treemap_tree"
 tm.geo_layer_style = "phillytreemap_tree_highlight"
