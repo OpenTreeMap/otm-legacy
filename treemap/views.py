@@ -1412,36 +1412,9 @@ def _build_tree_search_result(request):
     # todo - optimize! OMG Clean it up! >.<
     choices = Choices()
     tile_query = []
-    species = Species.objects.filter(tree_count__gt=0)
-    max_species_count = species.count()
-    
-    species_criteria = {'species' : 'id',
-                        'native' : 'native_status',
-                        'edible' : 'palatable_human',
-                        'color' : 'fall_conspicuous',
-                        'cultivar' : 'cultivar_name',
-                        'flowering' : 'flower_conspicuous'}
-
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "treemap_plot.geometry"})
     plots = Plot.objects.filter(present=True)
     
-    for k in species_criteria.keys():
-        v = request.GET.get(k,'')
-        if v:
-            attrib = species_criteria[k]
-            if v == 'true': v = True
-            species = species.filter(**{attrib:v})
-            
-    cur_species_count = species.count()
-
-    if max_species_count != cur_species_count:
-        trees = trees.filter(species__in=species)
-        plots = Plot.objects.none()
-        species_list = []
-        for s in species:
-            species_list.append("species_id = " + s.id.__str__())
-        tile_query.append("(" + " OR ".join(species_list) + ")")
-
     geog_obj = None
     if 'location' in request.GET:
         loc = request.GET['location']
@@ -1475,6 +1448,116 @@ def _build_tree_search_result(request):
              tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
 
     #import pdb;pdb.set_trace()
+
+    missing_current_plot_size = request.GET.get('missing_plot_size','')
+    missing_current_plot_type = request.GET.get('missing_plot_type','')
+    if missing_current_plot_size:
+        trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
+        plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
+        # TODO: What about ones with 0 dbh?
+        #species_list = [s.id for s in species]
+        tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
+
+    if not missing_current_plot_size and 'plot_range' in request.GET:
+        min, max = map(float,request.GET['plot_range'].split("-"))
+        trees = trees.filter(Q(plot__length__gte=min) | Q(plot__width__gte=min))
+        plots = plots.filter(Q(length__gte=min) | Q(width__gte=min))
+        if max != 15: # TODO: Hardcoded in UI, may need to change
+            trees = trees.filter(Q(plot__length__lte=max) | Q(plot__length__lte=max))
+	    plots = plots.filter(Q(length__lte=max) | Q(length__lte=max))
+        tile_query.append("( (plot_length BETWEEN " + min.__str__() + " AND " + max.__str__() + ") OR (plot_width BETWEEN " + min.__str__() + " AND " + max.__str__() + ") )")
+
+    if missing_current_plot_type:
+        trees = trees.filter(plot__type__isnull=True)
+        plots = plots.filter(type__isnull=True)
+        # TODO: What about ones with 0 dbh?
+        #species_list = [s.id for s in species]
+        tile_query.append(" plot_type IS NULL ")
+    else:
+        plot_type_choices = choices.get_field_choices('plot_type')
+        pt_cql = []
+        pt_list = []
+        for k, v in plot_type_choices:
+            if v.lower().replace(' ', '_') in request.GET:
+                plot = request.GET.get(v.lower().replace(' ', '_'),'')
+                if plot:
+                    pt_list.append(k)
+                    pt_cql.append("plot_type = " + k)
+        if len(pt_cql) > 0:
+            tile_query.append("(" + " OR ".join(pt_cql) + ")")
+            trees = trees.filter(plot__type__in=pt_list)
+            plots = plots.filter(type__in=pt_list)
+
+    missing_sidewalk = request.GET.get("missing_sidewalk", '')
+    if missing_sidewalk: 
+        trees = trees.filter(plot__sidewalk_damage__isnull=True)
+        plots = plots.filter(sidewalk_damage__isnull=True)
+        #species_list = [s.id for s in species]
+        tile_query.append("sidewalk_damage IS NULL")
+    else: 
+        sidewalk_choices = choices.get_field_choices('sidewalk_damage')    
+        s_cql = []
+        s_list = []
+        for k, v in sidewalk_choices:
+            if v.lower().split(' ')[0] in request.GET:
+                sw = request.GET.get(v.lower().split(' ')[0],'')
+                if sw:
+                    s_list.append(k)
+                    s_cql.append("sidewalk_damage = " + k)
+        if len(s_cql) > 0:
+            tile_query.append("(" + " OR ".join(s_cql) + ")")
+            trees = trees.filter(plot__sidewalk_damage__in=s_list)
+            plots = plots.filter(sidewalk_damage__in=s_list)
+        
+
+    missing_powerlines = request.GET.get("missing_powerlines", '')
+    if missing_powerlines:
+        trees = trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
+        plots = plots.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
+        #species_list = [s.id for s in species]
+        tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
+    else:
+        powerline_choices = choices.get_field_choices('powerline_conflict_potential')    
+        p_cql = []
+        p_list = []
+        for k, v in powerline_choices:
+            if v.lower() in request.GET:
+                sw = request.GET.get(v.lower(),'')
+                if sw:
+                    p_list.append(k)
+                    p_cql.append("powerline_conflict_potential = " + k)
+        if len(p_cql) > 0:
+            tile_query.append("(" + " OR ".join(p_cql) + ")")
+            trees = trees.filter(plot__powerline_conflict_potential__in=p_list)
+            plots = plots.filter(powerline_conflict_potential__in=p_list)
+
+    owner = request.GET.get("owner", "")
+    if owner:
+        users = User.objects.filter(username__icontains=owner)
+        trees = trees.filter(plot__data_owner__in=users)
+        plots = plots.filter(data_owner__in=users)
+        user_list = []
+        for u in users:
+            user_list.append("data_owner_id = " + u.id.__str__())
+        tile_query.append("(" + " OR ".join(user_list) + ")")
+
+    updated_by = request.GET.get("updated_by", "")
+    if updated_by:
+        users = User.objects.filter(username__icontains=updated_by)
+        trees = trees.filter(last_updated_by__in=users)
+        plots = plots.filter(last_updated_by__in=users)
+        user_list = []
+        for u in users:
+            user_list.append("last_updated_by_id = " + u.id.__str__())
+        tile_query.append("(" + " OR ".join(user_list) + ")")
+
+    if 'updated_range' in request.GET:
+        min, max = map(float,request.GET['updated_range'].split("-"))
+        min = datetime.utcfromtimestamp(min)
+        max = datetime.utcfromtimestamp(max)
+        trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
+        plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
+        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
 
     tree_criteria = {'project1' : '1',
                      'project2' : '2',
@@ -1531,45 +1614,6 @@ def _build_tree_search_result(request):
             trees = trees.filter(height__lte=max)
         tile_query.append("height BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
-    missing_current_plot_size = request.GET.get('missing_plot_size','')
-    missing_current_plot_type = request.GET.get('missing_plot_type','')
-    if missing_current_plot_size:
-        trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
-        plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
-        tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
-
-    if not missing_current_plot_size and 'plot_range' in request.GET:
-        min, max = map(float,request.GET['plot_range'].split("-"))
-        trees = trees.filter(Q(plot__length__gte=min) | Q(plot__width__gte=min))
-        plots = plots.filter(Q(length__gte=min) | Q(width__gte=min))
-        if max != 15: # TODO: Hardcoded in UI, may need to change
-            trees = trees.filter(Q(plot__length__lte=max) | Q(plot__length__lte=max))
-	    plots = plots.filter(Q(length__lte=max) | Q(length__lte=max))
-        tile_query.append("( (plot_length BETWEEN " + min.__str__() + " AND " + max.__str__() + ") OR (plot_width BETWEEN " + min.__str__() + " AND " + max.__str__() + ") )")
-
-    if missing_current_plot_type:
-        trees = trees.filter(plot__type__isnull=True)
-        plots = plots.filter(type__isnull=True)
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
-        tile_query.append(" plot_type IS NULL ")
-    else:
-        plot_type_choices = choices.get_field_choices('plot_type')
-        pt_cql = []
-        pt_list = []
-        for k, v in plot_type_choices:
-            if v.lower().replace(' ', '_') in request.GET:
-                plot = request.GET.get(v.lower().replace(' ', '_'),'')
-                if plot:
-                    pt_list.append(k)
-                    pt_cql.append("plot_type = " + k)
-        if len(pt_cql) > 0:
-            tile_query.append("(" + " OR ".join(pt_cql) + ")")
-            trees = trees.filter(plot__type__in=pt_list)
-            plots = plots.filter(type__in=pt_list)
-
     missing_condition = request.GET.get("missing_condition", '')
     if missing_condition: 
         trees = trees.filter(condition__isnull=True)
@@ -1590,49 +1634,6 @@ def _build_tree_search_result(request):
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)
             plots = Plot.objects.none()
-
-    missing_sidewalk = request.GET.get("missing_sidewalk", '')
-    if missing_sidewalk: 
-        trees = trees.filter(plot__sidewalk_damage__isnull=True)
-        plots = plots.filter(sidewalk_damage__isnull=True)
-        #species_list = [s.id for s in species]
-        tile_query.append("sidewalk_damage IS NULL")
-    else: 
-        sidewalk_choices = choices.get_field_choices('sidewalk_damage')    
-        s_cql = []
-        s_list = []
-        for k, v in sidewalk_choices:
-            if v.lower().split(' ')[0] in request.GET:
-                sw = request.GET.get(v.lower().split(' ')[0],'')
-                if sw:
-                    s_list.append(k)
-                    s_cql.append("sidewalk_damage = " + k)
-        if len(s_cql) > 0:
-            tile_query.append("(" + " OR ".join(s_cql) + ")")
-            trees = trees.filter(plot__sidewalk_damage__in=s_list)
-            plots = plots.filter(sidewalk_damage__in=s_list)
-        
-
-    missing_powerlines = request.GET.get("missing_powerlines", '')
-    if missing_powerlines:
-        trees = trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
-        plots = plots.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
-        #species_list = [s.id for s in species]
-        tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
-    else:
-        powerline_choices = choices.get_field_choices('powerline_conflict_potential')    
-        p_cql = []
-        p_list = []
-        for k, v in powerline_choices:
-            if v.lower() in request.GET:
-                sw = request.GET.get(v.lower(),'')
-                if sw:
-                    p_list.append(k)
-                    p_cql.append("powerline_conflict_potential = " + k)
-        if len(p_cql) > 0:
-            tile_query.append("(" + " OR ".join(p_cql) + ")")
-            trees = trees.filter(plot__powerline_conflict_potential__in=p_list)
-            plots = plots.filter(powerline_conflict_potential__in=p_list)
 
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
@@ -1655,26 +1656,6 @@ def _build_tree_search_result(request):
             user_list.append("steward_user_id = " + u.id.__str__())
         tile_query.append("(" + " OR ".join(user_list) + ")")
 
-    owner = request.GET.get("owner", "")
-    if owner:
-        users = User.objects.filter(username__icontains=owner)
-        trees = trees.filter(plot__data_owner__in=users)
-        plots = plots.filter(data_owner__in=users)
-        user_list = []
-        for u in users:
-            user_list.append("data_owner_id = " + u.id.__str__())
-        tile_query.append("(" + " OR ".join(user_list) + ")")
-
-    updated_by = request.GET.get("updated_by", "")
-    if updated_by:
-        users = User.objects.filter(username__icontains=updated_by)
-        trees = trees.filter(last_updated_by__in=users)
-        plots = plots.filter(last_updated_by__in=users)
-        user_list = []
-        for u in users:
-            user_list.append("last_updated_by_id = " + u.id.__str__())
-        tile_query.append("(" + " OR ".join(user_list) + ")")
-
     funding = request.GET.get("funding", "")
     if funding:
         trees = trees.filter(sponsor__icontains=funding)
@@ -1688,14 +1669,36 @@ def _build_tree_search_result(request):
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
         plots = Plot.objects.none()
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
- 
-    if 'updated_range' in request.GET:
-        min, max = map(float,request.GET['updated_range'].split("-"))
-        min = datetime.utcfromtimestamp(min)
-        max = datetime.utcfromtimestamp(max)
-        trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
-        plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
-        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
+
+        
+    species_criteria = {'species' : 'id',
+                        'native' : 'native_status',
+                        'edible' : 'palatable_human',
+                        'color' : 'fall_conspicuous',
+                        'cultivar' : 'cultivar_name',
+                        'flowering' : 'flower_conspicuous'}
+
+    if len(set(species_criteria.keys()).intersection(set(request.GET))):
+        #print "doing species search"
+        species = Species.objects.filter(tree_count__gt=0)
+        max_species_count = species.count()
+        
+        for k in species_criteria.keys():
+            v = request.GET.get(k,'')
+            if v:
+                attrib = species_criteria[k]
+                if v == 'true': v = True
+                species = species.filter(**{attrib:v})
+                
+        cur_species_count = species.count()
+
+        if max_species_count != cur_species_count:
+            trees = trees.filter(species__in=species)
+            plots = Plot.objects.none()
+            species_list = []
+            for s in species:
+                species_list.append("species_id = " + s.id.__str__())
+            tile_query.append("(" + " OR ".join(species_list) + ")")
 
     stewardship_reverse = request.GET.get("stewardship_reverse", "")
     if stewardship_reverse == "true":
