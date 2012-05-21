@@ -262,7 +262,8 @@ tm.generateLocationDropdown = function(locations) {
             var entries = states[state];
             for(i=0;i<entries.length;i++) {
                 var name = entries[i].properties.name;
-                select_nh.append("<option value='" + name + "' >" + name + "</li>")
+                var id = entries[i].properties.id;
+                select_nh.append("<option value='" + id + "' >" + name + "</li>")
             }
         }
     }    

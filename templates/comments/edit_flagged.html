@@ -16,7 +16,7 @@
 			}
 			if (jQuery.urlParam('nhood')) {
 				var nhood = jQuery.urlParam('nhood');
-				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+				jQuery("#s_nhood").prepend(jQuery("<option value='{{geometry.all.0.id}}' selected>{{geometry.all.0.name}}</option>"));
 			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
@@ -40,11 +40,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = tm_static + "{{ SITE_ROOT }}comments/moderate/" + qstr;
+				window.location = "{{ SITE_ROOT }}comments/moderate/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = tm_static + "comments/moderate/"
+				window.location = "{{ SITE_ROOT }}comments/moderate/"
 			});
 
 			//jQuery("#flagged_list_table").tablesorter({sortList: [[1,1]], headers: {1:{sorter:'usLongDate'}}})

@@ -2105,7 +2105,8 @@ def verify_edits(request, audit_type='tree'):
     plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
     newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     treeactions = []
-    
+    n = None    
+
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         trees = trees.filter(last_updated_by__in=u)
@@ -2118,13 +2119,13 @@ def verify_edits(request, audit_type='tree'):
         newtrees = newtrees.filter(plot__address_street__icontains=request.GET['address'])
         newplots = newplots.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])[0].geometry
-        geo_trees = Tree.objects.filter(plot__geometry__within=n)
+        n = Neighborhood.objects.filter(id=request.GET['nhood'])[0]
+        geo_trees = Tree.objects.filter(plot__geometry__within=n.geometry)
         ids = [t.id for t in geo_trees]
         trees = trees.filter(id__in=ids)
-        plots = plots.filter(geometry__within=n)
+        plots = plots.filter(geometry__within=n.geometry)
         newtrees = newtrees.filter(id__in=ids)
-        newplots = newplots.filter(geometry__within=n)
+        newplots = newplots.filter(geometry__within=n.geometry)
     
     for plot in plots:
         species = 'no species name'
@@ -2192,12 +2193,13 @@ def verify_edits(request, audit_type='tree'):
         })
         
     changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
-    return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
+    return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes, "geometry":n}))
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users
 def watch_list(request):    
     watch_failures = TreeWatch.objects.filter(valid=False)
+    n = None
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         watch_failures = watch_failures.filter(tree__last_updated_by__in=u)
@@ -2210,10 +2212,10 @@ def watch_list(request):
                 watch_failures = watch_failures.filter(key=key)
                 break;
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        n = Neighborhood.objects.filter(id=request.GET['nhood'])
         watch_failures = watch_failures.filter(tree__plot__neighborhood=n)
     
-    return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures}))
+    return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures, "geography": n}))
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users
@@ -2305,14 +2307,14 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
 @permission_required('comments.can_moderate')
 def view_flagged(request):
     comments = ThreadedComment.objects.annotate(num_flags=Count('comment_flags__id')).filter(is_public=True, num_flags__gt=0)
-
+    n = None
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         comments = comments.filter(user__in=u)
     if 'text' in request.GET:
         comments = comments.filter(comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        n = Neighborhood.objects.filter(id=request.GET['nhood'])
         c_list = list(comments)
         for c in c_list:            
             if Tree.objects.filter(pk=c.comment.object_pk, neighborhood=n).count() == 0:
@@ -2320,27 +2322,27 @@ def view_flagged(request):
     else:
         c_list = list(comments)
         
-    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': c_list}))
+    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': c_list, "geometry":n}))
     
 @login_required
 @permission_required('comments.can_moderate')
 def view_comments(request):
     comments = ThreadedComment.objects.filter(is_public=True)
-    
+    n = None
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
         comments = comments.filter(user__in=u)
     if 'text' in request.GET:
         comments = comments.filter(comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        n = Neighborhood.objects.filter(id=request.GET['nhood'])
         c_list = list(comments)
         for c in c_list:            
-            if Tree.objects.filter(pk=c.object_pk, neighborhood=n).count() == 0:
+            if Tree.objects.filter(pk=c.object_id, plot__neighborhood=n).count() == 0:
                 c_list.remove(c)
-        return render_to_response('comments/edit.html',RequestContext(request,{'comments':c_list}))
+        return render_to_response('comments/edit.html',RequestContext(request,{'comments':c_list, "geometry":n}))
         
-    return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments}))
+    return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments, "geometry":n}))
   
 @login_required  
 @permission_required('comments.can_moderate')
@@ -2353,10 +2355,10 @@ def export_comments(request, format):
     if 'text' in request.GET:
         where.append(" b.comment ilike '%" + request.GET['text'] + "%' ")
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        n = Neighborhood.objects.filter(id=request.GET['nhood'])
         c_list = list(ThreadedComment.objects.all())
         for c in c_list:            
-            if Tree.objects.filter(pk=c.object_pk, neighborhood=n).count() == 0:
+            if Tree.objects.filter(pk=c.object_pk, plot__neighborhood=n).count() == 0:
                 c_list.remove(c)
         where.append("b.id in " + [c.id for c in c_list] + " ")
 
