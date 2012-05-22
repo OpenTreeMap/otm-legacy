@@ -2314,15 +2314,16 @@ def view_flagged(request):
     if 'text' in request.GET:
         comments = comments.filter(comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(id=request.GET['nhood'])
-        c_list = list(comments)
-        for c in c_list:            
-            if Tree.objects.filter(pk=c.comment.object_pk, neighborhood=n).count() == 0:
-                c_list.remove(c)
-    else:
-        c_list = list(comments)
+        n = Neighborhood.objects.get(id=request.GET['nhood'])
+        comment_list = []
+        loop_list = list(comments)
+        for comment in loop_list: 
+            plot = Plot.objects.get(pk=comment.object_id)
+            if n in plot.neighborhood.all():
+                comment_list.append(comment)
+        return render_to_response('comments/edit.html',RequestContext(request,{'comments':comment_list, "geometry":n}))
         
-    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': c_list, "geometry":n}))
+    return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': comments, "geometry":n}))
     
 @login_required
 @permission_required('comments.can_moderate')
@@ -2335,12 +2336,14 @@ def view_comments(request):
     if 'text' in request.GET:
         comments = comments.filter(comment__icontains=request.GET['text'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(id=request.GET['nhood'])
-        c_list = list(comments)
-        for c in c_list:            
-            if Tree.objects.filter(pk=c.object_id, plot__neighborhood=n).count() == 0:
-                c_list.remove(c)
-        return render_to_response('comments/edit.html',RequestContext(request,{'comments':c_list, "geometry":n}))
+        n = Neighborhood.objects.get(id=request.GET['nhood'])
+        comment_list = []
+        loop_list = list(comments)
+        for comment in loop_list: 
+            plot = Plot.objects.get(pk=comment.object_id)
+            if n in plot.neighborhood.all():
+                comment_list.append(comment)
+        return render_to_response('comments/edit.html',RequestContext(request,{'comments':comment_list, "geometry":n}))
         
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments, "geometry":n}))
   
@@ -2355,14 +2358,16 @@ def export_comments(request, format):
     if 'text' in request.GET:
         where.append(" b.comment ilike '%" + request.GET['text'] + "%' ")
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(id=request.GET['nhood'])
-        c_list = list(ThreadedComment.objects.all())
-        for c in c_list:            
-            if Tree.objects.filter(pk=c.object_pk, plot__neighborhood=n).count() == 0:
-                c_list.remove(c)
-        where.append("b.id in " + [c.id for c in c_list] + " ")
+        n = Neighborhood.objects.get(id=request.GET['nhood'])
+        comment_list = []
+        loop_list = list(comments)
+        for comment in loop_list: 
+            plot = Plot.objects.get(pk=comment.object_id)
+            if n in plot.neighborhood.all():
+                comment_list.append(comment)
+        where.append("b.id in " + [c.id for c in commnet_list] + " ")
 
-    sql = "select a.username, b.date_submitted as date, b.comment as comment, b.object_id as tree_id from auth_user as a, threadedcomments_threadedcomment as b where b.user_id = a.id"
+    sql = "select a.username, b.date_submitted as date, b.comment as comment, b.object_id as plot_id from auth_user as a, threadedcomments_threadedcomment as b where b.user_id = a.id"
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
     
