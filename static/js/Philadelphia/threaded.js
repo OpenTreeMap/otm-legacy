@@ -7,9 +7,9 @@ var threaded = {
         var comment_reply = $('#' + comment_id);
         var to_add = $( new Array(
             '<div class="response"><p>Reply to ' + person_name + ':</p>',
-            '<form method="POST" action="' + url + '">', csrf_field,
+            '<form method="POST" id="comment_post"  action="' + url + '">', csrf_field,
             form, 
-            '<div><input type="submit" class="submit-post buttonSmall" value="Post"/></div>',
+            '<div><input type="submit"class="submit-post buttonSmall" value="Post"/></div>',
             '</div>', '</form>', '</div>').join(''));
         to_add.css("display", "none");
         comment_reply.after(to_add);

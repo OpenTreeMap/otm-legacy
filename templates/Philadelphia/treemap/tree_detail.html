@@ -16,12 +16,22 @@
 
 <script type="text/javascript">
     jQuery().ready(function() {
+        $("#comment_error").empty();
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
             jQuery(s).click(function() {
                 $(this).next().toggle('slow');
                 return false;
                 }).next().hide();
             });
+
+        $("#comment_post").live('submit', function() {
+            var comment = $("#id_comment");
+            if ($(this).has(comment) && comment[0].value == "") {
+                $("#comment_error")[0].innerHTML = "Please enter text to post a comment.";
+                return false;
+            }
+        });
+
     });
 
 </script>
@@ -324,6 +334,7 @@
 									<h2>Comments</h2>
 								</div>
 								<div class="comment_list">
+                                    <div id="comment_error" style="padding-bottom:5px;"></div>
                                 {% get_threaded_comment_tree for plot as comment_tree %}
 								{% for comment in comment_tree %}
 									<div class="comment_item" style="margin-left: {{ comment.depth }}em">
@@ -352,7 +363,7 @@
                                                                 
 								{% if user.is_authenticated %}
 									{% get_threaded_comment_form as form %}
-									<form action="{% get_comment_url plot %}" method="post">{% csrf_token %}
+									<form action="{% get_comment_url plot %}" id="comment_post" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
                                                                                 <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
                                                                                 <input type="hidden" name="markup" value="5"></input>
