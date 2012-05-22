@@ -2360,12 +2360,12 @@ def export_comments(request, format):
     if 'nhood' in request.GET:
         n = Neighborhood.objects.get(id=request.GET['nhood'])
         comment_list = []
-        loop_list = list(comments)
+        loop_list = list(ThreadedComments.objects.all())
         for comment in loop_list: 
             plot = Plot.objects.get(pk=comment.object_id)
             if n in plot.neighborhood.all():
                 comment_list.append(comment)
-        where.append("b.id in " + [c.id for c in commnet_list] + " ")
+        where.append("b.id in " + [c.id for c in comment_list] + " ")
 
     sql = "select a.username, b.date_submitted as date, b.comment as comment, b.object_id as plot_id from auth_user as a, threadedcomments_threadedcomment as b where b.user_id = a.id"
     if len(where) > 0:
