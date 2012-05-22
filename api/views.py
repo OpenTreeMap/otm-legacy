@@ -288,17 +288,23 @@ def get_trees_in_tile(request):
     pixelsPerMeterY = 255.0/(ymaxM - yminM)
 
     # Use postgis to do the SRS math, save ourselves some time
+    tidcase = "CASE WHEN treemap_tree.id IS null THEN 0 ELSE 1 END"
+    dbhcase = "CASE WHEN treemap_tree.dbh IS null THEN 0 ELSE 2 END"
+    spccase = "CASE WHEN treemap_tree.species_id IS null THEN 0 ELSE 4 END"
+
+    selectg = "%s + %s + %s as gid" % (tidcase,dbhcase,spccase)
     selectx = "ROUND((ST_X(t.geometry) - {xoffset})*{xfactor}) as x".format(xoffset=xminM,xfactor=pixelsPerMeterX)
     selecty = "ROUND((ST_Y(t.geometry) - {yoffset})*{yfactor}) as y".format(yoffset=yminM,yfactor=pixelsPerMeterY)
-    query = "SELECT {xfield}, {yfield}".format(xfield=selectx,yfield=selecty)
+    query = "SELECT {xfield}, {yfield}, {gfield}".format(xfield=selectx,yfield=selecty,gfield=selectg)
 
     where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
-    subselect = "select ST_Transform(geometry, 900913) as geometry from treemap_plot {where}".format(where=where)
-    fromq = "FROM ({subselect}) as t".format(subselect=subselect)
+    subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
+    fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
 
     order = "order by x,y"
 
     selectQuery = "{0} {1} {2}".format(query, fromq, order)
+
 
     cursor.execute(selectQuery)
     transaction.commit_unless_managed()
@@ -318,6 +324,14 @@ def get_trees_in_tile(request):
             i += 1
 
         rows = rows[:lasti]
+    
+    # Partition into groups
+    groups = {}
+    for (x,y,g) in rows:
+        if g not in groups:
+            groups[g] = []
+        
+        groups[g].append((x,y))
 
     # After removing duplicates, we can have at most 1 tree per square
     # (since we are using integer values that fall on pixels)
@@ -326,9 +340,10 @@ def get_trees_in_tile(request):
     # right now we only show "type 1" trees so the header is
     # 1 | n trees | 0 | size
     sizeoffileheader = 4+4
-    sizeofheader = 1+2+1
+    numsections = len(groups)
+    sizeofsectionheaders = (1+2+1)*numsections
     sizeofrecord = 2
-    buffersize = sizeoffileheader + sizeofheader + sizeofrecord*len(rows)
+    buffersize = sizeoffileheader + sizeofsectionheaders + sizeofrecord*len(rows)
 
     buf = ctypes.create_string_buffer(buffersize)
     bufoffset = 0
@@ -338,17 +353,20 @@ def get_trees_in_tile(request):
     struct.pack_into("<II", buf, bufoffset, 0xA3A5EA00, len(rows))
     bufoffset += 8 #sizeoffileheader
 
-    # Section header: type (1), num(4)
-    # Little endian, no align
-    # Default to type 1
-    struct.pack_into("<BHx", buf, bufoffset, 1, len(rows))
-    bufoffset += 4 #sizeofheader
+    for group in groups.keys():
+        pts = groups[group]
 
-    # Write pairs: x(1), y(1)
-    # Litle endian, no align
-    for (x,y) in rows:
-        struct.pack_into("<BB", buf, bufoffset, x, y)
-        bufoffset += 2 #sizeofrecord
+        # Section header: type (1), num(4)
+        # Little endian, no align
+        # Default to type 1
+        struct.pack_into("<BHx", buf, bufoffset, group, len(pts))
+        bufoffset += 4 #sizeofheader
+
+        # Write pairs: x(1), y(1)
+        # Litle endian, no align
+        for (x,y) in pts:
+            struct.pack_into("<BB", buf, bufoffset, x, y)
+            bufoffset += 2 #sizeofrecord
 
     return buf.raw
 
