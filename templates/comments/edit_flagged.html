@@ -16,7 +16,7 @@
 			}
 			if (jQuery.urlParam('nhood')) {
 				var nhood = jQuery.urlParam('nhood');
-				jQuery("#s_nhood").prepend(jQuery("<option value='{{geometry.all.0.id}}' selected>{{geometry.all.0.name}}</option>"));
+				jQuery("#s_nhood").prepend(jQuery("<option value='{{geometry.id}}' selected>{{geometry.name}}</option>"));
 			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
