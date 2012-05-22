@@ -336,6 +336,9 @@ class Command(BaseCommand):
 
         if row.get('OWNER_ADDITIONAL_PROPERTIES'):
             plot.owner_additional_properties = str(plot.owner_additional_properties) + " " + str(row['OWNER_ADDITIONAL_PROPERTIES'])
+        
+        if row.get('OWNER_ADDITIONAL_ID'):
+            plot.owner_additional_id = str(row['OWNER_ADDITIONAL_ID'])
     
         if row.get('POWERLINE'):
             for k, v in Choices().get_field_choices('powerline'):

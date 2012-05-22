@@ -1412,7 +1412,7 @@ def _build_tree_search_result(request):
     # todo - optimize! OMG Clean it up! >.<
     choices = Choices()
     tile_query = []
-    trees = Tree.objects.filter(present=True).extra(select={'geometry': "treemap_plot.geometry"})
+    trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
     
     geog_obj = None
