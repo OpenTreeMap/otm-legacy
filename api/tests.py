@@ -250,7 +250,7 @@ class TileRequest(TestCase):
         pixels1y = int(p1offsety * pixelsPerMeterY + 0.5)
         pixels2y = int(p2offsety * pixelsPerMeterY + 0.5)
 
-        style = 1
+        style = 0
         npts = 2
 
         # Format:
@@ -285,7 +285,7 @@ class TileRequest(TestCase):
 
         # These should all map to (x,y)->(128,127)
         npts = 1
-        style = 1
+        style = 0
 
         # Format:
         # | File Header           | Section Header             | Pts                                        |
