@@ -242,6 +242,8 @@ def get_trees_in_tile(request):
     Verb: GET
     Params:
        bbox - xmin,ymin,xmax,ymax projected into web mercator
+       filter_diameter_min - minimum diameter (note, setting this filters trees with no diameter set)
+       filter_diameter_max - maximum diameter (note, setting this filters trees with no diameter set)
 
     Output:
        Raw Binary format as follows:
@@ -301,12 +303,23 @@ def get_trees_in_tile(request):
     subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
     fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
 
+    filters = []
+    filter_values = {}
+    if "filter_diameter_min" in request.GET:
+        filters.append("treemap_tree.dbh >= %(filter_diameter_min)f")
+        filter_values["filter_diameter_min"] = float(request.GET['filter_diameter_min'])
+
+    if "filter_diameter_max" in request.GET:
+        filters.append("treemap_tree.dbh <= %(filter_diameter_max)f")
+        filter_values["filter_diameter_max"] = float(request.GET['filter_diameter_max'])
+
+
     order = "order by x,y"
 
-    selectQuery = "{0} {1} {2}".format(query, fromq, order)
+    selectQuery = "{0} {1} {2}".format(query, fromq, order, " AND ".join(filters))
 
 
-    cursor.execute(selectQuery)
+    cursor.execute(selectQuery, filter_values)
     transaction.commit_unless_managed()
 
     # We have the sorted list, now we want to remove duplicates
