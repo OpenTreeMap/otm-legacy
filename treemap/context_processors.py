@@ -7,4 +7,7 @@ def site_root(context):
         'SITE_ROOT': settings.SITE_ROOT,
         'GEOSERVER_URL': settings.GEOSERVER_URL,
         'TILECACHE_URL': settings.TILECACHE_URL,
-        'TILECACHE_LAYER': settings.TILECACHE_LAYER }
+        'TILECACHE_LAYER': settings.TILECACHE_LAYER,
+        'API_KEY_GOOGLE_MAP': settings.API_KEY_GOOGLE_MAP,
+        'API_KEY_GOOGLE_ANALYTICS': settings.API_KEY_GOOGLE_ANALYTICS
+    }

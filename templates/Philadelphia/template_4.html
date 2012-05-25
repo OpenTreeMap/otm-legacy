@@ -14,10 +14,6 @@
         tm_urls.tc_url = '{{ TC_URL }}'
         tm.initial_location_string = "Address, City, State";
         tm.initial_species_string = "All trees";
-        {% comment %}
-        //tm.neighborhoods = {{ neighborhoods|safe }};
-        //tm.districts = {{ districts|safe }};
-        {% endcomment %}
         {% block extra_onready %}
         {% endblock %}
      });
