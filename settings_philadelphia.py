@@ -9,7 +9,7 @@ REGION_NAME = 'Philadelphia'
 PENDING_ON = False
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
 
-API_KEY_GOOGLE_MAP = ''
+API_KEY_GOOGLE_MAP = 'AIzaSyBrvLFfP_eqXwp5vRRWp4D5NP_enTL1uBM'
 API_KEY_GOOGLE_ANALYTICS = 'UA-23175691-1'
 
 # pipeline minification settings
