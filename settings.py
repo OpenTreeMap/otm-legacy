@@ -1,9 +1,6 @@
 import os
 
-#from settings_philadelphia import *
-from settings_dctreekit import *
-#from settings_sanfrancisco import *
-#from settings_greenprint import *
+from settings_impl import *
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
