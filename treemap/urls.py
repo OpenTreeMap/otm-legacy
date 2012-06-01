@@ -95,6 +95,7 @@ urlpatterns = patterns('',
     (r'^comments/flag/(?P<comment_id>[0-9]+)/$', add_flag),
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
+    (r'^comments/all/(?P<format>.*)/$', export_comments),
     (r'^comments/hide/$', hide_comment),
     (r'^comments/unflag/$', remove_flag),
 
@@ -104,6 +105,8 @@ urlpatterns = patterns('',
     url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
     url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),
     
+    (r'^stewardship/', view_stewardship),
+
     (r'^images/$', view_images),
     
 )

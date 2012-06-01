@@ -120,9 +120,6 @@ tm.reverse_geocode = function(ll, callback, error_callback){
                         else if ($.inArray('postal_code', addy[i].types) > -1) {    
                             zip = addy[i].long_name;
                         }
-                        else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
-                            city += " " + addy[i].short_name;
-                        }
                     }
 
                     callback(ll, full_address, city, zip);

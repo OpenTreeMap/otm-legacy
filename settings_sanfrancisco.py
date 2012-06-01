@@ -1,5 +1,4 @@
 import os
-from settings_db import *
 
 SITE_LOCATION = 'SanFrancisco'
 PENDING_ON = False
@@ -85,4 +84,5 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
+from settings_db import *
 

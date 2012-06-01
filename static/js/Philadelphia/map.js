@@ -8,7 +8,7 @@ tm.initial_location_string = "Address, City, State";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(39.75,-76), new google.maps.LatLng(40.5,-74.5));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(39.8,-75.4), new google.maps.LatLng(40.2,-74.9));
 
 tm.geo_layer = "philly:ph_treemap_tree"
 tm.geo_layer_style = "phillytreemap_tree_highlight"
@@ -28,7 +28,13 @@ tm.init_base_map = function(div_id, controls){
                        new OpenLayers.Control.Navigation(),
                        new OpenLayers.Control.ArgParser(),
                        new OpenLayers.Control.PanPanel(),
-                       new OpenLayers.Control.ZoomPanel()]
+                       new OpenLayers.Control.ZoomPanel(),
+                       new OpenLayers.Control.TouchNavigation({
+                          dragPanOptions: {
+                               enableKinetic: true
+                           }
+                       })
+                       ]
         });
     }
     else {
@@ -52,7 +58,6 @@ tm.init_base_map = function(div_id, controls){
       tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
         type: VEMapStyle.Shaded,
         sphericalMercator: true,
-        animationEnabled: false,
         numZoomLevels: 20,
         MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0
@@ -61,7 +66,6 @@ tm.init_base_map = function(div_id, controls){
     tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
         type: VEMapStyle.Hybrid,            
         sphericalMercator: true,
-        animationEnabled: false, 
         numZoomLevels: 20,
         MAX_ZOOM_LEVEL: 20,
         MIN_ZOOM_LEVEL: 0

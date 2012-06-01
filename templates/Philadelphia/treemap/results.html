@@ -61,10 +61,11 @@
                             <li id="totals">
                                 <ul>
                                     <li id="title">Results:</li>
-                                    <li id="first"><span class="tree_count">0</span> trees located <span class="reset_search">(<a href="{% url treemap.views.result_map %}">reset search</a>)</span><br/><span class="notrees"></span><span class="moretrees"></span></li>
+                                    <li id="first"><span class="tree_count">0</span> trees,<br> <span class="plot_count">0</span> total planting sites located 
+                                        <br/><span class="notrees"></span><span class="moretrees"></span></li>
 
                                     <!-- <li>XX trees need more info to be included</li> -->
-                                    <li id="add"><a href="{% url treemap.views.tree_add %}" class="buttonMed"><span class="icon iconAdd"></span><span class="label">Add a Tree!</span></a></li>
+                                    <li id="add"><div class="reset_search">(<a href="{% url treemap.views.result_map %}">reset search</a>)</div><a href="{% url treemap.views.tree_add %}" class="buttonMed"><span class="icon iconAdd"></span><span class="label">Add a Tree!</span></a></li>
                                 </ul>
                             </li>
                         </ul>

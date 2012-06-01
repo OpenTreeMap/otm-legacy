@@ -2,18 +2,15 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
-        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
-	    <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
+    <script type="text/javascript">
+        //fix bing map issue in firefox
+        if (!window.attachEvent) { window.attachEvent = function (){}; }
+    </script>
 
-<script type="text/javascript">
-    jQuery().ready(function() {
-        var favorite_trees = '{{favorite_trees}}';
-        tm.init_favorite_map('{{ profile.user.username }}'); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+	<script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
 
-    });
-
-</script>
 {% endblock %}
 
 
@@ -382,3 +379,15 @@
 			</div>
 {% endcomment %}
 {% endblock %}
+
+{% block endpage %}
+<script type="text/javascript">
+    jQuery().ready(function() {
+        var favorite_trees = '{{favorite_trees}}';
+        tm.init_favorite_map('{{ profile.user.username }}'); //not editable
+        tm.add_favorite_handlers('trees/favorites/create/', 'trees/favorites/delete/');
+
+    });
+</script>
+{% endblock %}
+

@@ -1,6 +1,52 @@
+// Create new openlayer click control, because just registering a click event
+// with the map doesn't work on mobile devices.
+if (typeof OpenLayers != "undefined") {
+    OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
+        defaultHandlerOptions: {
+            'single': true,
+            'double': false,
+            'pixelTolerance': 0,
+            'stopSingle': false,
+            'stopDouble': false
+        },
+
+        initialize: function(options) {
+            this.handlerOptions = OpenLayers.Util.extend(
+                {}, this.defaultHandlerOptions
+            );
+            OpenLayers.Control.prototype.initialize.apply(
+                this, arguments
+            );
+            this.handler = new OpenLayers.Handler.Click(
+                this, {
+                    'click': this.onClick
+                }, this.handlerOptions
+            );
+        },
+
+        onClick: function(e) {
+            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            tm.clckTimeOut = window.setTimeout(function() {
+                tm.singleClick(mapCoord)
+            },500);
+        }
+
+    });
+}
+
 // Search page map init
 tm.init_map = function(div_id){
     tm.init_base_map(div_id);
+
+     tm.singleClick = function(olLonlat) {
+        window.clearTimeout(tm.clckTimeOut);
+        tm.clckTimeOut = null;
+        var spp = $.urlParam('species');
+        $.getJSON(tm_static + 'plots/location/',
+                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp, 'query': tm.searchParams},
+                  tm.display_tree_details);
+    };
 
     tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
     tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
@@ -26,6 +72,9 @@ tm.init_map = function(div_id){
         } 
     );
 
+    tm.click = new OpenLayers.Control.Click({handlerOptions:{"single":true}});
+    tm.map.addControl(tm.click);
+    tm.click.activate();
     
     tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
     tm.map.setCenter(
@@ -39,23 +88,7 @@ tm.init_map = function(div_id){
                   {'format' : 'json'},
                   tm.display_tree_details);
     }
-    
-    tm.map.events.register("click", tm.map, function (e) {
-        var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-        mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));           
-        tm.clckTimeOut = window.setTimeout(function() {
-            singleClick(mapCoord)
-        },500); 
-    });
-    
-    function singleClick(olLonlat) { 
-        window.clearTimeout(tm.clckTimeOut); 
-        tm.clckTimeOut = null; 
-        var spp = $.urlParam('species');
-        $.getJSON(tm_static + 'plots/location/',
-                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
-                  tm.display_tree_details);
-    } 
+  
 
     tm.geocoder = new google.maps.Geocoder();
 
@@ -76,9 +109,15 @@ tm.init_map = function(div_id){
 
 tm.init_add_map = function(){
     tm.init_base_map('add_tree_map');
-    
-    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
-    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+
+    var vector_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+    vector_style.fillColor = "yellow"; 
+    vector_style.fillOpacity = 0.8;
+    vector_style.strokeWidth = 3; 
+    vector_style.pointRadius = 8;
+
+    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style });
+    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
 
     tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
     tm.drag_control.onComplete = function(feature, mousepix) {
@@ -250,10 +289,33 @@ tm.init_tree_map = function(editable){
     var controls = [new OpenLayers.Control.Attribution(),
                     new OpenLayers.Control.Navigation(),
                     new OpenLayers.Control.ArgParser(),
-                    new OpenLayers.Control.ZoomPanel()];
+                    new OpenLayers.Control.ZoomPanel(),
+                    new OpenLayers.Control.TouchNavigation({
+                        dragPanOptions: {
+                            enableKinetic: true
+                        }
+            })];
+
+    var vector_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+    vector_style.fillColor = "yellow"; 
+    vector_style.fillOpacity = 0.8;
+    vector_style.strokeWidth = 3; 
+    vector_style.pointRadius = 8;
+
     tm.init_base_map('edit_tree_map', controls);
     
-    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
+    tm.singleClick = function(olLonlat) {
+        $.getJSON(tm_static + 'plots/location/',
+              {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'max_plots' : 1},
+              function(json) {
+                  var html = '<a href="' + tm_static  + 'plots/' + json.features[0].properties.id + '">Planting Site #' + json.features[0].properties.id + '</a>';
+                  $('#alternate_tree_div').html(html);
+              }
+        );
+    };
+
+
+    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style })
     tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
     
     if (tm.mask) {tm.map.addLayer(tm.mask);}
@@ -276,6 +338,10 @@ tm.init_tree_map = function(editable){
         });
     }
     
+    tm.click = new OpenLayers.Control.Click({handlerOptions:{"single":true}});
+    tm.map.addControl(tm.click);
+    tm.click.activate();
+
     tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
     tm.map.addControl(tm.drag_control);
     tm.map.setBaseLayer(tm.aerial);
@@ -298,18 +364,7 @@ tm.init_tree_map = function(editable){
     
     tm.load_streetview(currentPoint, 'tree_streetview');
     
-    tm.map.events.register('click', tm.map, function(e){
-        var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
-        mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-        $.getJSON(tm_static + 'plots/location/',
-                  {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
-                  function(json) {
-                      var html = '<a href="' + tm_static  + 'plots/' + json.features[0].properties.id + '">Planting Site #' + json.features[0].properties.id + '</a>';
-                      $('#alternate_tree_div').html(html);
-                  }
-                 );
-    });
-    
+        
     if (!editable) {return;}
     
     //listen for change to address field to update map location
@@ -335,6 +390,7 @@ tm.load_nearby_trees = function(ll){
             var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
             if (f.properties.id == tm.currentTreeId) {return;}
             var icon = tm.get_icon(tm_icons.small_trees, 19);
+            if (f.properties.tree == false) {icon = tm.get_icon(tm_icons.small_plots, 19);}
             var marker = new OpenLayers.Marker(ll, icon);
             marker.tid = f.properties.id;
             
@@ -421,10 +477,10 @@ tm.update_nearby_trees_list = function (ll, plots, distance) {
                 $.each(geojson.features, function(i,f){
                     var tree = $('#nearby_trees');
                     if (f.properties.common_name){
-                        tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                     }
                     else {
-                        tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
                     }
                     if (f.properties.current_dbh){
                         tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");

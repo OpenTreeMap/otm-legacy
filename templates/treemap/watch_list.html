@@ -17,8 +17,7 @@
 				jQuery("#s_test").val(jQuery.urlParam('test'));
 			}
 			if (jQuery.urlParam('nhood')) {
-				var nhood = jQuery.urlParam('nhood');
-				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+				jQuery("#s_nhood").prepend(jQuery("<option value='{{geography.all.0.id}} ' selected>{{geography.all.0.name}}</option>"));
 			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
@@ -97,7 +96,7 @@
 			<thead>
 				<tr>
 					<th>{% anchor tree__species Tree %}</th>
-					<th>{% anchor tree__address_street Address %}</th>
+					<th>{% anchor tree__plot__address_street Address %}</th>
 					<th>{% anchor tree__last_updated 'Last Update' %}</th>
 					<th>{% anchor key 'Test Failed' %}</th>
 					<th>Change</th>
@@ -106,7 +105,7 @@
 			<tbody>
 				{% for w in watches %}
 				<tr id="{{w.id}}">
-					<td><i>{{w.tree.species}}</i><br><a href="{% url treemap.views.tree_edit w.tree.id %}" target="_blank">View Record</a></td>
+					<td><i>{{w.tree.species}}</i><br><a href="{% url treemap.views.tree_edit w.tree_id %}" target="_blank">View Record</a></td>
 					<td>{{w.tree.address_street}}</td>
 					<td>{{w.tree.last_updated|date:"M d, Y"}}
 						<br/><a href="{% url profiles.views.profile_detail w.tree.last_updated_by.username %}" target="_blank">{{w.tree.last_updated_by}}</a>

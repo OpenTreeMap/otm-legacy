@@ -53,6 +53,7 @@ class TreeAddForm(forms.Form):
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
     target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    owner_additional_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
@@ -88,11 +89,13 @@ class TreeAddForm(forms.Form):
 
         if canopy_height and height and canopy_height > height:
             raise forms.ValidationError("Canopy height cannot be larger than tree height.")
-          
-        initial_map_location = cleaned_data.get('initial_map_location').split(',')
-        initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
-        if point == initial_point:
-            raise forms.ValidationError("We need a more precise location for the tree. Please move the tree marker from the default location for this address to the specific location of the tree planting site. ")
+
+        # initial_map_location is an optional field so only trigger the validation if it was specified
+        if cleaned_data.get('initial_map_location'):
+            initial_map_location = cleaned_data.get('initial_map_location').split(',')
+            initial_point = Point(float(initial_map_location[1]), float(initial_map_location[0]),srid=4326)
+            if point == initial_point:
+                raise forms.ValidationError("We need a more precise location for the tree. Please move the tree marker from the default location for this address to the specific location of the tree planting site. ")
 
         return cleaned_data 
         
@@ -137,6 +140,9 @@ class TreeAddForm(forms.Form):
         sidewalk_damage = self.cleaned_data.get('sidewalk_damage')
         if sidewalk_damage:
             plot.sidewalk_damage = sidewalk_damage
+        owner_additional_id = self.cleaned_data.get('owner_additional_id')
+        if owner_additional_id:
+            plot.owner_additional_id = owner_additional_id
 
         import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
         plot.import_event = import_event
@@ -178,8 +184,9 @@ class TreeAddForm(forms.Form):
                 new_tree.canopy_height = canopy_height
             if dbh:
                 if dbh_type == 'circumference':
-                    dbh = dbh / math.pi
-                new_tree.dbh = dbh
+                    new_tree.dbh = dbh / math.pi
+                else:
+                    new_tree.dbh = dbh
             if condition:
                 new_tree.condition = condition
             if canopy_condition:

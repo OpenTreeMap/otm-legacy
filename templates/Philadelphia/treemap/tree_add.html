@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=true"></script>
 
 {% endblock %}
 
@@ -143,6 +143,10 @@
                 <label class="opt_fields">{{form.power_lines.label}}</label>{{ form.power_lines }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields">{{form.sidewalk_damage.label}}</label>{{ form.sidewalk_damage }}
+                {% if user.reputation.reputation > 1000 %}
+                    <div class="clearLeft"></div>
+                    <label class="opt_fields">Additional Management Info</label>{{ form.owner_additional_id }}
+                {% endif %}
             </div>
         </div> 
         <div class="clearLeft"></div>
