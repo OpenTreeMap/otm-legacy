@@ -95,11 +95,17 @@ tm.init_map = function(div_id){
     $(".mapToggle").click(function(evt) {
         if ($(".mapToggle").html() == 'View Satellite') {
             tm.map.setBaseLayer(tm.aerial);
-            $(".mapToggle").html('View Streets')
+            $(".mapToggle").html('View Streets');
         }
         else if ($(".mapToggle").html() == 'View Streets') {
-            tm.map.setBaseLayer(tm.baseLayer);
-            $(".mapToggle").html('View Satellite')
+            if (tm.baseLayer.type == 'terrain' && tm.map.getZoom() >= 16)
+            {
+                $(".mapError").html('Terrain Layer is not available at this zoom level. Please zoom out to switch layers.').slideDown().delay(3500).slideUp();
+            }
+            else {
+                tm.map.setBaseLayer(tm.baseLayer);
+                $(".mapToggle").html('View Satellite');
+            }
         }
         evt.preventDefault();
         evt.stopPropagation();
