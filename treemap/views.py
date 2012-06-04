@@ -1447,15 +1447,11 @@ def _build_tree_search_result(request):
              geog_obj = ns[0]
              tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
 
-    #import pdb;pdb.set_trace()
-
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
     if missing_current_plot_size:
         trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
         tile_query.append(" (plot_length IS NULL OR plot_width IS NULL) ")
 
     if not missing_current_plot_size and 'plot_range' in request.GET:
@@ -1470,8 +1466,6 @@ def _build_tree_search_result(request):
     if missing_current_plot_type:
         trees = trees.filter(plot__type__isnull=True)
         plots = plots.filter(type__isnull=True)
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
         tile_query.append(" plot_type IS NULL ")
     else:
         plot_type_choices = choices.get_field_choices('plot_type')
@@ -1492,7 +1486,6 @@ def _build_tree_search_result(request):
     if missing_sidewalk: 
         trees = trees.filter(plot__sidewalk_damage__isnull=True)
         plots = plots.filter(sidewalk_damage__isnull=True)
-        #species_list = [s.id for s in species]
         tile_query.append("sidewalk_damage IS NULL")
     else: 
         sidewalk_choices = choices.get_field_choices('sidewalk_damage')    
@@ -1514,7 +1507,6 @@ def _build_tree_search_result(request):
     if missing_powerlines:
         trees = trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
         plots = plots.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
-        #species_list = [s.id for s in species]
         tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
     else:
         powerline_choices = choices.get_field_choices('powerline_conflict_potential')    
@@ -1576,49 +1568,43 @@ def _build_tree_search_result(request):
     missing_species = request.GET.get('missing_species','')
     if missing_species:
         trees = trees.filter(species__isnull=True)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__species__isnull=True)
         tile_query.append("species_id IS NULL")
     
-    #
-    ### TODO - add ability to show trees without "correct location"
-    ##
     missing_current_dbh = request.GET.get('missing_diameter','')
     if missing_current_dbh:
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
-        plots = Plot.objects.none()
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
+        plots = plots.filter(Q(tree__dbh__isnull=True) | Q(tree__dbh=0))
         tile_query.append(" (dbh IS NULL OR dbh = 0) ")
     
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__dbh__gte=min)
         if max != 50: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(dbh__lte=max)
+            plots = plots.filter(tree__dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
     missing_current_height = request.GET.get('missing_height','')
     if missing_current_height:
         trees = trees.filter(Q(height__isnull=True) | Q(height=0))
-        plots = Plot.objects.none()
-        # TODO: What about ones with 0 dbh?
-        #species_list = [s.id for s in species]
+        plots = plots.filter(Q(tree__height__isnull=True) | Q(tree__height=0))
         tile_query.append(" (height IS NULL OR height = 0) ")
 
     if not missing_current_height and 'height_range' in request.GET:
         min, max = map(float,request.GET['height_range'].split("-"))
         trees = trees.filter(height__gte=min)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__height__gte=min)
         if max != 200: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(height__lte=max)
+            plots = plots.filter(tree__height__lte=max)
         tile_query.append("height BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
     missing_condition = request.GET.get("missing_condition", '')
     if missing_condition: 
         trees = trees.filter(condition__isnull=True)
-        plots = Plot.objects.none()
-        #species_list = [s.id for s in species]
+        plots = plots.filter(tree__condition__isnull=True)
         tile_query.append("condition IS NULL")
     else: 
         condition_choices = choices.get_field_choices('condition')    
@@ -1633,13 +1619,12 @@ def _build_tree_search_result(request):
         if len(c_cql) > 0:
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)
-            plots = Plot.objects.none()
+            plots = plots.filter(tree__condition__in=c_list)
 
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
         trees = trees.filter(treephoto__isnull=True)
         plots = Plot.objects.none()
-        #species_list = [s.id for s in species]
         tile_query.append("(photo_count IS NULL OR photo_count = 0)")
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)
@@ -1650,7 +1635,7 @@ def _build_tree_search_result(request):
     if steward:    
         users = User.objects.filter(username__icontains=steward)
         trees = trees.filter(steward_user__in=users)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__steward_user__in=users)
         user_list = []
         for u in users:
             user_list.append("steward_user_id = " + u.id.__str__())
@@ -1659,7 +1644,7 @@ def _build_tree_search_result(request):
     funding = request.GET.get("funding", "")
     if funding:
         trees = trees.filter(sponsor__icontains=funding)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__sponsor__icontains=funding)
         tile_query.append("sponsor LIKE '%" + funding + "%'")
 
     if 'planted_range' in request.GET:
@@ -1667,7 +1652,7 @@ def _build_tree_search_result(request):
         min = "%i-01-01" % min
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__date_planted__gte=min, tree__date_planted__lte=max)
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
 
         
@@ -1679,7 +1664,6 @@ def _build_tree_search_result(request):
                         'flowering' : 'flower_conspicuous'}
 
     if len(set(species_criteria.keys()).intersection(set(request.GET))):
-        #print "doing species search"
         species = Species.objects.filter(tree_count__gt=0)
         max_species_count = species.count()
         
@@ -1694,7 +1678,7 @@ def _build_tree_search_result(request):
 
         if max_species_count != cur_species_count:
             trees = trees.filter(species__in=species)
-            plots = Plot.objects.none()
+            trees = plots.filter(tree__species__in=species)
             species_list = []
             for s in species:
                 species_list.append("species_id = " + s.id.__str__())
@@ -1731,10 +1715,11 @@ def _build_tree_search_result(request):
             trees = trees.exclude(treestewardship__performed_date__lte=st_min)
             trees = trees.exclude(treestewardship__performed_date__gte=st_max)
 
+        plots = Plot.objects.filter(present=True).filter(tree__in=trees)
         
     plot_stewardship = request.GET.get("plot_stewardship", "")
     if plot_stewardship:
-        trees = Tree.objects.none() 
+        #trees = Tree.objects.none() 
         actions = plot_stewardship.split(',')
         steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
         for a in actions:
@@ -1749,6 +1734,8 @@ def _build_tree_search_result(request):
         if stewardship_range:
             plots = plots.exclude(plotstewardship__performed_date__lte=st_min)
             plots = plots.exclude(plotstewardship__performed_date__gte=st_max)   
+
+        trees = Tree.objects.filter(present=True).filter(plot__in=plots)
         
         
 
@@ -1774,8 +1761,7 @@ def _build_tree_search_result(request):
             except:
                 # another thread has already likely saved the same object...
                 pass
-
-
+    
     return trees, plots, geog_obj, ' AND '.join(tile_query)
 
 
