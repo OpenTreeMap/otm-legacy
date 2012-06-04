@@ -420,6 +420,12 @@ tm = {
             $(this).addClass("error");
             return "Height is too large.";
         }
+
+        if (settings.fieldName == 'height' && isNaN(value)) { 
+            $(this).addClass("error");
+            return "Height must be a number.";
+        }
+
         
         if ($.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
             data['update']['value'] = value;
@@ -1074,7 +1080,13 @@ tm = {
         var total = Math.sqrt(sum);
         
         if (total > 100) {
-            $("#edit_dbh").append("<br/><span class='error'>Total diameter too large.</span>")
+            $("#edit_dbh").append("<br/><span class='smError'>Total diameter too large.</span>")
+            return;
+        }
+
+        if (isNaN(total)) {
+            $("#edit_dbh").append("<br/><span class='smError'>Diameter must be a number.</span>")
+            tm.editingDiameter = false;
             return;
         }
         

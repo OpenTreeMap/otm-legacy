@@ -131,12 +131,16 @@
                 <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
                 <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
                 <div class="clearLeft"></div>
-                <span class="small">Enter trunk size in inches</span>
+                <span class="small">Enter trunk size in inches
+                    {%for e in form.dbh.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
                 <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
-                <span class="small">Enter tree height in feet</span>
+                <span class="small">Enter tree height in feet
+                    {%for e in form.height.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
                 <span class="small">Where is the tree planted?</span>

@@ -3334,6 +3334,9 @@ width:944px;
 #smError {
 	font-size:14px;
 }
+.smError { 
+        color:red;
+}
 
 #smError2 {
 	font-size:11px;
