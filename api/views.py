@@ -313,6 +313,10 @@ def get_trees_in_tile(request):
         filters.append("treemap_tree.dbh <= %(filter_diameter_max)f")
         filter_values["filter_diameter_max"] = float(request.GET['filter_diameter_max'])
 
+    if "filter_edible" in request.GET:
+        filters.append("palatable_human = %(edible)s")
+        filter_values["edible"] = request.GET['filter_edible'] == "true"
+
 
     order = "order by x,y"
 
