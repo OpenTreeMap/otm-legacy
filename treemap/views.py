@@ -241,33 +241,26 @@ def plot_location_search(request):
     max_plots = int(request.GET.get('max_plots', 1))
 
     if max_plots > 500: max_plots = 500
+
+    orig_trees, orig_plots, geog_obj, tile_query = _build_tree_search_result(request)
     
-    plots = Plot.objects.filter(present=True)
-        #don't filter by geocode accuracy until we know why some new trees are getting -1
-        #Q(geocoded_accuracy__gte=8)|Q(geocoded_accuracy=None)|Q(geocoded_accuracy__isnull=True)).filter(
     if geom.geom_type == 'Point':
-
-        #print float(distance), geom, plots
-        plots = plots.filter(geometry__dwithin=(
-            geom, float(distance))
-            ).distance(geom).order_by('distance')
+        orig_plots = orig_plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
+        if orig_plots.count() > 0:
+            plots = orig_plots
+        else:
+            plots = Plot.objects.filter(present=True).filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
     else:
-      plots = plots.filter(geometry__intersects=geom)
-
-    # needed to be able to prioritize overlapping trees
+        orig_plots = orig_plots.filter(geometry__intersects=geom)
+        if orig_plots.count() > 0:
+            plots = orig_plots
+        else:
+            plots = Plot.objects.filter(present=True).filter(geometry__intersects=geom)
 
     if plots:
         extent = plots.extent()
     else:
         extent = []
-    
-    species = request.GET.get('species')
-
-    if species:
-        plots_filtered_by_species = plots.filter(tree__species__id=species, tree__present=True)
-        # to allow clicking other trees still...
-        if len(plots_filtered_by_species) > 0:
-            plots = plots_filtered_by_species
     
     if len(plots) > 0:
         plots = plots[:max_plots]
@@ -292,7 +285,9 @@ def plot_location_search(request):
                              'address_zip',
                              'owner_additional_properties',
                              'owner_additional_id',
-                             'geocoded_accuracy'
+                             'geocoded_accuracy',
+                             'data_owner_id',
+                             'zipcode_id'
                              ],
                              model=Plot,
                              extent=extent)
@@ -1430,14 +1425,14 @@ def _build_tree_search_result(request):
                 ns = ns.filter(geometry__contains=pt)
             if ns.count():   
                 trees = trees.filter(plot__neighborhood = ns[0])
-		plots = plots.filter(neighborhood = ns[0])
+                plots = plots.filter(neighborhood = ns[0])
                 geog_obj = ns[0]
                 tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
         else:
             z = ZipCode.objects.filter(zip=loc)
             if z.count():
                 trees = trees.filter(plot__zipcode = z[0])
-		plots = plots.filter(zipcode = z[0])
+                plots = plots.filter(zipcode = z[0])
                 geog_obj = z[0]
                 tile_query.append("zipcode_id = " + z[0].id.__str__())
     elif 'hood' in request.GET:
@@ -1461,7 +1456,7 @@ def _build_tree_search_result(request):
         plots = plots.filter(Q(length__gte=min) | Q(width__gte=min))
         if max != 15: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(Q(plot__length__lte=max) | Q(plot__length__lte=max))
-	    plots = plots.filter(Q(length__lte=max) | Q(length__lte=max))
+            plots = plots.filter(Q(length__lte=max) | Q(length__lte=max))
         tile_query.append("( (plot_length BETWEEN " + min.__str__() + " AND " + max.__str__() + ") OR (plot_width BETWEEN " + min.__str__() + " AND " + max.__str__() + ") )")
 
     if missing_current_plot_type:
@@ -1562,7 +1557,7 @@ def _build_tree_search_result(request):
         if v:
             attrib = tree_criteria[k]
             trees = trees.filter(treeflags__key__exact=attrib)
-            plots = Plot.objects.none()
+            plots = plots.filter(tree__treeflags__key__exact=attrib)
             tile_query.append("projects LIKE '%" + tree_criteria[k] + "%'")
 
     #filter by missing data params:
@@ -1625,11 +1620,11 @@ def _build_tree_search_result(request):
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
         trees = trees.filter(treephoto__isnull=True)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__treephoto__isnull=True)
         tile_query.append("(photo_count IS NULL OR photo_count = 0)")
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)
-        plots = Plot.objects.none()
+        plots = plots.filter(tree__treephoto__isnull=False)
         tile_query.append("photo_count > 0")
 
     steward = request.GET.get("steward", "")
@@ -1679,7 +1674,7 @@ def _build_tree_search_result(request):
 
         if max_species_count != cur_species_count:
             trees = trees.filter(species__in=species)
-            trees = plots.filter(tree__species__in=species)
+            plots = plots.filter(tree__species__in=species)
             species_list = []
             for s in species:
                 species_list.append("species_id = " + s.id.__str__())
@@ -1699,7 +1694,6 @@ def _build_tree_search_result(request):
 
     tree_stewardship = request.GET.get("tree_stewardship", "")
     if tree_stewardship:
-        plots = Plot.objects.none()
         actions = tree_stewardship.split(',')
         steward_ids = [s.tree_id for s in TreeStewardship.objects.order_by("tree__id").distinct("tree__id")]
         for a in actions:
@@ -1720,7 +1714,6 @@ def _build_tree_search_result(request):
         
     plot_stewardship = request.GET.get("plot_stewardship", "")
     if plot_stewardship:
-        #trees = Tree.objects.none() 
         actions = plot_stewardship.split(',')
         steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
         for a in actions:
