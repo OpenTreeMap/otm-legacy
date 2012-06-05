@@ -3,7 +3,6 @@ tm.map_center_lat = 39.99;
 tm.start_zoom = 11;
 tm.add_start_zoom = 13;
 tm.add_zoom = 18;
-//tm.edit_zoom = 18; Assigned below
 tm.initial_location_string = "Address, City, State";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);

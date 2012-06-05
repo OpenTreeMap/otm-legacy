@@ -11,6 +11,7 @@ API_KEY_GOOGLE_ANALYTICS = 'UA-13228685-1'
 COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
         
+EXTRAPOLATE_WITH_AVERAGE = True
 
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 

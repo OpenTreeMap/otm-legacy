@@ -29,7 +29,7 @@ if (typeof OpenLayers != "undefined") {
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             tm.clckTimeOut = window.setTimeout(function() {
                 tm.singleClick(mapCoord)
-            },500);
+            },300);
         }
 
     });
@@ -43,7 +43,6 @@ tm.init_map = function(div_id){
         window.clearTimeout(tm.clckTimeOut);
         tm.clckTimeOut = null;
         var spp = $.urlParam('species');
-        $('#displayResults').show();
         $.getJSON(tm_static + 'plots/location/',
                   {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp, 'query': tm.searchParams},
                   tm.display_tree_details);
@@ -518,7 +517,6 @@ tm.load_streetview = function(ll, div){
 };
 
 tm.display_tree_details = function(json){
-    $('#displayResults').hide();
     if (json) {
         if (json.features.length > 0) {
             var tree = json.features[0];

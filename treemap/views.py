@@ -242,7 +242,7 @@ def plot_location_search(request):
 
     if max_plots > 500: max_plots = 500
 
-    orig_trees, orig_plots, geog_obj, tile_query = _build_tree_search_result(request)
+    orig_trees, orig_plots, geog_obj, tile_query = _build_tree_search_result(request, False)
     
     if geom.geom_type == 'Point':
         orig_plots = orig_plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
@@ -1404,7 +1404,7 @@ def added_today_list(request, user_id=None, format=None):
         'user': user}))
 
 
-def _build_tree_search_result(request):
+def _build_tree_search_result(request, with_benefits=True):
     # todo - optimize! OMG Clean it up! >.<
     choices = Choices()
     tile_query = []
@@ -1733,7 +1733,7 @@ def _build_tree_search_result(request):
         
         
 
-    if not geog_obj:
+    if with_benefits and not geog_obj:
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
@@ -1893,7 +1893,7 @@ def advanced_search(request, format='json'):
     """  
     response = {}
 
-    trees, plots, geog_obj, tile_query = _build_tree_search_result(request)
+    trees, plots, geog_obj, tile_query = _build_tree_search_result(request, True)
     tree_count = trees.count()
     plot_count = plots.count()
     if tree_count == 0:
@@ -1922,9 +1922,6 @@ def advanced_search(request, format='json'):
         if hasattr(geog_obj, 'geometry'):
             geography = simplejson.loads(geog_obj.geometry.simplify(.0001).geojson)
             geography['name'] = str(geog_obj)
-        else:
-            pass#geography = {}
-            #geography['name'] = ''
         
     #else we're doing the simple json route .. ensure we return summary info
     full_count = Tree.objects.filter(present=True).count()
@@ -1935,12 +1932,8 @@ def advanced_search(request, format='json'):
     
     r = ResourceSummaryModel()
     
-    with_out_resources = trees.filter(treeresource=None).count()
-    #print 'without resourcesums:', with_out_resources
+    with_out_resources = trees.filter(treeresource=None).count() 
     resources = tree_count - with_out_resources
-    #print 'have resourcesums:', resources
-    
-    EXTRAPOLATE_WITH_AVERAGE = True
 
     for f in r._meta.get_all_field_names():
         if f.startswith('total') or f.startswith('annual'):
@@ -1949,7 +1942,7 @@ def advanced_search(request, format='json'):
             # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
             # which is also a location where summaries are calculated
             # also add likely to treemap/update_aggregates.py (not really sure how this works)
-            if EXTRAPOLATE_WITH_AVERAGE and resources:
+            if settings.EXTRAPOLATE_WITH_AVERAGE and resources:
                 avg = float(s)/resources
                 s += avg * with_out_resources
                     
@@ -1958,7 +1951,6 @@ def advanced_search(request, format='json'):
     esj['benefits'] = r.get_benefits()
     
     response.update({'tile_query' : tile_query, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
-
     return render_to_json(response)
 
     
