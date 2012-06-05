@@ -316,7 +316,9 @@ def get_trees_in_tile(request):
         filter_values["edible"] = request.GET['filter_edible'] == "true"
         force_species_join = True
 
-
+    if "filter_species" in request.GET:
+        filters.append("treemap_tree.species_id = %(species_id)s")
+        filter_values["species_id"] = int(request.GET['filter_species'])
 
     where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
     subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
