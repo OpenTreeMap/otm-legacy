@@ -299,9 +299,7 @@ def get_trees_in_tile(request):
     selecty = "ROUND((ST_Y(t.geometry) - {yoffset})*{yfactor}) as y".format(yoffset=yminM,yfactor=pixelsPerMeterY)
     query = "SELECT {xfield}, {yfield}, {gfield}".format(xfield=selectx,yfield=selecty,gfield=selectg)
 
-    where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
-    subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
-    fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
+    force_species_join = False
 
     filters = []
     filter_values = {}
@@ -314,14 +312,26 @@ def get_trees_in_tile(request):
         filter_values["filter_diameter_max"] = float(request.GET['filter_diameter_max'])
 
     if "filter_edible" in request.GET:
-        filters.append("palatable_human = %(edible)s")
+        filters.append("treemap_species.palatable_human = %(edible)s")
         filter_values["edible"] = request.GET['filter_edible'] == "true"
+        force_species_join = True
 
+
+
+    where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
+    subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
+    fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
+    
+    if force_species_join:
+        fromq += " LEFT OUTER JOIN treemap_species ON treemap_species.id=treemap_tree.species_id"
 
     order = "order by x,y"
 
-    selectQuery = "{0} {1} {2}".format(query, fromq, order, " AND ".join(filters))
+    where = ""
+    if len(filters) > 0:
+        where = "WHERE %s" % (" AND ".join(filters))
 
+    selectQuery = "{0} {1} {2} {3}".format(query, fromq, where, order)
 
     cursor.execute(selectQuery, filter_values)
     transaction.commit_unless_managed()
