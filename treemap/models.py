@@ -388,7 +388,9 @@ class ImportEvent(models.Model):
 
 class PlotLocateManager(models.GeoManager):
 
-    def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None):
+    def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
+                      native=None, flowering=None, fall=None, edible=None,
+                      dbhmin=None, dbhmax=None, species=None):
         '''
         Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
         '''
@@ -411,6 +413,32 @@ class PlotLocateManager(models.GeoManager):
             # species_preferenece will be returned.
             if len(plots_filtered_by_species_preference) > 0:
                 plots = plots_filtered_by_species_preference
+
+        if species: # Note that, unlike "preference", these values are forced
+            plots = plots.filter(tree__species__pk=species)
+
+        if native is not None:
+            if native:
+                native = "True"
+            else:
+                native = ""
+
+            plots = plots.filter(tree__species__native_status=native)
+
+        if flowering is not None:
+            plots = plots.filter(tree__species__flower_conspicuous=flowering)
+
+        if fall is not None:
+            plots = plots.filter(tree__species__flower_fall=fall_conspicuous)
+
+        if edible is not None:
+            plots = plots.filter(tree__species__palatable_human=edible)
+
+        if dbhmin is not None:
+            plots = plots.filter(tree__dbh__gte=dbhmin)
+
+        if dbhmax is not None:
+            plots = plots.filter(tree__dbh__gte=dbhmax)
 
         if plots.count() > 0:
             plots = plots[:max_plots]

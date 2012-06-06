@@ -551,9 +551,22 @@ def plots_closest_to_point(request, lat=None, lon=None):
 
     species = request.GET.get('species', None)
 
-    plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species)
+    plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species,
+                                              native=str2bool(request.GET,"filter_native"),
+                                              flowering=str2bool(request.GET,'filter_flowering'),
+                                              fall=str2bool(request.GET,'filter_fall_colors'),
+                                              edible=str2bool(request.GET,'filter_edible'),
+                                              dbhmin=request.GET.get("filter_dbh_min",None),
+                                              dbhmax=request.GET.get("filter_dbh_max",None),
+                                              species=request.GET.get("filter_species",None))
 
     return plots_to_list_of_dict(plots, longform=True)
+
+def str2bool(ahash, akey):
+    if akey in ahash:
+        return ahash[akey] == "true"
+    else:
+        return None
 
 def plots_to_list_of_dict(plots,longform=False):
     return [plot_to_dict(plot,longform=longform) for plot in plots]
