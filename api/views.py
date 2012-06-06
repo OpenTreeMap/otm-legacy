@@ -316,6 +316,26 @@ def get_trees_in_tile(request):
         filter_values["edible"] = request.GET['filter_edible'] == "true"
         force_species_join = True
 
+    if "filter_flowering" in request.GET:
+        filters.append("treemap_species.flower_conspicuous = %(flower_conspicuous)s")
+        filter_values["flower_conspicuous"] = request.GET['filter_flowering']
+        force_species_join = True
+
+    if "filter_native" in request.GET:
+        filters.append("treemap_species.native_status = %(native_status)s")
+        if request.GET['filter_native'].lower() == "true":
+            b = "True"
+        else:
+            b = "False"
+
+        filter_values["native_status"] = b
+        force_species_join = True
+
+    if "filter_fall_colors" in request.GET:
+        filters.append("treemap_species.fall_conspicuous = %(fall_conspicuous)s")
+        filter_values["fall_conspicuous"] = request.GET['filter_fall_colors']
+        force_species_join = True
+
     if "filter_species" in request.GET:
         filters.append("treemap_tree.species_id = %(species_id)s")
         filter_values["species_id"] = int(request.GET['filter_species'])
