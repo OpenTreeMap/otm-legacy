@@ -303,13 +303,13 @@ def get_trees_in_tile(request):
 
     filters = []
     filter_values = {}
-    if "filter_diameter_min" in request.GET:
-        filters.append("treemap_tree.dbh >= %(filter_diameter_min)f")
-        filter_values["filter_diameter_min"] = float(request.GET['filter_diameter_min'])
+    if "filter_dbh_min" in request.GET:
+        filters.append("treemap_tree.dbh >= %(filter_diameter_min)s")
+        filter_values["filter_diameter_min"] = float(request.GET['filter_dbh_min'])
 
-    if "filter_diameter_max" in request.GET:
-        filters.append("treemap_tree.dbh <= %(filter_diameter_max)f")
-        filter_values["filter_diameter_max"] = float(request.GET['filter_diameter_max'])
+    if "filter_dbh_max" in request.GET:
+        filters.append("treemap_tree.dbh <= %(filter_diameter_max)s")
+        filter_values["filter_diameter_max"] = float(request.GET['filter_dbh_max'])
 
     if "filter_edible" in request.GET:
         filters.append("treemap_species.palatable_human = %(edible)s")
