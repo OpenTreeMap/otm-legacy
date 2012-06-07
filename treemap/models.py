@@ -429,7 +429,7 @@ class PlotLocateManager(models.GeoManager):
             plots = plots.filter(tree__species__flower_conspicuous=flowering)
 
         if fall is not None:
-            plots = plots.filter(tree__species__flower_fall=fall_conspicuous)
+            plots = plots.filter(tree__species__fall_conspicuous=fall)
 
         if edible is not None:
             plots = plots.filter(tree__species__palatable_human=edible)
