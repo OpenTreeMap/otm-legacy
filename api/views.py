@@ -340,7 +340,7 @@ def get_trees_in_tile(request):
         filters.append("treemap_tree.species_id = %(species_id)s")
         filter_values["species_id"] = int(request.GET['filter_species'])
 
-    where = "where ST_Contains({bfilter},geometry)".format(bfilter=bboxFilter)
+    where = "where ST_Contains({bfilter},geometry) AND treemap_plot.present".format(bfilter=bboxFilter)
     subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
     fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
     
