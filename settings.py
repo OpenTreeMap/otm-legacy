@@ -2,7 +2,7 @@ import os
 
 try:
    from impl_settings import *
-except Exception, e:
+except ImportError, e:
    pass
 
 OTM_VERSION = "1.2"
