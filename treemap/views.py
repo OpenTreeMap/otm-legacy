@@ -35,7 +35,7 @@ from threadedcomments.models import ThreadedComment
 from models import *
 from forms import *
 from profiles.models import UserProfile
-from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benefits, validate_form
+from shortcuts import render_to_geojson, get_pt_or_bbox, validate_form
 
 from registration.signals import user_activated
 from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
@@ -242,7 +242,7 @@ def plot_location_search(request):
 
     if max_plots > 500: max_plots = 500
 
-    orig_trees, orig_plots, geog_obj, tile_query = _build_tree_search_result(request, False)
+    orig_trees, orig_plots, geog_obj, agg_object, tile_query = _build_tree_search_result(request, False)
     
     if geom.geom_type == 'Point':
         orig_plots = orig_plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
@@ -1411,6 +1411,7 @@ def _build_tree_search_result(request, with_benefits=True):
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
     
+    #TODO: get rid of geography coordinates, they don't do anything anymore
     geog_obj = None
     if 'location' in request.GET:
         loc = request.GET['location']
@@ -1501,6 +1502,7 @@ def _build_tree_search_result(request, with_benefits=True):
 
     missing_powerlines = request.GET.get("missing_powerlines", '')
     if missing_powerlines:
+        #TODO: make the 'unknown' choice more dynamic. It might not be there at all for a particular instance.
         trees = trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
         plots = plots.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
         tile_query.append("(powerline_conflict_potential = 3 OR powerline_conflict_potential IS NULL)")
@@ -1577,7 +1579,7 @@ def _build_tree_search_result(request, with_benefits=True):
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
         plots = plots.filter(tree__dbh__gte=min)
-        if max != 50: # TODO: Hardcoded in UI, may need to change
+        if max != 50: # TODO: Hardcoded in UI, shouldn't be
             trees = trees.filter(dbh__lte=max)
             plots = plots.filter(tree__dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
@@ -1651,7 +1653,7 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(tree__date_planted__gte=min, tree__date_planted__lte=max)
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
 
-        
+    #TODO: remove cultivar as a criteria
     species_criteria = {'species' : 'id',
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
@@ -1671,7 +1673,8 @@ def _build_tree_search_result(request, with_benefits=True):
                 species = species.filter(**{attrib:v})
                 
         cur_species_count = species.count()
-
+        #TODO: This returns wrong behavior if all species in the database are 
+        #      legitimately returned by the criteria above 
         if max_species_count != cur_species_count:
             trees = trees.filter(species__in=species)
             plots = plots.filter(tree__species__in=species)
@@ -1731,32 +1734,35 @@ def _build_tree_search_result(request, with_benefits=True):
 
         trees = Tree.objects.filter(present=True).filter(plot__in=plots)
         
-        
-
-    if with_benefits and not geog_obj:
+    agg_object = None
+    
+    if with_benefits:        
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
-            geog_obj = cached_search_agg[0]
+            agg_object = cached_search_agg[0]
         else:
-            geog_obj = AggregateSearchResult(key=q)
-            geog_obj.total_trees = trees.count()
-            geog_obj.total_plots = plots.count()
-            #TODO figure out how to summarize diff stratum stuff
-            fields = [x.name for x in ResourceSummaryModel._meta.fields 
-                if not x.name in ['id','aggregatesummarymodel_ptr','key','resourcesummarymodel_ptr','last_updated']]
+            fields = [x.name for x in ResourceSummaryModel._meta.fields if not x.name in ['id','aggregatesummarymodel_ptr','key','resourcesummarymodel_ptr','last_updated']]
+            with_out_resources = trees.filter(treeresource=None).count() 
+            with_resources = trees.count() - with_out_resources        
+
+            agg_object = AggregateSearchResult(key=q)
+            agg_object.total_trees = trees.count()
+            agg_object.total_plots = plots.count()
             for f in fields:
-                    fn = 'treeresource__' + f
-                    s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-                    #print geog_obj,f,s
-                    setattr(geog_obj,f,s)
+                fn = 'treeresource__' + f
+                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+                if settings.EXTRAPOLATE_WITH_AVERAGE and with_resources > 0:
+                    avg = float(s)/with_resources
+                    s += avg * with_out_resources
+                setattr(agg_object,f,s)
             try:
-                geog_obj.save()
+                agg_object.save()
             except:
                 # another thread has already likely saved the same object...
                 pass
     
-    return trees, plots, geog_obj, ' AND '.join(tile_query)
+    return trees, plots, geog_obj, agg_object, ' AND '.join(tile_query)
 
 
 
@@ -1881,19 +1887,11 @@ def geo_search(request):
 
 def advanced_search(request, format='json'):
     """
-    urlparams:
-     - location
-     - geoName if zip or neighborhood found
-     - species
-     # todo:  lat/lng (should be separate from search location 
-     # what type of geography to return in case of zero or too many trees)
-    return either
-     - trees and associated summaries
-     - neighborhood or zipcode and associated   summaries
+        formats: json (default), geojson, shp, kml, csv
     """  
     response = {}
 
-    trees, plots, geog_obj, tile_query = _build_tree_search_result(request, True)
+    trees, plots, geog_object, agg_object, tile_query = _build_tree_search_result(request, True)
     tree_count = trees.count()
     plot_count = plots.count()
     if tree_count == 0:
@@ -1905,52 +1903,33 @@ def advanced_search(request, format='json'):
     else: 
         plot_query = str(plots.query)
 
-    if format == "geojson":    
-        return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': esj})
-    elif format == "shp":
+    if format == "shp":
         return ogr_conversion('ESRI Shapefile', tree_query, plot_query)
     elif format == "kml":
         return ogr_conversion('KML', tree_query, plot_query, 'kml')
     elif format == "csv":
         return ogr_conversion('CSV', tree_query, plot_query)
         
-        
-    geography = None
-    summaries, benefits = None, None
-    if geog_obj:
-        summaries, benefits = get_summaries_and_benefits(geog_obj)
-        if hasattr(geog_obj, 'geometry'):
-            geography = simplejson.loads(geog_obj.geometry.simplify(.0001).geojson)
-            geography['name'] = str(geog_obj)
-        
-    #else we're doing the simple json route .. ensure we return summary info
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
-    esj = {}
-    esj['total_trees'] = tree_count
-    esj['total_plots'] = plot_count
-    
-    r = ResourceSummaryModel()
-    
-    with_out_resources = trees.filter(treeresource=None).count() 
-    resources = tree_count - with_out_resources
+        
+    summaries, benefits = {}, {}
+    if agg_object:
+        benefits = agg_object.get_benefits()
+        for field in agg_object._meta.get_all_field_names():
+            if field.startswith('total') or field.startswith('annual'):
+                summaries[field] = getattr(agg_object, field)
 
-    for f in r._meta.get_all_field_names():
-        if f.startswith('total') or f.startswith('annual'):
-            fn = 'treeresource__' + f
-            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-            # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
-            # which is also a location where summaries are calculated
-            # also add likely to treemap/update_aggregates.py (not really sure how this works)
-            if settings.EXTRAPOLATE_WITH_AVERAGE and resources:
-                avg = float(s)/resources
-                s += avg * with_out_resources
-                    
-            setattr(r,f,s)
-            esj[f] = s
-    esj['benefits'] = r.get_benefits()
-    
-    response.update({'tile_query' : tile_query, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
+    if format == "geojson":     #still used anywhere? 
+        return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': summaries, 'benefits': benefits})
+
+    geography = None
+    if geog_object:
+        if hasattr(geog_object, 'geometry'):
+            geography = simplejson.loads(geog_object.geometry.simplify(.0001).geojson)
+            geography['name'] = str(geog_object)
+        
+    response.update({'tile_query' : tile_query, 'summaries' : summaries, 'benefits': benefits, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
     return render_to_json(response)
 
     

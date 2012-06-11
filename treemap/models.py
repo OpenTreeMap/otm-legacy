@@ -1139,17 +1139,12 @@ class AggregateSummaryModel(ResourceSummaryModel):
     total_plots = models.IntegerField()
     #distinct_species = models.IntegerField()
 
-    def ensure_recent(self, current_tree_count = ''):
-      if current_tree_count and current_tree_count == self.total_trees:
-          tm = True
-      else:
-          tm = False
-
-      if tm and (datetime.now() - self.last_updated).seconds < 7200: #two hrs
+    def ensure_recent(self, current_tree_count = 0):
+      if current_tree_count == self.total_trees and (datetime.now() - self.last_updated).seconds < 7200:
           return True
-      else:
-          self.delete()
-          return False
+      
+      self.delete()
+      return False
 
 # to cache large searches via GET params
 class AggregateSearchResult(AggregateSummaryModel):

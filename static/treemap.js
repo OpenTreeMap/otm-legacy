@@ -161,7 +161,6 @@ tm = {
             }
         });
 
-        tm.display_benefits(summaries.benefits);
     },
         
     display_search_results : function(results){
@@ -169,7 +168,10 @@ tm = {
         $('#displayResults').hide();
         if (results) {
             tm.display_summaries(results.summaries);
-            
+            tm.display_benefits(results.benefits);
+
+            tm.tree_layer.setVisibility(false);
+
             if (results.initial_tree_count != results.full_tree_count && !(results.summaries.total_trees == 0 && results.summaries.total_plots == 0)) {
                 if (results.featureids) {
                     var cql = results.featureids;
@@ -188,14 +190,8 @@ tm = {
                         tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
                     }
                     tm.tree_layer.setVisibility(true);     
-                }    
-                else {
-                    tm.tree_layer.setVisibility(false);
-                }                
-            }            
-            else {
-                tm.tree_layer.setVisibility(false);
-            }
+                }             
+            }  
 
             if (results.geography) {
                 var geog = results.geography;

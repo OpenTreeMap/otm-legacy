@@ -29,7 +29,9 @@ urlpatterns = patterns('',
     (r'^zipcodes/$', zips),
     (r'^zipcodes/(?P<id>\d+)/$', zips),
 
-    (r'^update/$', object_update),
+    (r'^update/$', get_choices),
+
+    (r'^choices/$', object_update),
 
     url(r'^plots/(?P<plot_id>\d+)/$', plot_detail, name="treemap_plot_detail"),
     (r'^plots/(?P<plot_id>\d+)/addtree/$', plot_add_tree),
