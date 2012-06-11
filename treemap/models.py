@@ -989,6 +989,9 @@ class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
     performed_date = models.DateTimeField()
 
+    class Meta:
+        ordering = ["performed_date"]
+
 class TreeStewardship(Stewardship):
     activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
     tree = models.ForeignKey(Tree)

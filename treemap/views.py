@@ -171,6 +171,15 @@ def get_reverse_geocode(request):
         js["error"] = "No point specified"
     return render_to_json(js)
 
+def get_choices(request):
+    choices_list = {}
+    choices_obj = Choices()
+    choice_fields = Choices.objects.values_list('field', flat=True).distinct() 
+    for ch in choice_fields:
+        choices_list[ch] = choices_obj.get_field_choices(ch)
+
+    return render_to_json(choices_list)
+
 #@cache_page(60*1)
 def result_map(request):
     # get enviro attributes for 'selected' trees

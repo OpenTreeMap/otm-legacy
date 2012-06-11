@@ -22,6 +22,12 @@ tm.buildLocationList = function() {
     });
 };
 
+tm.getChoicesList = function() {
+    $.getJSON(tm_static + 'choices/', function(choices) {
+        tm.choices = choices;
+    });
+}
+
 tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
     tm.init_map('results_map');
 
@@ -294,6 +300,7 @@ tm.generateSpeciesDropdown = function(speciesData) {
 tm.baseTemplatePageLoad = function() {
     tm.buildSpeciesList();
     tm.buildLocationList();
+    tm.getChoicesList();
 
     var adv_active = false;
     $('#advanced').click(function() {
