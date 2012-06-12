@@ -786,15 +786,37 @@ def multi_status(request):
         ts.save()
     return HttpResponse("OK")    
 
+def get_tree_or_plot_pend_by_id(pend_id):
+    try:
+        pend = TreePending.objects.get(pk=pend_id)
+        model = 'Tree'
+    except TreePending.DoesNotExist:
+        pend = None
+        model = None
+
+    if not pend:
+        try:
+            pend = PlotPending.objects.get(pk=pend_id)
+            model = 'Plot'
+        except PlotPending.DoesNotExist:
+            pend = None
+            model = None
+
+    return pend, model
+
 @login_required
 def approve_pend(request, pend_id):
-    pend = TreePending.objects.get(pk=pend_id)
-    if not pend:
-        pend = PlotPending.objects.get(pk=pend_id)
+    pend, model = get_tree_or_plot_pend_by_id(pend_id)
+
     if not pend:
         raise Http404
+
     pend.approve(request.user)
-    Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
+    if model == 'Tree':
+        Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit tree', 5, pend.tree)
+    else: # model == 'Plot'
+        Reputation.objects.log_reputation_action(pend.submitted_by, pend.updated_by, 'edit plot', 5, pend.plot)
+
     return HttpResponse(
         simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -1138,10 +1160,10 @@ def object_update(request):
             )
 
 
-def create_pending_records(self, plot_base, plot_new_flds, user):
+def create_pending_records(plot_base, plot_new_flds, user):
     pends = []
     for fld, new_field_val in plot_new_flds.iteritems():
-        if getattr(plot_base, fld) is not new_fld_val:
+        if getattr(plot_base, fld) is not new_field_val:
             pend = PlotPending(plot=plot_base, field=fld, value=new_field_val, status='pending')
             pend.submitted_by = pend.updated_by = user
         

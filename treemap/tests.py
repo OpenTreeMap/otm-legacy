@@ -142,7 +142,19 @@ class ViewTests(TestCase):
             u.reputation.save()
 
         self.u = u
-        
+
+        # Amy is a bare-bones registered user with no permissions
+        amy_filter_results = User.objects.filter(username="amy")
+        if amy_filter_results:
+            self.amy = amy_filter_results[0]
+        else:
+            self.amy = User.objects.create_user("amy","amy@test.org","amy")
+            self.amy.is_staff = False
+            self.amy.is_superuser = False
+            self.amy.save()
+            up = UserProfile(user=self.amy)
+            self.amy.reputation = Reputation(user=self.amy)
+            self.amy.reputation.save()
 
         #######
         # Setup geometries -> Two stacked 100x100 squares
@@ -1160,6 +1172,7 @@ class ViewTests(TestCase):
         # -> parent - model/id the posted data should be added to
 
         c = self.client
+        c.login(username='amy',password='amy')
 
         p = self.p1_no_tree
         
@@ -1188,6 +1201,8 @@ class ViewTests(TestCase):
 
         p = Plot.objects.get(pk=p.pk)
 
+        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were not created')
+
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 100)
         self.assertEqual(p.length, 200)
@@ -1197,6 +1212,49 @@ class ViewTests(TestCase):
         self.assertEqual(p.address_street, "100 Beach St")
         self.assertEqual(p.address_city, "Philadelphia")
         self.assertEqual(p.address_zip, "19103")
+
+    def test_approve_plot_pending(self):
+        settings.PENDING_ON = True
+
+        p = self.p1_no_tree
+        p.width = 100
+        p.save()
+
+        c = self.client
+        c.login(username='amy', password='amy')
+
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "150"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        p = Plot.objects.get(pk=p.pk)
+        self.assertEqual(p.width, 100)
+
+        pend = p.get_active_pends()[0]
+
+        c.login(username='jim', password='jim')
+        response = c.post("/trees/pending/%s/approve/" % pend.pk)
+        self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
+
+    def test_need_permission_to_approve_pending(self):
+        settings.PENDING_ON = True
+
+        p = self.p1_no_tree
+        p.width = 100
+        p.save()
+
+        c = self.client
+        c.login(username='amy', password='amy')
+
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "150"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        p = Plot.objects.get(pk=p.pk)
+        self.assertEqual(p.width, 100)
+
+        pend = p.get_active_pends()[0]
+
+        response = c.post("/trees/pending/%s/approve/" % pend.pk)
+        self.assertEqual(response.status_code, 403, "The request should have returned 403 forbidden")
 
 ##################################################################
 # ogr conversion tests

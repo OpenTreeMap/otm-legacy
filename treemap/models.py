@@ -10,7 +10,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 
 import audit
 from classfaves.models import FavoriteBase
@@ -929,11 +929,17 @@ class Pending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
+        if not updating_user.has_perm('treemap.change_pending'):
+            raise PermissionDenied('%s cannot approve a pending edit because they do not have the treemap.change_pending permission' % updating_user.username)
+
         self.updated_by = updating_user
         self.status = 'approved'
         self.save()
 
     def reject(self, updating_user):
+        if not updating_user.has_perm('treemap.change_pending'):
+            raise PermissionDenied('%s cannot reject a pending edit because they do not have the treemap.change_pending permission' % updating_user.username)
+
         self.status = 'rejected'
         self.updated_by = updating_user
         self.save()
@@ -942,7 +948,7 @@ class TreePending(Pending):
     tree = models.ForeignKey(Tree)
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(TreePending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -959,7 +965,7 @@ class PlotPending(Pending):
     objects = models.GeoManager()
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(PlotPending, self).approve(updating_user)
         update = {}
         if self.geometry:
             update['old_geometry'] = self.plot.geometry
