@@ -716,6 +716,15 @@ class ViewTests(TestCase):
         assert_counts(trees.count(), plots.count(), req)
         self.assertTrue('date_planted' in req['tile_query'])
 
+        local_list = [1, 2]
+        response = self.client.get("/search/?local_project1=true&local_project2=true")
+        req = loads(response.content)  
+        trees = present_trees.filter(treeflags__key__in=local_list)
+        plots = present_plots.filter(tree__treeflags__key__in=local_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('projects' in req['tile_query'])
+
         tree_stewardship_list = [1,2]
         response = self.client.get("/search/?tree_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=true" % (tree_stewardship_list[0], tree_stewardship_list[1], qs_date_min, qs_date_max) )
         req = loads(response.content)                
@@ -862,8 +871,8 @@ class ViewTests(TestCase):
 
         response = self.client.get("/search/?missing_powerlines=true")
         req = loads(response.content)                
-        trees = present_trees.filter(Q(plot__powerline_conflict_potential__isnull=True) | Q(plot__powerline_conflict_potential=3))
-        plots = present_plots.filter(Q(powerline_conflict_potential__isnull=True) | Q(powerline_conflict_potential=3))
+        trees = present_trees.filter(plot__powerline_conflict_potential__isnull=True)
+        plots = present_plots.filter(powerline_conflict_potential__isnull=True)
 
         assert_counts(trees.count(), plots.count(), req)
         self.assertTrue('powerline_conflict_potential' in req['tile_query'])
