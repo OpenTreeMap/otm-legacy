@@ -123,6 +123,10 @@ class Authentication(TestCase):
         self.u.set_password("password")
         self.u.save()
 
+        amy = User.objects.get(username="amy")
+        amy.set_password("password")
+        amy.save()
+
         self.sign = create_signer_dict(self.u)
 
     def test_401(self):
@@ -143,7 +147,25 @@ class Authentication(TestCase):
 
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
-        
+
+    def test_includes_permissions(self):
+        amy = User.objects.get(username="amy")
+        self.assertEqual(len(amy.user_permissions.all()), 0, 'Expected the test setUp to create user "amy" with no permissions')
+
+        amy.user_permissions.add(P.objects.get(codename="delete_tree"))
+        amy.save()
+        amys_perm_count = len(amy.user_permissions.all())
+
+        auth = base64.b64encode("amy:password")
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 200, "Authentication failed so testing for permissions is blocked")
+        self.assertIsNotNone(ret.content, "Response had no content so testing for permissions is blocked")
+        content_dict = loads(ret.content)
+        self.assertTrue('permissions' in content_dict, "The response did not contain a permissions attribute")
+        self.assertEqual(amys_perm_count, len(content_dict['permissions']))
+        self.assertTrue('treemap.delete_tree' in content_dict['permissions'], 'The "delete_tree" permission was not in the permissions list for the test user.')
 
     def tearDown(self):
         teardownTreemapEnv()

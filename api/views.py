@@ -692,7 +692,8 @@ def user_to_dict(user):
         "lastname": user.last_name,
         "email": user.email,
         "zipcode": UserProfile.objects.get(user__pk=user.pk).zip_code,
-        "reputation": Reputation.objects.reputation_for_user(user).reputation
+        "reputation": Reputation.objects.reputation_for_user(user).reputation,
+        "permissions": list(user.get_all_permissions())
         }
 
 
