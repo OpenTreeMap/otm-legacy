@@ -10,6 +10,7 @@ import subprocess
 from operator import itemgetter, attrgetter
 from itertools import chain
 import simplejson 
+from functools import wraps
 
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
@@ -26,6 +27,8 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Count, Sum, Q, Min, Max
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
+from django.utils.decorators import available_attrs
+from django.core.exceptions import PermissionDenied
 # formsets
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
@@ -87,6 +90,22 @@ def static(request, template, subdir="treemap"):
         template = os.path.join(subdir, template)
     return render_to_response(template, RequestContext(request,{}))
 
+def permission_required_or_403_forbidden(perm):
+    """
+    Decorator for views that checks that the user has the specified permission
+    and raises a PermissionDenied exception if they do not, which Django coverts
+    to a 403 HTTP response.
+    """
+
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def _wrapped_view(request, *args, **kwargs):
+            if request.user.has_perm(perm):
+                return view_func(request, *args, **kwargs)
+            else:
+                raise PermissionDenied('%s cannot access this view because they do not have the %s permission' % (request.user.username, perm))
+        return _wrapped_view
+    return decorator
 
 def location_map(request):
     pass
@@ -805,6 +824,7 @@ def get_tree_or_plot_pend_by_id(pend_id):
     return pend, model
 
 @login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
 def approve_pend(request, pend_id):
     pend, model = get_tree_or_plot_pend_by_id(pend_id)
 
@@ -823,6 +843,7 @@ def approve_pend(request, pend_id):
     ) 
 
 @login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
 def reject_pend(request, pend_id):
     pend = TreePending.objects.get(pk=pend_id)
     if not pend:

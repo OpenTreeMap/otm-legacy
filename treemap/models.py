@@ -929,17 +929,11 @@ class Pending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
-        if not updating_user.has_perm('treemap.change_pending'):
-            raise PermissionDenied('%s cannot approve a pending edit because they do not have the treemap.change_pending permission' % updating_user.username)
-
         self.updated_by = updating_user
         self.status = 'approved'
         self.save()
 
     def reject(self, updating_user):
-        if not updating_user.has_perm('treemap.change_pending'):
-            raise PermissionDenied('%s cannot reject a pending edit because they do not have the treemap.change_pending permission' % updating_user.username)
-
         self.status = 'rejected'
         self.updated_by = updating_user
         self.save()
