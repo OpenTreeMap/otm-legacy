@@ -390,7 +390,7 @@ class PlotLocateManager(models.GeoManager):
 
     def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
                       native=None, flowering=None, fall=None, edible=None,
-                      dbhmin=None, dbhmax=None, species=None):
+                      dbhmin=None, dbhmax=None, species=None, sort_recent=None):
         '''
         Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
         '''
@@ -442,6 +442,9 @@ class PlotLocateManager(models.GeoManager):
 
         if plots.count() > 0:
             plots = plots[:max_plots]
+
+        if sort_recent:
+            plots = plots.order_by('-last_updated')
 
         return plots, extent
 
@@ -830,6 +833,9 @@ class Tree(models.Model):
             self.species.save()
 
         super(Tree, self).save(*args,**kwargs) 
+
+        self.plot.last_updated = self.last_updated
+        self.plot.save()
           
     
     def quick_save(self,*args,**kwargs):
@@ -840,6 +846,9 @@ class Tree(models.Model):
             self.old_species.save()
         if hasattr(self,'species') and self.species:
             self.species.save()
+
+        self.plot.last_updated = self.last_updated
+        self.plot.save()
     
     def update_aggregate(self, ag_model, location):        
         agg =  ag_model.objects.filter(location=location)
