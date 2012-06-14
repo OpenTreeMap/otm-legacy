@@ -440,11 +440,11 @@ class PlotLocateManager(models.GeoManager):
         if dbhmax is not None:
             plots = plots.filter(tree__dbh__gte=dbhmax)
 
-        if plots.count() > 0:
-            plots = plots[:max_plots]
-
         if sort_recent:
             plots = plots.order_by('-last_updated')
+
+        if plots.count() > 0:
+            plots = plots[:max_plots]
 
         return plots, extent
 
