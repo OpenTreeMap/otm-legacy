@@ -564,8 +564,8 @@ def plots_closest_to_point(request, lat=None, lon=None):
                                               edible=str2bool(request.GET,'filter_edible'),
                                               dbhmin=request.GET.get("filter_dbh_min",None),
                                               dbhmax=request.GET.get("filter_dbh_max",None),
-                                              species=request.GET.get("filter_species",None,
-                                              sort_recent=sort_recent))
+                                              species=request.GET.get("filter_species",None),
+                                              sort_recent=sort_recent)
 
     return plots_to_list_of_dict(plots, longform=True)
 
