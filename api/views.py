@@ -518,7 +518,8 @@ def get_plot_list(request):
     size = min(int(request.REQUEST.get("size", "100")), 10000)
     end = size + start
 
-    plots = Plot.objects.filter(present=True)[start:end]
+    # order_by prevents testing weirdness
+    plots = Plot.objects.filter(present=True).order_by('id')[start:end]
 
     return plots_to_list_of_dict(plots)
 
