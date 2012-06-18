@@ -471,8 +471,45 @@ class ManagementMixin(object):
             return True
     was_created_by_a_manager = property(_was_created_by_a_manager)
 
+class PendingMixin(object):
+    """
+    Methods that relate to pending edit management for either Tree or Plot models
+    """
 
-class Plot(models.Model, ManagementMixin):
+    def get_active_pends(self):
+        raise Exception('PendingMixin expects subclasses to implement get_active_pends')
+
+    def get_active_pend_dictionary(self):
+        """
+        Create a dictionary of active pends keyed by field name.
+
+        {
+          'field1': {
+            'latest_value': 4,
+            'pends': [
+              <Pending>,
+              <Pending>
+            ]
+          },
+          'field2': {
+            'latest_value': 'oak',
+            'pends': [
+              <Pending>
+            ]
+          }
+        }
+        """
+        pends = self.get_active_pends().order_by('-submitted')
+
+        result = {}
+        for pend in pends:
+            if pend.field in result:
+                result[pend.field]['pends'].append(pend)
+            else:
+                result[pend.field] = {'latest_value': pend.value, 'pends': [pend]}
+        return result
+
+class Plot(models.Model, ManagementMixin, PendingMixin):
     present = models.BooleanField(default=True)
     width = models.FloatField(null=True, blank=True)
     length = models.FloatField(null=True, blank=True)
@@ -690,7 +727,7 @@ class Plot(models.Model, ManagementMixin):
             return (nearby.count()-max_count).__str__() #number greater than max_count allows
         return None
 
-class Tree(models.Model, ManagementMixin):
+class Tree(models.Model, ManagementMixin, PendingMixin):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
     #owner properties based on wiki/DatabaseQuestions

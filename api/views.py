@@ -579,6 +579,14 @@ def str2bool(ahash, akey):
 def plots_to_list_of_dict(plots,longform=False):
     return [plot_to_dict(plot,longform=longform) for plot in plots]
 
+def pending_to_dict(pend):
+    return {
+        'id': pend.pk,
+        'submitted': str(pend.submitted),
+        'value': pend.value,
+        'username': pend.submitted_by.username
+    }
+
 def plot_to_dict(plot,longform=False):
     current_tree = plot.current_tree()
     if current_tree:
@@ -625,6 +633,13 @@ def plot_to_dict(plot,longform=False):
             tree_dict['canopy_condition'] = current_tree.canopy_condition
             tree_dict['readonly'] = current_tree.readonly
 
+            if settings.PENDING_ON:
+                tree_dict['pending'] = {}
+                for field_name, detail in current_tree.get_active_pend_dictionary().items():
+                    tree_dict['pending'][field_name] = {'latest_value': detail['latest_value'], 'pends': []}
+                    for pend in detail['pends']:
+                        tree_dict['pending'][field_name]['pends'].append(pending_to_dict(pend))
+
     else:
         tree_dict = None
 
@@ -657,6 +672,13 @@ def plot_to_dict(plot,longform=False):
 
         if plot.last_updated_by:
             base['last_updated_by'] = plot.last_updated_by.username
+
+        if settings.PENDING_ON:
+            base['pending'] = {}
+            for field_name, detail in plot.get_active_pend_dictionary().items():
+                base['pending'][field_name] = {'latest_value': detail['latest_value'], 'pends': []}
+                for pend in detail['pends']:
+                    base['pending'][field_name]['pends'].append(pending_to_dict(pend))
 
     return base
 
