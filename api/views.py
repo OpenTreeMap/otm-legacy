@@ -13,7 +13,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource
+from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
@@ -848,26 +848,43 @@ def update_plot_and_tree(request, plot_id):
     # keys and model field names
     plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length', 'power_lines': 'powerline_conflict_potential'}
 
+    # The 'auth.change_user' permission is a proxy for 'is the user a manager'
+    user_is_not_a_manager = not request.user.has_perm('auth.change_user')
+    should_create_plot_pends = settings.PENDING_ON and plot.was_created_by_a_manager and user_is_not_a_manager
+
     plot_was_edited = False
     for plot_field_name in request_dict.keys():
         if plot_field_name in plot_field_whitelist:
             if plot_field_name in plot_field_property_name_dict:
-                setattr(plot, plot_field_property_name_dict[plot_field_name], request_dict[plot_field_name])
+                new_name = plot_field_property_name_dict[plot_field_name]
             else:
-                setattr(plot, plot_field_name, request_dict[plot_field_name])
-            plot_was_edited = True
-
-    if 'lat' in request_dict:
-        plot.geometry.y = request_dict['lat']
-        plot_was_edited = True
+                new_name = plot_field_name
+            new_value = request_dict[plot_field_name]
+            if should_create_plot_pends:
+                plot_pend = PlotPending(plot=plot)
+                plot_pend.set_create_attributes(request.user, new_name, new_value)
+                plot_pend.save()
+            else:
+                setattr(plot, new_name, new_value)
+                plot_was_edited = True
 
     # TODO: Standardize on lon or lng
-    if 'lng' in request_dict:
-        plot.geometry.x = request_dict['lng']
-        plot_was_edited = True
-    if 'lon' in request_dict:
-        plot.geometry.x = request_dict['lon']
-        plot_was_edited = True
+    if 'lat' in request_dict or 'lon' in request_dict or 'lng' in request_dict:
+        new_geometry = Point(x=plot.geometry.x, y=plot.geometry.y)
+        if 'lat' in request_dict:
+            new_geometry.y = request_dict['lat']
+        if 'lng' in request_dict:
+            new_geometry.x = request_dict['lng']
+        if 'lon' in request_dict:
+            new_geometry.x = request_dict['lon']
+
+        if should_create_plot_pends:
+            plot_pend = PlotPending(plot=plot)
+            plot_pend.set_create_attributes(request.user, 'geometry', new_geometry)
+            plot_pend.save()
+        else:
+            plot.geometry = new_geometry
+            plot_was_edited = True
 
     if plot_was_edited:
         plot.last_updated = datetime.datetime.now()
@@ -879,6 +896,12 @@ def update_plot_and_tree(request, plot_id):
     tree_was_added = False
     tree = plot.current_tree()
     tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition']
+
+    if tree is None:
+        should_create_tree_pends = False
+    else:
+        should_create_tree_pends = settings.PENDING_ON and tree.was_created_by_a_manager and user_is_not_a_manager
+
     for tree_field in Tree._meta.fields:
         if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
             if tree is None:
@@ -890,14 +913,25 @@ def update_plot_and_tree(request, plot_id):
                 tree_was_added = True
             if tree_field.name == 'species':
                 try:
-                    tree.species = Species.objects.get(pk=request_dict[tree_field.name])
+                    if should_create_tree_pends:
+                        tree_pend = TreePending(tree=tree)
+                        tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
+                        tree_pend.save()
+                    else:
+                        tree.species = Species.objects.get(pk=request_dict[tree_field.name])
+                        tree_was_edited = True
                 except Exception:
                     response.status_code = 400
                     response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
-            else:
-                setattr(tree, tree_field.name, request_dict[tree_field.name])
-            tree_was_edited = True
+            else: # tree_field.name != 'species'
+                if should_create_tree_pends:
+                    tree_pend = TreePending(tree=tree)
+                    tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
+                    tree_pend.save()
+                else:
+                    setattr(tree, tree_field.name, request_dict[tree_field.name])
+                    tree_was_edited = True
 
     if tree_was_edited:
         tree.last_updated = datetime.datetime.now()

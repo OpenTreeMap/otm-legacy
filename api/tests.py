@@ -16,7 +16,7 @@ from django.conf import settings
 from urlparse import urlparse
 import urllib
 from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from treemap.models import Choices, Species, Plot, Tree
+from treemap.models import Choices, Species, Plot, Tree, Pending, TreePending, PlotPending
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException
@@ -590,6 +590,7 @@ class CreatePlotAndTree(TestCase):
 class UpdatePlotAndTree(TestCase):
     def setUp(self):
         setupTreemapEnv()
+        settings.PENDING_ON = False
 
         self.user = User.objects.get(username="jim")
         self.user.set_password("password")
@@ -597,6 +598,13 @@ class UpdatePlotAndTree(TestCase):
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        self.public_user = User.objects.get(username="amy")
+        self.public_user.set_password("password")
+        self.public_user.save()
+        self.public_user_sign = create_signer_dict(self.public_user)
+        public_user_auth = base64.b64encode("amy:password")
+        self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
 
     def test_invalid_plot_id_returns_400_and_a_json_error(self):
         response = put_json( "%s/plots/0"  % API_PFX, {}, self.client, self.sign)
@@ -631,6 +639,37 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual('bar', response_json['address'])
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
+    def test_update_plot_with_pending(self):
+        settings.PENDING_ON = True
+        test_plot = mkPlot(self.user)
+        test_plot.width = 1
+        test_plot.length = 2
+        test_plot.geocoded_address = 'foo'
+        test_plot.save()
+        self.assertEqual(50, test_plot.geometry.x)
+        self.assertEqual(50, test_plot.geometry.y)
+        self.assertEqual(1, test_plot.width)
+        self.assertEqual(2, test_plot.length)
+        self.assertEqual('foo', test_plot.geocoded_address)
+        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+
+        reputation_count = UserReputationAction.objects.count()
+
+        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'plot_width': 11, 'plot_length': 22, 'geocoded_address': 'bar'}
+        # Send the edit request as a public user
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(200, response.status_code)
+
+        # Assert that nothing has changed. Pends should have been created instead
+        response_json = loads(response.content)
+        self.assertEqual(50, response_json['geometry']['lat'])
+        self.assertEqual(50, response_json['geometry']['lng'])
+        self.assertEqual(1, response_json['plot_width'])
+        self.assertEqual(2, response_json['plot_length'])
+        self.assertEqual('foo', response_json['address'])
+        self.assertEqual(reputation_count, UserReputationAction.objects.count())
+        self.assertEqual(4, len(PlotPending.objects.all()), "Expected 4 pends, one for each edited field")
+
     def test_invalid_field_returns_200_field_is_not_in_response(self):
         test_plot = mkPlot(self.user)
         updated_values = {'foo': 'bar'}
@@ -651,6 +690,21 @@ class UpdatePlotAndTree(TestCase):
         self.assertIsNotNone(tree)
         self.assertEqual(1.2, tree.dbh)
 
+    def test_update_creates_tree_with_pending(self):
+        settings.PENDING_ON = True
+        test_plot = mkPlot(self.user)
+        test_plot_id = test_plot.id
+        self.assertIsNone(test_plot.current_tree())
+        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+
+        updated_values = {'tree': {'dbh': 1.2}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, len(Pending.objects.all()), "Expected a new tree to be created, rather than creating pends")
+        tree = Plot.objects.get(pk=test_plot_id).current_tree()
+        self.assertIsNotNone(tree)
+        self.assertEqual(1.2, tree.dbh)
+
     def test_update_tree(self):
         test_plot = mkPlot(self.user)
         test_tree = mkTree(self.user, plot=test_plot)
@@ -664,6 +718,25 @@ class UpdatePlotAndTree(TestCase):
         tree = Tree.objects.get(pk=test_tree_id)
         self.assertIsNotNone(tree)
         self.assertEqual(3.9, tree.dbh)
+
+    def test_update_tree_with_pending(self):
+        settings.PENDING_ON = True
+
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.dbh = 2.3
+        test_tree.save()
+
+        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+
+        updated_values = {'tree': {'dbh': 3.9}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(2.3, tree.dbh, "A pend should have been created instead of editing the tree value.")
+        self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
 
     def test_update_tree_species(self):
         test_plot = mkPlot(self.user)

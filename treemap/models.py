@@ -448,7 +448,31 @@ class PlotLocateManager(models.GeoManager):
 
         return plots, extent
 
-class Plot(models.Model):
+class ManagementMixin(object):
+    """
+    Methods that relate to checking editabilty, usable in either Tree or Plot models
+    """
+    def _created_by(self):
+        insert_events = self.history.filter(_audit_change_type='I')
+        if len(insert_events) > 0:
+            return None
+        else:
+            # The 'auth.change_user' permission is a proxy for 'is the user a manager'
+            return insert_events[0].last_updated_by
+    created_by = property(_created_by)
+
+    def _was_created_by_a_manager(self):
+        if self.created_by:
+            return self.created_by.has_perm('auth.change_user')
+        else:
+            # If created_by is None, the author of the instance could not be
+            # determined (bulk loaded data, perhaps). In this case we assume, for
+            # for safety, that the instance was created by a manager
+            return True
+    was_created_by_a_manager = property(_was_created_by_a_manager)
+
+
+class Plot(models.Model, ManagementMixin):
     present = models.BooleanField(default=True)
     width = models.FloatField(null=True, blank=True)
     length = models.FloatField(null=True, blank=True)
@@ -666,7 +690,7 @@ class Plot(models.Model):
             return (nearby.count()-max_count).__str__() #number greater than max_count allows
         return None
 
-class Tree(models.Model):
+class Tree(models.Model, ManagementMixin):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
     #owner properties based on wiki/DatabaseQuestions
@@ -990,6 +1014,18 @@ class Pending(models.Model):
     updated = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
+    def set_create_attributes(self, user, field_name, field_value):
+        self.field = field_name
+        self.value = field_value
+        self.submitted_by = user
+        self.status = 'pending'
+        self.updated_by = user
+
+        for choice_key, choice_value in Choices().get_field_choices(field_name):
+            if str(choice_key) == str(field_value):
+                self.text_value = choice_value
+                break
+
     def approve(self, updating_user):
         self.updated_by = updating_user
         self.status = 'approved'
@@ -1004,7 +1040,7 @@ class TreePending(Pending):
     tree = models.ForeignKey(Tree)
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(TreePending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -1014,6 +1050,11 @@ class TreePending(Pending):
         self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
 
+    def set_create_attributes(self, user, field_name, field_value):
+        super(TreePending, self).set_create_attributes(user, field_name, field_value)
+        if field_name == 'species_id':
+            self.text_value = Species.objects.get(id=field_value).scientific_name
+
 class PlotPending(Pending):
     plot = models.ForeignKey(Plot)
 
@@ -1021,7 +1062,7 @@ class PlotPending(Pending):
     objects = models.GeoManager()
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(PlotPending, self).approve(updating_user)
         update = {}
         if self.geometry:
             update['old_geometry'] = self.plot.geometry
@@ -1035,7 +1076,14 @@ class PlotPending(Pending):
         self.plot.last_updated_by = self.submitted_by
         self.plot._audit_diff = simplejson.dumps(update)
         self.plot.save()
-    
+
+    def set_create_attributes(self, user, field_name, field_value):
+        super(PlotPending, self).set_create_attributes(user, field_name, field_value)
+        if field_name == 'geometry':
+            self.geometry = field_value
+        else:
+            # Omit the geometry so that PlotPending.approve will use the text value
+            self.geometry = None
 
 class TreeWatch(models.Model):
     key = models.CharField(max_length=255, choices=watch_choices.iteritems())
