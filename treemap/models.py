@@ -10,7 +10,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 
 import audit
 from classfaves.models import FavoriteBase
@@ -511,8 +511,8 @@ class PendingMixin(object):
 
 class Plot(models.Model, ManagementMixin, PendingMixin):
     present = models.BooleanField(default=True)
-    width = models.FloatField(null=True, blank=True)
-    length = models.FloatField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
+    length = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
     powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
         help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
@@ -547,6 +547,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
     #original data to help owners associate back to their own db
     data_owner = models.ForeignKey(User, related_name="owner", null=True, blank=True)
     owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    owner_additional_id = models.CharField(max_length=255, null=True, blank=True)
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
     readonly = models.BooleanField(default=False)
@@ -588,6 +589,10 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
                 return value
         return None
 
+
+    def get_stewardship_count(self):
+        return len(self.plotstewardship_set.all())
+        
     def current_tree(self):
         trees = Tree.objects.filter(present=True, plot=self)
         if len(trees) > 0:
@@ -742,8 +747,8 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
     species_other2 = models.CharField(max_length=255, null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
-    height = models.FloatField(null=True, blank=True)
-    canopy_height = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
+    canopy_height = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
     present = models.BooleanField(default=True)
@@ -813,6 +818,9 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         
     def get_flag_count(self):
         return len(self.treeflags_set.all())
+
+    def get_stewardship_count(self):
+        return len(self.treestewardship_set.all())
         
     def get_active_pends(self):
         pends = self.treepending_set.filter(status='pending')
@@ -1134,7 +1142,10 @@ class TreeFavorite(FavoriteBase):
 
 class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
-    performed_date = models.DateTimeField(auto_now=True)
+    performed_date = models.DateTimeField()
+
+    class Meta:
+        ordering = ["performed_date"]
 
 class TreeStewardship(Stewardship):
     activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
@@ -1184,12 +1195,6 @@ class TreeFlags(TreeItem):
     key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
     value = models.DateTimeField(auto_now=True)
 
-    #def save(self,*args,**kwargs):
-    #   print "save flag"
-    #    super(TreeFlags, self).save(*args,**kwargs) 
-    #    self.tree._audit_diff = '{"flag": "' + self.key + '"}'
-    #    print "save tree"
-    #    self.tree.save()
 
 class TreePhoto(TreeItem):
     def get_photo_path(instance, filename):
@@ -1203,6 +1208,12 @@ class TreePhoto(TreeItem):
 
     title = models.CharField(max_length=256,null=True,blank=True)
     photo = ImageField(upload_to=get_photo_path)
+
+    
+    def save(self,*args,**kwargs):
+        super(TreeItem, self).save(*args,**kwargs) 
+        self.tree._audit_diff = '{"new photo": "' + self.title + '"}'
+        self.tree.save()
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
@@ -1286,17 +1297,12 @@ class AggregateSummaryModel(ResourceSummaryModel):
     total_plots = models.IntegerField()
     #distinct_species = models.IntegerField()
 
-    def ensure_recent(self, current_tree_count = ''):
-      if current_tree_count and current_tree_count == self.total_trees:
-          tm = True
-      else:
-          tm = False
-
-      if tm and (datetime.now() - self.last_updated).seconds < 7200: #two hrs
+    def ensure_recent(self, current_tree_count = 0):
+      if current_tree_count == self.total_trees and (datetime.now() - self.last_updated).seconds < 7200:
           return True
-      else:
-          self.delete()
-          return False
+      
+      self.delete()
+      return False
 
 # to cache large searches via GET params
 class AggregateSearchResult(AggregateSummaryModel):

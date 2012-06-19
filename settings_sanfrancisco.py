@@ -4,7 +4,9 @@ SITE_LOCATION = 'SanFrancisco'
 PENDING_ON = False
 REGION_NAME = 'Greenprint'
 #local_settings
-GOOGLE_API_KEY = 'abcdf'
+
+API_KEY_GOOGLE_MAP = 'AIzaSyCI-d2nJPOKOJnatoN02r9_fan8ULt6TWI'
+API_KEY_GOOGLE_ANALYTICS = 'UA-13228685-1'
 
 COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
@@ -36,6 +38,8 @@ REPUTATION_SCORES = {
 # will be populated with layer name /trees/{layername} dynamically
 # in javascript depending on the google base layer being used
 TC_URL = 'http://tilecache.urbanforestmap.org/tiles/1.0.0/trees/'
+        
+EXTRAPOLATE_WITH_AVERAGE = True
 
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 

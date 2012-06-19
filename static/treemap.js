@@ -2,6 +2,7 @@ tm_icons = {
     //base folder for shadow and other icon specific stuff
     base_folder : tm_static + 'static/images/map_icons/v3/', 
     small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_plots : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7_plot.png",
     small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     focus_tree : tm_static + 'static/images/map_icons/v4/marker-selected.png',
     pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png', 
@@ -32,57 +33,6 @@ tm = {
     panoAddressControl: true,
 
     searchParams: {},
-
-    tree_columns_of_interest : {
-        'address_street' : true,
-        'id' : false,
-        'flowering' : true,
-        'species' : true,
-        'geocoded_address' : true,
-        'site_type' : true
-        },
-
-    hazardTypes: {
-        '1':'Needs watering',
-        '2':'Needs pruning',
-        '3':'Should be removed',
-        '4':'Pest or disease present',
-        '5':'Guard should be removed',
-        '6':'Stakes and ties should be removed',
-        '7':'Construction work in the vicinity',
-        '8':'Touching wires',
-        '9':'Blocking signs/traffic signals',
-        '10':'Has been improperly pruned/topped'
-    }, 
-
-    actionTypes: {
-         '1':'Tree has been watered',
-         '2':'Tree has been pruned',
-         '3':'Fruit/nuts have been harvested from this tree',
-         '4':'Tree has been removed',
-         '5':'Tree has been inspected'
-    },
-
-    localTypes: {
-        '1': 'Landmark Tree',
-        '2': 'Local Carbon Fund',
-        '3': 'Fruit Gleaning Project',
-        '4': 'Historically Significant Tree'
-    },
-   
-    localTreeActivities: {
-        '1': 'Watering',
-        '2': 'Pruning',
-        '3': 'Mulching, Adding Compost or Amending Soil',
-        '4': 'Removing Debris or Trash'
-    },
-    
-    localPlotActivities: {
-        '1': 'Enlarging the Planting Area',
-        '2': 'Adding a Guard',
-        '3': 'Removing a Guard',
-        '4': 'Herbaceous Planting'
-    },
 
     //initializes the map where a user places a new tree    
     get_icon: function(type, size) {
@@ -158,7 +108,6 @@ tm = {
             }
         });
 
-        tm.display_benefits(summaries.benefits);
     },
         
     display_search_results : function(results){
@@ -166,8 +115,11 @@ tm = {
         $('#displayResults').hide();
         if (results) {
             tm.display_summaries(results.summaries);
-            
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
+            tm.display_benefits(results.benefits);
+
+            tm.tree_layer.setVisibility(false);
+
+            if (results.initial_tree_count != results.full_tree_count && !(results.summaries.total_trees == 0 && results.summaries.total_plots == 0)) {
                 if (results.featureids) {
                     var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
@@ -185,14 +137,8 @@ tm = {
                         tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
                     }
                     tm.tree_layer.setVisibility(true);     
-                }    
-                else {
-                    tm.tree_layer.setVisibility(false);
-                }                
-            }            
-            else {
-                tm.tree_layer.setVisibility(false);
-            }
+                }             
+            }  
 
             if (results.geography) {
                 var geog = results.geography;
@@ -233,7 +179,7 @@ tm = {
         tm.trackEvent('Edit', 'Location', 'Save');
 
         tm.drag_control.activate();
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a>'
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation(tm.currentPlotId);
     },
@@ -321,11 +267,12 @@ tm = {
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },
 
-    addTreeStewardship: function(value, settings) {
+    addTreeStewardship: function(value, date, settings) {
         var data = {};
         var treeId = settings.objectId;
         
         data['activity'] = tm.coerceFromString(value)
+        data['performed_date'] = tm.coerceFromString(date)
 
         var jsonString = JSON.stringify(data);
         settings.obj = this;
@@ -354,11 +301,12 @@ tm = {
 
     },
 
-    addPlotStewardship: function(value, settings) {
+    addPlotStewardship: function(value, date, settings) {
         var data = {};
         var plotId = settings.objectId;
         
         data['activity'] = tm.coerceFromString(value)
+        data['performed_date'] = tm.coerceFromString(date)
 
         var jsonString = JSON.stringify(data);
         settings.obj = this;
@@ -415,6 +363,12 @@ tm = {
             $(this).addClass("error");
             return "Height is too large.";
         }
+
+        if (settings.fieldName == 'height' && isNaN(value)) { 
+            $(this).addClass("error");
+            return "Height must be a number.";
+        }
+
         
         if ($.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
             data['update']['value'] = value;
@@ -476,7 +430,8 @@ tm = {
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
     },       
 
-    updateEditableLocation: function(currentPlotId) {        
+    updateEditableLocation: function(currentPlotId) {                    
+        $("#edit_map_errors")[0].innerHTML = "Saving..."  
         var wkt = $('#id_geometry').val();
         var geoaddy = $("#id_geocode_address").val();
         var data = {
@@ -506,7 +461,7 @@ tm = {
 
                     if (newError.indexOf("exclusion zone") >= 0 &&
                         newError.indexOf("Geometry") >= 0) {
-                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the red areas.";
+                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the white areas.";
                     } else {
                         $("#edit_map_errors")[0].innerHTML = newError;
                     }
@@ -544,38 +499,38 @@ tm = {
     },
 
     newTreeActivity: function() {
-        return tm.createAttributeRow("treeActivityTypeSelection", tm.localTreeActivities, "treeActivityTable", 
+        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['treestewardship'], "treeActivityTable", 
                                      tm.handleNewTreeStewardship("treeActivityTypeSelection", 
                                                            "TreeStewardship",
                                                            "treeActivityTable", 
                                                            "treeActivityCount"));
     },
     newPlotActivity: function() {
-        return tm.createAttributeRow("plotActivityTypeSelection", tm.localPlotActivities, "plotActivityTable", 
+        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plotstewardship'], "plotActivityTable", 
                                      tm.handleNewPlotStewardship("plotActivityTypeSelection", 
                                                            "PlotStewardship",
                                                            "plotActivityTable", 
                                                            "plotActivityCount"));
     },
     newAction: function() {
-        return tm.createAttributeRow("actionTypeSelection", tm.actionType, "actionTable",
-                                     tm.handleNewAttribute("actionTypeSelection", 
+        return tm.createAttributeRow("actionTypeSelection", tm.choices['action'], "actionTable",
+                                     tm.handleNewAttribute("actionTypeSelection", tm.choices['action'],
                                                            "TreeAction", 
                                                            "actionTable",
                                                            "actionCount"));
     },
 
     newLocal: function() {
-        return tm.createAttributeRow("localTypeSelection", tm.localTypes, "localTable", 
-                                     tm.handleNewAttribute("localTypeSelection", 
+        return tm.createAttributeRow("localTypeSelection", tm.choices['local'], "localTable", 
+                                     tm.handleNewAttribute("localTypeSelection", tm.choices['local'],
                                                            "TreeFlags",
                                                            "localTable", 
                                                            "localCount"));
     },
 
     newHazard: function() {
-        return tm.createAttributeRow("hazardTypeSelection", tm.hazardTypes, "hazardTable", 
-                                     tm.handleNewAttribute("hazardTypeSelection", 
+        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alert'], "hazardTable", 
+                                     tm.handleNewAttribute("hazardTypeSelection", tm.choices['alert'],
                                                            "TreeAlert",
                                                            "hazardTable",
                                                            "hazardCount"));
@@ -583,15 +538,15 @@ tm = {
 
     createAttributeRow: function(selectId, typesArray, tableName, submitEvent) {
         var select = $("<select id='" + selectId + "' />");
-        for (var key in typesArray) {
-            select.append($("<option value='"+key+"'>"+ typesArray[key]+"</option>"));
+        for (var i=0; i < typesArray.length;i++) {
+            select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
         }    
         var row = $("<tr />");
 
         row.append($(""), $("<td colspan='2' />").append(select)).append(
             $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(submitEvent),
-                $("<input type='submit' value='Cancel' class='button' />").click(function() {
+                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
+                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
                     row.remove();
                 })
             )
@@ -599,10 +554,39 @@ tm = {
         
         $("#" + tableName).append(row);
     },
+    createAttributeDateRow: function(selectId, typesArray, tableName, submitEvent) {
+        var select = $("<select id='" + selectId + "' />");
+        for (var i=0; i < typesArray.length;i++) {
+            select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
+        }    
+        var row = $("<tr id='data-row' />");
+
+        row.append(
+            $(""), 
+            $("<td />").append(select),
+            $("<td />").append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" })),
+            $("<td />").append(
+                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
+                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
+                    row.remove();
+                })
+            )
+        );
+        
+        $("#" + tableName).append(row);
+
+    },
 
     handleNewTreeStewardship: function(select, model, table, count) {
         return function() {
             var data = $("#" + select)[0].value;
+            var data_date = $("#" + select + "-datepicker")[0].value;
+            
+            if (data == "" || data_date == "") {
+                alert("You must enter a date for the tree activity.");
+                return;
+            }
+
             settings = {
                 model: model,
                 objectId: tm.currentTreeId,
@@ -612,37 +596,53 @@ tm = {
             };    
             
             $(this.parentNode.parentNode).remove();
-            var d = new Date();
-            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
-            tm.addTreeStewardship(data, settings)
-            $("#" + table).append(
-                $("<tr><td>"+tm.localTreeActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
-            $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
+            tm.addTreeStewardship(data, data_date, settings);
+            var choices = tm.choices['treestewardship'];
+            for (var i=0;i<choices.length; i++) {
+                if (choices[i][0] == data) {
+                    $("#" + table).append(
+                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                    break;
+                }
+            }
         };
     },
 
     handleNewPlotStewardship: function(select, model, table, count) {
         return function() {
             var data = $("#" + select)[0].value;
+            var data_date = $("#" + select + "-datepicker")[0].value;
+            
+            if (data == "" || data_date == "") {
+                alert("You must enter a date for the planting site activity.");
+                return;
+            }
+
             settings = {
                 model: model,
                 objectId: tm.currentPlotId,
                 activity: data,
+                performed_date: data_date,
                 submit: 'Save',
                 cancel: 'Cancel'
             };    
             
             $(this.parentNode.parentNode).remove();
-            var d = new Date();
-            var dateStr = d.getMonthName('en')+" "+d.getDate()+", "+(d.getYear()+1900);
-            tm.addPlotStewardship(data, settings)
-            $("#" + table).append(
-                $("<tr><td>"+tm.localPlotActivities[data]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
-            $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
+            tm.addPlotStewardship(data, data_date, settings);
+            var choices = tm.choices['plotstewardship'];
+            for (var i=0;i<choices.length; i++) {
+                if (choices[i][0] == data) {
+                    $("#" + table).append(
+                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                    break;
+                }
+            }  
         };
     },
 
-    handleNewAttribute: function(select, model, table, count) {
+    handleNewAttribute: function(select, model, table, count, data_array) {
         return function() {
             var data = $("#" + select)[0].value;
             settings = {
@@ -662,9 +662,14 @@ tm = {
             var d = new Date();
             var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
             tm.updateEditableServerCall(dateStr, settings)
-            $("#" + table).append(
-                $("<tr><td>"+tm.hazardTypes[data]+"</td><td>"+dateStr+"</td><td>False</td></tr>"));  
-            $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);     
+            for (var i=0;i<data_array.length; i++) {
+                if (data_array[i][0] == data) {
+                    $("#" + table).append(
+                        $("<tr><td>"+data_array[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                    break;
+                }
+            }   
         };
     },
     
@@ -743,6 +748,31 @@ tm = {
                 if (key == "location") {
                     tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
                 }    
+                if (key == "tree_stewardship") {
+                    $("#steward-tree").click();
+                    var actions = val.split(',');
+                    for (j=0;j<actions.length;j++) {
+                        $(".steward-action[value=" + actions[j] + "]").click();
+                    }
+                }
+                if (key == "plot_stewardship") {
+                    $("#steward-plot").click();
+                    var actions = val.split(',');
+                    for (k=0;k<actions.length;k++) {
+                        $(".steward-action[value=" + actions[k] + "]").click();
+                    }
+                }
+                if (key == "stewardship_reverse") {
+                    $(".steward-reverse[value=" + val + "]").click();
+                }
+                if (key == "stewardship_range") {
+                    var svals = $.address.parameter(key).split("-");
+                    var date1 = new Date(parseInt(svals[0] * 1000));
+                    var date2 = new Date(parseInt(svals[1] * 1000));
+
+                    $("#steward-date-1").datepicker("setDate", date1).change();
+                    $("#steward-date-2").datepicker("setDate", date2).change();
+                }
             }    
         }
         tm.loadingSearch = false;
@@ -758,6 +788,10 @@ tm = {
             var val = tm.searchParams[key];
             q = q.set(key, val);
         }
+        if (tm.handleStewardship) {
+            q = tm.handleStewardship(q);
+        }
+
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         if (qstr != '?'+$.query.toString()) {
             if (!tm.loadingSearch) { 
@@ -816,10 +850,7 @@ tm = {
     
     updateSpeciesFields: function(field_prefix, spec, cultivar){
         if (!tm.speciesData) {
-            if (console) {
-                console.log("*error* Species list not yet loaded");
-                return;
-            }
+            return;
         }
 
         if (spec) {
@@ -836,20 +867,22 @@ tm = {
 
 
     add_favorite_handlers : function(base_create, base_delete) {
-        $('a.favorite.fave').live('click', function(e) {
+        $('.favorite.fave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_create + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
+                $('#favorite_' + pk).removeClass('fave').addClass('unfave');
+                $('#favorite_' + pk).html('Remove as favorite');
             });
             tm.trackEvent('Favorite', 'Add Favorite', 'Tree', pk);
             return false;
         });
-        $('a.favorite.unfave').live('click', function(e) {
+        $('.favorite.unfave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_delete + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
+                $('#favorite_' + pk).removeClass('unfave').addClass('fave');
+                $('#favorite_' + pk).html('Add as favorite');
             });
             tm.trackEvent('Favorite', 'Remove Favorite', 'Tree', pk);
             return false;
@@ -997,7 +1030,7 @@ tm = {
             if ($("#dbh"+i).val()) {
             
                 var val = parseFloat($("#dbh"+i).val());
-                if ($("#circum").attr("checked") == true) {
+                if ($("#circum").attr("checked")) {
                     val = val / Math.PI;
                 }    
                 vals.push(val);
@@ -1007,7 +1040,13 @@ tm = {
         var total = Math.sqrt(sum);
         
         if (total > 100) {
-            $("#edit_dbh").append("<br/><span class='error'>Total diameter too large.</span>")
+            $("#edit_dbh").append("<br/><span class='smError'>Total diameter too large.</span>")
+            return;
+        }
+
+        if (isNaN(total)) {
+            $("#edit_dbh").append("<br/><span class='smError'>Diameter must be a number.</span>")
+            tm.editingDiameter = false;
             return;
         }
         

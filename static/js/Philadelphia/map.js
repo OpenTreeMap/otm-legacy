@@ -1,7 +1,6 @@
 tm.start_zoom = 11;
 tm.add_start_zoom = 13;
 tm.add_zoom = 18;
-tm.edit_zoom = 18;
 tm.initial_location_string = "Address, City, State";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
@@ -30,7 +29,13 @@ tm.init_base_map = function(div_id, controls){
                        new OpenLayers.Control.Navigation(),
                        new OpenLayers.Control.ArgParser(),
                        new OpenLayers.Control.PanPanel(),
-                       new OpenLayers.Control.ZoomPanel()]
+                       new OpenLayers.Control.ZoomPanel(),
+                       new OpenLayers.Control.TouchNavigation({
+                          dragPanOptions: {
+                               enableKinetic: true
+                           }
+                       })
+                       ]
         });
     }
     else {
@@ -51,23 +56,41 @@ tm.init_base_map = function(div_id, controls){
 //            }
 //        );
 
-      tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
-        type: VEMapStyle.Shaded,
-        sphericalMercator: true,
-        animationEnabled: false,
-        numZoomLevels: 20,
-        MAX_ZOOM_LEVEL: 20,
-        MIN_ZOOM_LEVEL: 0
-    });
-  
-    tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
-        type: VEMapStyle.Hybrid,            
-        sphericalMercator: true,
-        animationEnabled: false, 
-        numZoomLevels: 20,
-        MAX_ZOOM_LEVEL: 20,
-        MIN_ZOOM_LEVEL: 0
-    });
+    // Use google base maps on edit page so we can use streetview
+    if (div_id == "edit_tree_map") {        
+        tm.edit_zoom = 9;
+        tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
+            sphericalMercator: true,
+            minZoomLevel: 8,
+            maxZoomLevel: 20
+        });
+      
+        tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
+            type: google.maps.MapTypeId.HYBRID,            
+            sphericalMercator: true,
+            minZoomLevel: 8,
+            maxZoomLevel: 20
+        });
+    }
+    else {
+        tm.edit_zoom = 18;
+        tm.baseLayer = new OpenLayers.Layer.VirtualEarth("Streets", {
+            type: VEMapStyle.Shaded,
+            sphericalMercator: true,
+            numZoomLevels: 20,
+            MAX_ZOOM_LEVEL: 20,
+            MIN_ZOOM_LEVEL: 0
+        });
+      
+        tm.aerial = new OpenLayers.Layer.VirtualEarth("Hybrid", {
+            type: VEMapStyle.Hybrid,            
+            sphericalMercator: true,
+            numZoomLevels: 20,
+            MAX_ZOOM_LEVEL: 20,
+            MIN_ZOOM_LEVEL: 0
+        });
+    }
+      
     
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,

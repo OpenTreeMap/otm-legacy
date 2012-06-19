@@ -18,8 +18,8 @@
 	});
 	function fav_click(evt) {
 		var pk = $('a.favorite').attr('id').replace('favorite_', '');
-		var url = '/trees/favorites/create/' + pk + '/';
-		var url2 = '/trees/favorites/delete/' + pk + '/';
+		var url = tm_static + 'trees/favorites/create/' + pk + '/';
+		var url2 = tm_static + 'trees/favorites/delete/' + pk + '/';
 		if ($('a.favorite').hasClass('fave')) {
 			$.getJSON(url, function(data, textStatus) {
 				$('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
@@ -46,9 +46,9 @@
 
 
 <ul id="optionList">
-	<li id="details"><a href="/plots/{{plot.id}}/">View all details</a></li>
+	<li id="details"><a href="{% url treemap.views.plot_detail plot.id %}">View all details</a></li>
 	<li id="note">Tree's profile page</li>
-	<li id="edit"><a href="/plots/{{plot.id}}/edit/">Edit details</a></li>
+	<li id="edit"><a href="{% url treemap.views.plot_edit plot.id %}">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
     {% if user.is_authenticated %}
 

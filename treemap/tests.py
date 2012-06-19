@@ -9,7 +9,7 @@ from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.contrib.auth.models import User, UserManager, Permission as P
 
 from treemap.models import Neighborhood, ZipCode, ExclusionMask
-from treemap.models import Plot, ImportEvent, Species, Tree
+from treemap.models import Plot, ImportEvent, Species, Tree, TreeFlags
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.views import *
 
@@ -17,7 +17,7 @@ from profiles.models import UserProfile
 from django_reputation.models import Reputation, ReputationAction
 
 from simplejson import loads
-from datetime import datetime, date
+from datetime import timedelta, datetime, date
 from time import mktime
 
 from test_util import set_auto_now
@@ -90,6 +90,42 @@ class ViewTests(TestCase):
         self.rsrc = rsrc
 
         ######
+        # Choices lists
+        ######
+
+        c1  = Choices(field="plot_type", key="1", key_type="int", value="Tree Pit")
+        c2  = Choices(field="plot_type", key="2", key_type="int", value="Median")
+        c3  = Choices(field="plot_type", key="3", key_type="int", value="Tree Lawn")
+        c4  = Choices(field="plot_type", key="4", key_type="int", value="Island")
+        c5  = Choices(field="plot_type", key="5", key_type="int", value="Raised Planter")
+        c6  = Choices(field="plot_type", key="6", key_type="int", value="Open/Other")
+        c7  = Choices(field="sidewalk_damage", key="1", key_type="int", value="Minor or No Damage")
+        c8  = Choices(field="sidewalk_damage", key="2", key_type="int", value="Raised More Than 3/4 Inch")
+        c9  = Choices(field="powerline_conflict_potential", key="1", key_type="int", value="Yes")
+        c10 = Choices(field="powerline_conflict_potential", key="2", key_type="int", value="No")
+        c11 = Choices(field="powerline_conflict_potential", key="3", key_type="int", value="Unknown")
+        c12 = Choices(field="treestewardship", key="1", key_type="int", value="Watering")
+        c13 = Choices(field="treestewardship", key="2", key_type="int", value="Pruning")
+        c14 = Choices(field="treestewardship", key="3", key_type="int", value="Mulching, Adding Compost")
+        c15 = Choices(field="treestewardship", key="4", key_type="int", value="Removing Debris")
+        c16 = Choices(field="plotstewardship", key="1", key_type="int", value="Enlarging the Planting Area")
+        c17 = Choices(field="plotstewardship", key="2", key_type="int", value="Adding a Guard")
+        c18 = Choices(field="plotstewardship", key="3", key_type="int", value="Removing a Guard")
+        c19 = Choices(field="plotstewardship", key="4", key_type="int", value="Herbaceous Planting")
+        c20 = Choices(field="condition", key="1", key_type="int", value="Excellent")
+        c21 = Choices(field="condition", key="2", key_type="int", value="Good")
+        c22 = Choices(field="condition", key="3", key_type="int", value="Poor")
+        c23 = Choices(field="condition", key="4", key_type="int", value="Dead")
+        c24 = Choices(field="local", key="1", key_type="int", value="Local Project1")
+        c25 = Choices(field="local", key="2", key_type="int", value="Local Project2")
+        #c = Choices(field="", key="", key_type="", value="")
+        
+
+        choices = [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25]
+        for c in choices:
+            c.save()
+
+        ######
         # Users
         ######
         u = User.objects.filter(username="jim")
@@ -106,7 +142,19 @@ class ViewTests(TestCase):
             u.reputation.save()
 
         self.u = u
-        
+
+        # Amy is a bare-bones registered user with no permissions
+        amy_filter_results = User.objects.filter(username="amy")
+        if amy_filter_results:
+            self.amy = amy_filter_results[0]
+        else:
+            self.amy = User.objects.create_user("amy","amy@test.org","amy")
+            self.amy.is_staff = False
+            self.amy.is_superuser = False
+            self.amy.save()
+            up = UserProfile(user=self.amy)
+            self.amy.reputation = Reputation(user=self.amy)
+            self.amy.reputation.save()
 
         #######
         # Setup geometries -> Two stacked 100x100 squares
@@ -188,14 +236,17 @@ class ViewTests(TestCase):
         ######
         # And we could use a few species...
         ######
-        s1 = Species(symbol="s1",genus="testus1",species="specieius1")
-        s2 = Species(symbol="s2",genus="testus2",species="specieius2")
+        s1 = Species(symbol="s1",genus="testus1",species="specieius1",native_status='True',fall_conspicuous=True,flower_conspicuous=True,palatable_human=True)
+        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False)
+        s3 = Species(symbol="s3",genus="testus3",species="specieius3")
         
         s1.save()
         s2.save()
+        s3.save()
 
         self.s1 = s1
         self.s2 = s2
+        self.s3 = s3
 
         #######
         # Create some basic plots
@@ -446,6 +497,425 @@ class ViewTests(TestCase):
         # 'min_updated': min_updated,
         # 'max_updated': max_updated,
         
+
+    def test_search_results(self):
+        ##################################################################
+        # Test search result view
+        #        
+
+        def assert_counts(tree_count, plot_count, req):            
+            self.assertEqual(req['summaries']['total_trees'], tree_count)
+            self.assertEqual(req['summaries']['total_plots'], plot_count)
+
+        oneDay = timedelta(days=1)
+        oneYear = timedelta(days=365)
+        date_min = datetime.utcnow() - oneDay
+        date_max = datetime.utcnow()
+        qs_date_min = time.mktime(date_min.timetuple())
+        qs_date_max = time.mktime(date_max.timetuple())
+
+        choices = Choices()
+        plot_type_choices = choices.get_field_choices('plot_type')
+        sidewalk_choices = choices.get_field_choices('sidewalk_damage')
+        powerline_choices = choices.get_field_choices('powerline_conflict_potential')
+        tsteward_choices = choices.get_field_choices('treestewardship')
+        psteward_choices = choices.get_field_choices('plotstewardship')
+        condition_choices = choices.get_field_choices('condition')  
+        flag_choices = choices.get_field_choices('local')  
+
+        p1 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie, type=plot_type_choices[0][0],width=1, length=1, data_owner=self.u)
+        p2 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, type=plot_type_choices[1][0], width=3, length=5, data_owner=self.u)
+        p3 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie, width=10, length=15, data_owner=self.u)
+        p4 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, sidewalk_damage=sidewalk_choices[0][0], data_owner=self.u)
+        p5 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, powerline_conflict_potential=powerline_choices[1][0], data_owner=self.u)
+
+        save_this = [p1,p2,p3,p4,p5]
+        for obj in save_this: obj.save()
+
+        t1 = Tree(plot=p1, last_updated_by=self.u, import_event=self.ie, dbh=4, condition=condition_choices[0][0], date_planted=datetime.utcnow()-oneYear)
+        t2 = Tree(plot=p2, last_updated_by=self.u, import_event=self.ie, dbh=10, species=self.s1, condition=condition_choices[1][0])
+        t3 = Tree(plot=p3, last_updated_by=self.u, import_event=self.ie, dbh=40, species=self.s1, height=150, sponsor=self.u.username, date_planted=date_min)
+        t4 = Tree(plot=p4, last_updated_by=self.u, import_event=self.ie, height=30, species=self.s3, condition=condition_choices[3][0], steward_user=self.u)
+
+        ps1 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p1, activity=psteward_choices[0][0])
+        ps2 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p2, activity=psteward_choices[1][0])
+        ps3 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p2, activity=psteward_choices[2][0])
+
+        save_this = [ps1,ps2,ps3, t1,t2,t3,t4]
+        for obj in save_this: obj.save()
+
+        tf1 = TreeFlags(reported_by=self.u, tree=t1, key=flag_choices[0][0])
+        tf2 = TreeFlags(reported_by=self.u, tree=t4, key=flag_choices[1][0])
+
+        ts1 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t1, activity=tsteward_choices[0][0])
+        ts2 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t2, activity=tsteward_choices[1][0])
+        ts3 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t2, activity=tsteward_choices[2][0])
+        
+        save_this = [tf1,tf2, ts1,ts2,ts3]
+        for obj in save_this: obj.save()
+
+        response = self.client.get("/search/")
+        req = loads(response.content)
+
+        present_trees = Tree.objects.filter(present=True)
+        present_plots = Plot.objects.filter(present=True)
+
+        assert_counts(present_trees.count(), present_plots.count(), req)
+        self.assertEqual(req['full_tree_count'], present_trees.count())
+        self.assertEqual(req['full_plot_count'], present_plots.count())
+        self.assertEqual(req['tile_query'], '')
+        self.assertEqual(req['geography'], None)
+
+        ##################################################################
+        # Test geographic searches
+        #    neighborhood, zipcode 
+        #
+        center_pt = self.n1.geometry.centroid.coords
+        response = self.client.get("/search/?location=%s,%s&geoname=%s" % (center_pt[0], center_pt[1], self.n1.name) )
+        req = loads(response.content)
+        trees = present_trees.filter(plot__neighborhood=self.n1)
+        plots = present_plots.filter(neighborhood=self.n1)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertEqual(req['geography']['type'], 'Polygon')
+        self.assertEqual(req['geography']['name'], self.n1.name)
+        self.assertTrue('neighborhoods' in req['tile_query'])
+
+        response = self.client.get("/search/?location=%s" % self.z1.zip)
+        req = loads(response.content)
+        trees = present_trees.filter(plot__zipcode=self.z1)
+        plots = present_plots.filter(zipcode=self.z1)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertEqual(req['geography']['type'], 'Polygon')
+        self.assertEqual(req['geography']['name'], self.z1.zip)
+        self.assertTrue('zipcode' in req['tile_query'])
+
+        ##################################################################
+        # Test plot data searches
+        #    plot type, plot size, sidewalk damage, powerlines, owner,
+        #    plot stewardship
+        #
+        plot_list = [1, 2]
+        response = self.client.get("/search/?tree_pit=true&median=true")
+        req = loads(response.content)        
+        trees = present_trees.filter(plot__type__in=plot_list)
+        plots = present_plots.filter(type__in=plot_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_type' in req['tile_query'])
+
+        plot_range = [3, 11]      
+        response = self.client.get("/search/?plot_range=%s-%s" % (plot_range[0], plot_range[1]) )
+        req = loads(response.content)
+        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__length__lte=plot_range[1]))
+        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(length__lte=plot_range[1]))
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_width' in req['tile_query'])
+        self.assertTrue('plot_length' in req['tile_query'])
+
+        sidewalk_list = [1]        
+        response = self.client.get("/search/?minor=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__sidewalk_damage__in=sidewalk_list)
+        plots = present_plots.filter(sidewalk_damage__in=sidewalk_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('sidewalk_damage' in req['tile_query'])
+
+        powerline_list = [2]        
+        response = self.client.get("/search/?no=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__powerline_conflict_potential__in=powerline_list)
+        plots = present_plots.filter(powerline_conflict_potential__in=powerline_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('powerline' in req['tile_query'])
+  
+        response = self.client.get("/search/?owner=%s" % self.u.username)
+        req = loads(response.content)                
+        users = User.objects.filter(username__icontains=self.u.username)
+        trees = present_trees.filter(plot__data_owner__in=users)
+        plots = present_plots.filter(data_owner__in=users)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('data_owner' in req['tile_query'])
+        
+        plot_stewardship_list = [1,2]
+        response = self.client.get("/search/?plot_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=true" % (plot_stewardship_list[0], plot_stewardship_list[1], qs_date_min, qs_date_max) )
+        req = loads(response.content)                
+        steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")] 
+        for ps in plot_stewardship_list:
+            steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=ps)]
+        plots = present_plots.filter(id__in=steward_ids).exclude(plotstewardship__performed_date__lte=date_min).exclude(plotstewardship__performed_date__gte=date_max)
+        trees = present_trees.filter(plot__in=plots)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_stewardship' in req['tile_query'])
+
+        response = self.client.get("/search/?plot_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=false" % (plot_stewardship_list[0],plot_stewardship_list[1], qs_date_min, qs_date_max) )
+        req = loads(response.content)                
+        plots = present_plots.exclude(id__in=steward_ids).exclude(plotstewardship__performed_date__lte=date_min).exclude(plotstewardship__performed_date__gte=date_max)
+        trees = present_trees.filter(plot__in=plots)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_stewardship' in req['tile_query'])
+
+        ##################################################################
+        # Test tree data searches
+        #    diameter, height, condition, photos, steward, sponsor
+        #    projects, planted date range, tree stewardship
+        #    
+        diameter_list = [11,25]
+        response = self.client.get("/search/?diameter_range=%s-%s" % (diameter_list[0],diameter_list[1]) )
+        req = loads(response.content)        
+        trees = present_trees.filter(dbh__gte=diameter_list[0]).filter(dbh__lte=diameter_list[1])
+        plots = present_plots.filter(tree__dbh__gte=diameter_list[0]).filter(tree__dbh__lte=diameter_list[1])
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('dbh' in req['tile_query'])
+
+        height_list = [0,50]
+        response = self.client.get("/search/?height_range=%s-%s" % (height_list[0],height_list[1]) )
+        req = loads(response.content)        
+        trees = present_trees.filter(height__gte=height_list[0]).filter(height__lte=height_list[1])
+        plots = present_plots.filter(tree__height__gte=height_list[0]).filter(tree__height__lte=height_list[1])
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('height' in req['tile_query'])
+
+        condition_list = [1,2]
+        response = self.client.get("/search/?excellent=true&good=true" )
+        req = loads(response.content)        
+        trees = present_trees.filter(condition__in=condition_list)
+        plots = present_plots.filter(tree__condition__in=condition_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('condition' in req['tile_query'])
+
+        response = self.client.get("/search/?photos=true" )
+        req = loads(response.content)        
+        trees = present_trees.filter(treephoto__isnull=False)
+        plots = present_plots.filter(tree__treephoto__isnull=False)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('photo_count' in req['tile_query'])
+
+        response = self.client.get("/search/?steward=%s" % self.u.username)
+        req = loads(response.content)                
+        users = User.objects.filter(username__icontains=self.u.username)
+        trees = present_trees.filter(steward_user__in=users)
+        plots = present_plots.filter(tree__steward_user__in=users)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('steward_user_id' in req['tile_query'])
+
+        response = self.client.get("/search/?funding=%s" % self.u.username)
+        req = loads(response.content)        
+        trees = present_trees.filter(sponsor__icontains=self.u.username)
+        plots = present_plots.filter(tree__sponsor__icontains=self.u.username)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('sponsor' in req['tile_query'])
+
+        planted_range_list = ["2010-01-01","2012-12-31"]
+        response = self.client.get("/search/?planted_range=2010-2012" )
+        req = loads(response.content)                
+        trees = present_trees.filter(date_planted__gte=planted_range_list[0], date_planted__lte=planted_range_list[1])
+        plots = present_plots.filter(tree__date_planted__gte=planted_range_list[0], tree__date_planted__lte=planted_range_list[1])
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('date_planted' in req['tile_query'])
+
+        local_list = [1, 2]
+        response = self.client.get("/search/?local_project1=true&local_project2=true")
+        req = loads(response.content)  
+        trees = present_trees.filter(treeflags__key__in=local_list)
+        plots = present_plots.filter(tree__treeflags__key__in=local_list)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('projects' in req['tile_query'])
+
+        tree_stewardship_list = [1,2]
+        response = self.client.get("/search/?tree_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=true" % (tree_stewardship_list[0], tree_stewardship_list[1], qs_date_min, qs_date_max) )
+        req = loads(response.content)                
+        steward_ids = [s.tree_id for s in TreeStewardship.objects.order_by("tree__id").distinct("tree__id")]
+        for ts in tree_stewardship_list:
+            steward_ids = [s.tree_id for s in TreeStewardship.objects.filter(tree__id__in=steward_ids).filter(activity=ts)]
+        trees = present_trees.filter(id__in=steward_ids).exclude(treestewardship__performed_date__lte=date_min).exclude(treestewardship__performed_date__gte=date_max)
+        plots = present_plots.filter(tree__in=trees)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('tree_stewardship' in req['tile_query'])
+
+        response = self.client.get("/search/?tree_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=false" % (tree_stewardship_list[0],tree_stewardship_list[1], qs_date_min, qs_date_max) )
+        req = loads(response.content)                
+        trees = present_trees.exclude(id__in=steward_ids).exclude(treestewardship__performed_date__lte=date_min).exclude(treestewardship__performed_date__gte=date_max)
+        plots = present_plots.filter(tree__in=trees)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('tree_stewardship' in req['tile_query'])
+
+        ##################################################################
+        # Test species data searches
+        #    id, native, edible, fall color, flowering
+        #  
+        present_species = Species.objects.filter(tree_count__gt=0)
+        def check_species(species_list, req):    
+            max_species = present_species.count()
+            trees = present_trees.filter(species__in=species_list)
+            plots = present_plots.filter(tree__species__in=species_list)
+
+            assert_counts(trees.count(), plots.count(), req)
+            if max_species != species_list.count():
+                self.assertTrue('species_id' in req['tile_query'])
+
+        response = self.client.get("/search/?species=%s" % self.s1.id )
+        req = loads(response.content)                
+        species = present_species.filter(id=self.s1.id)
+        check_species(species, req)
+
+        response = self.client.get("/search/?native=true" )
+        req = loads(response.content)
+        species = present_species.filter(native_status='True')
+        check_species(species, req)
+
+        response = self.client.get("/search/?edible=true" )
+        req = loads(response.content)                
+        species = present_species.filter(palatable_human=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?color=true" )
+        req = loads(response.content)                
+        species = present_species.filter(fall_conspicuous=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?flowering=true" )
+        req = loads(response.content)                
+        species = present_species.filter(flower_conspicuous=True)
+        check_species(species, req)
+
+        ##################################################################
+        # Test plot/tree data searches
+        #    updated by, updated range
+        #    - These test search both trees and plots in the same way
+        #
+        response = self.client.get("/search/?updated_by=%s" % self.u.username)
+        req = loads(response.content)                
+        users = User.objects.filter(username__icontains=self.u.username)
+        trees = present_trees.filter(last_updated_by__in=users)
+        plots = present_plots.filter(last_updated_by__in=users)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('last_updated_by' in req['tile_query'])
+
+        response = self.client.get("/search/?updated_range=%s-%s" % (qs_date_min, qs_date_max) )
+        req = loads(response.content)                
+        trees = present_trees.filter(last_updated__gte=date_min, last_updated__lte=date_max)
+        plots = present_plots.filter(last_updated__gte=date_min, last_updated__lte=date_max)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('last_updated' in req['tile_query'])
+
+        
+        ##################################################################
+        # Test missing data searches
+        #    species, diameter, height, plot type, plot size, condition, 
+        #    sidewalk damage, powerlines, photos
+        #    - Some searches count 0 values as 'missing'
+        #
+        response = self.client.get("/search/?missing_species=true")
+        req = loads(response.content)
+                
+        trees = present_trees.filter(species__isnull=True)
+        plots = present_plots.filter(tree__species__isnull=True)
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('species_id' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_diameter=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
+        plots = present_plots.filter(Q(tree__dbh__isnull=True) | Q(tree__dbh=0))
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('dbh' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_height=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(Q(height__isnull=True) | Q(height=0))
+        plots = present_plots.filter(Q(tree__height__isnull=True) | Q(tree__height=0))
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('height' in req['tile_query'])
+        
+        response = self.client.get("/search/?missing_plot_type=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__type__isnull=True)
+        plots = present_plots.filter(type__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_type' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_plot_size=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
+        plots = present_plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_length' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_condition=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(condition__isnull=True)
+        plots = present_plots.filter(tree__condition__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('condition' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_sidewalk=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__sidewalk_damage__isnull=True)
+        plots = present_plots.filter(sidewalk_damage__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('sidewalk_damage' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_powerlines=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__powerline_conflict_potential__isnull=True)
+        plots = present_plots.filter(powerline_conflict_potential__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('powerline_conflict_potential' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_photos=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(treephoto__isnull=True)
+        plots = present_plots.filter(tree__treephoto__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('photo_count' in req['tile_query'])
+
+        ##################################################################
+        # Test searching precedance rules
+        #    - Missing data search trumps data search
+        #    - Missing species + species id = 0 results
+        #
+        response = self.client.get("/search/?missing_plot_type=true&tree_pit=true")
+        req = loads(response.content)                
+        trees = present_trees.filter(plot__type__isnull=True)
+        plots = present_plots.filter(type__isnull=True)
+
+        assert_counts(trees.count(), plots.count(), req)
+        self.assertTrue('plot_type' in req['tile_query'])
+
+        response = self.client.get("/search/?missing_species=true&species=%s" % self.s1.id)
+        req = loads(response.content)
+                
+        assert_counts(0,0, req)
+        self.assertTrue('species_id' in req['tile_query'])
+
 
 #############################################
 #  New Plot Tests
@@ -702,6 +1172,7 @@ class ViewTests(TestCase):
         # -> parent - model/id the posted data should be added to
 
         c = self.client
+        c.login(username='amy',password='amy')
 
         p = self.p1_no_tree
         
@@ -730,6 +1201,8 @@ class ViewTests(TestCase):
 
         p = Plot.objects.get(pk=p.pk)
 
+        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were not created')
+
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 100)
         self.assertEqual(p.length, 200)
@@ -739,6 +1212,49 @@ class ViewTests(TestCase):
         self.assertEqual(p.address_street, "100 Beach St")
         self.assertEqual(p.address_city, "Philadelphia")
         self.assertEqual(p.address_zip, "19103")
+
+    def test_approve_plot_pending(self):
+        settings.PENDING_ON = True
+
+        p = self.p1_no_tree
+        p.width = 100
+        p.save()
+
+        c = self.client
+        c.login(username='amy', password='amy')
+
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "150"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        p = Plot.objects.get(pk=p.pk)
+        self.assertEqual(p.width, 100)
+
+        pend = p.get_active_pends()[0]
+
+        c.login(username='jim', password='jim')
+        response = c.post("/trees/pending/%s/approve/" % pend.pk)
+        self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
+
+    def test_need_permission_to_approve_pending(self):
+        settings.PENDING_ON = True
+
+        p = self.p1_no_tree
+        p.width = 100
+        p.save()
+
+        c = self.client
+        c.login(username='amy', password='amy')
+
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "150"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        p = Plot.objects.get(pk=p.pk)
+        self.assertEqual(p.width, 100)
+
+        pend = p.get_active_pends()[0]
+
+        response = c.post("/trees/pending/%s/approve/" % pend.pk)
+        self.assertEqual(response.status_code, 403, "The request should have returned 403 forbidden")
 
 ##################################################################
 # ogr conversion tests
@@ -762,6 +1278,22 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
 
+        # Test the admin-only exports
+        c = self.client
+        login = c.login(username="jim",password="jim")
+
+        response = c.get("/comments/all/csv/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=comments.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = c.get("/users/opt-in/csv/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
+        self.assertNotEqual(len(response.content), 0)
+
 
 
 ##################################################################
@@ -772,12 +1304,12 @@ class ViewTests(TestCase):
         c = self.client
         c.login(username='jim',password='jim')
 
-        response = c.post("/trees/%s/stewardship/" % self.p2_tree.current_tree().pk, { "activity": 1 })
+        response = c.post("/trees/%s/stewardship/" % self.p2_tree.current_tree().pk, { "activity": 1, "performed_date": "01/01/2012" })
         response_dict = loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_dict["success"], True)
 
-        response = c.post("/plots/%s/stewardship/" % self.p2_tree.pk, { "activity": 1 })
+        response = c.post("/plots/%s/stewardship/" % self.p2_tree.pk, { "activity": 1, "performed_date": "01/01/2012" })
         response_dict = loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_dict["success"], True)

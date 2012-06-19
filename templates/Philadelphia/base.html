@@ -39,7 +39,10 @@
 		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" />
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ptm.css" media="all" />
         <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" /> 
-
+        <script type="text/javascript">
+            tm.initial_location_string = "Address, City, State";
+            tm.initial_species_string =  "All trees";
+        </script>
         <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
       <!--[if IE]>
                 <link rel="stylesheet" href="{{ STATIC_URL }}css/ptm.ie.css" type="text/css"/>
@@ -59,7 +62,7 @@
         {% endblock %}
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-23175691-1']);
+            _gaq.push(['_setAccount', '{{ API_KEY_GOOGLE_ANALYTICS }}']);
             _gaq.push(['_trackPageview']);
 
             (function() {

@@ -37,6 +37,8 @@ urlpatterns = patterns('',
 
     (r'^update/$', object_update),
 
+    (r'^choices/$', get_choices),
+
     url(r'^plots/(?P<plot_id>\d+)/$', plot_detail, name="treemap_plot_detail"),
     (r'^plots/(?P<plot_id>\d+)/addtree/$', plot_add_tree),
     (r'^plots/(?P<plot_id>\d+)/edit/$', plot_edit),
@@ -101,6 +103,7 @@ urlpatterns = patterns('',
     (r'^comments/flag/(?P<comment_id>[0-9]+)/$', add_flag),
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
+    (r'^comments/all/(?P<format>.*)/$', export_comments),
     (r'^comments/hide/$', hide_comment),
     (r'^comments/unflag/$', remove_flag),
 

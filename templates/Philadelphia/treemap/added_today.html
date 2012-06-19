@@ -9,7 +9,7 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+    <script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
     <script type="text/javascript" src="treemap_settings.js"></script>
 {% endblock %}
 
@@ -42,7 +42,7 @@
                 <td><i>{{plot.current_tree.species.scientific_name|default:"Missing"}}</i></td>
                 <td>{{plot.current_tree.species.common_name|default:"Missing"}}</td>
                 <td>{{plot.current_tree.dbh|unit_or_missing:'inches'}}</td>
-                <td>{{plot.address_street}} {{plot.address_city}}, {{plot.neighborhood.all.0.state}} {{plot.address_zip}}</td>
+                <td>{{plot.address_street}} {{plot.address_city}} {{plot.address_zip}}</td>
       
 		   </tr>
         {% empty %}

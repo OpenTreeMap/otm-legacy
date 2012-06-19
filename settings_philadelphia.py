@@ -32,10 +32,15 @@ REPUTATION_SCORES = {
     },
 }
 
+EXTRAPOLATE_WITH_AVERAGE = True
+
+API_KEY_GOOGLE_MAP = 'AIzaSyBrvLFfP_eqXwp5vRRWp4D5NP_enTL1uBM'
+API_KEY_GOOGLE_ANALYTICS = 'UA-23175691-1'
+
 # pipeline minification settings
 PIPELINE = False
 PIPELINE_ROOT = os.path.dirname(__file__)
-PIPELINE_URL = '/ptm/'
+PIPELINE_URL = '/'
 PIPELINE_YUI_BINARY = '/usr/bin/yui-compressor'
 PIPELINE_YUI_JS_ARGUMENTS = '--nomunge'
 PIPELINE_JS = {

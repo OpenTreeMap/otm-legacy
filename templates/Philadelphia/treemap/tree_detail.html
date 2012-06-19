@@ -4,6 +4,7 @@
 {% load maths %}
 {% load threadedcommentstags %}
 {% load tree_tags %}
+{% load comment_tags %}
 
 {% get_comment_count for tree as comment_count %}
 
@@ -15,12 +16,22 @@
 
 <script type="text/javascript">
     jQuery().ready(function() {
+        $("#comment_error").empty();
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
             jQuery(s).click(function() {
                 $(this).next().toggle('slow');
                 return false;
                 }).next().hide();
             });
+
+        $("#comment_post").live('submit', function() {
+            var comment = $("#id_comment");
+            if ($(this).has(comment) && comment[0].value == "") {
+                $("#comment_error")[0].innerHTML = "Please enter text to post a comment.";
+                return false;
+            }
+        });
+
     });
 
 </script>
@@ -40,7 +51,7 @@
 		</h2>
 
 		<h3 id="pageHead">
-			{{ plot.address_street|default:"No Address" }}<br/>{{ plot.address_city }}, {{plot.neighborhood.all.0.state}}
+			{{ plot.address_street|default:"No Address" }}{% if plot.address_street %}, {{plot.address_city}} {{plot.neighborhood.all.0.state}} {{plot.address_zip}} {% endif %}
 		</h3>
 
             <div class="tab-content" id="tab-1">
@@ -134,11 +145,6 @@
             <td>{{tree.canopy_height|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
-        <tr>
-        	<td class="col1Wide">Nearby address</td>
-            <td>{{tree.plot.address_street|default:"Missing"}}</td>
-            <td></td>
-        </tr>
     {% else %}
         <thead>
         	<tr>
@@ -209,7 +215,11 @@
         </tr>
     </thead>
     <tbody>
-
+        <tr>
+        	<td class="col1Wide">Nearby address</td>
+            <td>{{plot.address_street|default:"Missing"}}{% if plot.address_street %} {{plot.address_city}} {{plot.neighborhood.all.0.state}} {{plot.zipcode}} {% endif %}</td>
+            <td></td>
+        </tr>
         <tr>
         	<td class="col1Wide">Plot size</td>
             <td>{{ plot.width|unit_or_missing:"ft x " }}{{ plot.length|unit_or_empty:"ft" }} </td>
@@ -226,6 +236,12 @@
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
             <td>{{ plot.get_sidewalk_damage_display|default:"Missing" }}</td>
+        </tr>
+		{% endif %}
+        {% if user.reputation.reputation > 1000 %}
+        <tr>
+        	<td class="col1Wide">Additional Info</td>
+            <td>{{ plot.owner_additional_id }}</td>
         </tr>
 		{% endif %}
     </tbody>
@@ -318,20 +334,27 @@
 									<h2>Comments</h2>
 								</div>
 								<div class="comment_list">
-                                                                {% get_threaded_comment_tree for tree as comment_tree %}
+                                    <div id="comment_error" style="padding-bottom:5px;"></div>
+                                {% get_threaded_comment_tree for plot as comment_tree %}
 								{% for comment in comment_tree %}
 									<div class="comment_item" style="margin-left: {{ comment.depth }}em">
 										<div class="comment_head">
 											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="{{ SITE_ROOT }}comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+											{% if user.is_authenticated %} 
+                                                {% if comment|is_flagged:user %}
+                                                    Flagged
+                                                {% else %}
+                                                    <a href="{{ SITE_ROOT }}/comments/flag/{{ comment.id }}/?next={% url treemap.views.plot_detail tree.plot.id %}">Flag</a>
+                                                {% endif %}
+                                            {% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
 										</div>                                             
-								                {% if user.is_authenticated %}
-                                                                                {% get_threaded_comment_form as form %}
-                                                                                <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url tree comment %}','{{ comment.name }}')">Reply</a>
-                                                                                {% endif %}
+							            {% if user.is_authenticated %}
+                                            {% get_threaded_comment_form as form %}
+                                            <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url plot comment %}','{{ comment.user }}')">Reply</a>
+                                        {% endif %}
 									</div>
 								{% empty %}
 									<div class="comment_item">No comments yet!</div>
@@ -340,14 +363,15 @@
                                                                 
 								{% if user.is_authenticated %}
 									{% get_threaded_comment_form as form %}
-									<form action="{% get_comment_url tree %}" method="post">{% csrf_token %}
+									<form action="{% get_comment_url plot %}" id="comment_post" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
-                                                                                {{ form.as_ul }}
+                                                                                <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
+                                                                                <input type="hidden" name="markup" value="5"></input>
 										<div class="submit">
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
 									</form>
-                                    <div id="comment_disclaimer">The comment system on PhillyTreeMap does not serve as a way to report problems with a tree. {% if tree.neighborhood.city == 'Philadelphia' %} To contact the City of Philadelphia regarding a tree issue, please use the <a href="http://www.philla.gov/311" target="_blank">Philly 311</a> system. {% endif %}</div>
+				                                    <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}
@@ -409,38 +433,17 @@
                     <ul class="optionItem">
                     <li>
                     {% if favorite %}
-                        Favorited (<a href="#" id="favorite_{{ tree.id }}" class="favorite fav unfave">Unfavorite</a>)
+                        <button id="favorite_{{ tree.id }}" class="favorite fav unfave">Remove as Favorite</button>
                     {% else %}
-                        <a href="#" id="favorite_{{ tree.id }}"
-                         class="favorite fav fave">Add as favorite</a>
-                        {% if tree.treefavorite_set.all.count %}
-                            ({{tree.treefavorite_set.all.count}} others have)
-                        {% endif %}
+                        <button id="favorite_{{ tree.id }}" class="favorite fav fave">Add as favorite</button>
                     {% endif %}
                     </li>
                     </ul>
                 {% else %}
                     <li>
-                    <a href="#" class="fav" id="favorite_{{ tree.id }}" class="favorite">Add as favorite</a>
+                    <button class="fav" id="favorite_{{ tree.id }}" class="favorite fav fave">Add as favorite</button>
                     </li>
-                    <!-- needed? -->
-                    <!--<li class="editItem"><a href="#">Edit</a>
-                    </li>
-                    </ul>-->
                 {% endif %}
-                    <!-- todo -->
-                    <!--
-                    <ul class="optionItem">
-                        <li><a href="#">Email to a friend</a></li>
-                    </ul>
-                    <ul class="optionItem">
-                        <li><a href="#">Print</a></li>
-                    </ul>
-                    <ul class="optionItem">
-                        <li><a href="#">Tweet this page</a></li>
-                    </ul>
-                    -->
-
                 </li>
             </ul>
 
@@ -502,7 +505,7 @@
 		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
 		tm.currentTreeId = {% if tree %}{{tree.id}} {% else %} {{plot.id}} {% endif %};
 		tm.init_tree_map(false); //not editable
-		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+		tm.add_favorite_handlers('trees/favorites/create/', 'trees/favorites/delete/');
 	</script>
 {% endblock endpage %}
 
