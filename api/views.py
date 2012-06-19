@@ -135,6 +135,12 @@ def api_call(content_type="application/json"):
         return newreq
     return decorate
 
+def datetime_to_iso_string(d):
+    if d:
+        return d.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        return None
+
 @require_http_methods(["GET"])
 @api_call()
 @login_required
@@ -211,7 +217,7 @@ def recent_edits(request, user_id):
 
     acts = UserReputationAction.objects.filter(user=request.user).order_by('-date_created')[result_offset:(result_offset+num_results)]
 
-    acts = [dict([("id",a.pk),("name",a.action.name),("created",str(a.date_created)),("value",a.value)]) for a in acts]
+    acts = [dict([("id",a.pk),("name",a.action.name),("created",datetime_to_iso_string(a.date_created)),("value",a.value)]) for a in acts]
 
     return acts
 
@@ -582,7 +588,7 @@ def plots_to_list_of_dict(plots,longform=False):
 def pending_to_dict(pend):
     return {
         'id': pend.pk,
-        'submitted': str(pend.submitted),
+        'submitted': datetime_to_iso_string(pend.submitted),
         'value': pend.value,
         'username': pend.submitted_by.username
     }
@@ -624,10 +630,10 @@ def plot_to_dict(plot,longform=False):
 
             tree_dict['species_other1'] = current_tree.species_other1
             tree_dict['species_other2'] = current_tree.species_other2
-            tree_dict['date_planted'] = str(current_tree.date_planted)
-            tree_dict['date_removed'] = current_tree.date_removed
+            tree_dict['date_planted'] = datetime_to_iso_string(current_tree.date_planted)
+            tree_dict['date_removed'] = datetime_to_iso_string(current_tree.date_removed)
             tree_dict['present'] = current_tree.present
-            tree_dict['last_updated'] = str(current_tree.last_updated)
+            tree_dict['last_updated'] = datetime_to_iso_string(current_tree.last_updated)
             tree_dict['last_updated_by'] = current_tree.last_updated_by.username
             tree_dict['condition'] = current_tree.condition
             tree_dict['canopy_condition'] = current_tree.canopy_condition
@@ -668,7 +674,7 @@ def plot_to_dict(plot,longform=False):
         if plot.data_owner:
             base['data_owner'] = plot.data_owner.pk
 
-        base['last_updated'] = str(plot.last_updated)
+        base['last_updated'] = datetime_to_iso_string(plot.last_updated)
 
         if plot.last_updated_by:
             base['last_updated_by'] = plot.last_updated_by.username
