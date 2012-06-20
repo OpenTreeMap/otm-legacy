@@ -196,6 +196,7 @@ class Migration(SchemaMigration):
             ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(related_name='_audit_plot', to=orm['treemap.ImportEvent'])),
             ('data_owner', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='_audit_owner', null=True, to=orm['auth.User'])),
             ('owner_orig_id', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
+            ('owner_additional_id', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
             ('owner_additional_properties', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('readonly', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('_audit_id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -229,6 +230,7 @@ class Migration(SchemaMigration):
             ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.ImportEvent'])),
             ('data_owner', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='owner', null=True, to=orm['auth.User'])),
             ('owner_orig_id', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
+            ('owner_additional_id', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
             ('owner_additional_properties', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('readonly', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
@@ -361,7 +363,7 @@ class Migration(SchemaMigration):
         db.create_table('treemap_stewardship', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('performed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('performed_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('performed_date', self.gf('django.db.models.fields.DateTimeField')()),
         ))
         db.send_create_signal('treemap', ['Stewardship'])
 
@@ -792,6 +794,7 @@ class Migration(SchemaMigration):
             'neighborhoods': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'}),
             'owner_additional_properties': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
+            'owner_additional_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'powerline_conflict_potential': ('django.db.models.fields.CharField', [], {'default': "'3'", 'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'present': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -825,6 +828,7 @@ class Migration(SchemaMigration):
             'neighborhoods': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'}),
             'owner_additional_properties': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
+            'owner_additional_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'powerline_conflict_potential': ('django.db.models.fields.CharField', [], {'default': "'3'", 'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'present': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -916,7 +920,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Stewardship'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'performed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
-            'performed_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
+            'performed_date': ('django.db.models.fields.DateTimeField', [], {})
         },
         'treemap.supervisordistrict': {
             'Meta': {'object_name': 'SupervisorDistrict'},
