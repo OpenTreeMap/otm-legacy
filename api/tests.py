@@ -670,7 +670,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(reputation_count, UserReputationAction.objects.count())
         self.assertEqual(4, len(PlotPending.objects.all()), "Expected 4 pends, one for each edited field")
 
-        self.assertEqual(4, len(response_json['pending'].keys()), "Expected the json response to have a pending dict with 4 keys, one for each field")
+        self.assertEqual(4, len(response_json['pending_edits'].keys()), "Expected the json response to have a pending_edits dict with 4 keys, one for each field")
 
     def test_invalid_field_returns_200_field_is_not_in_response(self):
         test_plot = mkPlot(self.user)
@@ -741,7 +741,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
 
         response_json = loads(response.content)
-        self.assertEqual(1, len(response_json['tree']['pending'].keys()), "Expected the json response to have a tree.pending dict with 1 keys")
+        self.assertEqual(1, len(response_json['pending_edits'].keys()), "Expected the json response to have a pending_edits dict with 1 keys")
 
     def test_update_tree_species(self):
         test_plot = mkPlot(self.user)

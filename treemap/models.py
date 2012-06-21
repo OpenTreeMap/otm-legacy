@@ -505,9 +505,9 @@ class PendingMixin(object):
         result = {}
         for pend in pends:
             if pend.field in result:
-                result[pend.field]['pends'].append(pend)
+                result[pend.field]['pending_edits'].append(pend)
             else:
-                result[pend.field] = {'latest_value': pend.value, 'pends': [pend]}
+                result[pend.field] = {'latest_value': pend.value, 'pending_edits': [pend]}
         return result
 
 class Plot(models.Model, ManagementMixin, PendingMixin):

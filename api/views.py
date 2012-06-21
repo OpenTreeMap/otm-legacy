@@ -585,15 +585,16 @@ def str2bool(ahash, akey):
 def plots_to_list_of_dict(plots,longform=False):
     return [plot_to_dict(plot,longform=longform) for plot in plots]
 
-def pending_to_dict(pend):
+def pending_edit_to_dict(pending_edit):
     return {
-        'id': pend.pk,
-        'submitted': datetime_to_iso_string(pend.submitted),
-        'value': pend.value,
-        'username': pend.submitted_by.username
+        'id': pending_edit.pk,
+        'submitted': datetime_to_iso_string(pending_edit.submitted),
+        'value': pending_edit.value,
+        'username': pending_edit.submitted_by.username
     }
 
 def plot_to_dict(plot,longform=False):
+    pending_edit_dict = {} #If settings.PENDING_ON then this will be populated and included in the response
     current_tree = plot.current_tree()
     if current_tree:
         tree_dict = { "id" : current_tree.pk }
@@ -640,11 +641,10 @@ def plot_to_dict(plot,longform=False):
             tree_dict['readonly'] = current_tree.readonly
 
             if settings.PENDING_ON:
-                tree_dict['pending'] = {}
                 for field_name, detail in current_tree.get_active_pend_dictionary().items():
-                    tree_dict['pending'][field_name] = {'latest_value': detail['latest_value'], 'pends': []}
-                    for pend in detail['pends']:
-                        tree_dict['pending'][field_name]['pends'].append(pending_to_dict(pend))
+                    pending_edit_dict['tree.' + field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
+                    for pend in detail['pending_edits']:
+                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pending_edit_to_dict(pend))
 
     else:
         tree_dict = None
@@ -680,11 +680,11 @@ def plot_to_dict(plot,longform=False):
             base['last_updated_by'] = plot.last_updated_by.username
 
         if settings.PENDING_ON:
-            base['pending'] = {}
             for field_name, detail in plot.get_active_pend_dictionary().items():
-                base['pending'][field_name] = {'latest_value': detail['latest_value'], 'pends': []}
-                for pend in detail['pends']:
-                    base['pending'][field_name]['pends'].append(pending_to_dict(pend))
+                pending_edit_dict[field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
+                for pend in detail['pending_edits']:
+                    pending_edit_dict[field_name]['pending_edits'].append(pending_edit_to_dict(pend))
+            base['pending_edits'] = pending_edit_dict
 
     return base
 
