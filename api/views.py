@@ -888,13 +888,14 @@ def update_plot_and_tree(request, plot_id):
             else:
                 new_name = plot_field_name
             new_value = request_dict[plot_field_name]
-            if should_create_plot_pends:
-                plot_pend = PlotPending(plot=plot)
-                plot_pend.set_create_attributes(request.user, new_name, new_value)
-                plot_pend.save()
-            else:
-                setattr(plot, new_name, new_value)
-                plot_was_edited = True
+            if getattr(plot, new_name) != new_value:
+                if should_create_plot_pends:
+                    plot_pend = PlotPending(plot=plot)
+                    plot_pend.set_create_attributes(request.user, new_name, new_value)
+                    plot_pend.save()
+                else:
+                    setattr(plot, new_name, new_value)
+                    plot_was_edited = True
 
     # TODO: Standardize on lon or lng
     if 'lat' in request_dict or 'lon' in request_dict or 'lng' in request_dict:
@@ -906,13 +907,14 @@ def update_plot_and_tree(request, plot_id):
         if 'lon' in request_dict:
             new_geometry.x = request_dict['lon']
 
-        if should_create_plot_pends:
-            plot_pend = PlotPending(plot=plot)
-            plot_pend.set_create_attributes(request.user, 'geometry', new_geometry)
-            plot_pend.save()
-        else:
-            plot.geometry = new_geometry
-            plot_was_edited = True
+        if plot.geometry.x != new_geometry.x or plot.geometry.y != new_geometry.y:
+            if should_create_plot_pends:
+                plot_pend = PlotPending(plot=plot)
+                plot_pend.set_create_attributes(request.user, 'geometry', new_geometry)
+                plot_pend.save()
+            else:
+                plot.geometry = new_geometry
+                plot_was_edited = True
 
     if plot_was_edited:
         plot.last_updated = datetime.datetime.now()
@@ -941,25 +943,27 @@ def update_plot_and_tree(request, plot_id):
                 tree_was_added = True
             if tree_field.name == 'species':
                 try:
-                    if should_create_tree_pends:
-                        tree_pend = TreePending(tree=tree)
-                        tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
-                        tree_pend.save()
-                    else:
-                        tree.species = Species.objects.get(pk=request_dict[tree_field.name])
-                        tree_was_edited = True
+                    if tree.species.pk != request_dict[tree_field.name]:
+                        if should_create_tree_pends:
+                            tree_pend = TreePending(tree=tree)
+                            tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
+                            tree_pend.save()
+                        else:
+                            tree.species = Species.objects.get(pk=request_dict[tree_field.name])
+                            tree_was_edited = True
                 except Exception:
                     response.status_code = 400
                     response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
-                if should_create_tree_pends:
-                    tree_pend = TreePending(tree=tree)
-                    tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
-                    tree_pend.save()
-                else:
-                    setattr(tree, tree_field.name, request_dict[tree_field.name])
-                    tree_was_edited = True
+                if getattr(tree, tree_field.name) != request_dict[tree_field.name]:
+                    if should_create_tree_pends:
+                        tree_pend = TreePending(tree=tree)
+                        tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
+                        tree_pend.save()
+                    else:
+                        setattr(tree, tree_field.name, request_dict[tree_field.name])
+                        tree_was_edited = True
 
     if tree_was_edited:
         tree.last_updated = datetime.datetime.now()
