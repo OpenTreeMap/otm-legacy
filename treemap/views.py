@@ -1346,8 +1346,8 @@ def update_plot(request, plot_id):
                 plot._audit_diff = simplejson.dumps(post)
                 plot.save()
 
-                Reputation.objects.log_reputation_action(request.user, request.user, 
-                                                 "edit plot", rep_gained_by_editing_field, plot)
+                change_reputation_for_user(request.user, 'edit plot', plot)
+
         else:
             plot.last_updated_by = request.user
 
