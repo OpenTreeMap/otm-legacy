@@ -453,12 +453,13 @@ class ManagementMixin(object):
     Methods that relate to checking editabilty, usable in either Tree or Plot models
     """
     def _created_by(self):
-        insert_events = self.history.filter(_audit_change_type='I')
-        if len(insert_events) > 0:
+        insert_event_set = self.history.filter(_audit_change_type='I')
+        if insert_event_set.count() == 0:
+            # If there is no audit event with type 'I' then the user who created the model cannot be determined
             return None
         else:
             # The 'auth.change_user' permission is a proxy for 'is the user a manager'
-            return insert_events[0].last_updated_by
+            return insert_event_set[0].last_updated_by
     created_by = property(_created_by)
 
     def _was_created_by_a_manager(self):
