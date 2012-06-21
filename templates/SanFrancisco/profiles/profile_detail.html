@@ -10,7 +10,8 @@
 
 {% endblock %}
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
 <script type="text/javascript">
     jQuery().ready(function() {
         var favorite_trees = '{{favorite_trees}}';

@@ -516,26 +516,26 @@ tm = {
     },
     newAction: function() {
         return tm.createAttributeRow("actionTypeSelection", tm.choices['action'], "actionTable",
-                                     tm.handleNewAttribute("actionTypeSelection", tm.choices['action'],
+                                     tm.handleNewAttribute("actionTypeSelection", 
                                                            "TreeAction", 
                                                            "actionTable",
-                                                           "actionCount"));
+                                                           "actionCount", tm.choices['action']));
     },
 
     newLocal: function() {
         return tm.createAttributeRow("localTypeSelection", tm.choices['local'], "localTable", 
-                                     tm.handleNewAttribute("localTypeSelection", tm.choices['local'],
+                                     tm.handleNewAttribute("localTypeSelection",
                                                            "TreeFlags",
                                                            "localTable", 
-                                                           "localCount"));
+                                                           "localCount", tm.choices['local']));
     },
 
     newHazard: function() {
         return tm.createAttributeRow("hazardTypeSelection", tm.choices['alert'], "hazardTable", 
-                                     tm.handleNewAttribute("hazardTypeSelection", tm.choices['alert'],
+                                     tm.handleNewAttribute("hazardTypeSelection",
                                                            "TreeAlert",
                                                            "hazardTable",
-                                                           "hazardCount"));
+                                                           "hazardCount", tm.choices['alert']));
     },
 
     createAttributeRow: function(selectId, typesArray, tableName, submitEvent) {
@@ -667,7 +667,7 @@ tm = {
             for (var i=0;i<data_array.length; i++) {
                 if (data_array[i][0] == data) {
                     $("#" + table).append(
-                        $("<tr><td>"+data_array[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
+                        $("<tr><td>"+data_array[i][1]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
                     $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
                     break;
                 }
@@ -708,7 +708,7 @@ tm = {
 
     pageLoadSearch: function () {
         tm.loadingSearch = true;
-        tm.searchparams = {};
+        tm.searchParams = {};
         var params = $.address.parameterNames();
         if (params.length) {
             for (var i = 0; i < params.length; i++) {

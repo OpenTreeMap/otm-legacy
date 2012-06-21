@@ -4,9 +4,11 @@
 {% load maths %}
 {% load threadedcommentstags %}
 {% load tree_tags %}
+{% load comment_tags %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
 <script type="text/javascript">
     jQuery().ready(function() {
         jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
@@ -62,11 +64,6 @@
                 {% if tree.species.native_status.lower == 'true' %}
                 <li><img src="{{ STATIC_URL }}images/v2/icon_ca.gif" alt="Native to region" title="Native to region" width="20" /></li>
                 {% endif %}
-                    {% comment %}
-                    {% if tree.species. %}
-                    <li><img src="{{ STATIC_URL }}images/v2/icon_wild.gif" alt="High performer" title="High performer" width="20" /></li>
-                    {% endif %}
-                    {% endcomment %}
                 {% if tree.sanfranciscotree.sf_local_carbon_fund %}
                 <li><img src="{{ STATIC_URL }}images/SanFrancisco/v2/icon_carbon.gif" alt="San Francisco Carbon Fund" title="San Francisco Carbon Fund" width="20" /></li>
                 {% endif %}
@@ -184,21 +181,21 @@
 
         <tr>
         	<td class="col1Wide">Planting site size</td>
-            <td>{% if tree.plot_width > 15.99 %}15+ ft x{% else %}{{tree.plot_width|unit_or_missing:"ft x"}}{% endif %}
-                {% if tree.plot_length > 15.99 %}15+ ft{% else %}{{tree.plot_length|unit_or_empty:"ft"}}{% endif %}
+            <td>{% if plot.width > 15.99 %}15+ ft x{% else %}{{plot.width|unit_or_missing:"ft x"}}{% endif %}
+                {% if plot.length > 15.99 %}15+ ft{% else %}{{plot.length|unit_or_empty:"ft"}}{% endif %}
             </td>
         </tr>
         <tr>
         	<td class="col1Wide">Planting site type</td>
-            <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
+            <td>{{ plot.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
+            <td>{{ plot.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
-            <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
+            <td>{{ plot.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
 
     </tbody>
@@ -327,7 +324,7 @@
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
                             <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
-                                <div id="tree_address_address">{{tree.geocoded_address}}</div>
+                                <div id="tree_address_address">{{plot.geocoded_address}}</div>
                                 <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
                             </div>
                             <div id="tree_comments">
@@ -335,20 +332,26 @@
 									<h2>Comments</h2>
 								</div>
 								<div class="comment_list">
-                                                                {% get_threaded_comment_tree for tree as comment_tree %}
+                                {% get_threaded_comment_tree for plot as comment_tree %}
 								{% for comment in comment_tree %}
 									<div class="comment_item" style="margin-left: {{ comment.depth }}em">
 										<div class="comment_head">
 											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
-											{% if user.is_authenticated %}<a href="{{ SITE_ROOT }}comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+											{% if user.is_authenticated %} 
+                                                {% if comment|is_flagged:user %}
+                                                    Flagged
+                                                {% else %}
+                                                    <a href="{{ SITE_ROOT }}/comments/flag/{{ comment.id }}/?next={% url treemap.views.plot_detail tree.plot.id %}">Flag</a>
+                                                {% endif %}
+                                            {% endif %}
 										</div>
 										<div class="comment_body">
 											{{ comment.comment }}
 										</div>                                             
-								                {% if user.is_authenticated %}
-                                                                                {% get_threaded_comment_form as form %}
-                                                                                <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url tree comment %}','{{ comment.name }}')">Reply</a>
-                                                                                {% endif %}
+							            {% if user.is_authenticated %}
+                                            {% get_threaded_comment_form as form %}
+                                            <a id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url plot comment %}','{{ comment.user }}')">Reply</a>
+                                        {% endif %}
 									</div>
 								{% empty %}
 									<div class="comment_item">No comments yet!</div>
@@ -357,14 +360,15 @@
                                                                 
 								{% if user.is_authenticated %}
 									{% get_threaded_comment_form as form %}
-									<form action="{% get_comment_url tree %}" method="post">{% csrf_token %}
+									<form action="{% get_comment_url plot %}" id="comment_post" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
-                                                                                {{ form.as_ul }}
+                                                                                <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
+                                                                                <input type="hidden" name="markup" value="5"></input>
 										<div class="submit">
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
 									</form>
-                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
+				                                    <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}

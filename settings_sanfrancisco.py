@@ -5,13 +5,45 @@ PENDING_ON = False
 REGION_NAME = 'Greenprint'
 #local_settings
 
-API_KEY_GOOGLE_MAP = 'AIzaSyCI-d2nJPOKOJnatoN02r9_fan8ULt6TWI'
+#API_KEY_GOOGLE_MAP = 'AIzaSyCI-d2nJPOKOJnatoN02r9_fan8ULt6TWI'
+API_KEY_GOOGLE_MAP = ''
 API_KEY_GOOGLE_ANALYTICS = 'UA-13228685-1'
 
-COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','plot_width','plot_length','plot_type']
+COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','dbh','width','length','type']
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
         
 EXTRAPOLATE_WITH_AVERAGE = True
+
+# pipeline minification settings
+PIPELINE = False
+PIPELINE_ROOT = os.path.dirname(__file__)
+PIPELINE_URL = '/'
+PIPELINE_YUI_BINARY = '/usr/bin/yui-compressor'
+PIPELINE_YUI_JS_ARGUMENTS = '--nomunge'
+PIPELINE_JS = {
+    'base': {
+        'source_filenames': (
+            'static/js/jquery_mods.js',
+	    'static/treemap.js',
+            'static/js/utils.js',
+            'static/js/map_init.js',
+            'static/js/geocode.js',
+            'static/js/page_init.js',
+            'static/js/management.js',
+            'static/js/comments.js',
+        ),
+        'output_filename': 'static/all_base.js',
+    },
+    'map': {
+        'source_filenames': (
+            'static/js/SanFrancisco/map.js',
+            'static/js/SanFrancisco/threaded.js',
+        ),
+        'output_filename': 'static/all_map.js',
+    }
+
+}
+
 
 STATIC_DATA = os.path.join(os.path.dirname(__file__), 'static/')
 
