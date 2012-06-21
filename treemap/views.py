@@ -986,7 +986,12 @@ def object_update(request):
                 
                     # if the tree was added by the public, or the current user is not public, skip pending
                 if settings.PENDING_ON and (post['model'] == "Tree" or post['model'] == "Plot"):
-                    insert_event_mgmt = instance.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+                    audit_insert_records = plot.history.filter(_audit_change_type='I')
+                    if len(audit_insert_records) > 0:
+                        insert_event_mgmt = audit_insert_records[0].last_updated_by.has_perm('auth.change_user')
+                    else:
+                        insert_event_mgmt = True # If the insert audit record is missing, assume it was created by a manager
+
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
                         for k,v in update.items():
@@ -1326,7 +1331,11 @@ def update_plot(request, plot_id):
 
         if settings.PENDING_ON :
             # if the tree was added by the public, or the current user is not public, skip pending
-            insert_event_mgmt = plot.history.filter(_audit_change_type='I')[0].last_updated_by.has_perm('auth.change_user')
+            audit_insert_records = plot.history.filter(_audit_change_type='I')
+            if len(audit_insert_records) > 0:
+                insert_event_mgmt = audit_insert_records[0].last_updated_by.has_perm('auth.change_user')
+            else:
+                insert_event_mgmt = True # If the insert audit record is missing, assume it was created by a manager
             mgmt_user = request.user.has_perm('auth.change_user')
             if insert_event_mgmt and not mgmt_user:
                 # Get a clean plot object
