@@ -6,4 +6,6 @@ media/*
 static/Nodes/*
 static/Species/*
 
+local_settings.py
+impl_settings.py
 fabfile.*
