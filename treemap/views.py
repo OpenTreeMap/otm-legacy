@@ -986,7 +986,7 @@ def object_update(request):
                 
                     # if the tree was added by the public, or the current user is not public, skip pending
                 if settings.PENDING_ON and (post['model'] == "Tree" or post['model'] == "Plot"):
-                    audit_insert_records = plot.history.filter(_audit_change_type='I')
+                    audit_insert_records = instance.history.filter(_audit_change_type='I')
                     if len(audit_insert_records) > 0:
                         insert_event_mgmt = audit_insert_records[0].last_updated_by.has_perm('auth.change_user')
                     else:
