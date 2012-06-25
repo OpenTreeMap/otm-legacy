@@ -705,11 +705,12 @@ class ViewTests(TestCase):
         response = self.client.get("/search/?steward=%s" % self.u.username)
         req = loads(response.content)                
         users = User.objects.filter(username__icontains=self.u.username)
-        trees = present_trees.filter(steward_user__in=users)
-        plots = present_plots.filter(tree__steward_user__in=users)
+        trees = present_trees.filter(Q(steward_user__in=users) | Q(steward_name__icontains=self.u.username))
+        plots = present_plots.filter(Q(tree__steward_user__in=users) | Q(tree__steward_name__icontains=self.u.username))
 
         assert_counts(trees.count(), plots.count(), req)
         self.assertTrue('steward_user_id' in req['tile_query'])
+        self.assertTrue('steward_name' in req['tile_query'])
 
         response = self.client.get("/search/?funding=%s" % self.u.username)
         req = loads(response.content)        

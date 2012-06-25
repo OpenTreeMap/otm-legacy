@@ -1461,7 +1461,7 @@ def _build_tree_search_result(request, with_benefits=True):
     tile_query = []
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
-    
+
     #TODO: get rid of geography coordinates, they don't do anything anymore
     geog_obj = None
     if 'location' in request.GET:
@@ -1680,12 +1680,12 @@ def _build_tree_search_result(request, with_benefits=True):
     steward = request.GET.get("steward", "")
     if steward:    
         users = User.objects.filter(username__icontains=steward)
-        trees = trees.filter(steward_user__in=users)
-        plots = plots.filter(tree__steward_user__in=users)
+        trees = trees.filter(Q(steward_user__in=users) | Q(steward_name__icontains=steward))
+        plots = plots.filter(Q(tree__steward_user__in=users) | Q(tree__steward_name__icontains=steward))
         user_list = []
         for u in users:
             user_list.append("steward_user_id = " + u.id.__str__())
-        tile_query.append("(" + " OR ".join(user_list) + ")")
+        tile_query.append("(" + " OR ".join(user_list) + " OR steward_name LIKE '%" + steward + "%')")
 
     funding = request.GET.get("funding", "")
     if funding:
