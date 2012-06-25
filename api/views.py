@@ -680,7 +680,14 @@ def plot_to_dict(plot,longform=False):
             base['last_updated_by'] = plot.last_updated_by.username
 
         if settings.PENDING_ON:
-            for field_name, detail in plot.get_active_pend_dictionary().items():
+            plot_field_reverse_property_name_dict = {'width': 'plot_width', 'length': 'plot_length', 'powerline_conflict_potential': 'power_lines'}
+
+            for raw_field_name, detail in plot.get_active_pend_dictionary().items():
+                if raw_field_name in plot_field_reverse_property_name_dict:
+                    field_name = plot_field_reverse_property_name_dict[raw_field_name]
+                else:
+                    field_name = raw_field_name
+
                 pending_edit_dict[field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
                 for pend in detail['pending_edits']:
                     pending_edit_dict[field_name]['pending_edits'].append(pending_edit_to_dict(pend))
