@@ -16,6 +16,8 @@
 {% block body_id %}id="tree_new"{% endblock %}
 
 {% block extrahead %}
+    {% load compressed %}
+    {% compressed_js 'map' %}
 	<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
     <script type="text/javascript">
     jQuery().ready(function() {
@@ -39,9 +41,9 @@
         {% for plot in plots %}
             <tr class="treeRow">
                 <td><a href="{% url treemap.views.plot_detail plot.id %}">View Details</a></td>
-                <td><i>{{plot.tree.species.scientific_name|default:""}}</i></td>
-                <td>{{plot.tree.species.common_name|default:""}}</td>
-                <td>{{plot.tree.dbh|unit_or_empty:'inches'}}</td>
+                <td><i>{{plot.current_tree.species.scientific_name|default:""}}</i></td>
+                <td>{{plot.current_tree.species.common_name|default:""}}</td>
+                <td>{{plot.current_tree.dbh|unit_or_empty:'inches'}}</td>
                 <td>{{plot.geocoded_address}}</td>
             </tr>
         {% empty %}

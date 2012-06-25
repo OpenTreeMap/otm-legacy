@@ -513,10 +513,10 @@
 
 {% block endpage %}
 	<script>
-		tm.current_tree_geometry = [{{tree.geometry.x}}, {{tree.geometry.y}}];
-		tm.currentTreeId = {{tree.id}};
+		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
+		tm.currentTreeId = {% if tree %}{{tree.id}} {% else %} {{plot.id}} {% endif %};
 		tm.init_tree_map(false); //not editable
-		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+		tm.add_favorite_handlers('trees/favorites/create/', 'trees/favorites/delete/');
 	</script>
 {% endblock endpage %}
 

@@ -60,7 +60,7 @@
         </tr>
         <tr>
         	<td class="col1">Nearby address</td>
-            <td>{{ tree.address_street }}</td>
+            <td>{{ tree.plot.address_street }}</td>
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>
@@ -74,22 +74,12 @@
         	<td class="col1">Alerts</td>
             <td>
             {% if tree.treealert_set.all.count > 0 %}
-                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
+                <a href="{% url treemap.views.treemap_tree_detail tree.id %}#status">Yes</a>
             {% else %}
                 No Alerts
             {% endif %}
             </td>
         </tr>
-{% comment %}
-        <tr>
-        	<td class="col1">Height</td>
-            <td>{{ tree.get_height|default:"Unknown" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Condition</td>
-            <td>{{ tree.get_condition|default:"Unknown" }}</td>
-        </tr>
-{% endcomment %}
         <tr>
         	<td class="col1">Yearly eco impact</td>
             <td>{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</td>
@@ -107,7 +97,6 @@
 	<li id="note">Tree's profile page</li>
 	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
-    {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 
           {% if favorite %}
@@ -123,11 +112,6 @@
             {% endif %}
         {% endif %}
     {% endif %}
-	<!-- TODO -->
-	<!--
-	<li id="email"><a href="#">Email to a friend</a></li>
-	<li id="twitter"><a href="#">Tweet this tree</a></li>
-	-->
 </ul>
 
 {% endblock %}
