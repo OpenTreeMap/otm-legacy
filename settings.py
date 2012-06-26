@@ -1,6 +1,9 @@
 import os
 
-from impl_settings import *
+try:
+    from impl_settings import *
+except:
+    pass
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
