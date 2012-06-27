@@ -5,7 +5,7 @@
 <script type="text/javascript">
 	jQuery().ready(function() {
 		if (jQuery("#address").html() == "Missing") {
-			latlng = new google.maps.LatLng({{ tree.geometry.y }}, {{ tree.geometry.x }})
+			latlng = new google.maps.LatLng({{ plot.geometry.y }}, {{ plot.geometry.x }})
 			tm.geocoder.geocode({
 				latLng: latlng
 			}, function(results, status){
@@ -74,7 +74,7 @@
         	<td class="col1">Alerts</td>
             <td>
             {% if tree.treealert_set.all.count > 0 %}
-                <a href="{% url treemap.views.treemap_tree_detail tree.id %}#status">Yes</a>
+                <a href="{% url treemap.views.plot_detail plot.id %}#status">Yes</a>
             {% else %}
                 No Alerts
             {% endif %}
@@ -93,9 +93,9 @@
 {% block right_panel %}
 
 <ul id="optionList">
-	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
+	<li id="details"><a href="{% url treemap.views.plot_detail plot.id %}">View all details</a></li>
 	<li id="note">Tree's profile page</li>
-	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
+	<li id="edit"><a href="{% url treemap.views.plot_edit plot.id %}">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
     {% if user.is_authenticated %}
 
@@ -103,12 +103,14 @@
             <li id="fav">Favorited (<a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
              class="favorite fav unfave">Unfavorite</a>)</li>
         {% else %}
-		    <li id="fav">
-            <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
-             class="favorite fav fave">Add as favorite</a>
-			 </li>
-            {% if tree.treefavorite_set.all.count %}
-             <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+            {% if tree %}
+		        <li id="fav">
+                <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
+                 class="favorite fav fave">Add as favorite</a>
+			     </li>
+                {% if tree.treefavorite_set.all.count %}
+                 <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+                {% endif %}
             {% endif %}
         {% endif %}
     {% endif %}

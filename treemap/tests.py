@@ -21,6 +21,7 @@ from datetime import timedelta, datetime, date
 from time import mktime
 
 from test_util import set_auto_now
+from treemap.test_choices import *
 
 import django.shortcuts
 
@@ -89,42 +90,7 @@ class ViewTests(TestCase):
         rsrc.save()
         self.rsrc = rsrc
 
-        ######
-        # Choices lists
-        ######
-
-        c1  = Choices(field="plot_type", key="1", key_type="int", value="Tree Pit")
-        c2  = Choices(field="plot_type", key="2", key_type="int", value="Median")
-        c3  = Choices(field="plot_type", key="3", key_type="int", value="Tree Lawn")
-        c4  = Choices(field="plot_type", key="4", key_type="int", value="Island")
-        c5  = Choices(field="plot_type", key="5", key_type="int", value="Raised Planter")
-        c6  = Choices(field="plot_type", key="6", key_type="int", value="Open/Other")
-        c7  = Choices(field="sidewalk_damage", key="1", key_type="int", value="Minor or No Damage")
-        c8  = Choices(field="sidewalk_damage", key="2", key_type="int", value="Raised More Than 3/4 Inch")
-        c9  = Choices(field="powerline_conflict_potential", key="1", key_type="int", value="Yes")
-        c10 = Choices(field="powerline_conflict_potential", key="2", key_type="int", value="No")
-        c11 = Choices(field="powerline_conflict_potential", key="3", key_type="int", value="Unknown")
-        c12 = Choices(field="treestewardship", key="1", key_type="int", value="Watering")
-        c13 = Choices(field="treestewardship", key="2", key_type="int", value="Pruning")
-        c14 = Choices(field="treestewardship", key="3", key_type="int", value="Mulching, Adding Compost")
-        c15 = Choices(field="treestewardship", key="4", key_type="int", value="Removing Debris")
-        c16 = Choices(field="plotstewardship", key="1", key_type="int", value="Enlarging the Planting Area")
-        c17 = Choices(field="plotstewardship", key="2", key_type="int", value="Adding a Guard")
-        c18 = Choices(field="plotstewardship", key="3", key_type="int", value="Removing a Guard")
-        c19 = Choices(field="plotstewardship", key="4", key_type="int", value="Herbaceous Planting")
-        c20 = Choices(field="condition", key="1", key_type="int", value="Excellent")
-        c21 = Choices(field="condition", key="2", key_type="int", value="Good")
-        c22 = Choices(field="condition", key="3", key_type="int", value="Poor")
-        c23 = Choices(field="condition", key="4", key_type="int", value="Dead")
-        c24 = Choices(field="local", key="1", key_type="int", value="Local Project1")
-        c25 = Choices(field="local", key="2", key_type="int", value="Local Project2")
-        #c = Choices(field="", key="", key_type="", value="")
         
-
-        choices = [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25]
-        for c in choices:
-            c.save()
-
         ######
         # Users
         ######
@@ -507,6 +473,9 @@ class ViewTests(TestCase):
             self.assertEqual(req['summaries']['total_trees'], tree_count)
             self.assertEqual(req['summaries']['total_plots'], plot_count)
 
+        def to_search_string(choice_name):
+            return choice_name.lower().replace(" ", "_")
+
         oneDay = timedelta(days=1)
         oneYear = timedelta(days=365)
         date_min = datetime.utcnow() - oneDay
@@ -514,14 +483,13 @@ class ViewTests(TestCase):
         qs_date_min = time.mktime(date_min.timetuple())
         qs_date_max = time.mktime(date_max.timetuple())
 
-        choices = Choices()
-        plot_type_choices = choices.get_field_choices('plot_type')
-        sidewalk_choices = choices.get_field_choices('sidewalk_damage')
-        powerline_choices = choices.get_field_choices('powerline_conflict_potential')
-        tsteward_choices = choices.get_field_choices('treestewardship')
-        psteward_choices = choices.get_field_choices('plotstewardship')
-        condition_choices = choices.get_field_choices('condition')  
-        flag_choices = choices.get_field_choices('local')  
+        plot_type_choices = CHOICES['plot_types']
+        sidewalk_choices = CHOICES['sidewalks']
+        powerline_choices = CHOICES['powerlines']
+        tsteward_choices = CHOICES['tree_stewardship']
+        psteward_choices = CHOICES['plot_stewardship']
+        condition_choices = CHOICES['conditions']
+        flag_choices = CHOICES['projects']
 
         p1 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie, type=plot_type_choices[0][0],width=1, length=1, data_owner=self.u)
         p2 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, type=plot_type_choices[1][0], width=3, length=5, data_owner=self.u)
@@ -545,7 +513,7 @@ class ViewTests(TestCase):
         for obj in save_this: obj.save()
 
         tf1 = TreeFlags(reported_by=self.u, tree=t1, key=flag_choices[0][0])
-        tf2 = TreeFlags(reported_by=self.u, tree=t4, key=flag_choices[1][0])
+        tf2 = TreeFlags(reported_by=self.u, tree=t4, key=flag_choices[0][0])
 
         ts1 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t1, activity=tsteward_choices[0][0])
         ts2 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t2, activity=tsteward_choices[1][0])
@@ -597,7 +565,8 @@ class ViewTests(TestCase):
         #    plot stewardship
         #
         plot_list = [1, 2]
-        response = self.client.get("/search/?tree_pit=true&median=true")
+        plot_name_list = [to_search_string(plot_type_choices[0][1]),to_search_string(plot_type_choices[1][1])]
+        response = self.client.get("/search/?%s=true&%s=true" % (plot_name_list[0], plot_name_list[1]))
         req = loads(response.content)        
         trees = present_trees.filter(plot__type__in=plot_list)
         plots = present_plots.filter(type__in=plot_list)
@@ -616,7 +585,7 @@ class ViewTests(TestCase):
         self.assertTrue('plot_length' in req['tile_query'])
 
         sidewalk_list = [1]        
-        response = self.client.get("/search/?minor=true")
+        response = self.client.get("/search/?%s=true" % (to_search_string(sidewalk_choices[0][1])) )
         req = loads(response.content)                
         trees = present_trees.filter(plot__sidewalk_damage__in=sidewalk_list)
         plots = present_plots.filter(sidewalk_damage__in=sidewalk_list)
@@ -625,7 +594,7 @@ class ViewTests(TestCase):
         self.assertTrue('sidewalk_damage' in req['tile_query'])
 
         powerline_list = [2]        
-        response = self.client.get("/search/?no=true")
+        response = self.client.get("/search/?%s=true" % (to_search_string(powerline_choices[1][1])) )
         req = loads(response.content)                
         trees = present_trees.filter(plot__powerline_conflict_potential__in=powerline_list)
         plots = present_plots.filter(powerline_conflict_potential__in=powerline_list)
@@ -686,7 +655,7 @@ class ViewTests(TestCase):
         self.assertTrue('height' in req['tile_query'])
 
         condition_list = [1,2]
-        response = self.client.get("/search/?excellent=true&good=true" )
+        response = self.client.get("/search/?%s=true&%s=true" % (to_search_string(condition_choices[0][1]), to_search_string(condition_choices[1][1])) )
         req = loads(response.content)        
         trees = present_trees.filter(condition__in=condition_list)
         plots = present_plots.filter(tree__condition__in=condition_list)
@@ -730,7 +699,7 @@ class ViewTests(TestCase):
         self.assertTrue('date_planted' in req['tile_query'])
 
         local_list = [1, 2]
-        response = self.client.get("/search/?local_project1=true&local_project2=true")
+        response = self.client.get("/search/?%s=true&%s=true" % (to_search_string(flag_choices[0][1]), to_search_string(flag_choices[1][1])) )
         req = loads(response.content)  
         trees = present_trees.filter(treeflags__key__in=local_list)
         plots = present_plots.filter(tree__treeflags__key__in=local_list)

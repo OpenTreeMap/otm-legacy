@@ -116,13 +116,13 @@
     	<td class="col1 activeEditRowLabel">Plot type <a href='/faq/#plot_type' target='_blank'>(?)</a></td>
         <td class="activeEditRowValue" id="edit_type">{{ plot.get_plot_type_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_type').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("type", "Plot", {{plot.id}}, {'type':'select', 'loadurl': tm_static + 'choices/plot_type/'});</script>
+        <script>tm.setupEdit("type", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/plot_types/'});</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Is there a powerline overhead?</td>
         <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ plot.get_powerline_conflict_potential|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("powerline_conflict_potential", "Plot", {{plot.id}}, {'type':'select', 'loadurl': tm_static + 'choices/powerline_conflict_potential/'});</script>
+        <script>tm.setupEdit("powerline_conflict_potential", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/powerlines/'});</script>
     </tr>
     {% if user.reputation.reputation > 1000 %}
     <tr>
@@ -143,7 +143,7 @@
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
         <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ plot.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sidewalk_damage", "Plot", {{plot.id}}, {'type':'select', 'loadurl':tm_static + 'choices/sidewalk_damage/'});</script>
+            <script>tm.setupEdit("sidewalk_damage", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/sidewalks/'});</script>
     </tr>
 
     {% if tree %}
@@ -152,13 +152,13 @@
     	<td class="col1 activeEditRowLabel">Tree condition</td>
         <td class="activeEditRowValue" id="edit_condition">{{ tree.get_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_condition').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl': tm_static + 'choices/condition/'});</script>
+            <script>tm.setupEdit("condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl':  'choices/conditions/'});</script>
     </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Canopy condition</td>
         <td class="activeEditRowValue" id="edit_canopy_condition">{{ tree.get_canopy_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_canopy_condition').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("canopy_condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl':tm_static + 'choices/canopy_condition/'});</script>
+            <script>tm.setupEdit("canopy_condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl': 'choices/canopy_conditions/'});</script>
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Local</td>

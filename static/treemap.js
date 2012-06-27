@@ -501,41 +501,41 @@ tm = {
     },
 
     newTreeActivity: function() {
-        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['treestewardship'], "treeActivityTable", 
+        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['tree_stewardship'], "treeActivityTable", 
                                      tm.handleNewTreeStewardship("treeActivityTypeSelection", 
                                                            "TreeStewardship",
                                                            "treeActivityTable", 
                                                            "treeActivityCount"));
     },
     newPlotActivity: function() {
-        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plotstewardship'], "plotActivityTable", 
+        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plot_stewardship'], "plotActivityTable", 
                                      tm.handleNewPlotStewardship("plotActivityTypeSelection", 
                                                            "PlotStewardship",
                                                            "plotActivityTable", 
                                                            "plotActivityCount"));
     },
     newAction: function() {
-        return tm.createAttributeRow("actionTypeSelection", tm.choices['action'], "actionTable",
+        return tm.createAttributeRow("actionTypeSelection", tm.choices['actions'], "actionTable",
                                      tm.handleNewAttribute("actionTypeSelection", 
                                                            "TreeAction", 
                                                            "actionTable",
-                                                           "actionCount", tm.choices['action']));
+                                                           "actionCount", tm.choices['actions']));
     },
 
     newLocal: function() {
-        return tm.createAttributeRow("localTypeSelection", tm.choices['local'], "localTable", 
+        return tm.createAttributeRow("localTypeSelection", tm.choices['projects'], "localTable", 
                                      tm.handleNewAttribute("localTypeSelection",
                                                            "TreeFlags",
                                                            "localTable", 
-                                                           "localCount", tm.choices['local']));
+                                                           "localCount", tm.choices['projects']));
     },
 
     newHazard: function() {
-        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alert'], "hazardTable", 
+        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alerts'], "hazardTable", 
                                      tm.handleNewAttribute("hazardTypeSelection",
                                                            "TreeAlert",
                                                            "hazardTable",
-                                                           "hazardCount", tm.choices['alert']));
+                                                           "hazardCount", tm.choices['alerts']));
     },
 
     createAttributeRow: function(selectId, typesArray, tableName, submitEvent) {
@@ -599,7 +599,7 @@ tm = {
             
             $(this.parentNode.parentNode).remove();
             tm.addTreeStewardship(data, data_date, settings);
-            var choices = tm.choices['treestewardship'];
+            var choices = tm.choices['tree_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
@@ -632,7 +632,7 @@ tm = {
             
             $(this.parentNode.parentNode).remove();
             tm.addPlotStewardship(data, data_date, settings);
-            var choices = tm.choices['plotstewardship'];
+            var choices = tm.choices['plot_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
