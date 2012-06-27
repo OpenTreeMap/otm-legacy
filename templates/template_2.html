@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG900913.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+	<script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
 
 {% endblock %}
 {% block extrahead %}

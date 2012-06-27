@@ -14,8 +14,7 @@
 				jQuery("#s_address").val(jQuery.urlParam('address'));
 			}
 			if (jQuery.urlParam('nhood')) {
-				var nhood = decodeURI(jQuery.urlParam('nhood'));
-				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+				jQuery("#s_nhood").prepend(jQuery("<option value='{{geometry.id}}' selected>{{geometry.name}}</option>"));
 			}
 			jQuery("#search input").keydown(function(evt) {
 				if (evt.keyCode == 13) {
@@ -39,11 +38,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/verify/" + qstr;
+				window.location = "{{ SITE_ROOT }}verify/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/verify/"
+				window.location = "{{ SITE_ROOT }}verify/"
 			});
 
 			//jQuery("#species_list_table").tablesorter({sortList: [[3,1]], headers: {3:{sorter:'usLongDate'}}})

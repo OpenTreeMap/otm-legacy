@@ -3,7 +3,8 @@
 {% load thumbnail dynamic_attribute %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
 {% endblock %}
 
             {% block content_body_top %}
@@ -36,32 +37,32 @@
     </thead>
     <tr>
     	<td class="col1 activeEditRowLabel">Scientific name <a id="treekey" href="{% url treekey.views.first_node %}" title="Not sure what kind of tree it is?" target="_blank">(?)</a></td>
-        <td class="activeEditRowValue" id="edit_species_id">{{ instance.species.scientific_name|default:"Click to edit" }}</td>
+        <td class="activeEditRowValue" id="edit_species_id">{{ tree.species.scientific_name|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_species_id').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("species_id", "Tree", {{instance.id}}, {type: 'autocomplete_species'});</script>
+        <script>tm.setupEdit("species_id", "Tree", {{tree.id}}, {type: 'autocomplete_species'});</script>
     </tr>
     <tr>
     	<td class="col1 activeEditRowLabel">Common name</td>
-        <td class="activeEditRowValue" id="edit_species">{{ instance.species.common_name|default:"" }}</td>
+        <td class="activeEditRowValue" id="edit_species">{{ tree.species.common_name|default:"" }}</td>
         <td></td>
     </tr>
     <tr>
     	<td class="col1">Tree size (inches)<a href="{{ SITE_ROOT }}resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
-        <td id="edit_dbh">{{ instance.dbh|add:" in"|default:"Click icon to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{instance.dbh|default:0}}]); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+        <td id="edit_dbh">{{ tree.dbh|add:" in"|default:"Click icon to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{tree.dbh|default:0}}]); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree height (feet)</td>
-        <td class="activeEditRowValue" id="edit_height">{{ instance.height|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_height">{{ tree.height|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_height').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("height", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("height", "Tree", {{tree.id}});</script>
     </tr> 
     <tr>
     	<td class="col1 activeEditRowLabel">Date Planted</td>
-        <td class="activeEditRowValue" id="edit_date_planted">{{ instance.date_planted|default:"Click to edit"}}</td>
+        <td class="activeEditRowValue" id="edit_date_planted">{{ tree.date_planted|default:"Click to edit"}}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_date_planted').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("date_planted", "Tree", {{instance.id}}, {type: 'date'});</script>
+        <script>tm.setupEdit("date_planted", "Tree", {{tree.id}}, {type: 'date'});</script>
     </tr>
     <thead>
     	<tr>
@@ -70,41 +71,41 @@
     </thead>
     	<tr>
         	<td class="col1 activeEditRowLabel">Planting site length (feet)</td>
-            {% if instance.plot_length > 15.99 %}
-            <td class="activeEditRowValue" id="edit_plot_length">15+</td>
+            {% if plot.plot_length > 15.99 %}
+            <td class="activeEditRowValue" id="edit_length">15+</td>
             {% else %}
-            <td class="activeEditRowValue" id="edit_plot_length">{{ instance.plot_length|floatformat:2|default:"Click to edit" }}</td>
+            <td class="activeEditRowValue" id="edit_length">{{ plot.length|floatformat:2|default:"Click to edit" }}</td>
             {% endif %}
-            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_length').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("plot_length", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_length').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("length", "Plot", {{plot.id}}, {'type':'feetinches'});</script>
         </tr>
     	<tr>
         	<td class="col1 activeEditRowLabel">Planting site width (feet)</td>
-            {% if instance.plot_width > 15.99 %}
-            <td class="activeEditRowValue" id="edit_plot_width">15+</td>
+            {% if plot.plot_width > 15.99 %}
+            <td class="activeEditRowValue" id="edit_width">15+</td>
             {% else %}
-            <td class="activeEditRowValue" id="edit_plot_width">{{ instance.plot_width|floatformat:2|default:"Click to edit" }}</td>
+            <td class="activeEditRowValue" id="edit_width">{{ plot.width|floatformat:2|default:"Click to edit" }}</td>
             {% endif %}
-            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_width').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("plot_width", "Tree", {{instance.id}}, {'type':'feetinches'});</script>
+            <td style="vertical-align:top;"><a href="#" onclick="$('#edit_width').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("width", "Plot", {{plot.id}}, {'type':'feetinches'});</script>
         </tr>
 
     	<td class="col1 activeEditRowLabel">Planting site type</td>
-        <td class="activeEditRowValue" id="edit_plot_type">{{ instance.get_plot_type_display|default:"Click to edit" }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_plot_type').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("plot_type", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/plot_type/'});</script>
+        <td class="activeEditRowValue" id="edit_type">{{ plot.get_type_display|default:"Click to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_type').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
+        <script>tm.setupEdit("type", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/plot_type/'});</script>
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Is there a powerline overhead?</td>
-        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ instance.get_powerline_conflict_potential_display|default:"Click to edit" }}</td>
+        <td class="activeEditRowValue" id="edit_powerline_conflict_potential">{{ plot.get_powerline_conflict_potential_display|default:"Click to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_powerline_conflict_potential').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-        <script>tm.setupEdit("powerline_conflict_potential", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/powerline_conflict_potential/'});</script>
+        <script>tm.setupEdit("powerline_conflict_potential", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/powerline_conflict_potential/'});</script>
     </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Sidewalk damage</td>
-        <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ instance.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_sidewalk_damage">{{ plot.get_sidewalk_damage_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sidewalk_damage').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sidewalk_damage", "Tree", {{instance.id}}, {'type':'select', 'loadurl': 'choices/sidewalk_damage/'});</script>
+            <script>tm.setupEdit("sidewalk_damage", "Plot", {{plot.id}}, {'type':'select', 'loadurl': 'choices/sidewalk_damage/'});</script>
     </tr>
     <thead>
     	<tr>
@@ -113,13 +114,13 @@
     </thead>
 	<tr>
     	<td class="col1 activeEditRowLabel">Tree condition</td>
-        <td class="activeEditRowValue" id="edit_condition">{{ instance.get_condition_display|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_condition">{{ tree.get_condition_display|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_condition').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("condition", "Tree", {{instance.id}}, {'type':'select', 'loadurl':'choices/condition/' });</script>
+            <script>tm.setupEdit("condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl':'choices/condition/' });</script>
     </tr>
 	    <tr>
         	<td class="col1 activeEditRowLabel">Actions</td>
-            <td colspan="2" class="activeEditRowValue" id="edit_actions"><span id="actionCount">{{ instance.treeaction_set.count }} </span> actions <span class="viewAddSep"><a href="#" onclick="$('#actionList').show();tm.newAction(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add actions{% else %}Add an action{% endif %}</a></span></td>
+            <td colspan="2" class="activeEditRowValue" id="edit_actions"><span id="actionCount">{{ tree.treeaction_set.count }} </span> actions <span class="viewAddSep"><a href="#" onclick="$('#actionList').show();tm.newAction(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add actions{% else %}Add an action{% endif %}</a></span></td>
         </tr>
         <tr>
         <td colspan="3" id="dropSpace">
@@ -130,8 +131,8 @@
                <td><b>Date</b></td>
                <td></td>
              </tr>  
-             {% if instance.treeaction_set.count > 0 %}
-                {% for h in instance.treeaction_set.all %}
+             {% if tree.treeaction_set.count > 0 %}
+                {% for h in tree.treeaction_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
@@ -154,7 +155,7 @@
     </tr>   
 	<tr>
     	<td class="col1 activeEditRowLabel">Alerts</td>
-        <td colspan="2" class="activeEditRowValue" id="edit_hazards"><span id="hazardCount">{{ instance.treealert_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
+        <td colspan="2" class="activeEditRowValue" id="edit_hazards"><span id="hazardCount">{{ tree.treealert_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
     </tr>
     <tr>
         <td colspan="3" id="dropSpace">
@@ -166,8 +167,8 @@
                <td><b>Resolved?</b></td>
                <td></td>
              </tr>
-            {% if instance.treealert_set.count > 0 %}
-                {% for h in instance.treealert_set.all %}
+            {% if tree.treealert_set.count > 0 %}
+                {% for h in tree.treealert_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
@@ -205,7 +206,7 @@
     </thead>
 	
     	<td class="col1 activeEditRowLabel">Local Projects</td>
-        <td colspan="2" class="activeEditRowValue" id="edit_local"><span id="localCount">{{ instance.treeflags_set.count }} </span> projects <span class="viewAddSep"><a href="#" onclick="$('#localList').show();tm.newLocal(); return false" class="viewAdd">{% if instance.treeflags.count > 0 %}View and add local projects{% else %}Add a project{% endif %}</a></span></td>
+        <td colspan="2" class="activeEditRowValue" id="edit_local"><span id="localCount">{{ tree.treeflags_set.count }} </span> projects <span class="viewAddSep"><a href="#" onclick="$('#localList').show();tm.newLocal(); return false" class="viewAdd">{% if instance.treeflags.count > 0 %}View and add local projects{% else %}Add a project{% endif %}</a></span></td>
     </tr>
     <tr>
         <td colspan="3" id="dropSpace">
@@ -216,8 +217,8 @@
                <td><b>Date</b></td>
                <td></td>
              </tr>
-            {% if instance.treeflags_set.count > 0 %}
-                {% for h in instance.treeflags_set.all %}
+            {% if tree.treeflags_set.count > 0 %}
+                {% for h in tree.treeflags_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
@@ -240,15 +241,15 @@
     </tr>
 	<tr>
     	<td class="col1 activeEditRowLabel">Sponsor</td>
-        <td class="activeEditRowValue" id="edit_sponsor">{{ instance.sponsor|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_sponsor">{{ tree.sponsor|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sponsor').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sponsor", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("sponsor", "Tree", {{tree.id}});</script>
     </tr> 
     <tr>
     	<td class="col1 activeEditRowLabel">Steward</td>
-        <td class="activeEditRowValue" id="edit_steward_name">{{ instance.steward_name|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_steward_name">{{ tree.steward_name|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_steward_name').trigger('click'); return false;"><img src="{{ STATIC_URL }}images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("steward_name", "Tree", {{instance.id}});</script>
+            <script>tm.setupEdit("steward_name", "Tree", {{tree.id}});</script>
     </tr> 
 	    
         
@@ -268,6 +269,7 @@
                             <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
                             <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing tree location</a></span></li>
                         </ul>
+                        <div id="edit_map_errors"></div>
                     </div>
                     <div class="editMap">
                         <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
@@ -282,73 +284,84 @@
      
 
         {% block left_panel %}
-        
-        
+
+
          <div id="t2_top_left_panel">
+
+            {% if tree %}
             <ul id="userImage">
                 <li>
-                    {% if instance.treephoto_set.count %}
-                        <a href="{{ instance.treephoto_set.all|first|get:"photo"|get:"url" }}">
-                            {% thumbnail instance.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
-                            <img src="{{ image.url }}" alt="{{ instance.treephoto_set.all|first|get:"title" }}" title="{{ instance.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
+					{% if tree.treephoto_set.count %}
+						<a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                            {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
+							<img src="{{ image.url }}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" title="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                             {% endthumbnail %}
-                        </a>
-                        {% if perms.treemap.delete_tree %}
-							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+						</a>
+						{% if perms.can_delete_tree %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ tree.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
 						{% else %}
-							{% if instance.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
-							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ instance.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+							{% if tree.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ tree.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
 							{% endif %}
 						{% endif %}
-                        <ul id="additionalImages">
-						{% for item in instance.treephoto_set.all|slice:"1:4" %}
-							<li><div><a href="{{ item.photo.url }}">
+						<ul id="additionalImages">
+						{% for item in tree.treephoto_set.all|slice:"1:4" %}
+							<li><div>
+                                <a href="{{ item.photo.url }}">
                                     {% thumbnail item.photo "55x36" crop="center" as image %}
                                     <img alt="{{ item.title }}" title="{{ item.title }}" src="{{ image.url }}" alt="image description" width="55" height="36" />
                                     {% endthumbnail %}
-                                    </a>
-								{% if perms.treemap.delete_tree %}
-									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ instance.id }}, {{ item.id }}); return false;">delete?</a></span>
+                                </a>
+								{% if perms.can_delete_tree %}
+									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ item.id }}); return false;">delete?</a></span>
 								{% endif %}
 								</div>
 							</li>
 						{% endfor %}
 						</ul>
-                        <ul id="imageOptions">
-                            <li id="first">{{ instance.treephoto_set.count }} photos. <a class="add" href="{% url treemap_add_edit_photos instance.id %}">Add photos &raquo;</a></li>
+						<ul id="imageOptions">
+							<li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="{% url treemap.views.tree_add_edit_photos tree.id %}">Add photos &raquo;</a>
+							</li>
 						</ul>
-                    {% else %}
-                        <img src="{{ STATIC_URL }}images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" />
-                        <ul id="imageOptions">
-                            <li id="first"><a href="{% url treemap.views.tree_add_edit_photos instance.id %}">Add photos &raquo;</a></li>
-                        </ul>
-                    {% endif %}
+					{% else %}
+						<img src="{{ STATIC_URL }}images/es/image14.jpg" alt="image description" width="181" height="119" class="mainImage" id="sample" />
+
+						<ul id="imageOptions">
+							<li id="first"><a href="{% url treemap.views.tree_add_edit_photos tree.id %}">Add photos &raquo;</a></li>
+						</ul>
+					{% endif %}
                 </li>
             </ul>
-            {% if perms.treemap.delete_tree %}
+            {% endif %}
+
+            {% if perms.can_delete_tree %}
             <ul id="message">
-				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ instance.id }});return false;" >Delete this Tree</a></li>
+                {% if tree %}
+				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ tree.id }});return false;" >Delete this Tree</a></li>
 				<li>Trees may be deleted only by administrative users. Deleting this tree will remove
-					it permanently from the database. Please do not delete this tree unless you are
-					sure that it is a duplicate tree or should otherwise not be in the system.
+					it from public view. Please do not delete this tree unless you are
+					sure that it is a duplicate or has been removed or should otherwise not be in the system.
 					Due to caching of the map tiles, the tree may not immediately be deleted from
 					the map search page. </li>
+                {% endif %}
+                <li id="title"><a href="javascript:void(0)" onclick="tm.deletePlot({{ plot.id }});return false;" >Delete this Planting Site</a></li>
+				<li>Planting sites may be deleted only by administrative users. Deleting this planting site will remove
+					it and any current tree planted here from public view. Please do not delete this planting site unless you are
+					sure that it is a duplicate or has been removed or should otherwise not be in the system.
+					Due to caching of the map tiles, the planting site may not immediately be removed from
+					the map search page. </li>
             </ul>
-				{% if instance.treewatch_set.count > 0 %}
-				<ul id="message">
-					<li id="title">Watch List</li>
-					{% for w in instance.treewatch_set.all %}
-						<li>{{w.key}} - {{w.value}}  {{w.is_valid|yesno:"Valid,"}}</li>
-					{% endfor %}
-				</ul>
-				{% endif %}
+                {% if tree %}
+			        {% if tree.treewatch_set.count > 0 %}
+			        <ul id="message">
+				        <li id="title">Watch List</li>
+				        {% for w in tree.treewatch_set.all %}
+					        <li>{{w.key}} - {{w.value}}  {{w.is_valid|yesno:"Valid,"}}</li>
+				        {% endfor %}
+			        </ul>
+			        {% endif %}
+                {% endif %}
             {% endif %}
-            {% comment %}
-            <ul id="message">
-                <li id="title"><a href="#">Flag this tree</a></li>
-                <li>Let us know if you see a problem and we'll look into it.</li>
-            </ul>
-            {% endcomment %}
             <ul id="message">
                 <li id="title"><a href="{{ SITE_ROOT }}contact">Feedback</a></li>
                 <li>Tell us about a specific problem or give us general feedback. We like both!</a></li>
@@ -358,8 +371,9 @@
 
 {% block endpage %}
 	<script>
-		tm.current_tree_geometry = [{{instance.geometry.x}}, {{instance.geometry.y}}];
+		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
 		tm.init_tree_map(true);
-        tm.currentTreeId = {{instance.id}};
+        tm.currentTreeId = {% if tree %}{{tree.id}}{% else %}{{plot.id}}{% endif %};
+        tm.currentPlotId = {{plot.id}};
 	</script>
 {% endblock endpage %}

@@ -9,6 +9,11 @@ REGION_NAME = 'Philadelphia'
 PENDING_ON = False
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
 
+EXTRAPOLATE_WITH_AVERAGE = True
+
+API_KEY_GOOGLE_MAP = 'AIzaSyBrvLFfP_eqXwp5vRRWp4D5NP_enTL1uBM'
+API_KEY_GOOGLE_ANALYTICS = 'UA-23175691-1'
+
 # pipeline minification settings
 PIPELINE = False
 PIPELINE_ROOT = os.path.dirname(__file__)

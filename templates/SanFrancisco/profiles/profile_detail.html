@@ -6,20 +6,12 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG900913.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+	<script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
 
 {% endblock %}
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
-<script type="text/javascript">
-    jQuery().ready(function() {
-        var favorite_trees = '{{favorite_trees}}';
-        tm.init_favorite_map('{{ profile.user.username }}'); //not editable
-        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
-
-    });
-    
-</script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
 {% endblock %}
 
         
@@ -174,7 +166,7 @@
             {% for fav in profile.user.treefavorite_set.all %}
                 <tr>
                     <td class="fav">
-        		       <a href="{% url treemap.views.tree_detail fav.tree.id %}">View</a><br>
+        		       <a href="{% url treemap.views.trees fav.tree.id %}">View</a><br>
                        <a href="#" class="favorite fav unfave" id="favorite_{{fav.tree.id}}">Unfavorite</a><br>
                     </td> 
                     <td class="species">
@@ -222,7 +214,7 @@
                     {% for tree in profile.recently_edited_trees %}
                     <tr>
                         <td class="fav"> 
-            		       <a href="{% url treemap.views.tree_detail tree.3 %}">View</a><br>
+            		       <a href="{% url treemap.views.trees tree.3 %}">View</a><br>
                         </td> 
                         <td class="species">
                             <span>Tree species</span>
@@ -352,3 +344,15 @@
 			</div>
                 
 {% endblock %}
+
+{% block endpage %}
+<script type="text/javascript">
+    jQuery().ready(function() {
+        var favorite_trees = '{{favorite_trees}}';
+        tm.init_favorite_map('{{ profile.user.username }}'); //not editable
+        tm.add_favorite_handlers('trees/favorites/create/', 'trees/favorites/delete/');
+
+    });
+</script>
+{% endblock %}
+

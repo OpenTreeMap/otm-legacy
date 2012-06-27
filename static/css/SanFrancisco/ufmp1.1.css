@@ -3037,7 +3037,7 @@ table.addet .update p{
 	padding-bottom:40px;
 }
 .footer-holder{
-	width:944px;
+	width:980px;
 	overflow:hidden;
 	margin:0 auto;
 }
@@ -3333,6 +3333,9 @@ width:944px;
 }
 #smError {
 	font-size:14px;
+}
+.smError { 
+        color:red;
 }
 
 #smError2 {
@@ -3643,6 +3646,49 @@ tr.pending td span{
 ** _____________________________________________________________________________
 */
 
+
+#tree_image_list {
+    float:left;
+    margin-right:20px;
+    margin-top:0;
+    padding:0;
+    width:640px;
+}
+#profile_image_list {
+    float:right;
+    margin-top:0
+    padding:0 10px;
+    width:220px;
+}
+#tree_image_list ul, #profile_image_list ul {
+    margin:0;
+    padding:0;
+    list-style-type: none;
+}
+#tree_image_list ul li, #profile_image_list ul li {
+    margin:0;
+    padding:0 0 8px;
+    display:inline;
+    height:100px;
+    position:relative;
+}
+#tree_image_list ul li img, #profile_image_list ul li img{
+    padding:4px;
+}
+#tree_image_list ul li a, #profile_image_list ul li a{
+    position:absolute;
+}
+#tree_image_list .view, #profile_image_list .view {
+    left:6px;
+    bottom:0px;
+}
+
+#tree_image_list .delete, #profile_image_list .delete {
+    right:8px;
+    bottom:0px;
+    color:red;
+    font-weight:bold;
+}
 
 .admin .admin-header {
 	border-bottom: 1pt dotted #CCC;

@@ -8,14 +8,15 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+	<script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
 
 {% endblock %}
 
 {% block body_id %}id="tree_add"{% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
@@ -52,13 +53,11 @@
 
         jQuery("#opt_field_toggle").click(function() {
             jQuery("#opt_field_group").toggle();
+            tm.setupAutoComplete($('#id_species_name'));
         });
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
         jQuery("#id_target_2").attr('checked', 'checked');
 
-        tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-            $("#id_species_id").val(item.symbol).change();
-        });
 
     });
 </script>
@@ -131,12 +130,16 @@
                 <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
                 <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
                 <div class="clearLeft"></div>
-                <span class="small">Enter trunk size in inches</span>
+                <span class="small">Enter trunk size in inches
+                    {%for e in form.dbh.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
                 <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
-                <span class="small">Enter tree height in feet</span>
+                <span class="small">Enter tree height in feet
+                    {%for e in form.height.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
                 <span class="small">Where is the tree planted?</span>
@@ -181,7 +184,19 @@
 
     {% endblock %}
 
-    {% block right_panel %}
+    {% block endpage %}
 
-    {% endblock right_panel %}
+    <script type="text/javascript">
+    if (navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            tm.reverse_geocode({lat:position.coords.latitude, lon:position.coords.longitude}, function(ll, full_address, city, zip) {
+                var short_address = full_address.split(city.split(' ')[0])[0].trim().replace(/,/g, '');
+                $('#id_edit_address_street')[0].value = short_address;
+                $('#id_edit_address_city')[0].value = city;
+                $('#update_map').click();
+            });
+        });
+    }
+    </script>
+    {% endblock endpage %}
 

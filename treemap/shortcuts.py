@@ -21,32 +21,6 @@ def validate_form(form, request):
 
 import re
 
-def get_summaries_and_benefits(obj):
-    try:
-        # Note: 'aggregate' is a queryset method
-        # while 'aggregates' is a tricky related_name of some custom models!
-        # look ma: AggregateNeighborhood.objects.all()[0].location.aggregates
-        agg = obj.aggregates
-    except AttributeError:
-        try:
-            obj.annual_stormwater_management
-            agg = obj
-        except Exception, e:
-            print str(e)
-            return None, None
-    if agg:
-        summaries = {} #TODO assumes incorrectly that we have aggregate
-        #fields = ['annual_stormwater_management', 'annual_electricity_conserved', 
-        #          'annual_natural_gas_conserved', 'annual_air_quality_improvement', 
-        #          'annual_co2_sequestered', 'total_co2_stored', 
-        #          'total_trees', 'distinct_species']
-        for f in agg._meta.get_all_field_names():
-            if f.startswith('total') or f.startswith('annual'):
-                summaries[f] = getattr(agg,f)
-        benefits = agg.get_benefits()
-    return summaries, benefits
-
-
 def get_pt_or_bbox(rg):
     """
     parse out lat/lon or bbox from request.get and return geos geom
@@ -146,12 +120,6 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
 
         if d.has_key('distance'):
             d['distance'] = d['distance'].ft
-
-        #set up special attribs for geographies
-        # todo - make more generic?
-        if model.__name__ in ['Neighborhood','ZipCode']:
-            summaries, benefits = get_summaries_and_benefits(item)
-            
                 
         g = getattr(item,geo_field.name)
         if simplify:

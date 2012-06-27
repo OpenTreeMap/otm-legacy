@@ -10,7 +10,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 
 import audit
 from classfaves.models import FavoriteBase
@@ -942,7 +942,7 @@ class TreePending(Pending):
     tree = models.ForeignKey(Tree)
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(TreePending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -959,7 +959,7 @@ class PlotPending(Pending):
     objects = models.GeoManager()
 
     def approve(self, updating_user):
-        super(Pending, self).approve(updating_user)
+        super(PlotPending, self).approve(updating_user)
         update = {}
         if self.geometry:
             update['old_geometry'] = self.plot.geometry
@@ -988,6 +988,9 @@ class TreeFavorite(FavoriteBase):
 class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
     performed_date = models.DateTimeField()
+
+    class Meta:
+        ordering = ["performed_date"]
 
 class TreeStewardship(Stewardship):
     activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
@@ -1139,17 +1142,12 @@ class AggregateSummaryModel(ResourceSummaryModel):
     total_plots = models.IntegerField()
     #distinct_species = models.IntegerField()
 
-    def ensure_recent(self, current_tree_count = ''):
-      if current_tree_count and current_tree_count == self.total_trees:
-          tm = True
-      else:
-          tm = False
-
-      if tm and (datetime.now() - self.last_updated).seconds < 7200: #two hrs
+    def ensure_recent(self, current_tree_count = 0):
+      if current_tree_count == self.total_trees and (datetime.now() - self.last_updated).seconds < 7200:
           return True
-      else:
-          self.delete()
-          return False
+      
+      self.delete()
+      return False
 
 # to cache large searches via GET params
 class AggregateSearchResult(AggregateSummaryModel):
