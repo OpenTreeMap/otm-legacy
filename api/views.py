@@ -641,7 +641,12 @@ def plot_to_dict(plot,longform=False):
             tree_dict['readonly'] = current_tree.readonly
 
             if settings.PENDING_ON:
-                for field_name, detail in current_tree.get_active_pend_dictionary().items():
+                tree_field_reverse_property_name_dict = {'species_id': 'species'}
+                for raw_field_name, detail in current_tree.get_active_pend_dictionary().items():
+                    if raw_field_name in tree_field_reverse_property_name_dict:
+                        field_name = tree_field_reverse_property_name_dict[raw_field_name]
+                    else:
+                        field_name = raw_field_name
                     pending_edit_dict['tree.' + field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
                     for pend in detail['pending_edits']:
                         pending_edit_dict['tree.' + field_name]['pending_edits'].append(pending_edit_to_dict(pend))
