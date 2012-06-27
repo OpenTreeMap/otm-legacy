@@ -649,7 +649,15 @@ def plot_to_dict(plot,longform=False):
                         field_name = raw_field_name
                     pending_edit_dict['tree.' + field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
                     for pend in detail['pending_edits']:
-                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pending_edit_to_dict(pend))
+                        pend_dict = pending_edit_to_dict(pend)
+                        if field_name == 'species':
+                            species = Species.objects.get(pk=pend_dict['value'])
+                            if species:
+                                pend_dict['related_fields'] = {
+                                    'tree.sci_name': species.scientific_name,
+                                    'tree.species_name': species.common_name
+                                }
+                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pend_dict)
 
     else:
         tree_dict = None
