@@ -955,7 +955,8 @@ def update_plot_and_tree(request, plot_id):
                 tree_was_added = True
             if tree_field.name == 'species':
                 try:
-                    if tree.species.pk != request_dict[tree_field.name]:
+                    if (tree.species and tree.species.pk != request_dict[tree_field.name]) \
+                    or (not tree.species and request_dict[tree_field.name]):
                         if should_create_tree_pends:
                             tree_pend = TreePending(tree=tree)
                             tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
