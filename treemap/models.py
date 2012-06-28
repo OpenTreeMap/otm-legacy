@@ -390,7 +390,7 @@ class PlotLocateManager(models.GeoManager):
 
     def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
                       native=None, flowering=None, fall=None, edible=None,
-                      dbhmin=None, dbhmax=None, species=None, sort_recent=None):
+                      dbhmin=None, dbhmax=None, species=None, sort_recent=None, sort_pending=None):
         '''
         Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
         '''
@@ -400,11 +400,6 @@ class PlotLocateManager(models.GeoManager):
             plots = plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
         else:
             plots = plots.filter(geometry__intersects=geom)
-
-        if plots.count() > 0:
-            extent = plots.extent()
-        else:
-            extent = []
 
         if species_preferenece:
             plots_filtered_by_species_preference = plots.filter(tree__species__id=species_preferenece, tree__present=True)
@@ -443,10 +438,44 @@ class PlotLocateManager(models.GeoManager):
         if sort_recent:
             plots = plots.order_by('-last_updated')
 
-        if plots.count() > 0:
-            plots = plots[:max_plots]
+        if sort_pending:
+            plots_tree_pending = plots.filter(Q(tree__treepending__status='pending'))
+            plots_plot_pending = plots.filter(Q(plotpending__status='pending'))
+
+            if max_plots:
+                plots = list(plots_tree_pending) + list(plots_plot_pending)
+                # Uniquify
+                plots_hash = {}
+                for p in plots:
+                    plots_hash[p.pk] = p
+
+                plots = plots_hash.values()
+
+                sorted(plots, key=lambda z: z.distance)
+
+                plots = plots[:max_plots]
+
+                extent = self.calc_extent(plots)
+
+        else:
+            if plots.count() > 0:
+                extent = plots.extent()
+            else:
+                extent = []
+
+            if plots.count() > 0:
+                plots = plots[:max_plots]
 
         return plots, extent
+
+    def calc_extent(self, plots):
+        if not plots:
+            return []
+        
+        xs = [plot.geometry.x for plot in plots]
+        ys = [plot.geometry.y for plot in plots]
+
+        return (min(xs),min(ys),max(xs),max(ys))
 
 class ManagementMixin(object):
     """
