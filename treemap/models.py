@@ -11,6 +11,7 @@ from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError, PermissionDenied
+from django.db import transaction
 
 import audit
 from classfaves.models import FavoriteBase
@@ -538,6 +539,7 @@ class PendingMixin(object):
             else:
                 result[pend.field] = {'latest_value': pend.value, 'pending_edits': [pend]}
         return result
+
 
 class Plot(models.Model, ManagementMixin, PendingMixin):
     present = models.BooleanField(default=True)
@@ -1102,11 +1104,15 @@ class Pending(models.Model):
                 break
 
     def approve(self, updating_user):
+        if self.status != 'pending':
+            raise ValidationError('The Pending instance is not in the "pending" status and cannot be approved.')
         self.updated_by = updating_user
         self.status = 'approved'
         self.save()
 
     def reject(self, updating_user):
+        if self.status != 'pending':
+            raise ValidationError('The Pending instance is not in the "pending" status and cannot be rejected.')
         self.status = 'rejected'
         self.updated_by = updating_user
         self.save()
@@ -1114,7 +1120,7 @@ class Pending(models.Model):
 class TreePending(Pending):
     tree = models.ForeignKey(Tree)
 
-    def approve(self, updating_user):
+    def _approve(self, updating_user):
         super(TreePending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
@@ -1130,13 +1136,20 @@ class TreePending(Pending):
         if field_name == 'species_id':
             self.text_value = Species.objects.get(id=field_value).scientific_name
 
+    @transaction.commit_on_success
+    def approve_and_reject_other_active_pends_for_the_same_field(self, updating_user):
+        self._approve(updating_user)
+        for active_pend in self.tree.get_active_pends():
+            if active_pend != self and active_pend.field != self.field:
+                active_pend.reject(updating_user)
+
 class PlotPending(Pending):
     plot = models.ForeignKey(Plot)
 
     geometry = models.PointField(srid=4326, blank=True, null=True)
     objects = models.GeoManager()
 
-    def approve(self, updating_user):
+    def _approve(self, updating_user):
         super(PlotPending, self).approve(updating_user)
         update = {}
         if self.geometry:
@@ -1159,6 +1172,13 @@ class PlotPending(Pending):
         else:
             # Omit the geometry so that PlotPending.approve will use the text value
             self.geometry = None
+
+    @transaction.commit_on_success
+    def approve_and_reject_other_active_pends_for_the_same_field(self, updating_user):
+        self._approve(updating_user)
+        for active_pend in self.plot.get_active_pends():
+            if active_pend != self and active_pend.field == self.field:
+                active_pend.reject(updating_user)
 
 class TreeWatch(models.Model):
     key = models.CharField(max_length=255, choices=watch_choices.iteritems())

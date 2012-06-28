@@ -1234,6 +1234,49 @@ class ViewTests(TestCase):
         c.login(username='jim', password='jim')
         response = c.post("/trees/pending/%s/approve/" % pend.pk)
         self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
+        self.assertEqual(0, len(list(p.get_active_pends())), "Expected there to be zero pending edits after approval")
+
+    def test_approve_plot_pending_with_mutiple_pending_edits(self):
+        settings.PENDING_ON = True
+
+        p = self.p1_no_tree
+        p.width = 100
+        p.length = 50
+        p.save()
+
+        c = self.client
+        c.login(username='amy', password='amy')
+
+        # First pending edit
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "150"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        # Second pending edit to the same field
+        response = c.post("/plots/%s/update/" % p.pk, { "width": "175"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        # pending edit to a different field
+        response = c.post("/plots/%s/update/" % p.pk, { "length": "25"})
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        p = Plot.objects.get(pk=p.pk)
+        self.assertEqual(3, len(list(p.get_active_pends())), "Expected three pending edits")
+
+        pend = p.get_active_pends()[0]
+        approved_pend_id = pend.id
+
+        c.login(username='jim', password='jim')
+        response = c.post("/trees/pending/%s/approve/" % pend.pk)
+        self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
+        self.assertEqual(1, len(list(p.get_active_pends())), "Expected there to be 1 pending edits after approval, the length pend.")
+
+        for plot_pending in PlotPending.objects.all():
+            if plot_pending.id == approved_pend_id:
+                self.assertEqual('approved', plot_pending.status, 'The status of the approved pend should be "approved"')
+            elif plot_pending.field == 'width':
+                self.assertEqual('rejected', plot_pending.status, 'The status of the non-approved width pends should be "rejected"')
+            else: # plot_pending.id != approved_pend_id and plot_pending.field != 'width'
+                self.assertEqual('pending', plot_pending.status, 'The status of pends not on the width field should still be "pending"')
 
     def test_need_permission_to_approve_pending(self):
         settings.PENDING_ON = True

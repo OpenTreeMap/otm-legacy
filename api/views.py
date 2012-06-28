@@ -15,6 +15,7 @@ from profiles.utils import change_reputation_for_user
 
 from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
+from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
@@ -648,10 +649,23 @@ def plot_to_dict(plot,longform=False):
             tree_dict['readonly'] = current_tree.readonly
 
             if settings.PENDING_ON:
-                for field_name, detail in current_tree.get_active_pend_dictionary().items():
+                tree_field_reverse_property_name_dict = {'species_id': 'species'}
+                for raw_field_name, detail in current_tree.get_active_pend_dictionary().items():
+                    if raw_field_name in tree_field_reverse_property_name_dict:
+                        field_name = tree_field_reverse_property_name_dict[raw_field_name]
+                    else:
+                        field_name = raw_field_name
                     pending_edit_dict['tree.' + field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
                     for pend in detail['pending_edits']:
-                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pending_edit_to_dict(pend))
+                        pend_dict = pending_edit_to_dict(pend)
+                        if field_name == 'species':
+                            species_set = Species.objects.filter(pk=pend_dict['value'])
+                            if species_set:
+                                pend_dict['related_fields'] = {
+                                    'tree.sci_name': species_set[0].scientific_name,
+                                    'tree.species_name': species_set[0].common_name
+                                }
+                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pend_dict)
 
     else:
         tree_dict = None
@@ -957,7 +971,8 @@ def update_plot_and_tree(request, plot_id):
                 tree_was_added = True
             if tree_field.name == 'species':
                 try:
-                    if tree.species.pk != request_dict[tree_field.name]:
+                    if (tree.species and tree.species.pk != request_dict[tree_field.name]) \
+                    or (not tree.species and request_dict[tree_field.name]):
                         if should_create_tree_pends:
                             tree_pend = TreePending(tree=tree)
                             tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
@@ -998,3 +1013,34 @@ def update_plot_and_tree(request, plot_id):
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
+def approve_pending_edit(request, pending_edit_id):
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
+
+    pend.approve_and_reject_other_active_pends_for_the_same_field(request.user)
+
+    if model == 'Tree':
+        change_reputation_for_user(pend.submitted_by, 'edit tree', pend.tree, change_initiated_by_user=pend.updated_by)
+        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
+    else: # model == 'Plot'
+        change_reputation_for_user(pend.submitted_by, 'edit plot', pend.plot, change_initiated_by_user=pend.updated_by)
+        updated_plot = Plot.objects.get(pk=pend.plot.id)
+
+    return plot_to_dict(updated_plot, longform=True)
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
+def reject_pending_edit(request, pending_edit_id):
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
+    pend.reject(request.user)
+    if model == 'Tree':
+        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
+    else: # model == 'Plot'
+        updated_plot = Plot.objects.get(pk=pend.plot.id)
+    return plot_to_dict(updated_plot, longform=True)

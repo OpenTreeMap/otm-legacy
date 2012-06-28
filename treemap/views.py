@@ -801,33 +801,33 @@ def multi_status(request):
         ts.save()
     return HttpResponse("OK")    
 
-def get_tree_or_plot_pend_by_id(pend_id):
+def get_tree_pend_or_plot_pend_by_id_or_404_not_found(pend_id):
     try:
         pend = TreePending.objects.get(pk=pend_id)
-        model = 'Tree'
+        model_name = 'Tree'
     except TreePending.DoesNotExist:
         pend = None
-        model = None
+        model_name = None
 
     if not pend:
         try:
             pend = PlotPending.objects.get(pk=pend_id)
-            model = 'Plot'
+            model_name = 'Plot'
         except PlotPending.DoesNotExist:
             pend = None
-            model = None
-
-    return pend, model
-
-@login_required
-@permission_required_or_403_forbidden('treemap.change_pending')
-def approve_pend(request, pend_id):
-    pend, model = get_tree_or_plot_pend_by_id(pend_id)
+            model_name = None
 
     if not pend:
         raise Http404
 
-    pend.approve(request.user)
+    return pend, model_name
+
+@login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
+def approve_pend(request, pend_id):
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pend_id)
+
+    pend.approve_and_reject_other_active_pends_for_the_same_field(request.user)
 
     if model == 'Tree':
         change_reputation_for_user(pend.submitted_by, 'edit tree', pend.tree, change_initiated_by_user=pend.updated_by)
@@ -842,11 +842,7 @@ def approve_pend(request, pend_id):
 @login_required
 @permission_required_or_403_forbidden('treemap.change_pending')
 def reject_pend(request, pend_id):
-    pend = TreePending.objects.get(pk=pend_id)
-    if not pend:
-        pend = PlotPending.objects.get(pk=pend_id)
-    if not pend:
-        raise Http404
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pend_id)
     pend.reject(request.user)
     return HttpResponse(
         simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),

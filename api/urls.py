@@ -10,6 +10,9 @@ urlpatterns = patterns(
     (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
     (r'^locations/(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})/plots', plots_closest_to_point),
 
+    (r'^pending-edits/(?P<pending_edit_id>\d+)/approve', route(POST=approve_pending_edit)),
+    (r'^pending-edits/(?P<pending_edit_id>\d+)/reject', route(POST=reject_pending_edit)),
+
     (r'^species', species_list),
     (r'^addresses/(?P<address>.+)', geocode_address),
 

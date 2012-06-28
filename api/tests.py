@@ -768,3 +768,126 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
         self.assertTrue("error" in response_json.keys(), "Expected an 'error' key in the JSON response")
+
+    def test_approve_pending_edit_returns_404_for_invalid_pend_id(self):
+        settings.PENDING_ON = True
+        invalid_pend_id = -1
+        self.assertRaises(Exception, PlotPending.objects.get, pk=invalid_pend_id)
+        self.assertRaises(Exception, TreePending.objects.get, pk=invalid_pend_id)
+
+        response = post_json("%s/pending-edits/%d/approve/"  % (API_PFX, invalid_pend_id), None, self.client, self.sign)
+        self.assertEqual(404, response.status_code, "Expected approving and invalid pend id to return 404")
+
+    def test_reject_pending_edit_returns_404_for_invalid_pend_id(self):
+        settings.PENDING_ON = True
+        invalid_pend_id = -1
+        self.assertRaises(Exception, PlotPending.objects.get, pk=invalid_pend_id)
+        self.assertRaises(Exception, TreePending.objects.get, pk=invalid_pend_id)
+
+        response = post_json("%s/pending-edits/%d/reject/"  % (API_PFX, invalid_pend_id), None, self.client, self.sign)
+        self.assertEqual(404, response.status_code, "Expected approving and invalid pend id to return 404")
+
+    def test_approve_pending_edit(self):
+        self.assert_pending_edit_operation('approve')
+
+    def test_reject_pending_edit(self):
+        self.assert_pending_edit_operation('reject')
+
+    def assert_pending_edit_operation(self, action, original_dbh=2.3, edited_dbh=3.9):
+        settings.PENDING_ON = True
+
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.dbh = original_dbh
+        test_tree.save()
+
+        if action == 'approve':
+            status_after_action = 'approved'
+        elif action == 'reject':
+            status_after_action = 'rejected'
+        else:
+            raise Exception('Action must be "approve" or "reject"')
+
+        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+
+        updated_values = {'tree': {'dbh': edited_dbh}}
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(original_dbh, tree.dbh, "A pend should have been created instead of editing the tree value.")
+        self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
+
+        pending_edit = TreePending.objects.all()[0]
+        self.assertEqual('pending', pending_edit.status, "Expected the status of the Pending to be 'pending'")
+        response = post_json("%s/pending-edits/%d/%s/"  % (API_PFX, pending_edit.id, action), None, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+
+        pending_edit = TreePending.objects.get(pk=pending_edit.id)
+        self.assertEqual(status_after_action, pending_edit.status, "Expected the status of the Pending to be '%s'" % status_after_action)
+        test_tree = Tree.objects.get(pk=test_tree_id)
+
+        if action == 'approve':
+            self.assertEqual(edited_dbh, test_tree.dbh, "Expected dbh to have been updated on the Tree")
+        elif action == 'reject':
+            self.assertEqual(original_dbh, test_tree.dbh, "Expected dbh to NOT have been updated on the Tree")
+
+        response_json = loads(response.content)
+        self.assertTrue('tree' in response_json)
+        self.assertTrue('dbh' in response_json['tree'])
+        if action == 'approve':
+            self.assertEqual(edited_dbh, response_json['tree']['dbh'], "Expected dbh to have been updated in the JSON response")
+        elif action == 'reject':
+            self.assertEqual(original_dbh, response_json['tree']['dbh'], "Expected dbh to NOT have been updated in the JSON response")
+
+    def test_approve_plot_pending_with_mutiple_pending_edits(self):
+        settings.PENDING_ON = True
+
+        test_plot = mkPlot(self.user)
+        test_plot.width = 100
+        test_plot.length = 50
+        test_plot.save()
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree.dbh = 2.3
+        test_tree.save()
+
+        updated_values = {
+            "plot_width": 125,
+            "plot_length": 25,
+            "tree": {
+                "dbh": 3.9
+            }
+        }
+
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        updated_values = {
+            "plot_width": 175,
+        }
+
+        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+
+        test_plot = Plot.objects.get(pk=test_plot.pk)
+        pending_edit_count = len(list(test_plot.get_active_pends_with_tree_pends()))
+        self.assertEqual(4, pending_edit_count, "Expected three pending edits but got %d" % pending_edit_count)
+
+        pend = test_plot.get_active_pends()[0]
+        approved_pend_id = pend.id
+
+        response = post_json("%s/pending-edits/%d/approve/"  % (API_PFX, approved_pend_id), None, self.client, self.sign)
+        self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
+        self.assertEqual(2, len(list(test_plot.get_active_pends_with_tree_pends())), "Expected there to be 2 pending edits after approval")
+
+        for plot_pending in PlotPending.objects.all():
+            if plot_pending.id == approved_pend_id:
+                self.assertEqual('approved', plot_pending.status, 'The status of the approved pend should be "approved"')
+            elif plot_pending.field == 'width':
+                self.assertEqual('rejected', plot_pending.status, 'The status of the non-approved width pends should be "rejected"')
+            else: # plot_pending.id != approved_pend_id and plot_pending.field != 'width'
+                self.assertEqual('pending', plot_pending.status, 'The status of plot pends not on the width field should still be "pending"')
+
+        for tree_pending in TreePending.objects.all():
+            self.assertEqual('pending', tree_pending.status, 'The status of tree pends should still be "pending"')
