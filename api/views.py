@@ -15,6 +15,7 @@ from profiles.utils import change_reputation_for_user
 
 from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
+from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point
 
@@ -1005,3 +1006,34 @@ def update_plot_and_tree(request, plot_id):
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
+def approve_pending_edit(request, pending_edit_id):
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
+
+    pend.approve_and_reject_other_active_pends_for_the_same_field(request.user)
+
+    if model == 'Tree':
+        change_reputation_for_user(pend.submitted_by, 'edit tree', pend.tree, change_initiated_by_user=pend.updated_by)
+        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
+    else: # model == 'Plot'
+        change_reputation_for_user(pend.submitted_by, 'edit plot', pend.plot, change_initiated_by_user=pend.updated_by)
+        updated_plot = Plot.objects.get(pk=pend.plot.id)
+
+    return plot_to_dict(updated_plot, longform=True)
+
+@require_http_methods(["POST"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.change_pending')
+def reject_pending_edit(request, pending_edit_id):
+    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
+    pend.reject(request.user)
+    if model == 'Tree':
+        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
+    else: # model == 'Plot'
+        updated_plot = Plot.objects.get(pk=pend.plot.id)
+    return plot_to_dict(updated_plot, longform=True)
