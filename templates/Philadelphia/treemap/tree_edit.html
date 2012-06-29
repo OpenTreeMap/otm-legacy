@@ -281,7 +281,7 @@
             </ul>
             {% endif %}
 
-            {% if perms.can_delete_tree %}
+            {% if perms.treemap.delete_tree %}
             <ul id="message">
                 {% if tree %}
 				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ tree.id }});return false;" >Delete this Tree</a></li>
