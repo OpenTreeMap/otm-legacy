@@ -1515,11 +1515,9 @@ def _build_tree_search_result(request, with_benefits=True):
         pt_cql = []
         pt_list = []
         for k, v in settings.CHOICES["plot_types"]:
-            if v.lower().replace(' ', '_') in request.GET:
-                plot = request.GET.get(v.lower().replace(' ', '_'),'')
-                if plot:
-                    pt_list.append(k)
-                    pt_cql.append("plot_type = " + k)
+            if v.lower().replace(' ', '_').replace('/','') in request.GET:
+                pt_list.append(k)
+                pt_cql.append("plot_type = " + k)
         if len(pt_cql) > 0:
             tile_query.append("(" + " OR ".join(pt_cql) + ")")
             trees = trees.filter(plot__type__in=pt_list)
@@ -1534,7 +1532,7 @@ def _build_tree_search_result(request, with_benefits=True):
         s_cql = []
         s_list = []
         for k, v in settings.CHOICES["sidewalks"]:
-            if v.lower().replace(' ', "_") in request.GET:
+            if v.lower().replace(' ', "_").replace('/','') in request.GET:
                 s_list.append(k)
                 s_cql.append("sidewalk_damage = " + k)
         if len(s_cql) > 0:
@@ -1552,7 +1550,7 @@ def _build_tree_search_result(request, with_benefits=True):
         p_cql = []
         p_list = []
         for k, v in settings.CHOICES["powerlines"]:
-            if v.lower().replace(" ", "_") in request.GET:
+            if v.lower().replace(" ", "_").replace('/','') in request.GET:
                 p_list.append(k)
                 p_cql.append("powerline_conflict_potential = " + k)
         if len(p_cql) > 0:
@@ -1591,7 +1589,7 @@ def _build_tree_search_result(request, with_benefits=True):
     local_cql = []
     local_list = []
     for k,v in settings.CHOICES["projects"]:
-        if v.lower().replace(' ', '_') in request.GET:
+        if v.lower().replace(' ', '_').replace('/','') in request.GET:
             local = request.GET.get(v.lower().replace(' ', '_'),'')
             if local:
                 local_list.append(k)
@@ -1644,11 +1642,9 @@ def _build_tree_search_result(request, with_benefits=True):
         c_cql = []
         c_list = []
         for k, v in settings.CHOICES["conditions"]:
-            if v.lower().replace(' ', '_') in request.GET:
-                cond = request.GET.get(v.lower().replace(' ', '_'),'')
-                if cond:
-                    c_list.append(k)
-                    c_cql.append("condition = " + k)
+            if v.lower().replace(' ', '_').replace('/','') in request.GET:
+                c_list.append(k)
+                c_cql.append("condition = " + k)
         if len(c_cql) > 0:
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)

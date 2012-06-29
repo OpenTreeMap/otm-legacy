@@ -474,7 +474,7 @@ class ViewTests(TestCase):
             self.assertEqual(req['summaries']['total_plots'], plot_count)
 
         def to_search_string(choice_name):
-            return choice_name.lower().replace(" ", "_")
+            return choice_name.lower().replace(" ", "_").replace('/','')
 
         oneDay = timedelta(days=1)
         oneYear = timedelta(days=365)
