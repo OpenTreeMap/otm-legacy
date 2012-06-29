@@ -439,6 +439,10 @@ class Plot(models.Model):
         pends = self.plotpending_set.filter(status='pending')
         return pends
 
+    def get_active_geopends(self):
+        pends = PlotPending.objects.filter(status='pending').filter(plot=self)
+        return pends
+
     def get_active_pends_with_tree_pends(self):
         plot_pends = self.plotpending_set.filter(status='pending')
         if self.current_tree():
@@ -641,10 +645,6 @@ class Tree(models.Model):
         
     def get_active_pends(self):
         pends = self.treepending_set.filter(status='pending')
-        return pends
-
-    def get_active_geopends(self):
-        pends = PlotPending.objects.filter(status='pending').filter(tree=self)
         return pends
 
     def set_environmental_summaries(self):

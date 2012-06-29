@@ -257,7 +257,7 @@ tm = {
                 } else {
                     var value = response['update'][settings.fieldName];
                     
-                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                    if (settings.fieldName == "width" || settings.fieldName == "length") {
                         if (value == 99.0) {value = "15+"}
                     }
 
