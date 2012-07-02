@@ -6,7 +6,7 @@ from django.contrib.gis.geos.polygon import Polygon
 from django_reputation.models import ReputationAction, Reputation
 from api.models import APILog, APIKey
 from profiles.models import UserProfile
-from treemap.models import Species, Choices, BenefitValues, Resource, Neighborhood, ZipCode, ExclusionMask, AggregateNeighborhood, ImportEvent, Tree, Plot
+from treemap.models import Species, BenefitValues, Resource, Neighborhood, ZipCode, ExclusionMask, AggregateNeighborhood, ImportEvent, Tree, Plot
 
 def mkPlot(u, geom=Point(50,50)):
     p = Plot(geometry=geom, last_updated_by=u, import_event=ImportEvent.objects.all()[0],present=True, data_owner=u)
@@ -33,8 +33,6 @@ def setupTreemapEnv():
     settings.GEOSERVER_GEO_STYLE = ""
     settings.GEOSERVER_URL = ""
 
-    Choices(field="plot_type", key="blah", value="blah", key_type="str").save()
-
     r1 = ReputationAction(name="edit verified", description="blah")
     r2 = ReputationAction(name="edit tree", description="blah")
     r3 = ReputationAction(name="Administrative Action", description="blah")
@@ -50,7 +48,6 @@ def setupTreemapEnv():
         nox=12.79,stormwater=0.0078,sox=3.72,bvoc=4.96)
 
     bv.save()
-
 
     dbh = "[1.0, 2.0, 3.0]"
 
@@ -169,9 +166,6 @@ def teardownTreemapEnv():
         r.delete()
 
     for r in APIKey.objects.all():
-        r.delete()
-
-    for r in Choices.objects.all():
         r.delete()
 
     for r in ReputationAction.objects.all():

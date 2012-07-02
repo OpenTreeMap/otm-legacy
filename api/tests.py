@@ -16,7 +16,7 @@ from django.conf import settings
 from urlparse import urlparse
 import urllib
 from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from treemap.models import Choices, Species, Plot, Tree, Pending, TreePending, PlotPending
+from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPending
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException

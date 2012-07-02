@@ -1040,10 +1040,11 @@ class Pending(models.Model):
         self.status = 'pending'
         self.updated_by = user
 
-        for choice_key, choice_value in Choices().get_field_choices(field_name):
-            if str(choice_key) == str(field_value):
-                self.text_value = choice_value
-                break
+        if  field_name in settings.CHOICES:
+            for choice_key, choice_value in settings.CHOICES[field_name]:
+                if str(choice_key) == str(field_value):
+                    self.text_value = choice_value
+                    break
 
     def approve(self, updating_user):
         if self.status != 'pending':
@@ -1082,7 +1083,7 @@ class TreePending(Pending):
     def approve_and_reject_other_active_pends_for_the_same_field(self, updating_user):
         self._approve(updating_user)
         for active_pend in self.tree.get_active_pends():
-            if active_pend != self and active_pend.field != self.field:
+            if active_pend != self and active_pend.field == self.field:
                 active_pend.reject(updating_user)
 
 class PlotPending(Pending):
