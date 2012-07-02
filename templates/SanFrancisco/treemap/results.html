@@ -1,6 +1,12 @@
 {% extends "template_1.html" %}
 {% load maths dynamic_attribute thumbnail %}
 
+{% block extrahead %}	    
+    {% load compressed %}
+    {% compressed_js 'map' %}
+
+{% endblock %}
+
 {%block body_class%}inner{%endblock %}
 {% block body_id %}id="results"{% endblock %} 
     
@@ -91,8 +97,8 @@
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
                 
                 {% if tree.last_updated_by.get_profile.photo %}
-                    {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" %}
-                    <img src="" alt="image description" width="33" height="32" />
+                    {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
+                    <img src="{{image.url}}" alt="image description" width="33" height="32" />
                     {% endthumbnail %}
                 {% else %}
                     <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />            

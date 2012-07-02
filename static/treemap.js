@@ -255,7 +255,7 @@ tm = {
                 } else {
                     var value = response['update'][settings.fieldName];
                     
-                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                    if (settings.fieldName == "width" || settings.fieldName == "length") {
                         if (value == 99.0) {value = "15+"}
                     }
 
@@ -499,41 +499,41 @@ tm = {
     },
 
     newTreeActivity: function() {
-        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['treestewardship'], "treeActivityTable", 
+        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['tree_stewardship'], "treeActivityTable", 
                                      tm.handleNewTreeStewardship("treeActivityTypeSelection", 
                                                            "TreeStewardship",
                                                            "treeActivityTable", 
                                                            "treeActivityCount"));
     },
     newPlotActivity: function() {
-        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plotstewardship'], "plotActivityTable", 
+        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plot_stewardship'], "plotActivityTable", 
                                      tm.handleNewPlotStewardship("plotActivityTypeSelection", 
                                                            "PlotStewardship",
                                                            "plotActivityTable", 
                                                            "plotActivityCount"));
     },
     newAction: function() {
-        return tm.createAttributeRow("actionTypeSelection", tm.choices['action'], "actionTable",
-                                     tm.handleNewAttribute("actionTypeSelection", tm.choices['action'],
+        return tm.createAttributeRow("actionTypeSelection", tm.choices['actions'], "actionTable",
+                                     tm.handleNewAttribute("actionTypeSelection", 
                                                            "TreeAction", 
                                                            "actionTable",
-                                                           "actionCount"));
+                                                           "actionCount", tm.choices['actions']));
     },
 
     newLocal: function() {
-        return tm.createAttributeRow("localTypeSelection", tm.choices['local'], "localTable", 
-                                     tm.handleNewAttribute("localTypeSelection", tm.choices['local'],
+        return tm.createAttributeRow("localTypeSelection", tm.choices['projects'], "localTable", 
+                                     tm.handleNewAttribute("localTypeSelection",
                                                            "TreeFlags",
                                                            "localTable", 
-                                                           "localCount"));
+                                                           "localCount", tm.choices['projects']));
     },
 
     newHazard: function() {
-        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alert'], "hazardTable", 
-                                     tm.handleNewAttribute("hazardTypeSelection", tm.choices['alert'],
+        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alerts'], "hazardTable", 
+                                     tm.handleNewAttribute("hazardTypeSelection",
                                                            "TreeAlert",
                                                            "hazardTable",
-                                                           "hazardCount"));
+                                                           "hazardCount", tm.choices['alerts']));
     },
 
     createAttributeRow: function(selectId, typesArray, tableName, submitEvent) {
@@ -597,7 +597,7 @@ tm = {
             
             $(this.parentNode.parentNode).remove();
             tm.addTreeStewardship(data, data_date, settings);
-            var choices = tm.choices['treestewardship'];
+            var choices = tm.choices['tree_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
@@ -630,7 +630,7 @@ tm = {
             
             $(this.parentNode.parentNode).remove();
             tm.addPlotStewardship(data, data_date, settings);
-            var choices = tm.choices['plotstewardship'];
+            var choices = tm.choices['plot_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
@@ -665,7 +665,7 @@ tm = {
             for (var i=0;i<data_array.length; i++) {
                 if (data_array[i][0] == data) {
                     $("#" + table).append(
-                        $("<tr><td>"+data_array[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
+                        $("<tr><td>"+data_array[i][1]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
                     $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
                     break;
                 }
@@ -706,7 +706,7 @@ tm = {
 
     pageLoadSearch: function () {
         tm.loadingSearch = true;
-        tm.searchparams = {};
+        tm.searchParams = {};
         var params = $.address.parameterNames();
         if (params.length) {
             for (var i = 0; i < params.length; i++) {

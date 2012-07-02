@@ -15,7 +15,8 @@
 {% block body_id %}id="tree_add"{% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    {% load compressed %}
+    {% compressed_js 'map' %}
     <script type="text/javascript">
     jQuery().ready(function() {
         tm.init_add_map();
@@ -52,13 +53,11 @@
 
         jQuery("#opt_field_toggle").click(function() {
             jQuery("#opt_field_group").toggle();
+            tm.setupAutoComplete($('#id_species_name'));
         });
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
         jQuery("#id_target_2").attr('checked', 'checked');
 
-        tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-            $("#id_species_id").val(item.symbol).change();
-        });
 
     });
 </script>
@@ -185,7 +184,19 @@
 
     {% endblock %}
 
-    {% block right_panel %}
+    {% block endpage %}
 
-    {% endblock right_panel %}
+    <script type="text/javascript">
+    if (navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            tm.reverse_geocode({lat:position.coords.latitude, lon:position.coords.longitude}, function(ll, full_address, city, zip) {
+                var short_address = full_address.split(city.split(' ')[0])[0].trim().replace(/,/g, '');
+                $('#id_edit_address_street')[0].value = short_address;
+                $('#id_edit_address_city')[0].value = city;
+                $('#update_map').click();
+            });
+        });
+    }
+    </script>
+    {% endblock endpage %}
 

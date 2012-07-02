@@ -49,7 +49,10 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
     $(".input-box input").change(function(evt) { 
         if (this.value != "") {
             tm.searchParams[this.id] = this.value; 
+        } else {
+            delete tm.searchParams[this.id];
         }
+        
     });
     var curmin = 0;
     var curmax = 50;
@@ -203,21 +206,22 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
         $("#owner").val('');
         $("#updated_by").val('');
         $("#funding").val('');
-        delete tm.searchParams['diameter_range'];
-        delete tm.searchParams['planted_range'];
-        delete tm.searchParams['updated_range'];
-        delete tm.searchParams['height_range'];
-        delete tm.searchParams['plot_range'];
-        delete tm.searchParams['advanced'];
-        delete tm.searchParams['steward'];
-        delete tm.searchParams['owner'];
-        delete tm.searchParams['updated_by'];
-        delete tm.searchParams['funding'];
+        //delete tm.searchParams['diameter_range'];
+        //delete tm.searchParams['planted_range'];
+        //delete tm.searchParams['updated_range'];
+        //delete tm.searchParams['height_range'];
+        //delete tm.searchParams['plot_range'];
+        //delete tm.searchParams['advanced'];
+        //delete tm.searchParams['steward'];
+        //delete tm.searchParams['owner'];
+        //delete tm.searchParams['updated_by'];
+        //delete tm.searchParams['funding'];
+        tm.searchParams = {}
 
-        var checks = $("#options_form input:checked");
-        for(var i=0;i<checks.length;i++) {
-            delete tm.searchParams[checks[i].id];
-        }
+        //var checks = $("#options_form input:checked");
+        //for(var i=0;i<checks.length;i++) {
+        //    delete tm.searchParams[checks[i].id];
+        //}
         $("#options_form input:checked").attr('checked', false)  
         //tm.updateSearch();
         tm.trackEvent('Search', 'Reset Advanced');

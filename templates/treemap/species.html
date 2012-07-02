@@ -35,19 +35,19 @@
                     <th>Genus</th>
                     <th>Scientific Name</th>
                     <th>Cultivar</th>
-		    <th>Gender</th>
+		            <th>Gender</th>
                     <th>Accepted Symbol</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for s in species %}
-                <tr class="{{s.species.invasive_status}}">
+                <tr >
                     <td><i>{{s.tree_count}}</i></td>
-                    <td><a href="{{v.species.web_link}}" target="_none">{{s.common_name}}</a></td> 
+                    <td><a href="{{SITE_ROOT}}search/?species={{s.id}}" target="_none">{{s.common_name}}</a></td> 
                     <td><i>{{s.genus}}</i></td>
-                    <td class="{{v.species.invasive_status}}"><i>{{s.scientific_name}}</i></td>
+                    <td><i>{{s.scientific_name}}</i></td>
                     <td><i>{{s.cultivar_name}}</i></td>
-		    <td><i>{{s.gender}}</i></td>
+		            <td><i>{{s.gender}}</i></td>
                     <td>{{s.accepted_symbol}}</td>
                 </tr>
                 {% endfor %}

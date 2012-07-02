@@ -111,39 +111,6 @@ def sorted_nicely(l, key):
     return sorted(l, key = alphanum_key)
 
 
-class Choices(models.Model):
-    field = models.CharField(max_length=255, choices=choices_choices)
-    key = models.CharField(max_length=50)
-    value = models.CharField(max_length=255)
-    key_type = models.CharField(max_length=15)
-
-    def get_field_choices(self, fieldName):
-        li = {}
-        for c in Choices.objects.filter(field__exact=fieldName):
-
-            if c.key_type == 'int':
-                key =  int(c.key)
-            elif c.key_type == 'bool':
-                if c.key == 'True':
-                    key = True
-                else:
-                    key = False
-            elif c.key_type == 'str':
-                key =  c.key
-            elif c.key_type == 'none':
-                key =  None
-            else:
-                raise Exception("Invalid key type %r" % c.key_type)
-
-            li[c.key] = c.value
-        return sorted_nicely(li.items(), itemgetter(0))
-    
-    def __unicode__(self): return '%s(%s) - %s' % (self.field, self.key, self.value)
-        
-#choices = Choices()
-    
-
-
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
     """
@@ -191,13 +158,6 @@ class ExclusionMask(models.Model):
     type = models.CharField(max_length=50, blank=True, null=True)
     objects=models.GeoManager()
     
-class Factoid(models.Model):
-    category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
-    header = models.CharField(max_length=100)
-    fact = models.TextField(max_length=500)
-    
-    def __unicode__(self): return '%s: %s' % (self.category, self.fact)
-
 
 class Resource(models.Model):
     """
@@ -545,10 +505,10 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
     present = models.BooleanField(default=True)
     width = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     length = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
-    type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
-    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
-        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
-    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+    type = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["plot_types"])
+    powerline_conflict_potential = models.CharField(max_length=256, choices=settings.CHOICES["powerlines"],
+        help_text = "Are there overhead powerlines present?",null=True, blank=True)
+    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["sidewalks"])
     
     address_street = models.CharField(max_length=256, blank=True, null=True)
     address_city = models.CharField(max_length=256, blank=True, null=True)
@@ -592,7 +552,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
 
 
     def get_plot_type_display(self):
-        for key, value in Choices().get_field_choices('plot_type'):
+        for key, value in settings.CHOICES["plot_types"]:
             if key == self.type:
                 return value
         return None
@@ -610,13 +570,13 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         return '%s x %s' % (length, width)
 
     def get_sidewalk_damage_display(self):
-        for key, value in Choices().get_field_choices('sidewalk_damage'):
+        for key, value in settings.CHOICES["sidewalks"]:
             if key == self.sidewalk_damage:
                 return value
         return None    
        
     def get_powerline_conflict_display(self):
-        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+        for key, value in settings.CHOICES["powerlines"]:
             if key == self.powerline_conflict_potential:
                 return value
         return None
@@ -636,6 +596,10 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         pends = self.plotpending_set.filter(status='pending')
         return pends
 
+    def get_active_geopends(self):
+        pends = PlotPending.objects.filter(status='pending').filter(plot=self)
+        return pends
+
     def get_active_pends_with_tree_pends(self):
         plot_pends = self.plotpending_set.filter(status='pending')
         if self.current_tree():
@@ -644,12 +608,6 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             tree_pends = []
         pends = list(chain(plot_pends, tree_pends))
         return pends
-
-    def get_plot_type_display(self):
-        for key, value in Choices().get_field_choices('plot_type'):
-            if key == self.type:
-                return value
-        return None
 
     def get_plot_size(self): 
         length = self.length
@@ -662,18 +620,6 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         else: width = '%.2f ft' % width
         return '%s x %s' % (length, width)
     
-    def get_sidewalk_damage_display(self):
-        for key, value in Choices().get_field_choices('sidewalk_damage'):
-            if key == self.sidewalk_damage:
-                return value
-        return None    
-
-    def get_powerline_conflict_potential(self):
-        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
-            if key == self.powerline_conflict_potential:
-                return value
-        return None
-
     def quick_save(self, *args, **kwargs):
         super(Plot, self).save(*args,**kwargs) 
 
@@ -797,8 +743,8 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
     
     import_event = models.ForeignKey(ImportEvent)
     
-    condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
-    canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
+    condition = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["conditions"])
+    canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["canopy_conditions"])
 
     readonly = models.BooleanField(default=False)
 
@@ -816,7 +762,7 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
     
 
     def get_condition_display(self):
-        for key, value in Choices().get_field_choices('condition'):
+        for key, value in settings.CHOICES["conditions"]:
             if key == self.condition:
                 return value
         return None
@@ -856,10 +802,6 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         
     def get_active_pends(self):
         pends = self.treepending_set.filter(status='pending')
-        return pends
-
-    def get_active_geopends(self):
-        pends = PlotPending.objects.filter(status='pending').filter(tree=self)
         return pends
 
     def set_environmental_summaries(self):
@@ -1198,21 +1140,21 @@ class Stewardship(models.Model):
         ordering = ["performed_date"]
 
 class TreeStewardship(Stewardship):
-    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('treestewardship'))
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["tree_stewardship"])
     tree = models.ForeignKey(Tree)
 
     def get_activity(self):
-        for key, value in Choices().get_field_choices('treestewardship'):
+        for key, value in settings.CHOICES["tree_stewardship"]:
             if key == self.activity:
                 return value
         return None
 
 class PlotStewardship(Stewardship):
-    activity = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plotstewardship'))
+    activity = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["plot_stewardship"])
     plot = models.ForeignKey(Plot)
 
     def get_activity(self):
-        for key, value in Choices().get_field_choices('plotstewardship'):
+        for key, value in settings.CHOICES["plot_stewardship"]:
             if key == self.activity:
                 return value
         return None
@@ -1242,7 +1184,7 @@ def get_parent_id(instance):
     return instance.key
 
 class TreeFlags(TreeItem):
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices("local"))
+    key = models.CharField(max_length=256, choices=settings.CHOICES["projects"])
     value = models.DateTimeField(auto_now=True)
 
 
@@ -1274,13 +1216,13 @@ class TreeAlert(TreeItem):
     status of attributes that we want to track changes over time.
     sidwalk damage might be scale of 0 thru 5, where dbh or height might be an arbitrary float
     """
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices('alert'))
+    key = models.CharField(max_length=256, choices=settings.CHOICES["alerts"])
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)    
     
-    
+#Should be removed in favor of stewardship activities    
 class TreeAction(TreeItem): 
-    key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
+    key = models.CharField(max_length=256, choices=settings.CHOICES["actions"])
     value = models.DateTimeField()
       
 class ResourceSummaryModel(models.Model):

@@ -5,7 +5,7 @@
 <script type="text/javascript">
 	jQuery().ready(function() {
 		if (jQuery("#address").html() == "Missing") {
-			latlng = new google.maps.LatLng({{ tree.geometry.y }}, {{ tree.geometry.x }})
+			latlng = new google.maps.LatLng({{ plot.geometry.y }}, {{ plot.geometry.x }})
 			tm.geocoder.geocode({
 				latLng: latlng
 			}, function(results, status){
@@ -60,7 +60,7 @@
         </tr>
         <tr>
         	<td class="col1">Nearby address</td>
-            <td>{{ tree.address_street }}</td>
+            <td>{{ tree.plot.address_street }}</td>
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>
@@ -74,22 +74,12 @@
         	<td class="col1">Alerts</td>
             <td>
             {% if tree.treealert_set.all.count > 0 %}
-                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
+                <a href="{% url treemap.views.plot_detail plot.id %}#status">Yes</a>
             {% else %}
                 No Alerts
             {% endif %}
             </td>
         </tr>
-{% comment %}
-        <tr>
-        	<td class="col1">Height</td>
-            <td>{{ tree.get_height|default:"Unknown" }}</td>
-        </tr>
-        <tr>
-        	<td class="col1">Condition</td>
-            <td>{{ tree.get_condition|default:"Unknown" }}</td>
-        </tr>
-{% endcomment %}
         <tr>
         	<td class="col1">Yearly eco impact</td>
             <td>{% if tree.get_eco_impact %}${{ tree.get_eco_impact|floatformat:2 }}{% else %}Not Available{% endif %}</td>
@@ -103,31 +93,27 @@
 {% block right_panel %}
 
 <ul id="optionList">
-	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
+	<li id="details"><a href="{% url treemap.views.plot_detail plot.id %}">View all details</a></li>
 	<li id="note">Tree's profile page</li>
-	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
+	<li id="edit"><a href="{% url treemap.views.plot_edit plot.id %}">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
-    {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 
           {% if favorite %}
             <li id="fav">Favorited (<a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
              class="favorite fav unfave">Unfavorite</a>)</li>
         {% else %}
-		    <li id="fav">
-            <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
-             class="favorite fav fave">Add as favorite</a>
-			 </li>
-            {% if tree.treefavorite_set.all.count %}
-             <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+            {% if tree %}
+		        <li id="fav">
+                <a href="javascript:void(0);" onClick="fav_click()" id="favorite_{{ tree.id }}"
+                 class="favorite fav fave">Add as favorite</a>
+			     </li>
+                {% if tree.treefavorite_set.all.count %}
+                 <li id="note">  ({{tree.treefavorite_set.all.count}} others have)</li>
+                {% endif %}
             {% endif %}
         {% endif %}
     {% endif %}
-	<!-- TODO -->
-	<!--
-	<li id="email"><a href="#">Email to a friend</a></li>
-	<li id="twitter"><a href="#">Tweet this tree</a></li>
-	-->
 </ul>
 
 {% endblock %}
