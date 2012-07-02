@@ -1040,10 +1040,11 @@ class Pending(models.Model):
         self.status = 'pending'
         self.updated_by = user
 
-        for choice_key, choice_value in Choices().get_field_choices(field_name):
-            if str(choice_key) == str(field_value):
-                self.text_value = choice_value
-                break
+        if  field_name in settings.CHOICES:
+            for choice_key, choice_value in settings.CHOICES[field_name]:
+                if str(choice_key) == str(field_value):
+                    self.text_value = choice_value
+                    break
 
     def approve(self, updating_user):
         if self.status != 'pending':
