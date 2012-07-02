@@ -440,7 +440,7 @@ class Plot(models.Model):
         return pends
 
     def get_active_geopends(self):
-        pends = PlotPending.objects.filter(status='pending').filter(plot=self)
+        pends = self.plotpending_set.filter(status='pending').exclude(geometry=None)
         return pends
 
     def get_active_pends_with_tree_pends(self):

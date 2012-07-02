@@ -206,24 +206,9 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
         $("#owner").val('');
         $("#updated_by").val('');
         $("#funding").val('');
-        //delete tm.searchParams['diameter_range'];
-        //delete tm.searchParams['planted_range'];
-        //delete tm.searchParams['updated_range'];
-        //delete tm.searchParams['height_range'];
-        //delete tm.searchParams['plot_range'];
-        //delete tm.searchParams['advanced'];
-        //delete tm.searchParams['steward'];
-        //delete tm.searchParams['owner'];
-        //delete tm.searchParams['updated_by'];
-        //delete tm.searchParams['funding'];
         tm.searchParams = {}
 
-        //var checks = $("#options_form input:checked");
-        //for(var i=0;i<checks.length;i++) {
-        //    delete tm.searchParams[checks[i].id];
-        //}
         $("#options_form input:checked").attr('checked', false)  
-        //tm.updateSearch();
         tm.trackEvent('Search', 'Reset Advanced');
     });        
     
@@ -327,6 +312,11 @@ tm.baseTemplatePageLoad = function() {
         return false;
     });
     
+    $('a.search-suggestion').live('click', function(event) { 
+        $("#location_search_input").val($(this).text()).change();
+        return false;
+    });
+
     $("#location_search_input").blur(function(evt) {
         if (!this.value) {
             $("#location_search_input").val("");

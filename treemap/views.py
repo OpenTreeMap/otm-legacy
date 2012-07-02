@@ -991,7 +991,7 @@ def object_update(request):
 
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
-                        for k,v in update.items():
+                        for k,v in update.items():  
                             fld = instance._meta.get_field(k.replace('_id',''))
                             try:
                                 cleaned = fld.clean(v,instance)
@@ -1019,10 +1019,14 @@ def object_update(request):
                                 if k == 'species_id':
                                     pend.text_value = Species.objects.get(id=v).scientific_name
 
-                                for key, value in settings.CHOICES[k]:
-                                    if str(key) == str(v):
-                                        pend.text_value = value
+                                for field in instance._meta.fields:
+                                    if str(field.name) == str(fld.name):
+                                        for choice in field.choices:
+                                            if str(choice[0]) == str(cleaned):
+                                                pend.text_value = choice[1]
+                                                break
                                         break
+
                                 pend.save()
 
                             except ValidationError,e:
@@ -1072,7 +1076,7 @@ def object_update(request):
                 #   circ = update.get('value')
                 #   if circ:
                 #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']    
+                #   #response_dict['update']['']  
                 for k,v in update.items():
                     if hasattr(instance,k):
                         #print k,v
@@ -1192,6 +1196,14 @@ def create_pending_records(plot_base, plot_new_flds, user):
         
             if fld == 'geometry':
                 pend.geometry = plot_new_flds
+
+            for field in Plot._meta.fields:
+                if str(field.name) == str(fld):
+                    for choice in field.choices:
+                        if str(choice[0]) == str(new_field_val):
+                            pend.text_value = choice[1]
+                            break
+                    break
 
             pends.append(pend)
 
@@ -1373,7 +1385,10 @@ def update_plot(request, plot_id):
         
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
-            response_dict['update'][k] = get_attr_or_display(plot,k)        
+            if settings.PENDING_ON:
+                response_dict['update'][k] = "Pending"  
+            else:
+                response_dict['update'][k] = get_attr_or_display(plot,k)        
 
     return HttpResponse(
             simplejson.dumps(response_dict),

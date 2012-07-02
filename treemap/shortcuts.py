@@ -108,9 +108,10 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
                 d['flowering'] = item.species.flower_conspicuous
                 d['native'] = item.species.native_status
         elif model.__name__ == 'Plot':
-            if item.current_tree() and item.current_tree().species:
-                d['scientific_name'] = item.current_tree().species.scientific_name
-                d['common_name'] = item.current_tree().species.common_name
+            if item.current_tree():
+                if item.current_tree().species:
+                    d['scientific_name'] = item.current_tree().species.scientific_name
+                    d['common_name'] = item.current_tree().species.common_name
                 d['dbh'] = item.current_tree().dbh
                 d['height'] = item.current_tree().height
                 d['tree'] = True
