@@ -1083,7 +1083,7 @@ class TreePending(Pending):
     def approve_and_reject_other_active_pends_for_the_same_field(self, updating_user):
         self._approve(updating_user)
         for active_pend in self.tree.get_active_pends():
-            if active_pend != self and active_pend.field != self.field:
+            if active_pend != self and active_pend.field == self.field:
                 active_pend.reject(updating_user)
 
 class PlotPending(Pending):
