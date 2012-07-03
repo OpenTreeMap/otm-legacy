@@ -1096,8 +1096,8 @@ class PlotPending(Pending):
         super(PlotPending, self).approve(updating_user)
         update = {}
         if self.geometry:
-            update['old_geometry'] = self.plot.geometry
-            update['geometry'] = self.geometry
+            update['old_geometry'] = simplejson.loads(self.plot.geometry.geojson)
+            update['geometry'] = simplejson.loads(self.geometry.geojson)
             self.plot.geometry = self.geometry
         else:
             update['old_' + self.field] = getattr(self.plot, self.field).__str__()
