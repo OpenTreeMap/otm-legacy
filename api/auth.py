@@ -34,16 +34,35 @@ def parse_basicauth(authstr):
     else:
         return authenticate(username = auth[0], password = auth[1])
         
+def parse_user_from_request(request):
+    user = None
+    if (request.META.has_key('HTTP_AUTHORIZATION')):
+        auth = request.META['HTTP_AUTHORIZATION']
+        user = parse_basicauth(auth)
+
+    return user
+
 def login_required(view_f):
     @wraps(view_f)
     def wrapperf(request, *args, **kwargs):
-        if (request.META.has_key('HTTP_AUTHORIZATION')):
-            auth = request.META['HTTP_AUTHORIZATION']
-            user = parse_basicauth(auth)
+        user = parse_user_from_request(request)
 
-            if (user != None):
-                request.user = user
-                return view_f(request, *args, **kwargs)
+        if (user != None):
+            request.user = user
+            return view_f(request, *args, **kwargs)
+
         return create_401unauthorized()
+
+    return wrapperf
+
+def login_optional(view_f):
+    @wraps(view_f)
+    def wrapperf(request, *args, **kwargs):
+        user = parse_user_from_request(request)
+
+        if (user != None):
+            request.user = user
+
+        return view_f(request, *args, **kwargs)
 
     return wrapperf

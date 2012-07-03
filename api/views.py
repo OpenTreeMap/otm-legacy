@@ -21,7 +21,7 @@ from django.contrib.gis.geos import Point
 
 from profiles.models import UserProfile
 
-from api.auth import login_required, create_401unauthorized
+from api.auth import login_required, create_401unauthorized, login_optional
 
 from functools import wraps
 
@@ -141,6 +141,54 @@ def datetime_to_iso_string(d):
         return d.strftime('%Y-%m-%d %H:%M:%S')
     else:
         return None
+
+def plot_permissions(plot, user):
+    perms = { "plot": plot_or_tree_permissions(plot, user) }
+
+    tree = plot.current_tree()
+    if tree:
+        perms["tree"] = plot_or_tree_permissions(tree, user)
+
+    return perms
+
+def plot_or_tree_permissions(obj, user):
+    """ Determine what the given user can do with a tree or plot
+        Returns { 
+           can_delete: <boolean>, 
+           can_edit: <boolean>,
+        } """
+
+    can_delete = False
+    can_edit = False
+
+    # If user is none or anonymous, they can't do anything
+    if not user or user.is_anonymous():
+        can_delete = False
+        can_edit = False
+    # If an object is readonly, it can never be deleted or edited
+    elif obj.readonly:
+        can_delete = False
+        can_edit = False
+    # If the user is an admin they can do whatever they want
+    # (but not to readonly trees)
+    elif user.has_perm('auth.change_user'):
+        can_delete = True
+        can_edit = True
+    else:
+        # If the user is the owner of the object
+        # they can do whatever
+        creator = obj.created_by
+        if creator and creator.pk == user.pk:
+            can_delete = True
+            can_edit = True
+        # If the tree is not readonly, and the user isn't an admin
+        # and the user doesn't own the objet, editing is allowed
+        # but delete is not
+        else:
+            can_delete = False
+            can_edit = True
+            
+    return { "can_delete": can_delete, "can_edit": can_edit }
 
 @require_http_methods(["GET"])
 @api_call()
@@ -528,7 +576,7 @@ def get_plot_list(request):
     # order_by prevents testing weirdness
     plots = Plot.objects.filter(present=True).order_by('id')[start:end]
 
-    return plots_to_list_of_dict(plots)
+    return plots_to_list_of_dict(plots,user=request.user)
 
 @require_http_methods(["GET"])
 @api_call()
@@ -539,6 +587,7 @@ def species_list(request, lat=None, lon=None):
 
 @require_http_methods(["GET"])
 @api_call()
+@login_optional
 def plots_closest_to_point(request, lat=None, lon=None):
     point = Point(float(lon), float(lat), srid=4326)
 
@@ -582,7 +631,7 @@ def plots_closest_to_point(request, lat=None, lon=None):
                                               species=request.GET.get("filter_species",None),
                                               sort_recent=sort_recent, sort_pending=sort_pending)
 
-    return plots_to_list_of_dict(plots, longform=True)
+    return plots_to_list_of_dict(plots, longform=True, user=request.user)
 
 def str2bool(ahash, akey):
     if akey in ahash:
@@ -590,8 +639,8 @@ def str2bool(ahash, akey):
     else:
         return None
 
-def plots_to_list_of_dict(plots,longform=False):
-    return [plot_to_dict(plot,longform=longform) for plot in plots]
+def plots_to_list_of_dict(plots,longform=False,user=None):
+    return [plot_to_dict(plot,longform=longform,user=user) for plot in plots]
 
 def pending_edit_to_dict(pending_edit):
     return {
@@ -601,7 +650,7 @@ def pending_edit_to_dict(pending_edit):
         'username': pending_edit.submitted_by.username
     }
 
-def plot_to_dict(plot,longform=False):
+def plot_to_dict(plot,longform=False,user=None):
     pending_edit_dict = {} #If settings.PENDING_ON then this will be populated and included in the response
     current_tree = plot.current_tree()
     if current_tree:
@@ -684,6 +733,9 @@ def plot_to_dict(plot,longform=False):
             "lng": plot.geometry.x
         }
     }
+
+    if user:
+        base["perm"] = plot_permissions(plot,user)
 
     if longform:
         base['power_lines'] = plot.powerline_conflict_potential
@@ -1009,7 +1061,7 @@ def update_plot_and_tree(request, plot_id):
         change_reputation_for_user(request.user, 'edit tree', tree)
 
     full_plot = Plot.objects.get(pk=plot.id)
-    return_dict = plot_to_dict(full_plot, longform=True)
+    return_dict = plot_to_dict(full_plot, longform=True,user=request.user)
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
