@@ -412,7 +412,7 @@ class PlotLocateManager(models.GeoManager):
 
                 plots = plots_hash.values()
 
-                sorted(plots, key=lambda z: z.distance)
+                plots = sorted(plots, key=lambda z: z.distance)
 
                 plots = plots[:max_plots]
 
