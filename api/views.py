@@ -17,7 +17,7 @@ from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeReso
 from treemap.forms import TreeAddForm
 from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
 from api.models import APIKey, APILog
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, fromstr
 
 from profiles.models import UserProfile
 
@@ -593,11 +593,25 @@ def str2bool(ahash, akey):
 def plots_to_list_of_dict(plots,longform=False):
     return [plot_to_dict(plot,longform=longform) for plot in plots]
 
+def point_wkt_to_dict(wkt):
+    point = fromstr(wkt)
+    return {
+        'lat': point.y,
+        'lng': point.x,
+        'srid': '4326'
+    }
+
 def pending_edit_to_dict(pending_edit):
+    if pending_edit.field == 'geometry':
+        pending_value = point_wkt_to_dict(pending_edit.value) # Pending geometry edits are stored as WKT
+    else:
+        pending_value = pending_edit.value
+    print 'pending_value=%s' % pending_value
+
     return {
         'id': pending_edit.pk,
         'submitted': datetime_to_iso_string(pending_edit.submitted),
-        'value': pending_edit.value,
+        'value': pending_value,
         'username': pending_edit.submitted_by.username
     }
 
@@ -709,7 +723,12 @@ def plot_to_dict(plot,longform=False):
                 else:
                     field_name = raw_field_name
 
-                pending_edit_dict[field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
+                if field_name == 'geometry':
+                    latest_value = point_wkt_to_dict(detail['latest_value'])
+                else:
+                    latest_value = detail['latest_value']
+
+                pending_edit_dict[field_name] = {'latest_value': latest_value, 'pending_edits': []}
                 for pend in detail['pending_edits']:
                     pending_edit_dict[field_name]['pending_edits'].append(pending_edit_to_dict(pend))
             base['pending_edits'] = pending_edit_dict
