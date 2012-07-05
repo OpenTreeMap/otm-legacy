@@ -6,8 +6,10 @@ Replace this with more appropriate tests for your application.
 """
 from StringIO import StringIO
 
-from django.contrib.auth.models import User, UserManager, Permission as P
+from django.contrib.auth.models import User, UserManager, Permission as P, AnonymousUser
 from django.contrib.gis.geos import Point
+from django.contrib.contenttypes.models import ContentType
+from django_reputation.models import Reputation
 from django.test import TestCase
 from django_reputation.models import UserReputationAction
 from simplejson import loads, dumps
@@ -19,7 +21,7 @@ from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPending
 
 from api.models import APIKey, APILog
-from api.views import InvalidAPIKeyException
+from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions
 
 import struct
 import base64
@@ -328,6 +330,131 @@ class PlotListing(TestCase):
 
     def tearDown(self):
         teardownTreemapEnv()
+
+    def test_edit_flags(self):
+        content_type_p = ContentType(app_label='auth', model='Plot')
+        content_type_p.save()
+
+        content_type_t = ContentType(app_label='auth', model='Tree')
+        content_type_t.save()
+
+        p = P(codename="change_user",name="change_user",content_type=content_type_p)
+        p.save()
+
+        t = P(codename="change_user",name="change_user",content_type=content_type_t)
+        t.save()
+
+        ghost = AnonymousUser()
+
+        peon = User(username="peon")
+        peon.save()
+        peon.reputation = Reputation(user=peon)
+        peon.reputation.save()
+
+        duke = User(username="duke")
+        duke.save()
+        duke.reputation = Reputation(user=duke)
+        duke.reputation.save()
+
+        leroi = User(username="leroi")
+        leroi.active = True
+        leroi.save() # double save required for m2m... 
+        leroi.reputation = Reputation(user=leroi)
+        leroi.user_permissions.add(p)
+        leroi.user_permissions.add(t)
+        leroi.save()
+        leroi.reputation.save()
+
+        p_peon_0 = mkPlot(peon)
+        p_peon_1 = mkPlot(peon)
+        p_duke_2 = mkPlot(duke)
+        
+        t_duke_0 = mkTree(duke, plot=p_peon_0)
+        t_peon_1 = mkTree(peon, plot=p_peon_1)
+        t_duke_2 = mkTree(duke, plot=p_duke_2)
+
+        p_roi_3 = mkPlot(leroi)
+        t_roi_3 = mkTree(leroi, plot=p_roi_3)
+
+        plots = [p_peon_0, p_peon_1, p_duke_2, p_roi_3]
+        trees = [t_duke_0, t_peon_1, t_duke_2, t_roi_3]
+        users = [ghost, peon, duke, leroi]
+
+        def mkd(e, d):
+            return { "can_delete": d, "can_edit": e }
+
+        def mkdp(pe, pd, te=None, td=None):
+            d = { "plot": mkd(pe,pd) }
+            if td != None and te != None:
+                d["tree"] = mkd(te, td)
+
+            return d
+
+        #################################
+        # A None or Anonymous user can't
+        # do anything
+        for p in plots:
+            self.assertEqual(mkd(False,False), plot_or_tree_permissions(p, ghost))
+            self.assertEqual(mkdp(False,False,False,False), plot_permissions(p, ghost))
+
+            self.assertEqual(mkd(False,False), plot_or_tree_permissions(p, None))
+            self.assertEqual(mkdp(False,False,False,False), plot_permissions(p, None))
+
+        for t in trees:
+            self.assertEqual(mkd(False,False), plot_or_tree_permissions(t, ghost))
+            self.assertEqual(mkd(False,False), plot_or_tree_permissions(t, None))
+
+        #################################
+        # A user can always delete or edit their own trees and plots
+        #
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_peon_0, peon))
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_peon_1, peon))
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_duke_2, duke))
+
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_0, duke))        
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_peon_1, peon))        
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_2, duke))        
+
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_roi_3, leroi)) 
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_roi_3, leroi)) 
+
+        #################################
+        # An admin user can always do anything
+        #
+        for p in plots:
+            self.assertEqual(mkd(True,True), plot_or_tree_permissions(p, leroi))
+            self.assertEqual(mkdp(True,True,True,True), plot_permissions(p, leroi))
+
+        for t in trees:
+            self.assertEqual(mkd(True,True), plot_or_tree_permissions(t, leroi))
+
+        #################################
+        # A user can edit other trees but can't delete
+        #
+        self.assertEqual(mkdp(True,False,True,False), plot_permissions(p_roi_3, duke))
+
+        #################################
+        # No one can edit readonly trees
+        #
+        for p in plots:
+            p.readonly = True
+            p.save()
+        for t in trees:
+            t.readonly = True
+            t.save()
+
+        for p in plots:
+            for u in users:
+                self.assertEqual(mkd(False,False), plot_or_tree_permissions(p, u))
+                self.assertEqual(mkdp(False,False,False,False), plot_permissions(p, u))
+
+        for t in trees:
+            for u in users:
+                self.assertEqual(mkd(False,False), plot_or_tree_permissions(t, u))
+        
+        
+        
+
         
     def test_basic_data(self):
         p = mkPlot(self.u)

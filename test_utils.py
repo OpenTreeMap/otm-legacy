@@ -168,11 +168,11 @@ def teardownTreemapEnv():
     for r in APIKey.objects.all():
         r.delete()
 
-    for r in ReputationAction.objects.all():
-        r.delete()
-
     for r in BenefitValues.objects.all():
         r.delete()
+
+    for u in User.objects.all():
+        u.delete()
 
     for r in Neighborhood.objects.all():
         r.delete()
@@ -196,4 +196,7 @@ def teardownTreemapEnv():
         r.delete()
 
     for r in Plot.objects.all():
+        r.delete()
+
+    for r in ReputationAction.objects.all():
         r.delete()
