@@ -256,9 +256,9 @@ def add_profile_photo(request, user_id, title):
 
 def extract_plot_id_from_rep(repact):
     content_type = repact.content_type
-    if content_type == "plot":
+    if content_type == "Plot":
         return repact.object_id
-    elif content_type == 'tree':
+    elif content_type == 'Tree':
         return Tree.object.get(pk=repact.object_id).plot.pk
     else:
         return None
@@ -284,6 +284,7 @@ def recent_edits(request, user_id):
         if plot_id:
             d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
+        d["id"] = act.pk
         d["name"] = act.action.name
         d["created"] = datetime_to_iso_string(act.date_created)
         d["value"] = act.value
