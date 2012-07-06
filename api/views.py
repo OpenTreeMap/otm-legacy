@@ -254,6 +254,15 @@ def add_profile_photo(request, user_id, title):
 
     return { "status": "succes" }
 
+def extract_plot_id_from_rep(repact):
+    content_type = repact.content_type
+    if content_type == "plot":
+        return repact.object_id
+    elif content_type == 'tree':
+        return Tree.object.get(pk=repact.object_id).plot.pk
+    else:
+        return None
+
 @require_http_methods(["GET"])
 @api_call()
 @login_required
@@ -266,10 +275,17 @@ def recent_edits(request, user_id):
 
     acts = UserReputationAction.objects.filter(user=request.user).order_by('-date_created')[result_offset:(result_offset+num_results)]
 
-    acts = [dict([("id",a.pk),("name",a.action.name),("created",datetime_to_iso_string(a.date_created)),("value",a.value)]) for a in acts]
+    keys = []
+    for act in acts:
+        d = {}
+        d["plot_id"] = extract_plot_id_from_rep(act)
+        d["name"] = a.action.name
+        d["created"] = datetime_to_iso_string(a.date_created)
+        d["value"] = a.value
 
-    return acts
+        keys.append(d)
 
+    return d
     
 
 @require_http_methods(["PUT"])
@@ -933,6 +949,11 @@ def create_plot_optional_tree(request):
     response.content = "{\"ok\": %d}" % new_plot.id
     return response
 
+@require_http_methods(["GET"])
+@api_call()
+@login_optional
+def get_plot(request, plot_id):
+    return plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
 @require_http_methods(["PUT"])
 @api_call()
