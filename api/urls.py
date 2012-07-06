@@ -5,7 +5,7 @@ urlpatterns = patterns(
     '',
     (r'^version$', version),
     (r'^plots$', route(GET=get_plot_list, POST=create_plot_optional_tree)),
-    (r'^plots/(?P<plot_id>\d+)$', route(PUT=update_plot_and_tree)),
+    (r'^plots/(?P<plot_id>\d+)$', route(GET=get_plot, PUT=update_plot_and_tree)),
     (r'^plots/(?P<plot_id>\d+)/tree/photo$', route(POST=add_tree_photo)),
     (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
     (r'^locations/(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})/plots', plots_closest_to_point),
