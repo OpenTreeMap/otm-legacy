@@ -282,7 +282,7 @@ def recent_edits(request, user_id):
         d["plot_id"] = plot_id
 
         if plot_id:
-            d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user):
+            d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
         d["name"] = a.action.name
         d["created"] = datetime_to_iso_string(a.date_created)
