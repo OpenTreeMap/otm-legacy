@@ -1435,8 +1435,10 @@ def tree_add(request, tree_id = ''):
             elif form.cleaned_data.get('target') == "addsame":
                 messages.success(request, "Your tree was successfully added!")
                 pass
-            elif form.cleaned_data.get('target') == "edit":
+            elif form.cleaned_data.get('target') == "view":
                 return redirect("trees/new/%i/" % request.user.id)
+            elif form.cleaned_data.get('target') == "edit":
+                return redirect("plots/%i/" % new_tree.id)
             else:
                 return redirect("trees/%i/" % new_tree.id)
     else:
