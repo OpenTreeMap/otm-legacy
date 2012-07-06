@@ -259,7 +259,7 @@ def extract_plot_id_from_rep(repact):
     if content_type.model == "plot":
         return repact.object_id
     elif content_type.model == 'tree':
-        return Tree.object.get(pk=repact.object_id).plot.pk
+        return Tree.objects.get(pk=repact.object_id).plot.pk
     else:
         return None
 
