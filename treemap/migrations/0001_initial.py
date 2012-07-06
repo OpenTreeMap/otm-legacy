@@ -35,16 +35,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('treemap', ['CommentFlag'])
 
-        # Adding model 'Choices'
-        db.create_table('treemap_choices', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('field', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('key', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('value', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('key_type', self.gf('django.db.models.fields.CharField')(max_length=15)),
-        ))
-        db.send_create_signal('treemap', ['Choices'])
-
         # Adding model 'Neighborhood'
         db.create_table('treemap_neighborhood', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -505,9 +495,6 @@ class Migration(SchemaMigration):
         # Deleting model 'CommentFlag'
         db.delete_table('treemap_commentflag')
 
-        # Deleting model 'Choices'
-        db.delete_table('treemap_choices')
-
         # Deleting model 'Neighborhood'
         db.delete_table('treemap_neighborhood')
 
@@ -705,14 +692,6 @@ class Migration(SchemaMigration):
             'sox': ('django.db.models.fields.FloatField', [], {}),
             'stormwater': ('django.db.models.fields.FloatField', [], {}),
             'voc': ('django.db.models.fields.FloatField', [], {})
-        },
-        'treemap.choices': {
-            'Meta': {'object_name': 'Choices'},
-            'field': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'key': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'key_type': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
-            'value': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         'treemap.commentflag': {
             'Meta': {'object_name': 'CommentFlag'},
