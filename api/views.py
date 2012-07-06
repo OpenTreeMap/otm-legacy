@@ -290,7 +290,7 @@ def recent_edits(request, user_id):
 
         keys.append(d)
 
-    return d
+    return keys
     
 
 @require_http_methods(["PUT"])
