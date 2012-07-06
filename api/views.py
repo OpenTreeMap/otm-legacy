@@ -278,7 +278,12 @@ def recent_edits(request, user_id):
     keys = []
     for act in acts:
         d = {}
-        d["plot_id"] = extract_plot_id_from_rep(act)
+        plot_id = extract_plot_id_from_rep(act)
+        d["plot_id"] = plot_id
+
+        if plot_id:
+            d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user):
+
         d["name"] = a.action.name
         d["created"] = datetime_to_iso_string(a.date_created)
         d["value"] = a.value
