@@ -284,9 +284,9 @@ def recent_edits(request, user_id):
         if plot_id:
             d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
-        d["name"] = a.action.name
-        d["created"] = datetime_to_iso_string(a.date_created)
-        d["value"] = a.value
+        d["name"] = act.action.name
+        d["created"] = datetime_to_iso_string(act.date_created)
+        d["value"] = act.value
 
         keys.append(d)
 
