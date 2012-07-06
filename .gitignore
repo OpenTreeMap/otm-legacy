@@ -8,4 +8,5 @@ static/Species/*
 
 local_settings.py
 impl_settings.py
+choices.py
 fabfile.*
