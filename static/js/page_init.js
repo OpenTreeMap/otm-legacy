@@ -405,9 +405,6 @@ tm.baseTemplatePageLoad = function() {
         if ($("#species_search_id").val()) {
             q = q.set("species", $("#species_search_id").val());
         }
-        if ($("#species_search_id_cultivar").val()) {
-            q = q.set("cultivar", $("#species_search_id_cultivar").val());
-        }
         if (tm.advancedClick) {
             q = q.set('advanced', 'open');
         }    
