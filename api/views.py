@@ -211,6 +211,9 @@ def register(request):
     user.set_password(data["password"])
     user.save()
 
+    user.reputation = Reputation(user=user)
+    user.reputation.save()
+
     profile = UserProfile(user=user,zip_code=data["zipcode"],active=True)
     profile.save()
 
