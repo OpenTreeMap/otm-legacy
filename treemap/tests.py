@@ -538,8 +538,7 @@ class ViewTests(TestCase):
         # Test geographic searches
         #    neighborhood, zipcode 
         #
-        center_pt = self.n1.geometry.centroid.coords
-        response = self.client.get("/search/?location=%s,%s&geoname=%s" % (center_pt[0], center_pt[1], self.n1.name) )
+        response = self.client.get("/search/?geoname=%s" % self.n1.name )
         req = loads(response.content)
         trees = present_trees.filter(plot__neighborhood=self.n1)
         plots = present_plots.filter(neighborhood=self.n1)
@@ -764,6 +763,11 @@ class ViewTests(TestCase):
         response = self.client.get("/search/?flowering=true" )
         req = loads(response.content)                
         species = present_species.filter(flower_conspicuous=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?wildlife=true" )
+        req = loads(response.content)
+        species = present_species.filter(wildlife_value=True)
         check_species(species, req)
 
         ##################################################################
