@@ -5,7 +5,7 @@ from profiles.models import UserProfile
 from django_reputation.models import Reputation, ReputationAction
 
 from treemap.models import Neighborhood, ZipCode, ExclusionMask
-from treemap.models import Plot, ImportEvent, Species, Tree, Choices
+from treemap.models import Plot, ImportEvent, Species, Tree
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 
 def mkPlot(u, geom=Point(50,50)):
