@@ -983,6 +983,16 @@ def create_plot_optional_tree(request):
 def get_plot(request, plot_id):
     return plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
+def compare_fields(v1,v2):
+    if v1 is None:
+        return v1 == v2
+    try:
+        v1f = float(v1)
+        v2f = float(v2)
+        return v1f == v2f
+    except ValueError:
+        return v1 == v2
+
 @require_http_methods(["PUT"])
 @api_call()
 @login_required
@@ -1017,7 +1027,7 @@ def update_plot_and_tree(request, plot_id):
             else:
                 new_name = plot_field_name
             new_value = request_dict[plot_field_name]
-            if getattr(plot, new_name) != new_value:
+            if not compare_fields(getattr(plot, new_name), new_value):
                 if should_create_plot_pends:
                     plot_pend = PlotPending(plot=plot)
                     plot_pend.set_create_attributes(request.user, new_name, new_value)
@@ -1086,7 +1096,7 @@ def update_plot_and_tree(request, plot_id):
                     response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
-                if getattr(tree, tree_field.name) != request_dict[tree_field.name]:
+                if not compare_fields(getattr(tree, tree_field.name), request_dict[tree_field.name]):
                     if should_create_tree_pends:
                         tree_pend = TreePending(tree=tree)
                         tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
