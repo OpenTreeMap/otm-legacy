@@ -445,13 +445,13 @@ class PlotLocateManager(models.GeoManager):
                 extent = self.calc_extent(plots)
 
         else:
+            if max_plots:
+                plots = plots[:max_plots]
+
             if plots.count() > 0:
                 extent = plots.extent()
             else:
                 extent = []
-
-            if plots.count() > 0:
-                plots = plots[:max_plots]
 
         return plots, extent
 

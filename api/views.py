@@ -643,22 +643,25 @@ def plots_closest_to_point(request, lat=None, lon=None):
         sort_pending = False
 
     has_tree = request.GET.get("has_tree",None)
-    if has_tree and has_tree == "true":
-        has_tree = True
-    else:
-        has_tree = False
+    if has_tree:
+        if has_tree == "true":
+            has_tree = True
+        else:
+            has_tree = False
 
     has_species = request.GET.get("has_species",None)
-    if has_species and has_species == "true":
-        has_species = True
-    else:
-        has_species = False
+    if has_species:
+        if has_species == "true":
+            has_species = True
+        else:
+            has_species = False
 
     has_dbh = request.GET.get("has_dbh",None)
-    if has_dbh and has_dbh == "true":
-        has_dbh = True
-    else:
-        has_dbh = False
+    if has_dbh:
+        if has_dbh == "true":
+            has_dbh = True
+        else:
+            has_dbh = False
 
     plots, extent = Plot.locate.with_geometry(
         point, distance, max_plots, species,
