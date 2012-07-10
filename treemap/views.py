@@ -1483,7 +1483,7 @@ def _build_tree_search_result(request, with_benefits=True):
             trees = trees.filter(plot__neighborhood = ns[0])
             plots = plots.filter(neighborhood = ns[0])
             geog_obj = ns[0]
-            tile_query.append("neighborhoods LIKE '%%d%'" % geog_obj.id)
+            tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
     elif 'location' in request.GET:
         loc = request.GET['location']
         z = ZipCode.objects.filter(zip=loc)
@@ -1498,10 +1498,10 @@ def _build_tree_search_result(request, with_benefits=True):
              trees = trees.filter(plot__neighborhood = ns[0])
              plots = plots.filter(neighborhood = ns[0])
              geog_obj = ns[0]
-             tile_query.append("neighborhoods LIKE '%%d%'" % geog_obj.id)
+             tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
 
-    missing_current_plot_type = request.GET.get('missing_plot_type','')
     missing_current_plot_size = request.GET.get('missing_plot_size','')
+    missing_current_plot_type = request.GET.get('missing_plot_type','')
     if missing_current_plot_size:
         trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
@@ -1555,7 +1555,7 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(plot__powerline_conflict_potential__isnull=True)
         plots = plots.filter(powerline_conflict_potential__isnull=True)
         tile_query.append("powerline_conflict_potential IS NULL")
-    else: 
+    else:
         p_cql = []
         p_list = []
         for k, v in settings.CHOICES["powerlines"]:
