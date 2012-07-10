@@ -1501,6 +1501,7 @@ def _build_tree_search_result(request, with_benefits=True):
              tile_query.append("neighborhoods LIKE '%%d%'" % geog_obj.id)
 
     missing_current_plot_type = request.GET.get('missing_plot_type','')
+    missing_current_plot_size = request.GET.get('missing_plot_size','')
     if missing_current_plot_size:
         trees = trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         plots = plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
