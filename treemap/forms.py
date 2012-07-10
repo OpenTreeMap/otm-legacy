@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, status_choices
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
@@ -47,12 +47,12 @@ class TreeAddForm(forms.Form):
     plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
-    plot_type = forms.TypedChoiceField(choices=Choices().get_field_choices('plot_type'), required=False)
-    power_lines = forms.TypedChoiceField(choices=Choices().get_field_choices('powerline_conflict_potential'), required=False)
-    sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
-    condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
-    canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    plot_type = forms.TypedChoiceField(choices=settings.CHOICES["plot_types"], required=False)
+    power_lines = forms.TypedChoiceField(choices=settings.CHOICES["powerlines"], required=False)
+    sidewalk_damage = forms.ChoiceField(choices=settings.CHOICES["sidewalks"], required=False)
+    condition = forms.ChoiceField(choices=settings.CHOICES["conditions"], required=False)
+    canopy_condition = forms.ChoiceField(choices=settings.CHOICES["canopy_conditions"], required=False)
+    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit','Let me continue editing this tree'), ('view', 'I\'m done!'),], initial='view', widget=forms.RadioSelect)        
     owner_additional_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):

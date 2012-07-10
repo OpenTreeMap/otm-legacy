@@ -192,12 +192,9 @@ def get_reverse_geocode(request):
 
 def get_choices(request):
     choices_list = {}
-    choices_obj = Choices()
-    choice_fields = Choices.objects.values_list('field', flat=True).distinct() 
-    for ch in choice_fields:
-        choices_list[ch] = choices_obj.get_field_choices(ch)
+    choices_obj = settings.CHOICES
 
-    return render_to_json(choices_list)
+    return render_to_json(choices_obj)
 
 #@cache_page(60*1)
 def result_map(request):
@@ -501,7 +498,7 @@ def unified_history(trees, plots=[]):
 @login_required    
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
-    choices = Choices().get_field_choices(type_)
+    choices = settings.CHOICES[type_]
     data = SortedDict(choices)
     if hasattr(tree, type_):
         val = getattr(tree, type_)
@@ -520,7 +517,7 @@ def tree_edit_choices(request, tree_id, type_):
 @login_required    
 def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
-    choices = Choices().get_field_choices(type_)
+    choices = settings.CHOICES[type_]
     data = SortedDict(choices)
     if hasattr(plot, type_):
         val = getattr(plot, type_)
@@ -994,7 +991,7 @@ def object_update(request):
 
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
-                        for k,v in update.items():
+                        for k,v in update.items():  
                             fld = instance._meta.get_field(k.replace('_id',''))
                             try:
                                 cleaned = fld.clean(v,instance)
@@ -1022,10 +1019,14 @@ def object_update(request):
                                 if k == 'species_id':
                                     pend.text_value = Species.objects.get(id=v).scientific_name
 
-                                for key, value in Choices().get_field_choices(k):
-                                    if str(key) == str(v):
-                                        pend.text_value = value
+                                for field in instance._meta.fields:
+                                    if str(field.name) == str(fld.name):
+                                        for choice in field.choices:
+                                            if str(choice[0]) == str(cleaned):
+                                                pend.text_value = choice[1]
+                                                break
                                         break
+
                                 pend.save()
 
                             except ValidationError,e:
@@ -1075,7 +1076,7 @@ def object_update(request):
                 #   circ = update.get('value')
                 #   if circ:
                 #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']    
+                #   #response_dict['update']['']  
                 for k,v in update.items():
                     if hasattr(instance,k):
                         #print k,v
@@ -1195,6 +1196,14 @@ def create_pending_records(plot_base, plot_new_flds, user):
         
             if fld == 'geometry':
                 pend.geometry = plot_new_flds
+
+            for field in Plot._meta.fields:
+                if str(field.name) == str(fld):
+                    for choice in field.choices:
+                        if str(choice[0]) == str(new_field_val):
+                            pend.text_value = choice[1]
+                            break
+                    break
 
             pends.append(pend)
 
@@ -1376,7 +1385,10 @@ def update_plot(request, plot_id):
         
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
-            response_dict['update'][k] = get_attr_or_display(plot,k)        
+            if settings.PENDING_ON:
+                response_dict['update'][k] = "Pending"  
+            else:
+                response_dict['update'][k] = get_attr_or_display(plot,k)        
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1423,8 +1435,10 @@ def tree_add(request, tree_id = ''):
             elif form.cleaned_data.get('target') == "addsame":
                 messages.success(request, "Your tree was successfully added!")
                 pass
-            elif form.cleaned_data.get('target') == "edit":
+            elif form.cleaned_data.get('target') == "view":
                 return redirect("trees/new/%i/" % request.user.id)
+            elif form.cleaned_data.get('target') == "edit":
+                return redirect("plots/%i/" % new_tree.id)
             else:
                 return redirect("trees/%i/" % new_tree.id)
     else:
@@ -1457,7 +1471,6 @@ def added_today_list(request, user_id=None, format=None):
 
 def _build_tree_search_result(request, with_benefits=True):
     # todo - optimize! OMG Clean it up! >.<
-    choices = Choices()
     tile_query = []
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
@@ -1516,15 +1529,12 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(type__isnull=True)
         tile_query.append(" plot_type IS NULL ")
     else:
-        plot_type_choices = choices.get_field_choices('plot_type')
         pt_cql = []
         pt_list = []
-        for k, v in plot_type_choices:
-            if v.lower().replace(' ', '_') in request.GET:
-                plot = request.GET.get(v.lower().replace(' ', '_'),'')
-                if plot:
-                    pt_list.append(k)
-                    pt_cql.append("plot_type = " + k)
+        for k, v in settings.CHOICES["plot_types"]:
+            if v.lower().replace(' ', '_').replace('/','') in request.GET:
+                pt_list.append(k)
+                pt_cql.append("plot_type = " + k)
         if len(pt_cql) > 0:
             tile_query.append("(" + " OR ".join(pt_cql) + ")")
             trees = trees.filter(plot__type__in=pt_list)
@@ -1536,15 +1546,12 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(sidewalk_damage__isnull=True)
         tile_query.append("sidewalk_damage IS NULL")
     else: 
-        sidewalk_choices = choices.get_field_choices('sidewalk_damage')    
         s_cql = []
         s_list = []
-        for k, v in sidewalk_choices:
-            if v.lower().split(' ')[0] in request.GET:
-                sw = request.GET.get(v.lower().split(' ')[0],'')
-                if sw:
-                    s_list.append(k)
-                    s_cql.append("sidewalk_damage = " + k)
+        for k, v in settings.CHOICES["sidewalks"]:
+            if v.lower().replace(' ', "_").replace('/','') in request.GET:
+                s_list.append(k)
+                s_cql.append("sidewalk_damage = " + k)
         if len(s_cql) > 0:
             tile_query.append("(" + " OR ".join(s_cql) + ")")
             trees = trees.filter(plot__sidewalk_damage__in=s_list)
@@ -1556,16 +1563,13 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(plot__powerline_conflict_potential__isnull=True)
         plots = plots.filter(powerline_conflict_potential__isnull=True)
         tile_query.append("powerline_conflict_potential IS NULL")
-    else:
-        powerline_choices = choices.get_field_choices('powerline_conflict_potential')    
+    else: 
         p_cql = []
         p_list = []
-        for k, v in powerline_choices:
-            if v.lower() in request.GET:
-                sw = request.GET.get(v.lower(),'')
-                if sw:
-                    p_list.append(k)
-                    p_cql.append("powerline_conflict_potential = " + k)
+        for k, v in settings.CHOICES["powerlines"]:
+            if v.lower().replace(" ", "_").replace('/','') in request.GET:
+                p_list.append(k)
+                p_cql.append("powerline_conflict_potential = " + k)
         if len(p_cql) > 0:
             tile_query.append("(" + " OR ".join(p_cql) + ")")
             trees = trees.filter(plot__powerline_conflict_potential__in=p_list)
@@ -1599,11 +1603,10 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
 
-    project_choices = choices.get_field_choices('local')
     local_cql = []
     local_list = []
-    for k,v in project_choices:
-        if v.lower().replace(' ', '_') in request.GET:
+    for k,v in settings.CHOICES["projects"]:
+        if v.lower().replace(' ', '_').replace('/','') in request.GET:
             local = request.GET.get(v.lower().replace(' ', '_'),'')
             if local:
                 local_list.append(k)
@@ -1652,16 +1655,13 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(condition__isnull=True)
         plots = plots.filter(tree__condition__isnull=True)
         tile_query.append("condition IS NULL")
-    else: 
-        condition_choices = choices.get_field_choices('condition')    
+    else:   
         c_cql = []
         c_list = []
-        for k, v in condition_choices:
-            if v.lower().replace(' ', '_') in request.GET:
-                cond = request.GET.get(v.lower().replace(' ', '_'),'')
-                if cond:
-                    c_list.append(k)
-                    c_cql.append("condition = " + k)
+        for k, v in settings.CHOICES["conditions"]:
+            if v.lower().replace(' ', '_').replace('/','') in request.GET:
+                c_list.append(k)
+                c_cql.append("condition = " + k)
         if len(c_cql) > 0:
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)
