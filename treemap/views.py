@@ -1675,7 +1675,8 @@ def _build_tree_search_result(request, with_benefits=True):
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
                         'cultivar' : 'cultivar_name',
-                        'flowering' : 'flower_conspicuous'}
+                        'flowering' : 'flower_conspicuous',
+                        'wildlife': 'wildlife_value'}
 
     if len(set(species_criteria.keys()).intersection(set(request.GET))):
         species = Species.objects.filter(tree_count__gt=0)

@@ -205,7 +205,7 @@ class ViewTests(TestCase):
         # And we could use a few species...
         ######
         s1 = Species(symbol="s1",genus="testus1",species="specieius1",native_status='True',fall_conspicuous=True,flower_conspicuous=True,palatable_human=True)
-        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False)
+        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False,wildlife_value=True)
         s3 = Species(symbol="s3",genus="testus3",species="specieius3")
         
         s1.save()
@@ -730,7 +730,7 @@ class ViewTests(TestCase):
 
         ##################################################################
         # Test species data searches
-        #    id, native, edible, fall color, flowering
+        #    id, native, edible, fall color, flowering, wildlife
         #  
         present_species = Species.objects.filter(tree_count__gt=0)
         def check_species(species_list, req):    
@@ -765,6 +765,11 @@ class ViewTests(TestCase):
         response = self.client.get("/search/?flowering=true" )
         req = loads(response.content)                
         species = present_species.filter(flower_conspicuous=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?wildlife=true" )
+        req = loads(response.content)
+        species = present_species.filter(wildlife_value=True)
         check_species(species, req)
 
         ##################################################################
