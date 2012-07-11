@@ -23,6 +23,8 @@ from time import mktime
 from test_util import set_auto_now
 from treemap.test_choices import *
 
+settings.CHOICES = CHOICES
+
 import django.shortcuts
 
 class ModelTests(TestCase):
@@ -538,8 +540,7 @@ class ViewTests(TestCase):
         # Test geographic searches
         #    neighborhood, zipcode 
         #
-        center_pt = self.n1.geometry.centroid.coords
-        response = self.client.get("/search/?location=%s,%s&geoname=%s" % (center_pt[0], center_pt[1], self.n1.name) )
+        response = self.client.get("/search/?geoName=%s" % self.n1.name )
         req = loads(response.content)
         trees = present_trees.filter(plot__neighborhood=self.n1)
         plots = present_plots.filter(neighborhood=self.n1)

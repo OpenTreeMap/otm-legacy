@@ -1451,36 +1451,30 @@ def _build_tree_search_result(request, with_benefits=True):
 
     #TODO: get rid of geography coordinates, they don't do anything anymore
     geog_obj = None
-    if 'location' in request.GET:
+    if 'geoName' in request.GET:
+        ns = Neighborhood.objects.all().order_by('id')
+        geoname = request.GET['geoName']
+        ns = ns.filter(name=geoname)
+        if ns:
+            trees = trees.filter(plot__neighborhood = ns[0])
+            plots = plots.filter(neighborhood = ns[0])
+            geog_obj = ns[0]
+            tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
+    elif 'location' in request.GET:
         loc = request.GET['location']
-        if "," in loc:
-            ns = Neighborhood.objects.all().order_by('id')
-            if 'geoName' in request.GET:
-                geoname = request.GET['geoName']
-                ns = ns.filter(name=geoname)
-            else:   
-                coords = map(float,loc.split(','))
-                pt = Point(coords)
-                ns = ns.filter(geometry__contains=pt)
-            if ns.count():   
-                trees = trees.filter(plot__neighborhood = ns[0])
-                plots = plots.filter(neighborhood = ns[0])
-                geog_obj = ns[0]
-                tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
-        else:
-            z = ZipCode.objects.filter(zip=loc)
-            if z.count():
-                trees = trees.filter(plot__zipcode = z[0])
-                plots = plots.filter(zipcode = z[0])
-                geog_obj = z[0]
-                tile_query.append("zipcode_id = " + z[0].id.__str__())
+        z = ZipCode.objects.filter(zip=loc)
+        if z.count():
+            trees = trees.filter(plot__zipcode = z[0])
+            plots = plots.filter(zipcode = z[0])
+            geog_obj = z[0]
+            tile_query.append("zipcode_id = %d" % z[0].id)
     elif 'hood' in request.GET:
         ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
         if ns:
              trees = trees.filter(plot__neighborhood = ns[0])
              plots = plots.filter(neighborhood = ns[0])
              geog_obj = ns[0]
-             tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
+             tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
 
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
