@@ -355,6 +355,7 @@ def species(request, selection='all', format='html'):
     if format == 'json':
         res = [{"symbol":str(x.symbol or ''), 
                  "cname":str(x.common_name or ''),
+                 "cultivar":str(x.cultivar_name or ''),
                  "sname":str(x.scientific_name or x.genus),
                  "id": int(x.id),
                  "count": int(x.tree_count)} for x in species]
