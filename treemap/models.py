@@ -429,8 +429,9 @@ class Plot(models.Model):
         return len(self.plotstewardship_set.all())
         
     def current_tree(self):
-        if self.tree_set.count > 0:
-            return self.tree_set.all()[0]
+        trees = self.tree_set.filter(present=True)
+        if trees.count() > 0:
+            return trees[0]
         else: 
             return None
 

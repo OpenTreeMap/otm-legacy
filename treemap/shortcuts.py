@@ -112,7 +112,6 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
             else:
                 d['tree'] = False
                 
-        #if d.has_key('distance'):
         if hasattr(item, 'distance'):
             d['distance'] = getattr(item,'distance').ft
                 
@@ -120,8 +119,7 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
         if simplify:
             g = g.simplify(simplify)
         for field in item._meta.fields:
-            if field.name in excluded_fields: pass
-            else:
+            if field.name not in excluded_fields:
                 d[field.name] = str(getattr(item, field.name))
 
         feat['geometry'] = simplejson.loads(g.geojson)
