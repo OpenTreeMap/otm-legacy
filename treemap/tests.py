@@ -898,7 +898,7 @@ class ViewTests(TestCase):
     def test_add_plot(self):
         self.client.login(username='jim',password='jim')
         form = {}
-        form['target']="edit"
+        form['target']="view"
         form['initial_map_location'] = "20,20"
         ##################################################################
         # Test required information: 
