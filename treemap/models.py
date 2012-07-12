@@ -351,7 +351,8 @@ class PlotLocateManager(models.GeoManager):
 
     def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
                       native=None, flowering=None, fall=None, edible=None,
-                      dbhmin=None, dbhmax=None, species=None, sort_recent=None, sort_pending=None):
+                      dbhmin=None, dbhmax=None, species=None, sort_recent=None,
+                      sort_pending=None, has_tree=None, has_species=None, has_dbh=None):
         '''
         Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
         '''
@@ -371,7 +372,7 @@ class PlotLocateManager(models.GeoManager):
                 plots = plots_filtered_by_species_preference
 
         if species: # Note that, unlike "preference", these values are forced
-            plots = plots.filter(tree__species__pk=species)
+            plots = plots.filter(tree__species__pk=species, tree__present=True)
 
         if native is not None:
             if native:
@@ -379,22 +380,47 @@ class PlotLocateManager(models.GeoManager):
             else:
                 native = ""
 
-            plots = plots.filter(tree__species__native_status=native)
+            plots = plots.filter(tree__species__native_status=native, tree__present=True)
 
         if flowering is not None:
-            plots = plots.filter(tree__species__flower_conspicuous=flowering)
+            plots = plots.filter(tree__species__flower_conspicuous=flowering, tree__present=True)
 
         if fall is not None:
-            plots = plots.filter(tree__species__fall_conspicuous=fall)
+            plots = plots.filter(tree__species__fall_conspicuous=fall, tree__present=True)
 
         if edible is not None:
-            plots = plots.filter(tree__species__palatable_human=edible)
+            plots = plots.filter(tree__species__palatable_human=edible, tree__present=True)
 
         if dbhmin is not None:
-            plots = plots.filter(tree__dbh__gte=dbhmin)
+            plots = plots.filter(tree__dbh__gte=dbhmin, tree__present=True)
 
         if dbhmax is not None:
-            plots = plots.filter(tree__dbh__gte=dbhmax)
+            plots = plots.filter(tree__dbh__gte=dbhmax, tree__present=True)
+
+        has_filter_q = None
+        def filter_or(f,has):
+            if has:
+                return f | has
+            else:
+                return f
+
+        if has_tree is not None:
+            q_has_tree = Q(tree__present=True)
+            if not has_tree:
+                q_has_tree = ~q_has_tree
+
+            has_filter_q = filter_or(q_has_tree, has_filter_q)
+
+        if has_species is not None:
+            q_has_species = Q(tree__species__isnull=(not has_species))
+            has_filter_q = filter_or(q_has_species, has_filter_q)
+
+        if has_dbh is not None:
+            q_has_dbh = Q(tree__dbh__isnull=(not has_dbh))
+            has_filter_q = filter_or(q_has_dbh, has_filter_q)
+
+        if has_filter_q:
+            plots = plots.filter(has_filter_q)
 
         if sort_recent:
             plots = plots.order_by('-last_updated')
@@ -419,13 +445,13 @@ class PlotLocateManager(models.GeoManager):
                 extent = self.calc_extent(plots)
 
         else:
+            if max_plots:
+                plots = plots[:max_plots]
+
             if plots.count() > 0:
                 extent = plots.extent()
             else:
                 extent = []
-
-            if plots.count() > 0:
-                plots = plots[:max_plots]
 
         return plots, extent
 

@@ -645,16 +645,38 @@ def plots_closest_to_point(request, lat=None, lon=None):
     else:
         sort_pending = False
 
+    has_tree = request.GET.get("has_tree",None)
+    if has_tree:
+        if has_tree == "true":
+            has_tree = True
+        else:
+            has_tree = False
 
-    plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species,
-                                              native=str2bool(request.GET,"filter_native"),
-                                              flowering=str2bool(request.GET,'filter_flowering'),
-                                              fall=str2bool(request.GET,'filter_fall_colors'),
-                                              edible=str2bool(request.GET,'filter_edible'),
-                                              dbhmin=request.GET.get("filter_dbh_min",None),
-                                              dbhmax=request.GET.get("filter_dbh_max",None),
-                                              species=request.GET.get("filter_species",None),
-                                              sort_recent=sort_recent, sort_pending=sort_pending)
+    has_species = request.GET.get("has_species",None)
+    if has_species:
+        if has_species == "true":
+            has_species = True
+        else:
+            has_species = False
+
+    has_dbh = request.GET.get("has_dbh",None)
+    if has_dbh:
+        if has_dbh == "true":
+            has_dbh = True
+        else:
+            has_dbh = False
+
+    plots, extent = Plot.locate.with_geometry(
+        point, distance, max_plots, species,
+        native=str2bool(request.GET,"filter_native"),
+        flowering=str2bool(request.GET,'filter_flowering'),
+        fall=str2bool(request.GET,'filter_fall_colors'),
+        edible=str2bool(request.GET,'filter_edible'),
+        dbhmin=request.GET.get("filter_dbh_min",None),
+        dbhmax=request.GET.get("filter_dbh_max",None),
+        species=request.GET.get("filter_species",None),
+        sort_recent=sort_recent, sort_pending=sort_pending,
+        has_tree=has_tree, has_species=has_species, has_dbh=has_dbh)
 
     return plots_to_list_of_dict(plots, longform=True, user=request.user)
 
