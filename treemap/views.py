@@ -261,7 +261,7 @@ def plot_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
         return HttpResponseBadRequest()
-
+    
     distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
     max_plots = int(request.GET.get('max_plots', 1))
 
@@ -294,24 +294,31 @@ def plot_location_search(request):
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
                              'address_city',
+                             'address_street',
+                             'address_zip',
+                             'neighborhood',
+                             'neighborhoods',
                              'length',
                              'distance',
                              'geometry',
                              'geocoded_address',
-                             'last_updated_by_id',
+                             'last_updated_by',
+                             'last_updated',
                              'present',
                              'powerline_conflict_potential',
                              'width',
                              'geocoded_lat',
                              'geocoded_lon',
                              'type',
-                             'import_event_id',
-                             'owner_orig_id',
+                             'import_event',
                              'address_zip',
                              'owner_additional_properties',
                              'owner_additional_id',
                              'geocoded_accuracy',
-                             'data_owner_id',
+                             'data_owner',
+                             'owner_orig_id',
+                             'owner_additional_id',
+                             'owner_additional_properties',
                              'zipcode_id'
                              ],
                              model=Plot,
@@ -1385,10 +1392,10 @@ def update_plot(request, plot_id):
         
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
+            response_dict['update'][k] = get_attr_or_display(plot,k)
             if settings.PENDING_ON:
-                response_dict['update'][k] = "Pending"  
-            else:
-                response_dict['update'][k] = get_attr_or_display(plot,k)        
+                if insert_event_mgmt and not mgmt_user:
+                    response_dict['update'][k] = "Pending"  
 
     return HttpResponse(
             simplejson.dumps(response_dict),

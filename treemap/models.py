@@ -429,10 +429,9 @@ class Plot(models.Model):
         return len(self.plotstewardship_set.all())
         
     def current_tree(self):
-        trees = Tree.objects.filter(present=True, plot=self)
-        if len(trees) > 0:
-            return trees[0]
-        else:
+        if self.tree_set.count > 0:
+            return self.tree_set.all()[0]
+        else: 
             return None
 
     def get_active_pends(self):
