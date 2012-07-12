@@ -12,7 +12,7 @@ from simplejson import loads
 
 from django.conf import settings
 from test_util import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from treemap.models import Choices, Species
+from treemap.models import Species
 
 API_PFX = "/api/v0.1"
 

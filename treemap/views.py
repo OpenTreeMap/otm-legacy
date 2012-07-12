@@ -355,7 +355,6 @@ def species(request, selection='all', format='html'):
     if format == 'json':
         res = [{"symbol":str(x.symbol or ''), 
                  "cname":str(x.common_name or ''),
-                 "cultivar":str(x.cultivar_name or ''),
                  "sname":str(x.scientific_name or x.genus),
                  "id": int(x.id),
                  "count": int(x.tree_count)} for x in species]
@@ -1482,38 +1481,31 @@ def _build_tree_search_result(request, with_benefits=True):
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
 
-    #TODO: get rid of geography coordinates, they don't do anything anymore
     geog_obj = None
-    if 'location' in request.GET:
+    if 'geoName' in request.GET:
+        ns = Neighborhood.objects.all().order_by('id')
+        geoname = request.GET['geoName']
+        ns = ns.filter(name=geoname)
+        if ns:
+            trees = trees.filter(plot__neighborhood = ns[0])
+            plots = plots.filter(neighborhood = ns[0])
+            geog_obj = ns[0]
+            tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
+    elif 'location' in request.GET:
         loc = request.GET['location']
-        if "," in loc:
-            ns = Neighborhood.objects.all().order_by('id')
-            if 'geoName' in request.GET:
-                geoname = request.GET['geoName']
-                ns = ns.filter(name=geoname)
-            else:   
-                coords = map(float,loc.split(','))
-                pt = Point(coords)
-                ns = ns.filter(geometry__contains=pt)
-            if ns.count():   
-                trees = trees.filter(plot__neighborhood = ns[0])
-                plots = plots.filter(neighborhood = ns[0])
-                geog_obj = ns[0]
-                tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
-        else:
-            z = ZipCode.objects.filter(zip=loc)
-            if z.count():
-                trees = trees.filter(plot__zipcode = z[0])
-                plots = plots.filter(zipcode = z[0])
-                geog_obj = z[0]
-                tile_query.append("zipcode_id = " + z[0].id.__str__())
+        z = ZipCode.objects.filter(zip=loc)
+        if z.count():
+            trees = trees.filter(plot__zipcode = z[0])
+            plots = plots.filter(zipcode = z[0])
+            geog_obj = z[0]
+            tile_query.append("zipcode_id = %d" % z[0].id)
     elif 'hood' in request.GET:
         ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
         if ns:
              trees = trees.filter(plot__neighborhood = ns[0])
              plots = plots.filter(neighborhood = ns[0])
              geog_obj = ns[0]
-             tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
+             tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
 
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
@@ -1570,7 +1562,7 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(plot__powerline_conflict_potential__isnull=True)
         plots = plots.filter(powerline_conflict_potential__isnull=True)
         tile_query.append("powerline_conflict_potential IS NULL")
-    else: 
+    else:
         p_cql = []
         p_list = []
         for k, v in settings.CHOICES["powerlines"]:
@@ -1708,13 +1700,12 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(tree__date_planted__gte=min, tree__date_planted__lte=max)
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
 
-    #TODO: remove cultivar as a criteria
     species_criteria = {'species' : 'id',
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
-                        'cultivar' : 'cultivar_name',
-                        'flowering' : 'flower_conspicuous'}
+                        'flowering' : 'flower_conspicuous',
+                        'wildlife' : 'wildlife_value'}
 
     if len(set(species_criteria.keys()).intersection(set(request.GET))):
         species = Species.objects.filter(tree_count__gt=0)

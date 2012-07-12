@@ -23,6 +23,8 @@ from time import mktime
 from test_util import set_auto_now
 from treemap.test_choices import *
 
+settings.CHOICES = CHOICES
+
 import django.shortcuts
 
 class ModelTests(TestCase):
@@ -203,7 +205,7 @@ class ViewTests(TestCase):
         # And we could use a few species...
         ######
         s1 = Species(symbol="s1",genus="testus1",species="specieius1",native_status='True',fall_conspicuous=True,flower_conspicuous=True,palatable_human=True)
-        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False)
+        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False,wildlife_value=True)
         s3 = Species(symbol="s3",genus="testus3",species="specieius3")
         
         s1.save()
@@ -538,12 +540,10 @@ class ViewTests(TestCase):
         # Test geographic searches
         #    neighborhood, zipcode 
         #
-        center_pt = self.n1.geometry.centroid.coords
-        response = self.client.get("/search/?location=%s,%s&geoname=%s" % (center_pt[0], center_pt[1], self.n1.name) )
+        response = self.client.get("/search/?geoName=%s" % self.n1.name )
         req = loads(response.content)
         trees = present_trees.filter(plot__neighborhood=self.n1)
         plots = present_plots.filter(neighborhood=self.n1)
-
         assert_counts(trees.count(), plots.count(), req)
         self.assertEqual(req['geography']['type'], 'Polygon')
         self.assertEqual(req['geography']['name'], self.n1.name)
@@ -764,6 +764,11 @@ class ViewTests(TestCase):
         response = self.client.get("/search/?flowering=true" )
         req = loads(response.content)                
         species = present_species.filter(flower_conspicuous=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?wildlife=true" )
+        req = loads(response.content)
+        species = present_species.filter(wildlife_value=True)
         check_species(species, req)
 
         ##################################################################
