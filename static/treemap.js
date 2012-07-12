@@ -742,7 +742,6 @@ tm = {
                     $("#plot_slider").slider('values', 1, plvals[1]);
                 }   
                 if (key == "species") {
-                    var cultivar = null;
                     tm.updateSpeciesFields('species_search',$.address.parameter(key), '');
                 } 
                 if (key == "location") {
@@ -848,7 +847,7 @@ tm = {
         }      
     },
     
-    updateSpeciesFields: function(field_prefix, spec, cultivar){
+    updateSpeciesFields: function(field_prefix, spec){
         if (!tm.speciesData) {
             return;
         }
@@ -900,7 +899,6 @@ tm = {
         tm.geocode_address = search;
 
         function continueSearchWithFeature(nbhoods) {
-            var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
             var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
             tm.map.zoomToExtent(bbox, true);
             
@@ -909,9 +907,9 @@ tm = {
             if (featureName) {
                 tm.searchParams['geoName'] = featureName;
                 tm.searchParams['location'] = search;
-                tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
             }
-            else {    
+            else {
+		delete tm.searchParams.geoName;
                 featureName = nbhoods.features[0].properties.zip;
                 tm.searchParams['location'] = featureName;
                 tm.geocoded_locations[search] = featureName;

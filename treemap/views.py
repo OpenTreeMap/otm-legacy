@@ -1674,7 +1674,6 @@ def _build_tree_search_result(request, with_benefits=True):
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
-                        'cultivar' : 'cultivar_name',
                         'flowering' : 'flower_conspicuous',
                         'wildlife': 'wildlife_value'}
 
