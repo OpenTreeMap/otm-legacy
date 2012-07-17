@@ -223,7 +223,7 @@ def register(request):
 
 @require_http_methods(["POST"])
 @api_call()
-#@login_required
+@login_required
 def add_tree_photo(request, plot_id):
     uploaded_image = ContentFile(request.raw_post_data)
     uploaded_image.name = "plot_%s.png" % plot_id
@@ -232,17 +232,18 @@ def add_tree_photo(request, plot_id):
     tree = plot.current_tree()
 
     if tree is None:
-        tree = Tree()
-        plot.tree = tree
+        import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
+        tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
+        tree.plot = plot
+        tree.last_updated_by = request.user
         tree.save()
-        plot.save()
 
-    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=User.objects.all()[0])
+    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=request.user)
     treephoto.photo.save("plot_%s.png" % plot_id, uploaded_image)
 
     treephoto.save()
 
-    return { "status": "succes" }
+    return { "status": "succes", "title": treephoto.title, "id": treephoto.pk }
 
 
 @require_http_methods(["POST"])
