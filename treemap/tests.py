@@ -1350,3 +1350,50 @@ class ViewTests(TestCase):
         self.assertEqual(p.plotstewardship_set.count(), 0)
         self.assertEqual(t.treestewardship_set.count(), 0)
 
+    def test_plot_delete(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+
+        plot_id = self.p2_tree.pk
+        tree_id = self.p2_tree.current_tree().pk
+
+        response = c.get("/plots/%d/delete/" % plot_id)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('success' in response_dict, 'Expected a json object response with a "success" key')
+        self.assertTrue(response_dict['success'], 'Expected a json object response with a "success" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertFalse(plot.present, 'Expected "present" to be False on a deleted plot')
+        for audit_trail_record in plot.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_tree_delete(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+
+        plot_id = self.p2_tree.pk
+        tree_id = self.p2_tree.current_tree().pk
+
+        response = c.get("/trees/%d/delete/" % tree_id)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('success' in response_dict, 'Expected a json object response with a "success" key')
+        self.assertTrue(response_dict['success'], 'Expected a json object response with a "success" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertTrue(plot.present, 'Expected "plot.present" to be True after deleting a tree from a plot')
+        for audit_trail_record in plot.history.all():
+            self.assertTrue(audit_trail_record.present, 'Expected "plot.present" to be True for all plot audit trail records after deleting the tree from the plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on a deleted tree')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted tree')

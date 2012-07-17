@@ -584,38 +584,20 @@ def plot_edit(request, plot_id = ''):
 
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))   
 
-
+@transaction.commit_on_success
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
-    tree.present = False
-    tree.save()
-    
-    for h in tree.history.all():
-        h.present = False
-        h.save()
+    tree.delete()
     
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
 
-
+@transaction.commit_on_success
 def plot_delete(request, plot_id):
     plot = Plot.objects.get(pk=plot_id)
-    if plot.current_tree():
-        tree = plot.current_tree()
-        tree.present = False
-        tree.save()
-        for h in tree.history.all():
-            h.present = False
-            h.save()
-    
-    plot.present = False
-    plot.save()
-
-    for h in plot.history.all():
-        h.present = False
-        h.save()
+    plot.delete()
     
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),

@@ -1018,3 +1018,62 @@ class UpdatePlotAndTree(TestCase):
 
         for tree_pending in TreePending.objects.all():
             self.assertEqual('pending', tree_pending.status, 'The status of tree pends should still be "pending"')
+
+    def test_delete_plot(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+        tree_id = tree.pk
+
+        response = self.client.delete("%s/plots/%d" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('ok' in response_dict, 'Expected a json object response with a "ok" key')
+        self.assertTrue(response_dict['ok'], 'Expected a json object response with a "ok" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertFalse(plot.present, 'Expected "present" to be False on a deleted plot')
+        for audit_trail_record in plot.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_delete_tree(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+        tree_id = tree.pk
+
+        response = self.client.delete("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertIsNone(response_dict['tree'], 'Expected a json object response to a None value for "tree" key after the tree is deleted')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertTrue(plot.present, 'Expected "present" to be True after tree is deleted from plot')
+        for audit_trail_record in plot.history.all():
+            self.assertTrue(audit_trail_record.present, 'Expected "present" to be True for all audit trail records for plot with a deleted tree')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_get_current_tree(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+
+        response = self.client.get("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
+        self.assertEqual(tree.species.pk, response_dict['species'])

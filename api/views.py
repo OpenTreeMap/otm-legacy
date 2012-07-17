@@ -6,6 +6,8 @@ from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
@@ -1177,3 +1179,39 @@ def reject_pending_edit(request, pending_edit_id):
     else: # model == 'Plot'
         updated_plot = Plot.objects.get(pk=pend.plot.id)
     return plot_to_dict(updated_plot, longform=True)
+
+
+@require_http_methods(["DELETE"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.delete_plot')
+@transaction.commit_on_success
+def delete_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    plot.delete()
+    return {"ok": True}
+
+@require_http_methods(["DELETE"])
+@api_call()
+@login_required
+@permission_required_or_403_forbidden('treemap.delete_tree')
+@transaction.commit_on_success
+def delete_current_tree_from_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    tree = plot.current_tree()
+    if tree:
+        tree.delete()
+        updated_plot = Plot.objects.get(pk=plot_id)
+        return plot_to_dict(updated_plot, longform=True)
+    else:
+        raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
+
+@require_http_methods(["GET"])
+@api_call()
+def get_current_tree_from_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    if  plot.current_tree():
+        plot_dict = plot_to_dict(plot, longform=True)
+        return plot_dict['tree']
+    else:
+        raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)

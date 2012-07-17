@@ -736,6 +736,21 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             return (nearby.count()-max_count).__str__() #number greater than max_count allows
         return None
 
+    def delete(self):
+        """
+        Mark the plot and its associated objects as not present.
+        """
+        if self.current_tree():
+            tree = self.current_tree()
+            tree.delete()
+
+        self.present = False
+        self.save()
+
+        for audit_trail_record in self.history.all():
+            audit_trail_record.present = False
+            audit_trail_record.save()
+
 class Tree(models.Model, ManagementMixin, PendingMixin):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
@@ -1036,7 +1051,17 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         if self.height > self.species.v_max_height:
 	    return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
         return None
-        
+
+    def delete(self):
+        """
+        Mark the tree and its associated objects as not present.
+        """
+        self.present = False
+        self.save()
+        for audit_trail_record in self.history.all():
+            audit_trail_record.present = False
+            audit_trail_record.save()
+
     def __unicode__(self): 
         if self.species:
             return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
