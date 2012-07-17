@@ -338,8 +338,9 @@ tm.init_tree_map = function(editable){
                 $('#edit_address_city').html(city);
             }
             if ($('#id_geocode_address')) {
-                $('#id_geocode_address').val(full_address);
-                $('#id_geocode_address').html(full_address);
+                var geocode_address = full_address.split(city)[0].split(',')[0]
+                $('#id_geocode_address').val(geocode_address);
+                $('#id_geocode_address').html(geocode_address);
             }
             if ($('#edit_address_zip')) {
                 $('#edit_address_zip').val(zip);

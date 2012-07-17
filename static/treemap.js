@@ -444,6 +444,11 @@ tm = {
                 geocoded_address: geoaddy
             }
         };
+
+        if (tm.update_address_on_location_update) {
+            data['update']['address_street'] = geoaddy;
+        };
+
         var jsonString = JSON.stringify(data);
         $.ajax({
             url: tm_static + 'update/',
@@ -469,6 +474,9 @@ tm = {
                     }
                 } else {                                  
                     $("#edit_map_errors")[0].innerHTML = "New location saved."
+                    if (tm.update_address_on_location_update) {
+                        $("#edit_address_street")[0].innerHTML = geoaddy;
+                    };
                 }
             }});
     },
@@ -910,7 +918,7 @@ tm = {
                 tm.searchParams['location'] = search;
             }
             else {    
-		delete tm.searchParams.geoName;
+		        delete tm.searchParams.geoName;
                 featureName = nbhoods.features[0].properties.zip;
                 tm.searchParams['location'] = featureName;
                 tm.geocoded_locations[search] = featureName;
