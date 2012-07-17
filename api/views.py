@@ -240,7 +240,7 @@ def add_tree_photo(request, plot_id):
 
     treephoto.save()
 
-    return { "status": "succes" }
+    return { "status": "succes", "title": treephoto.title, "id": treephoto.pk }
 
 
 @require_http_methods(["POST"])
