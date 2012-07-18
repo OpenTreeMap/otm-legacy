@@ -874,11 +874,21 @@ def user_to_dict(user):
         "firstname": user.first_name,
         "lastname": user.last_name,
         "email": user.email,
+        "username": user.username,
         "zipcode": UserProfile.objects.get(user__pk=user.pk).zip_code,
         "reputation": Reputation.objects.reputation_for_user(user).reputation,
-        "permissions": list(user.get_all_permissions())
+        "permissions": list(user.get_all_permissions()),
+        "user_type": user_access_type(user)
         }
 
+def user_access_type(user):
+    """ Given a user, determine the name and "level" of a user """
+    if user.is_superuser:
+        return { 'name': 'administrator', 'level': 1000 }
+    elif Reputation.objects.reputation_for_user(user).reputation > 1000:
+        return { 'name': 'editor', 'level': 500 }
+    else:
+        return { 'name': 'public', 'level': 0 }
 
 
 @require_http_methods(["GET"])

@@ -9,6 +9,7 @@ from StringIO import StringIO
 from django.contrib.auth.models import User, UserManager, Permission as P, AnonymousUser
 from django.contrib.gis.geos import Point
 from django.contrib.contenttypes.models import ContentType
+from profiles.models import UserProfile
 from django_reputation.models import Reputation
 from django.test import TestCase
 from django_reputation.models import UserReputationAction
@@ -168,6 +169,55 @@ class Authentication(TestCase):
         self.assertTrue('permissions' in content_dict, "The response did not contain a permissions attribute")
         self.assertEqual(amys_perm_count, len(content_dict['permissions']))
         self.assertTrue('treemap.delete_tree' in content_dict['permissions'], 'The "delete_tree" permission was not in the permissions list for the test user.')
+    def user_has_type(self, user, typ):
+        auth = base64.b64encode("%s:%s" % (user.username,user.username))
+        withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        
+        self.assertEqual(ret.status_code, 200)
+        json = loads(ret.content)
+
+        self.assertEqual(json['username'], user.username)        
+        self.assertEqual(json['user_type'], typ)        
+
+    def create_user(self, username):
+        ben = User.objects.create_user(username, "%s@test.org" % username, username)
+        ben.set_password(username)
+        ben.save()
+        ben_profile = UserProfile(user=ben)
+        ben_profile.save()
+        ben.reputation = Reputation(user=ben)
+        ben.reputation.save()        
+        return ben
+
+    def test_user_is_admin(self):
+        ben = self.create_user("ben")
+        ben.is_superuser = True
+        ben.save()
+
+        self.user_has_type(ben, {'name': 'administrator', 'level': 1000 })
+    
+        ben.delete()
+    
+    def test_user_is_editor(self):
+        carol = self.create_user("carol")
+        carol.reputation.reputation = 1001
+        carol.reputation.save()
+    
+        self.user_has_type(carol, {'name': 'editor', 'level': 500 })
+    
+        carol.delete()
+    
+    def test_user_is_public(self):
+        dave = self.create_user("dave")
+        dave.reputation.reputation = 0
+        dave.reputation.save()
+    
+        self.user_has_type(dave, {"name": "public", 'level': 0})
+    
+        dave.delete()
+
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -180,6 +230,8 @@ class Logging(TestCase):
         self.sign = create_signer_dict(self.u)
 
     def test_log_request(self):
+        settings.SITE_ROOT = ''
+
         ret = self.client.get("%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 200)
         
