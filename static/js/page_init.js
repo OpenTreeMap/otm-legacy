@@ -86,50 +86,52 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
                                     tm.searchParams['height_range'] = min+'-'+max;
                                 }
                                });
-    
-    $("#planted_slider")[0].updateDisplay = function() {
-        var min = $("#planted_slider").slider('values', 0)
-        var max = $("#planted_slider").slider('values', 1)
-        $('#min_planted').html(min);
-        $('#max_planted').html(max);
+    if ($("#planted_slider").length) {
+        $("#planted_slider")[0].updateDisplay = function() {
+            var min = $("#planted_slider").slider('values', 0)
+            var max = $("#planted_slider").slider('values', 1)
+            $('#min_planted').html(min);
+            $('#max_planted').html(max);
+        }
+        $("#planted_slider").slider({'range': true, min: min_year, max: current_year,
+                                     values: [min_year, current_year],
+                                     slide: function() { 
+                                         $("#planted_slider")[0].updateDisplay();
+                                     },
+                                     change: function() {
+                                         $("#planted_slider")[0].updateDisplay();
+                                         var min = $("#planted_slider").slider('values', 0)
+                                         var max = $("#planted_slider").slider('values', 1)
+                                         tm.searchParams['planted_range'] = min+'-'+max;
+                                     }
+                                    });
+        $("#planted_slider")[0].updateDisplay();
     }
-    $("#planted_slider").slider({'range': true, min: min_year, max: current_year,
-                                 values: [min_year, current_year],
-                                 slide: function() { 
-                                     $("#planted_slider")[0].updateDisplay();
-                                 },
-                                 change: function() {
-                                     $("#planted_slider")[0].updateDisplay();
-                                     var min = $("#planted_slider").slider('values', 0)
-                                     var max = $("#planted_slider").slider('values', 1)
-                                     tm.searchParams['planted_range'] = min+'-'+max;
-                                 }
-                                });
-    $("#planted_slider")[0].updateDisplay();
     
-    $("#updated_slider")[0].updateDisplay = function() {
-        var min = $("#updated_slider").slider('values', 0)
-        var min_d = new Date(parseInt(min) * 1000);
-        var max = $("#updated_slider").slider('values', 1)
-        var max_d = new Date(parseInt(max) * 1000);
-        $('#min_updated').html(tm.dateString(min_d));
-        $('#max_updated').html(tm.dateString(max_d));
-    }        
+    if ($("#updated_slider").length) {
+        $("#updated_slider")[0].updateDisplay = function() {
+            var min = $("#updated_slider").slider('values', 0)
+            var min_d = new Date(parseInt(min) * 1000);
+            var max = $("#updated_slider").slider('values', 1)
+            var max_d = new Date(parseInt(max) * 1000);
+            $('#min_updated').html(tm.dateString(min_d));
+            $('#max_updated').html(tm.dateString(max_d));
+        }        
 
-    $("#updated_slider").slider({'range': true, min: min_updated, max: max_updated,
-                                 values: [min_updated, max_updated],
-                                 slide: function() {
-                                     $("#updated_slider")[0].updateDisplay();
-                                 },    
-                                 change: function() {
-                                     $("#updated_slider")[0].updateDisplay();
-                                     var min = $("#updated_slider").slider('values', 0)
-                                     var max = $("#updated_slider").slider('values', 1)
-                                     tm.searchParams['updated_range'] = min+'-'+max;
-                                 }
-                                });    
-    $("#updated_slider")[0].updateDisplay();
-    
+        $("#updated_slider").slider({'range': true, min: min_updated, max: max_updated,
+                                     values: [min_updated, max_updated],
+                                     slide: function() {
+                                         $("#updated_slider")[0].updateDisplay();
+                                     },    
+                                     change: function() {
+                                         $("#updated_slider")[0].updateDisplay();
+                                         var min = $("#updated_slider").slider('values', 0)
+                                         var max = $("#updated_slider").slider('values', 1)
+                                         tm.searchParams['updated_range'] = min+'-'+max;
+                                     }
+                                    });    
+        $("#updated_slider")[0].updateDisplay();
+    }
     if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
         max_p = parseInt(max_plot.split('+')[0]) + 1;
         m_text = max_p - 1 + "+"
@@ -183,9 +185,13 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
         $('#min_diam').html(0);
         $('#max_diam').html(50);
         $("#planted_slider").slider('option', 'values', [min_year, current_year]);
-        $("#planted_slider")[0].updateDisplay();
         $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
-        $("#updated_slider")[0].updateDisplay();
+        if ($("#planted_slider").length) {
+            $("#planted_slider")[0].updateDisplay();
+        }
+        if ($("#updated_slider").length) {
+            $("#updated_slider")[0].updateDisplay();
+        }
         $("#height_slider").slider('option', 'values', [0, 200]);
         $('#min_height').html(0);
         $('#max_height').html(200);
