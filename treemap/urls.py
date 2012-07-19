@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     (r'^$', home_feeds),
     (r'^home/$', home_feeds),
     (r'^home/feeds/$', home_feeds),
+    (r'^home/feeds/json/$', json_home_feeds),
     (r'^robots.txt/$', static, {'template':'robots.txt'}),
     
     (r'^export/csv$', get_all_csv),

@@ -110,6 +110,13 @@ def permission_required_or_403_forbidden(perm):
 def location_map(request):
     pass
 
+def json_home_feeds(request):
+    feeds = {}
+    feeds['recent_photos'] = [(p.id, p.src) for p in TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]]
+    feeds['species'] = [(s.id, s.common_name) for s in Species.objects.order_by('-tree_count')[0:4]]
+    feeds['active_nhoods'] = [(n.id, n.name) for n in Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]]
+    return render_to_json(feeds)
+
 def home_feeds(request):
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]

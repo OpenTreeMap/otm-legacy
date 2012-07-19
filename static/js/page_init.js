@@ -28,6 +28,13 @@ tm.getChoicesList = function() {
     });
 }
 
+tm.getHomeFeeds = function(callback) {
+    $.getJSON(tm_static + "home/feeds/json/", function(feeds) {
+        tm.homeFeeds = feeds;
+        if (callback) {callback();}
+    });
+}
+
 tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
     tm.init_map('results_map');
 
