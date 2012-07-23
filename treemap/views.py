@@ -508,7 +508,7 @@ def unified_history(trees, plots=[]):
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
-@login_required    
+   
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
     choices = settings.CHOICES[type_]
@@ -527,7 +527,7 @@ def tree_edit_choices(request, tree_id, type_):
                 data['selected'] = str(int(sidewalks[0].value))
     return HttpResponse(simplejson.dumps(data))    
 
-@login_required    
+  
 def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = settings.CHOICES[type_]
