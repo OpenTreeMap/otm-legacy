@@ -194,6 +194,13 @@ def plot_or_tree_permissions(obj, user):
 
 @require_http_methods(["GET"])
 @api_call()
+def status(request):
+    return [{ 'api_version': 'v0.1',
+              'status': 'online',
+              'message': '' }]
+
+@require_http_methods(["GET"])
+@api_call()
 @login_required
 def verify_auth(request):
     user_dict = user_to_dict(request.user)

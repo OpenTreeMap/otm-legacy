@@ -3,6 +3,7 @@ from views import *
 
 urlpatterns = patterns(
     '',
+    (r'^$', status),
     (r'^version$', version),
     (r'^plots$', route(GET=get_plot_list, POST=create_plot_optional_tree)),
     (r'^plots/(?P<plot_id>\d+)$', route(GET=get_plot, PUT=update_plot_and_tree, DELETE=delete_plot)),
