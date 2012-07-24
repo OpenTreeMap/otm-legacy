@@ -243,7 +243,7 @@ class Logging(TestCase):
         log = logs[0]
 
         self.assertEqual(log.apikey,key)
-        self.assertEqual(log.url, "%s/version?rvar=4,rvar2=5" % API_PFX)
+        self.assertTrue(log.url.endswith("%s/version?rvar=4,rvar2=5" % API_PFX))
         self.assertEqual(log.method, "GET")
         self.assertEqual(log.requestvars, "rvar=4,rvar2=5")
 
