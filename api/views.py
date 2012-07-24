@@ -89,7 +89,7 @@ def validate_and_log_api_req(request):
            requestvars=reqstr,
            method=request.method,
            apikey=apikey,
-           useragent=request.META["HTTP_USER_AGENT"],
+           useragent=request.META.get("HTTP_USER_AGENT", ''),
            appver=request.META.get("HTTP_APPLICATIONVERSION",'')
     ).save()
 
