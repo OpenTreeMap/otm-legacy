@@ -88,7 +88,10 @@ def validate_and_log_api_req(request):
            remoteip=request.META["REMOTE_ADDR"],
            requestvars=reqstr,
            method=request.method,
-           apikey=apikey).save()
+           apikey=apikey,
+           useragent=request.META["HTTP_USER_AGENT"],
+           appver=request.META.get("HTTP_APPLICATIONVERSION",'')
+    ).save()
 
     return apikey
     

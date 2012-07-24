@@ -18,5 +18,7 @@ class APILog(models.Model):
     requestvars = models.TextField()
     apikey = models.ForeignKey(APIKey)
     remoteip = models.CharField(max_length=20)
+    useragent = models.CharField(max_length=255)
+    appver = models.CharField(max_length=255)
     date = models.DateTimeField(auto_now=True)
 
