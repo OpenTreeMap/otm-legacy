@@ -1,5 +1,5 @@
 import datetime
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.files.base import ContentFile
 
 from django.conf import settings
@@ -90,6 +90,7 @@ def validate_and_log_api_req(request):
            method=request.method,
            apikey=apikey,
            useragent=request.META.get("HTTP_USER_AGENT",''),
+           useragent=request.META.get("HTTP_USER_AGENT", ''),
            appver=request.META.get("HTTP_APPLICATIONVERSION",'')
     ).save()
 
@@ -194,6 +195,16 @@ def plot_or_tree_permissions(obj, user):
             can_edit = True
             
     return { "can_delete": can_delete, "can_edit": can_edit }
+
+def can_delete_tree_or_plot(obj, user):
+    permissions = plot_or_tree_permissions(obj, user)
+    if "can_delete" in permissions:
+        return permissions["can_delete"]
+    else:
+        # This should never happen, but raising an exception ensures that it will fail loudly if a
+        # future refactoring introduces a bug.
+        raise Exception("Expected the dict returned from plot_or_tree_permissions to contain 'can_delete'")
+
 
 @require_http_methods(["GET"])
 @api_call()
@@ -1205,25 +1216,29 @@ def reject_pending_edit(request, pending_edit_id):
 @require_http_methods(["DELETE"])
 @api_call()
 @login_required
-@permission_required_or_403_forbidden('treemap.delete_plot')
 @transaction.commit_on_success
 def delete_plot(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
-    plot.delete()
-    return {"ok": True}
+    if can_delete_tree_or_plot(plot, request.user):
+        plot.delete()
+        return {"ok": True}
+    else:
+        raise PermissionDenied('%s does not have permission to delete plot %s' % (request.user.username, plot_id))
 
 @require_http_methods(["DELETE"])
 @api_call()
 @login_required
-@permission_required_or_403_forbidden('treemap.delete_tree')
 @transaction.commit_on_success
 def delete_current_tree_from_plot(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
     tree = plot.current_tree()
     if tree:
-        tree.delete()
-        updated_plot = Plot.objects.get(pk=plot_id)
-        return plot_to_dict(updated_plot, longform=True)
+        if can_delete_tree_or_plot(tree, request.user):
+            tree.delete()
+            updated_plot = Plot.objects.get(pk=plot_id)
+            return plot_to_dict(updated_plot, longform=True, user=request.user)
+        else:
+            raise PermissionDenied('%s does not have permission to the current tree from plot %s' % (request.user.username, plot_id))
     else:
         raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
 
