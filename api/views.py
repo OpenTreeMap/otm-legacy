@@ -961,7 +961,7 @@ def geocode_address(request, address):
         return {"error": "The geocoder failed to generate a list of results."}
 
 def flatten_plot_dict_with_tree_and_geometry(plot_dict):
-    if 'tree' in plot_dict:
+    if 'tree' in plot_dict and plot_dict['tree'] is not None:
         tree_dict = plot_dict['tree']
         for field_name in tree_dict.keys():
             plot_dict[field_name] = tree_dict[field_name]
