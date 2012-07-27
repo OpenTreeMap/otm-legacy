@@ -146,6 +146,19 @@ class Authentication(TestCase):
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 200)
 
+    def test_malformed_auth(self):
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "FUUBAR")])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+        auth = base64.b64encode("foobar")
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+
     def test_bad_cred(self):
         auth = base64.b64encode("jim:passwordz")
         withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
@@ -723,6 +736,13 @@ class Locations(TestCase):
 
         self.user = User.objects.get(username="jim")
         self.sign = create_signer_dict(self.user)
+
+    def test_locations_plots_endpoint_with_auth(self):
+        auth = base64.b64encode("%s:%s" % (self.user.username,self.user.username))
+        withauth = dict(create_signer_dict(self.user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        response = self.client.get("%s/locations/0,0/plots" % API_PFX, **withauth)
+        self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint(self):
         response = self.client.get("%s/locations/0,0/plots" % API_PFX, **self.sign)
