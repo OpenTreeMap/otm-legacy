@@ -12,7 +12,9 @@ from django.contrib.contenttypes.models import ContentType
 from profiles.models import UserProfile
 from django_reputation.models import Reputation
 from django.test import TestCase
-from django_reputation.models import UserReputationAction
+from django.test.client import Client
+import unittest
+from django_reputation.models import UserReputationAction, ReputationAction
 from simplejson import loads, dumps
 
 from django.conf import settings
@@ -169,6 +171,7 @@ class Authentication(TestCase):
         self.assertTrue('permissions' in content_dict, "The response did not contain a permissions attribute")
         self.assertEqual(amys_perm_count, len(content_dict['permissions']))
         self.assertTrue('treemap.delete_tree' in content_dict['permissions'], 'The "delete_tree" permission was not in the permissions list for the test user.')
+
     def user_has_type(self, user, typ):
         auth = base64.b64encode("%s:%s" % (user.username,user.username))
         withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
@@ -379,9 +382,113 @@ class PlotListing(TestCase):
 
         self.u = User.objects.get(username="jim")
         self.sign = create_signer_dict(self.u)
+        self.client = Client()
 
     def tearDown(self):
         teardownTreemapEnv()
+
+    def test_recent_edits(self):
+        user = self.u
+        p = mkPlot(user)
+        p2 = mkPlot(user)
+        p3 = mkPlot(user)
+        acts = ReputationAction.objects.all()
+
+        content_type_p = ContentType(app_label='auth', model='Plot')
+        content_type_p.save()
+
+        reputation1 = UserReputationAction(action=acts[0],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=p.pk,
+                                           content_object=p,
+                                           value=20)
+        reputation1.save()
+
+        auth = base64.b64encode("%s:%s" % (user.username,user.username))
+        withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p.pk)
+        self.assertEqual(json[0]['id'], reputation1.pk)
+
+        reputation2 = UserReputationAction(action=acts[1 % len(acts)],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=p2.pk,
+                                           content_object=p2,
+                                           value=20)
+        reputation2.save()
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 2) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p2.pk)
+        self.assertEqual(json[0]['id'], reputation2.pk)
+
+        self.assertEqual(json[1]['plot_id'], p.pk)
+        self.assertEqual(json[1]['id'], reputation1.pk)
+
+        reputation3 = UserReputationAction(action=acts[2 % len(acts)],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=p3.pk,
+                                           content_object=p3,
+                                           value=20)
+        reputation3.save()
+
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 3) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p3.pk)
+        self.assertEqual(json[0]['id'], reputation3.pk)
+
+        self.assertEqual(json[1]['plot_id'], p2.pk)
+        self.assertEqual(json[1]['id'], reputation2.pk)
+
+        self.assertEqual(json[2]['plot_id'], p.pk)
+        self.assertEqual(json[2]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?offset=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 2) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p2.pk)
+        self.assertEqual(json[0]['id'], reputation2.pk)
+
+        self.assertEqual(json[1]['plot_id'], p.pk)
+        self.assertEqual(json[1]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?offset=2&length=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p.pk)
+        self.assertEqual(json[0]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?length=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p3.pk)
+        self.assertEqual(json[0]['id'], reputation3.pk)
+        
+        reputation1.delete()
+        reputation2.delete()
+        reputation3.delete()
+        content_type_p.delete()                
+        p.delete()
+        p2.delete()
+        p3.delete()
 
     def test_edit_flags(self):
         content_type_p = ContentType(app_label='auth', model='Plot')
