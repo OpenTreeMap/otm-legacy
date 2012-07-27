@@ -404,7 +404,7 @@ class PlotListing(TestCase):
         user = self.u
         p = mkPlot(user)
         p2 = mkPlot(user)
-        p3 = mkPlot(user)
+        t3 = mkTree(user)
         acts = ReputationAction.objects.all()
 
         content_type_p = ContentType(app_label='auth', model='Plot')
@@ -452,8 +452,8 @@ class PlotListing(TestCase):
                                            user=user,
                                            originating_user=user,
                                            content_type=content_type_p,
-                                           object_id=p3.pk,
-                                           content_object=p3,
+                                           object_id=t3.pk,
+                                           content_object=t3,
                                            value=20)
         reputation3.save()
 
@@ -462,7 +462,7 @@ class PlotListing(TestCase):
         json = loads(ret.content)
         
         self.assertEqual(len(json), 3) # Just on reputation item
-        self.assertEqual(json[0]['plot_id'], p3.pk)
+        self.assertEqual(json[0]['plot_id'], t3.plot.pk)
         self.assertEqual(json[0]['id'], reputation3.pk)
 
         self.assertEqual(json[1]['plot_id'], p2.pk)
@@ -492,7 +492,7 @@ class PlotListing(TestCase):
         json = loads(ret.content)
         
         self.assertEqual(len(json), 1) # Just on reputation item
-        self.assertEqual(json[0]['plot_id'], p3.pk)
+        self.assertEqual(json[0]['plot_id'], t3.plot.pk)
         self.assertEqual(json[0]['id'], reputation3.pk)
         
         reputation1.delete()
@@ -501,7 +501,7 @@ class PlotListing(TestCase):
         content_type_p.delete()                
         p.delete()
         p2.delete()
-        p3.delete()
+        t3.delete()
 
     def test_edit_flags(self):
         content_type_p = ContentType(app_label='auth', model='Plot')
