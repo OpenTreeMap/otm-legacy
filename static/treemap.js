@@ -808,18 +808,6 @@ tm = {
             }
         }
        
-        if (tm.searchParams['location']) {
-            var val = tm.searchParams['location'];
-            var coords = tm.geocoded_locations[val];
-            if (!coords) {return false;}
-            if (coords.join) {
-                q.SET('location', coords.join(','));
-            }
-            else {
-                q.SET('location', coords);
-            }
-            qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
-        }
 
         return qstr;
     },
