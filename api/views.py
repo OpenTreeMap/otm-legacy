@@ -1029,7 +1029,8 @@ def create_plot_optional_tree(request):
         change_reputation_for_user(request.user, 'add plot', new_plot)
 
     response.status_code = 201
-    response.content = "{\"ok\": %d}" % new_plot.id
+    new_plot = plot_to_dict(Plot.objects.get(pk=new_plot.id),longform=True,user=request.user)
+    response.content = json.dumps(new_plot)
     return response
 
 @require_http_methods(["GET"])
