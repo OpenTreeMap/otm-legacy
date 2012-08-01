@@ -2308,7 +2308,7 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     return render_to_json({'change_type': change_type, 'change_id': change_id})
     
 @login_required
-@permission_required('comments.can_moderate')
+@permission_required('threadedcomments.change_threadedcomment')
 def view_flagged(request):
     comments = ThreadedComment.objects.annotate(num_flags=Count('comment_flags__id')).filter(is_public=True, num_flags__gt=0)
     n = None
@@ -2330,7 +2330,7 @@ def view_flagged(request):
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': comments, "geometry":n}))
     
 @login_required
-@permission_required('comments.can_moderate')
+@permission_required('threadedcomments.change_threadedcomment')
 def view_comments(request):
     comments = ThreadedComment.objects.filter(is_public=True)
     n = None
@@ -2352,7 +2352,7 @@ def view_comments(request):
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments, "geometry":n}))
   
 @login_required  
-@permission_required('comments.can_moderate')
+@permission_required('threadedcomments.change_threadedcomment')
 def export_comments(request, format):
     users = UserProfile.objects.filter(active=True)
     where = []
