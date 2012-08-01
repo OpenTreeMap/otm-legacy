@@ -15,7 +15,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource, PlotPending, TreePending
+from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
+from treemap.models import BenefitValues
+from treemap.models import TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
 from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
 from api.models import APIKey, APILog
@@ -858,25 +860,34 @@ def plot_to_dict(plot,longform=False,user=None):
     return base
 
 def tree_resource_to_dict(tr):
+    b = BenefitValues.objects.all()[0]
+
+    ac_dollar = tr.annual_ozone * b.ozone + tr.annual_nox * b.nox + \
+                tr.annual_pm10 * b.pm10 + tr.annual_sox * b.sox + \
+                tr.annual_voc * b.voc + tr.annual_bvoc * b.bvoc
+
     return {
-    "annual_stormwater_management": with_unit(tr.annual_stormwater_management, "gallons"),
-    "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, "kWh"),
-    "annual_energy_conserved": with_unit(tr.annual_energy_conserved, "kWh"),
-    "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, "kWh"),
-    "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, "lbs"),
-    "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, "lbs"),
-    "annual_co2_avoided": with_unit(tr.annual_co2_avoided, "lbs"),
-    "annual_co2_reduced": with_unit(tr.annual_co2_reduced, "lbs"),
-    "total_co2_stored": with_unit(tr.total_co2_stored, "lbs"),
-    "annual_ozone": with_unit(tr.annual_ozone, "lbs"),
-    "annual_nox": with_unit(tr.annual_nox, "lbs"),
-    "annual_pm10": with_unit(tr.annual_pm10, "lbs"),
-    "annual_sox": with_unit(tr.annual_sox, "lbs"),
-    "annual_voc": with_unit(tr.annual_voc, "lbs"),
-    "annual_bvoc": with_unit(tr.annual_bvoc, "lbs") }
+        "annual_stormwater_management": with_unit(tr.annual_stormwater_management, b.stormwater, "gallons"),
+        "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, b.electricity, "kWh"),
+        "annual_energy_conserved": with_unit(tr.annual_energy_conserved, b.electricity, "kWh"),
+        "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, b.electricity, "kWh"),
+        "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, None, "lbs", dollar=ac_dollar),
+        "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, b.co2, "lbs"),
+        "annual_co2_avoided": with_unit(tr.annual_co2_avoided, b.co2, "lbs"),
+        "annual_co2_reduced": with_unit(tr.annual_co2_reduced, b.co2, "lbs"),
+        "total_co2_stored": with_unit(tr.total_co2_stored, b.co2, "lbs"),
+        "annual_ozone": with_unit(tr.annual_ozone, b.ozone, "lbs"),
+        "annual_nox": with_unit(tr.annual_nox, b.nox, "lbs"),
+        "annual_pm10": with_unit(tr.annual_pm10, b.pm10,  "lbs"),
+        "annual_sox": with_unit(tr.annual_sox, b.sox, "lbs"),
+        "annual_voc": with_unit(tr.annual_voc, b.voc, "lbs"),
+        "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, "lbs") }
     
-def with_unit(val,unit):
-    return { "value": val, "unit": unit }
+def with_unit(val,dollar_factor,unit,dollar=None):
+    if not dollar:
+        dollar = dollar_factor * val
+
+    return { "value": val, "unit": unit, "dollars": dollar }
         
 
 def species_to_dict(s):
