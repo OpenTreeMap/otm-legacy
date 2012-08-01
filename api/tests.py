@@ -820,8 +820,8 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
         response_json = loads(response.content)
-        self.assertTrue("ok" in response_json)
-        id = response_json["ok"]
+        self.assertTrue("id" in response_json)
+        id = response_json["id"]
         plot = Plot.objects.get(pk=id)
         self.assertEqual(35.0, plot.geometry.x)
         self.assertEqual(25.0, plot.geometry.y)
@@ -884,8 +884,8 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
         response_json = loads(response.content)
-        self.assertTrue("ok" in response_json)
-        id = response_json["ok"]
+        self.assertTrue("id" in response_json)
+        id = response_json["id"]
         plot = Plot.objects.get(pk=id)
         self.assertEqual(35.0, plot.geometry.x)
         self.assertEqual(25.0, plot.geometry.y)
