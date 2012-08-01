@@ -612,10 +612,10 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         return len(self.plotstewardship_set.all())
         
     def current_tree(self):
-        trees = Tree.objects.filter(present=True, plot=self)
-        if len(trees) > 0:
+        trees = self.tree_set.filter(present=True)
+        if trees.count() > 0:
             return trees[0]
-        else:
+        else: 
             return None
 
     def get_active_pends(self):
@@ -623,7 +623,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         return pends
 
     def get_active_geopends(self):
-        pends = PlotPending.objects.filter(status='pending').filter(plot=self)
+        pends = self.plotpending_set.filter(status='pending').exclude(geometry=None)
         return pends
 
     def get_active_pends_with_tree_pends(self):

@@ -442,6 +442,11 @@ tm = {
                 geocoded_address: geoaddy
             }
         };
+
+        if (tm.update_address_on_location_update) {
+            data['update']['address_street'] = geoaddy;
+        };
+
         var jsonString = JSON.stringify(data);
         $.ajax({
             url: tm_static + 'update/',
@@ -467,6 +472,9 @@ tm = {
                     }
                 } else {                                  
                     $("#edit_map_errors")[0].innerHTML = "New location saved."
+                    if (tm.update_address_on_location_update) {
+                        $("#edit_address_street")[0].innerHTML = geoaddy;
+                    };
                 }
             }});
     },
@@ -798,18 +806,6 @@ tm = {
             }
         }
        
-        if (tm.searchParams['location']) {
-            var val = tm.searchParams['location'];
-            var coords = tm.geocoded_locations[val];
-            if (!coords) {return false;}
-            if (coords.join) {
-                q.SET('location', coords.join(','));
-            }
-            else {
-                q.SET('location', coords);
-            }
-            qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
-        }
 
         return qstr;
     },
@@ -828,7 +824,6 @@ tm = {
         tm.trackPageview('/search/' + qs);
 
         $('#displayResults').show();
-
         $.ajax({
             url: tm_static + 'search/'+qs,
             dataType: 'json',
@@ -908,8 +903,8 @@ tm = {
                 tm.searchParams['geoName'] = featureName;
                 tm.searchParams['location'] = search;
             }
-            else {
-		delete tm.searchParams.geoName;
+            else {    
+		        delete tm.searchParams.geoName;
                 featureName = nbhoods.features[0].properties.zip;
                 tm.searchParams['location'] = featureName;
                 tm.geocoded_locations[search] = featureName;
@@ -949,11 +944,8 @@ tm = {
                         tm.add_location_marker(llpoint);
 
                         tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
-                        tm.searchParams['location'] = search;       
-
-                        tm.updateSearch();
-                    });
-                }
+                   });
+               }
             });
         }
     },

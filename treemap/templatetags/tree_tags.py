@@ -22,3 +22,11 @@ def unit_or_empty(value, unit=None):
             return ("%.2f" % float(value)) + " " + unit
         return "%.2f" % float(value)
     return "" 
+
+@register.filter
+def unit_or_zero(value, unit=None):
+    if value:    
+        if unit:
+            return ("%.2f" % float(value)) + " " + unit
+        return "%.2f" % float(value)
+    return "%.2f" % 0.00

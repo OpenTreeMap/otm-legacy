@@ -131,19 +131,19 @@ class Command(BaseCommand):
         if row.get('itree_code'):
             species.itree_code = row['itree_code']
         if row.get('flowering'):
-            species.flower_conspicuous = row['flowering'] == 'yes'
+            species.flower_conspicuous = row['flowering'].lower() == 'yes'
         if row.get('flower_time'):
             species.bloom_period = row['flower_time']
         if row.get('fall_color'):
-            species.fall_conspicuous = row['fall_color'] == 'yes'
+            species.fall_conspicuous = row['fall_color'].lower() == 'yes'
         if row.get('edible'):
-            species.palatable_human = row['edible'] == 'yes'
+            species.palatable_human = row['edible'].lower() == 'yes'
         if row.get('fruiting_time'):
             species.fruit_period = row['fruiting_time']
         if row.get('wildlife'):
-            species.wildlife_value = row['wildlife'] == 'yes'
+            species.wildlife_value = row['wildlife'].lower() == 'yes'
         if row.get('native'):
-            species.native_status = row['native'] == 'yes'
+            species.native_status = row['native'].lower() == 'yes'
         if row.get('webpage_link'):
             species.fact_sheet = row['webpage_link']
         
