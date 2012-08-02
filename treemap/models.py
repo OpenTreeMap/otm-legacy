@@ -412,7 +412,15 @@ class PlotLocateManager(models.GeoManager):
             has_filter_q = filter_or(q_has_tree, has_filter_q)
 
         if has_species is not None:
-            q_has_species = Q(tree__species__isnull=(not has_species))
+            if has_species:
+                q_has_species = Q(tree__species__isnull=False,tree__present=True)
+            else:
+                # Note that Q(tree__present=False) seems to exlucde too
+                # many records. Instead ~Q(tree__present=True) selects
+                # all plots without tree records and those with trees
+                # that are marked as not present
+                q_has_species = Q(tree__species__isnull=True,tree__present=True)|(~Q(tree__present=True))
+
             has_filter_q = filter_or(q_has_species, has_filter_q)
 
         if has_dbh is not None:
