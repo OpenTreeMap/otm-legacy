@@ -49,10 +49,6 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
     
     '''
     collection = {}
-    # Find the geometry field
-    # qs.query._geo_field()
-
-    excluded_fields += ['current_geometry'] 
 
     if not model:
         model = query_set.model
@@ -65,7 +61,6 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
     
     #attempt to assign geom_field that was passed in
     if geom_field:
-        #print 'geom_field',geom_field
         geo_fieldnames = [x.name for x in geo_fields]
         try:
             geo_field = geo_fields[geo_fieldnames.index(geom_field)]
@@ -96,38 +91,36 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
       for item in query_set:
         feat = {}
         feat['type'] = 'Feature'
-        d = item.__dict__.copy()
+        d = {}
         
         #special attribs for trees:
         if  model.__name__ == 'Tree':
-            #if item.site_type:
-            #    d['site_type'] = item.get_site_type_display()
             if item.species:
                 d['scientific_name'] = item.species.scientific_name
                 d['common_name'] = item.species.common_name
                 d['flowering'] = item.species.flower_conspicuous
                 d['native'] = item.species.native_status
         elif model.__name__ == 'Plot':
-            if item.current_tree() and item.current_tree().species:
-                d['scientific_name'] = item.current_tree().species.scientific_name
-                d['common_name'] = item.current_tree().species.common_name
-                d['dbh'] = item.current_tree().dbh
-                d['height'] = item.current_tree().height
+            tree = item.current_tree()
+            if tree:
+                if tree.species:
+                    d['scientific_name'] = tree.species.scientific_name
+                    d['common_name'] = tree.species.common_name
+                d['dbh'] = tree.dbh
+                d['height'] = tree.height
                 d['tree'] = True
             else:
                 d['tree'] = False
                 
-
-        if d.has_key('distance'):
-            d['distance'] = d['distance'].ft
+        if hasattr(item, 'distance'):
+            d['distance'] = getattr(item,'distance').ft
                 
         g = getattr(item,geo_field.name)
         if simplify:
             g = g.simplify(simplify)
-        d.pop(geo_field.name)
-        for field in excluded_fields:
-            if d.has_key(field): d.pop(field)
-        if d.has_key('_state'): d.pop('_state')
+        for field in item._meta.fields:
+            if field.name not in excluded_fields:
+                d[field.name] = str(getattr(item, field.name))
 
         feat['geometry'] = simplejson.loads(g.geojson)
         feat['properties'] = d

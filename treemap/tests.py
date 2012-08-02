@@ -544,7 +544,6 @@ class ViewTests(TestCase):
         req = loads(response.content)
         trees = present_trees.filter(plot__neighborhood=self.n1)
         plots = present_plots.filter(neighborhood=self.n1)
-
         assert_counts(trees.count(), plots.count(), req)
         self.assertEqual(req['geography']['type'], 'Polygon')
         self.assertEqual(req['geography']['name'], self.n1.name)
@@ -899,7 +898,7 @@ class ViewTests(TestCase):
     def test_add_plot(self):
         self.client.login(username='jim',password='jim')
         form = {}
-        form['target']="edit"
+        form['target']="view"
         form['initial_map_location'] = "20,20"
         ##################################################################
         # Test required information: 

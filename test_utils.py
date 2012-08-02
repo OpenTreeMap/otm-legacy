@@ -8,6 +8,7 @@ from api.models import APILog, APIKey
 from profiles.models import UserProfile
 from treemap.models import Species, BenefitValues, Resource, Neighborhood, ZipCode, ExclusionMask, AggregateNeighborhood, ImportEvent, Tree, Plot
 
+
 def mkPlot(u, geom=Point(50,50)):
     p = Plot(geometry=geom, last_updated_by=u, import_event=ImportEvent.objects.all()[0],present=True, data_owner=u)
     p.save()

@@ -111,6 +111,12 @@ def permission_required_or_403_forbidden(perm):
 def location_map(request):
     pass
 
+def json_home_feeds(request):
+    feeds = {}
+    feeds['species'] = [(s.id, s.common_name) for s in Species.objects.order_by('-tree_count')[0:4]]
+    feeds['active_nhoods'] = [(n.id, n.name) for n in Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]]
+    return render_to_json(feeds)
+
 def home_feeds(request):
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
@@ -262,7 +268,7 @@ def plot_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
         return HttpResponseBadRequest()
-
+    
     distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
     max_plots = int(request.GET.get('max_plots', 1))
 
@@ -295,24 +301,31 @@ def plot_location_search(request):
                              geom_field='geometry', 
                              excluded_fields=['sidewalk_damage',
                              'address_city',
+                             'address_street',
+                             'address_zip',
+                             'neighborhood',
+                             'neighborhoods',
                              'length',
                              'distance',
                              'geometry',
                              'geocoded_address',
-                             'last_updated_by_id',
+                             'last_updated_by',
+                             'last_updated',
                              'present',
                              'powerline_conflict_potential',
                              'width',
                              'geocoded_lat',
                              'geocoded_lon',
                              'type',
-                             'import_event_id',
-                             'owner_orig_id',
+                             'import_event',
                              'address_zip',
                              'owner_additional_properties',
                              'owner_additional_id',
                              'geocoded_accuracy',
-                             'data_owner_id',
+                             'data_owner',
+                             'owner_orig_id',
+                             'owner_additional_id',
+                             'owner_additional_properties',
                              'zipcode_id'
                              ],
                              model=Plot,
@@ -496,7 +509,7 @@ def unified_history(trees, plots=[]):
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
-@login_required    
+   
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
     choices = settings.CHOICES[type_]
@@ -515,7 +528,7 @@ def tree_edit_choices(request, tree_id, type_):
                 data['selected'] = str(int(sidewalks[0].value))
     return HttpResponse(simplejson.dumps(data))    
 
-@login_required    
+  
 def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = settings.CHOICES[type_]
@@ -965,7 +978,7 @@ def object_update(request):
 
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
-                        for k,v in update.items():
+                        for k,v in update.items():  
                             fld = instance._meta.get_field(k.replace('_id',''))
                             try:
                                 cleaned = fld.clean(v,instance)
@@ -993,10 +1006,14 @@ def object_update(request):
                                 if k == 'species_id':
                                     pend.text_value = Species.objects.get(id=v).scientific_name
 
-                                for key, value in settings.CHOICES[k]:
-                                    if str(key) == str(v):
-                                        pend.text_value = value
+                                for field in instance._meta.fields:
+                                    if str(field.name) == str(fld.name):
+                                        for choice in field.choices:
+                                            if str(choice[0]) == str(cleaned):
+                                                pend.text_value = choice[1]
+                                                break
                                         break
+
                                 pend.save()
 
                             except ValidationError,e:
@@ -1046,7 +1063,7 @@ def object_update(request):
                 #   circ = update.get('value')
                 #   if circ:
                 #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']    
+                #   #response_dict['update']['']  
                 for k,v in update.items():
                     if hasattr(instance,k):
                         #print k,v
@@ -1166,6 +1183,14 @@ def create_pending_records(plot_base, plot_new_flds, user):
         
             if fld == 'geometry':
                 pend.geometry = plot_new_flds
+
+            for field in Plot._meta.fields:
+                if str(field.name) == str(fld):
+                    for choice in field.choices:
+                        if str(choice[0]) == str(new_field_val):
+                            pend.text_value = choice[1]
+                            break
+                    break
 
             pends.append(pend)
 
@@ -1345,7 +1370,10 @@ def update_plot(request, plot_id):
         
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
-            response_dict['update'][k] = get_attr_or_display(plot,k)        
+            response_dict['update'][k] = get_attr_or_display(plot,k)
+            if settings.PENDING_ON:
+                if insert_event_mgmt and not mgmt_user:
+                    response_dict['update'][k] = "Pending"  
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1393,8 +1421,10 @@ def tree_add(request, tree_id = ''):
             elif form.cleaned_data.get('target') == "addsame":
                 messages.success(request, "Your tree was successfully added!")
                 pass
-            elif form.cleaned_data.get('target') == "edit":
+            elif form.cleaned_data.get('target') == "view":
                 return redirect("trees/new/%i/" % request.user.id)
+            elif form.cleaned_data.get('target') == "edit":
+                return redirect("plots/%i/" % new_tree.id)
             else:
                 return redirect("trees/%i/" % new_tree.id)
     else:
@@ -1431,7 +1461,6 @@ def _build_tree_search_result(request, with_benefits=True):
     trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"})
     plots = Plot.objects.filter(present=True)
 
-    #TODO: get rid of geography coordinates, they don't do anything anymore
     geog_obj = None
     if 'geoName' in request.GET:
         ns = Neighborhood.objects.all().order_by('id')
@@ -1513,7 +1542,7 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(plot__powerline_conflict_potential__isnull=True)
         plots = plots.filter(powerline_conflict_potential__isnull=True)
         tile_query.append("powerline_conflict_potential IS NULL")
-    else: 
+    else:
         p_cql = []
         p_list = []
         for k, v in settings.CHOICES["powerlines"]:
@@ -1651,13 +1680,12 @@ def _build_tree_search_result(request, with_benefits=True):
         plots = plots.filter(tree__date_planted__gte=min, tree__date_planted__lte=max)
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
 
-    #TODO: remove cultivar as a criteria
     species_criteria = {'species' : 'id',
                         'native' : 'native_status',
                         'edible' : 'palatable_human',
                         'color' : 'fall_conspicuous',
                         'flowering' : 'flower_conspicuous',
-                        'wildlife': 'wildlife_value'}
+                        'wildlife' : 'wildlife_value'}
 
     if len(set(species_criteria.keys()).intersection(set(request.GET))):
         species = Species.objects.filter(tree_count__gt=0)
