@@ -1198,7 +1198,7 @@ class UpdatePlotAndTree(TestCase):
         for tree_pending in TreePending.objects.all():
             self.assertEqual('pending', tree_pending.status, 'The status of tree pends should still be "pending"')
 
-    def test_delete_plot(self):
+    def test_remove_plot(self):
         plot = mkPlot(self.user)
         plot_id = plot.pk
 
@@ -1222,7 +1222,7 @@ class UpdatePlotAndTree(TestCase):
         for audit_trail_record in tree.history.all():
             self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
 
-    def test_delete_tree(self):
+    def test_remove_tree(self):
         plot = mkPlot(self.user)
         plot_id = plot.pk
 

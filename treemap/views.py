@@ -600,7 +600,7 @@ def plot_edit(request, plot_id = ''):
 @transaction.commit_on_success
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
-    tree.delete()
+    tree.remove()
     
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
@@ -610,7 +610,7 @@ def tree_delete(request, tree_id):
 @transaction.commit_on_success
 def plot_delete(request, plot_id):
     plot = Plot.objects.get(pk=plot_id)
-    plot.delete()
+    plot.remove()
     
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),

@@ -744,13 +744,13 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             return (nearby.count()-max_count).__str__() #number greater than max_count allows
         return None
 
-    def delete(self):
+    def remove(self):
         """
         Mark the plot and its associated objects as not present.
         """
         if self.current_tree():
             tree = self.current_tree()
-            tree.delete()
+            tree.remove()
 
         self.present = False
         self.save()
@@ -1057,10 +1057,10 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         if not self.height or not self.species or not self.species.v_max_height:
             return None
         if self.height > self.species.v_max_height:
-	    return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
+            return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
         return None
 
-    def delete(self):
+    def remove(self):
         """
         Mark the tree and its associated objects as not present.
         """
