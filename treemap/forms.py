@@ -52,7 +52,7 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=settings.CHOICES["sidewalks"], required=False)
     condition = forms.ChoiceField(choices=settings.CHOICES["conditions"], required=False)
     canopy_condition = forms.ChoiceField(choices=settings.CHOICES["canopy_conditions"], required=False)
-    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit','Let me continue editing this tree'), ('view', 'I\'m done!'),], initial='view', widget=forms.RadioSelect)        
     owner_additional_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
