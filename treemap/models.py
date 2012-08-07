@@ -94,7 +94,7 @@ class BenefitValues(models.Model):
     voc = models.FloatField()
     bvoc = models.FloatField()
     
-    def __unicode__(self): return '%s' % (self.area)
+    def __unicode__(self): return u'%s' % (self.area)
 
 
 class CommentFlag(models.Model):
@@ -124,7 +124,7 @@ class Neighborhood(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s' % self.name
+    def __unicode__(self): return u'%s' % self.name
  
 
 class SupervisorDistrict(models.Model):
@@ -136,7 +136,7 @@ class SupervisorDistrict(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s (%s)' % (self.id, self.supervisor)
+    def __unicode__(self): return u'%s (%s)' % (self.id, self.supervisor)
 
     
 class ZipCode(models.Model):
@@ -147,7 +147,7 @@ class ZipCode(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s' % (self.zip)
+    def __unicode__(self): return u'%s' % (self.zip)
     
 
 class ExclusionMask(models.Model):
@@ -268,7 +268,7 @@ class Resource(models.Model):
                 #print "short resource"
         return results
         
-    def __unicode__(self): return '%s' % (self.meta_species)
+    def __unicode__(self): return u'%s' % (self.meta_species)
     
     
 
@@ -328,9 +328,9 @@ class Species(models.Model):
     
     def __unicode__(self):
         if self.cultivar_name:
-            return "%s, '%s'" % (self.common_name,self.cultivar_name)
+            return u"%s, '%s'" % (self.common_name,self.cultivar_name)
         else:
-            return '%s' % (self.common_name)
+            return u'%s' % (self.common_name)
     
     
 class GeocodeCache(models.Model):
@@ -1072,7 +1072,7 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
 
     def __unicode__(self): 
         if self.species:
-            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
+            return u'%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
         else:
             return self.plot.geocoded_address
 
@@ -1238,7 +1238,7 @@ class TreeItem(models.Model):
             return self.tree.validate_all()
 
     def __unicode__(self):
-        return '%s, %s, %s' % (self.reported, self.tree, self.key)
+        return u'%s, %s, %s' % (self.reported, self.tree, self.key)
 
 def get_parent_id(instance):
     return instance.key
@@ -1268,7 +1268,7 @@ class TreePhoto(TreeItem):
         self.tree.save()
 
     def __unicode__(self):
-        return '%s, %s, %s' % (self.reported, self.tree, self.title)
+        return u'%s, %s, %s' % (self.reported, self.tree, self.title)
 
         
 class TreeAlert(TreeItem):
@@ -1340,7 +1340,7 @@ class TreeResource(ResourceSummaryModel):
     resource results for a specific tree.  should get updated whenever a tree does.
     """
     tree = models.OneToOneField(Tree, primary_key=True)
-    def __unicode__(self): return '%s' % (self.tree)
+    def __unicode__(self): return u'%s' % (self.tree)
 
 
 class AggregateSummaryModel(ResourceSummaryModel):
