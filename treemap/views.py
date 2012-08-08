@@ -629,10 +629,7 @@ def plot_delete(request, plot_id):
         h.present = False
         h.save()
     
-    return HttpResponse(
-        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
-        content_type = 'text/plain'
-    )
+    return redirect("map/")
 
 def photo_delete(request, tree_id, photo_id):    
     tree = Tree.objects.get(pk=tree_id)
@@ -1489,16 +1486,7 @@ def _build_tree_search_result(request, with_benefits=True):
     plots = Plot.objects.filter(present=True)
 
     geog_obj = None
-    if 'geoName' in request.GET:
-        ns = Neighborhood.objects.all().order_by('id')
-        geoname = request.GET['geoName']
-        ns = ns.filter(name=geoname)
-        if ns:
-            trees = trees.filter(plot__neighborhood = ns[0])
-            plots = plots.filter(neighborhood = ns[0])
-            geog_obj = ns[0]
-            tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
-    elif 'location' in request.GET:
+    if 'location' in request.GET:
         loc = request.GET['location']
         z = ZipCode.objects.filter(zip=loc)
         if z.count():
@@ -1506,13 +1494,22 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.filter(zipcode = z[0])
             geog_obj = z[0]
             tile_query.append("zipcode_id = %d" % z[0].id)
-    elif 'hood' in request.GET:
-        ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
+    else:
+        ns = None
+        if 'geoName' in request.GET:
+            ns = Neighborhood.objects.all().order_by('id')
+            geoname = request.GET['geoName']
+            ns = ns.filter(name=geoname)
+        elif 'hood' in request.GET:
+            ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
+        elif 'lat' in request.GET and 'lon' in request.GET:
+            pnt = Point(float(request.GET['lon']), float(request.GET['lat']))
+            ns = Neighborhood.objects.filter(geometry__contains=pnt)
         if ns:
-             trees = trees.filter(plot__neighborhood = ns[0])
-             plots = plots.filter(neighborhood = ns[0])
-             geog_obj = ns[0]
-             tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
+            trees = trees.filter(plot__neighborhood = ns[0])
+            plots = plots.filter(neighborhood = ns[0])
+            geog_obj = ns[0]
+            tile_query.append("(neighborhoods = '%d' OR neighborhoods LIKE '%% %d' OR neighborhoods LIKE '%d %%')" % (geog_obj.id, geog_obj.id, geog_obj.id)) 
 
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')

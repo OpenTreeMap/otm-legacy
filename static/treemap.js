@@ -903,7 +903,6 @@ tm = {
             var featureName = nbhoods.features[0].properties.name;
             if (featureName) {
                 tm.searchParams['geoName'] = featureName;
-                tm.searchParams['location'] = search;
             }
             else {    
 		        delete tm.searchParams.geoName;
@@ -946,6 +945,9 @@ tm = {
                         tm.add_location_marker(llpoint);
 
                         tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
+                        tm.searchParams['lat'] = olPoint.lat;
+                        tm.searchParams['lon'] = olPoint.lon;
+                        tm.updateSearch();
                    });
                }
             });
