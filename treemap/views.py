@@ -1617,7 +1617,7 @@ def _build_tree_search_result(request, with_benefits=True):
     if len(local_cql) > 0:        
         trees = trees.filter(treeflags__key__in=local_list)
         plots = plots.filter(tree__treeflags__key__in=local_list)
-        tile_query.append("projects LIKE '%" + k + "%'")
+        tile_query.append("(" + " OR ".join(local_cql) + ")")
 
     missing_species = request.GET.get('missing_species','')
     if missing_species:

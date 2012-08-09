@@ -8,6 +8,17 @@ from django.contrib.gis.measure import D
 from datetime import datetime
 import math
 
+if not settings.ADD_FORM_TARGETS:
+    settings.ADD_FORM_TARGETS = [
+    ('addsame', 'I want to add another tree using the same tree details'), 
+    ('add', 'I want to add another tree with new details'), 
+    ('edit','Let me continue editing this tree'), 
+    ('view', 'I\'m done!'),
+]
+
+if not settings.ADD_FORM_TARGETS_DEFAULT:
+    settings.ADD_FORM_TARGETS_DEFAULT = 'view'
+
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
            help_text="Full Name", widget=forms.TextInput(attrs={'size':'40'}),required=False)
@@ -52,7 +63,7 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=settings.CHOICES["sidewalks"], required=False)
     condition = forms.ChoiceField(choices=settings.CHOICES["conditions"], required=False)
     canopy_condition = forms.ChoiceField(choices=settings.CHOICES["canopy_conditions"], required=False)
-    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit','Let me continue editing this tree'), ('view', 'I\'m done!'),], initial='view', widget=forms.RadioSelect)        
+    target = forms.ChoiceField(required=False, choices=settings.ADD_FORM_TARGETS, initial=settings.ADD_FORM_TARGETS_DEFAULT, widget=forms.RadioSelect)        
     owner_additional_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
