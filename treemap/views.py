@@ -1451,9 +1451,9 @@ def tree_add(request, tree_id = ''):
             elif form.cleaned_data.get('target') == "view":
                 return redirect("trees/new/%i/" % request.user.id)
             elif form.cleaned_data.get('target') == "edit":
-                return redirect("plots/%i/" % new_tree.id)
+                return redirect("plots/%i/edit/" % new_tree.id)
             else:
-                return redirect("trees/%i/" % new_tree.id)
+                return redirect("plots/%i/" % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
