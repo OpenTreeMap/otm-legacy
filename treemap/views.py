@@ -629,7 +629,10 @@ def plot_delete(request, plot_id):
         h.present = False
         h.save()
     
-    return redirect("map/")
+    return HttpResponse(
+        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
+        content_type = 'text/plain'
+    )
 
 def photo_delete(request, tree_id, photo_id):    
     tree = Tree.objects.get(pk=tree_id)
