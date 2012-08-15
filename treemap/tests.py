@@ -23,6 +23,8 @@ from time import mktime
 from test_util import set_auto_now
 from treemap.test_choices import *
 
+settings.CHOICES = CHOICES
+
 import django.shortcuts
 
 class ModelTests(TestCase):
@@ -203,7 +205,7 @@ class ViewTests(TestCase):
         # And we could use a few species...
         ######
         s1 = Species(symbol="s1",genus="testus1",species="specieius1",native_status='True',fall_conspicuous=True,flower_conspicuous=True,palatable_human=True)
-        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False)
+        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False,wildlife_value=True)
         s3 = Species(symbol="s3",genus="testus3",species="specieius3")
         
         s1.save()
@@ -538,12 +540,10 @@ class ViewTests(TestCase):
         # Test geographic searches
         #    neighborhood, zipcode 
         #
-        center_pt = self.n1.geometry.centroid.coords
-        response = self.client.get("/search/?location=%s,%s&geoname=%s" % (center_pt[0], center_pt[1], self.n1.name) )
+        response = self.client.get("/search/?geoName=%s" % self.n1.name )
         req = loads(response.content)
         trees = present_trees.filter(plot__neighborhood=self.n1)
         plots = present_plots.filter(neighborhood=self.n1)
-
         assert_counts(trees.count(), plots.count(), req)
         self.assertEqual(req['geography']['type'], 'Polygon')
         self.assertEqual(req['geography']['name'], self.n1.name)
@@ -729,7 +729,7 @@ class ViewTests(TestCase):
 
         ##################################################################
         # Test species data searches
-        #    id, native, edible, fall color, flowering
+        #    id, native, edible, fall color, flowering, wildlife
         #  
         present_species = Species.objects.filter(tree_count__gt=0)
         def check_species(species_list, req):    
@@ -764,6 +764,11 @@ class ViewTests(TestCase):
         response = self.client.get("/search/?flowering=true" )
         req = loads(response.content)                
         species = present_species.filter(flower_conspicuous=True)
+        check_species(species, req)
+
+        response = self.client.get("/search/?wildlife=true" )
+        req = loads(response.content)
+        species = present_species.filter(wildlife_value=True)
         check_species(species, req)
 
         ##################################################################
@@ -893,7 +898,7 @@ class ViewTests(TestCase):
     def test_add_plot(self):
         self.client.login(username='jim',password='jim')
         form = {}
-        form['target']="edit"
+        form['target']="view"
         form['initial_map_location'] = "20,20"
         ##################################################################
         # Test required information: 
@@ -1344,3 +1349,50 @@ class ViewTests(TestCase):
         self.assertEqual(p.plotstewardship_set.count(), 0)
         self.assertEqual(t.treestewardship_set.count(), 0)
 
+    def test_plot_delete(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+
+        plot_id = self.p2_tree.pk
+        tree_id = self.p2_tree.current_tree().pk
+
+        response = c.get("/plots/%d/delete/" % plot_id)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('success' in response_dict, 'Expected a json object response with a "success" key')
+        self.assertTrue(response_dict['success'], 'Expected a json object response with a "success" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertFalse(plot.present, 'Expected "present" to be False on a deleted plot')
+        for audit_trail_record in plot.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_tree_delete(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+
+        plot_id = self.p2_tree.pk
+        tree_id = self.p2_tree.current_tree().pk
+
+        response = c.get("/trees/%d/delete/" % tree_id)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('success' in response_dict, 'Expected a json object response with a "success" key')
+        self.assertTrue(response_dict['success'], 'Expected a json object response with a "success" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertTrue(plot.present, 'Expected "plot.present" to be True after deleting a tree from a plot')
+        for audit_trail_record in plot.history.all():
+            self.assertTrue(audit_trail_record.present, 'Expected "plot.present" to be True for all plot audit trail records after deleting the tree from the plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on a deleted tree')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted tree')

@@ -94,7 +94,7 @@ class BenefitValues(models.Model):
     voc = models.FloatField()
     bvoc = models.FloatField()
     
-    def __unicode__(self): return '%s' % (self.area)
+    def __unicode__(self): return u'%s' % (self.area)
 
 
 class CommentFlag(models.Model):
@@ -124,7 +124,7 @@ class Neighborhood(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s' % self.name
+    def __unicode__(self): return u'%s' % self.name
  
 
 class SupervisorDistrict(models.Model):
@@ -136,7 +136,7 @@ class SupervisorDistrict(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s (%s)' % (self.id, self.supervisor)
+    def __unicode__(self): return u'%s (%s)' % (self.id, self.supervisor)
 
     
 class ZipCode(models.Model):
@@ -147,7 +147,7 @@ class ZipCode(models.Model):
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
-    def __unicode__(self): return '%s' % (self.zip)
+    def __unicode__(self): return u'%s' % (self.zip)
     
 
 class ExclusionMask(models.Model):
@@ -268,7 +268,7 @@ class Resource(models.Model):
                 #print "short resource"
         return results
         
-    def __unicode__(self): return '%s' % (self.meta_species)
+    def __unicode__(self): return u'%s' % (self.meta_species)
     
     
 
@@ -328,9 +328,9 @@ class Species(models.Model):
     
     def __unicode__(self):
         if self.cultivar_name:
-            return "%s, '%s'" % (self.common_name,self.cultivar_name)
+            return u"%s, '%s'" % (self.common_name,self.cultivar_name)
         else:
-            return '%s' % (self.common_name)
+            return u'%s' % (self.common_name)
     
     
 class GeocodeCache(models.Model):
@@ -351,7 +351,8 @@ class PlotLocateManager(models.GeoManager):
 
     def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
                       native=None, flowering=None, fall=None, edible=None,
-                      dbhmin=None, dbhmax=None, species=None, sort_recent=None, sort_pending=None):
+                      dbhmin=None, dbhmax=None, species=None, sort_recent=None,
+                      sort_pending=None, has_tree=None, has_species=None, has_dbh=None):
         '''
         Return a QuerySet with trees near a Point geometry or intersecting a Polygon geometry
         '''
@@ -371,7 +372,7 @@ class PlotLocateManager(models.GeoManager):
                 plots = plots_filtered_by_species_preference
 
         if species: # Note that, unlike "preference", these values are forced
-            plots = plots.filter(tree__species__pk=species)
+            plots = plots.filter(tree__species__pk=species, tree__present=True)
 
         if native is not None:
             if native:
@@ -379,22 +380,55 @@ class PlotLocateManager(models.GeoManager):
             else:
                 native = ""
 
-            plots = plots.filter(tree__species__native_status=native)
+            plots = plots.filter(tree__species__native_status=native, tree__present=True)
 
         if flowering is not None:
-            plots = plots.filter(tree__species__flower_conspicuous=flowering)
+            plots = plots.filter(tree__species__flower_conspicuous=flowering, tree__present=True)
 
         if fall is not None:
-            plots = plots.filter(tree__species__fall_conspicuous=fall)
+            plots = plots.filter(tree__species__fall_conspicuous=fall, tree__present=True)
 
         if edible is not None:
-            plots = plots.filter(tree__species__palatable_human=edible)
+            plots = plots.filter(tree__species__palatable_human=edible, tree__present=True)
 
         if dbhmin is not None:
-            plots = plots.filter(tree__dbh__gte=dbhmin)
+            plots = plots.filter(tree__dbh__gte=dbhmin, tree__present=True)
 
         if dbhmax is not None:
-            plots = plots.filter(tree__dbh__gte=dbhmax)
+            plots = plots.filter(tree__dbh__gte=dbhmax, tree__present=True)
+
+        has_filter_q = None
+        def filter_or(f,has):
+            if has:
+                return f | has
+            else:
+                return f
+
+        if has_tree is not None:
+            q_has_tree = Q(tree__present=True)
+            if not has_tree:
+                q_has_tree = ~q_has_tree
+
+            has_filter_q = filter_or(q_has_tree, has_filter_q)
+
+        if has_species is not None:
+            if has_species:
+                q_has_species = Q(tree__species__isnull=False,tree__present=True)
+            else:
+                # Note that Q(tree__present=False) seems to exlucde too
+                # many records. Instead ~Q(tree__present=True) selects
+                # all plots without tree records and those with trees
+                # that are marked as not present
+                q_has_species = Q(tree__species__isnull=True,tree__present=True)|(~Q(tree__present=True))
+
+            has_filter_q = filter_or(q_has_species, has_filter_q)
+
+        if has_dbh is not None:
+            q_has_dbh = Q(tree__dbh__isnull=(not has_dbh))
+            has_filter_q = filter_or(q_has_dbh, has_filter_q)
+
+        if has_filter_q:
+            plots = plots.filter(has_filter_q)
 
         if sort_recent:
             plots = plots.order_by('-last_updated')
@@ -419,13 +453,13 @@ class PlotLocateManager(models.GeoManager):
                 extent = self.calc_extent(plots)
 
         else:
+            if max_plots:
+                plots = plots[:max_plots]
+
             if plots.count() > 0:
                 extent = plots.extent()
             else:
                 extent = []
-
-            if plots.count() > 0:
-                plots = plots[:max_plots]
 
         return plots, extent
 
@@ -586,10 +620,10 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         return len(self.plotstewardship_set.all())
         
     def current_tree(self):
-        trees = Tree.objects.filter(present=True, plot=self)
-        if len(trees) > 0:
+        trees = self.tree_set.filter(present=True)
+        if trees.count() > 0:
             return trees[0]
-        else:
+        else: 
             return None
 
     def get_active_pends(self):
@@ -597,7 +631,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         return pends
 
     def get_active_geopends(self):
-        pends = PlotPending.objects.filter(status='pending').filter(plot=self)
+        pends = self.plotpending_set.filter(status='pending').exclude(geometry=None)
         return pends
 
     def get_active_pends_with_tree_pends(self):
@@ -709,6 +743,21 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
                 return nearby 
             return (nearby.count()-max_count).__str__() #number greater than max_count allows
         return None
+
+    def remove(self):
+        """
+        Mark the plot and its associated objects as not present.
+        """
+        if self.current_tree():
+            tree = self.current_tree()
+            tree.remove()
+
+        self.present = False
+        self.save()
+
+        for audit_trail_record in self.history.all():
+            audit_trail_record.present = False
+            audit_trail_record.save()
 
 class Tree(models.Model, ManagementMixin, PendingMixin):
     def __init__(self, *args, **kwargs):
@@ -1008,12 +1057,22 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         if not self.height or not self.species or not self.species.v_max_height:
             return None
         if self.height > self.species.v_max_height:
-	    return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
+            return "%s (species max: %s)" % (str(self.height), str(self.species.v_max_height))
         return None
-        
+
+    def remove(self):
+        """
+        Mark the tree and its associated objects as not present.
+        """
+        self.present = False
+        self.save()
+        for audit_trail_record in self.history.all():
+            audit_trail_record.present = False
+            audit_trail_record.save()
+
     def __unicode__(self): 
         if self.species:
-            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
+            return u'%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
         else:
             return self.plot.geocoded_address
 
@@ -1179,7 +1238,7 @@ class TreeItem(models.Model):
             return self.tree.validate_all()
 
     def __unicode__(self):
-        return '%s, %s, %s' % (self.reported, self.tree, self.key)
+        return u'%s, %s, %s' % (self.reported, self.tree, self.key)
 
 def get_parent_id(instance):
     return instance.key
@@ -1209,7 +1268,7 @@ class TreePhoto(TreeItem):
         self.tree.save()
 
     def __unicode__(self):
-        return '%s, %s, %s' % (self.reported, self.tree, self.title)
+        return u'%s, %s, %s' % (self.reported, self.tree, self.title)
 
         
 class TreeAlert(TreeItem):
@@ -1281,7 +1340,7 @@ class TreeResource(ResourceSummaryModel):
     resource results for a specific tree.  should get updated whenever a tree does.
     """
     tree = models.OneToOneField(Tree, primary_key=True)
-    def __unicode__(self): return '%s' % (self.tree)
+    def __unicode__(self): return u'%s' % (self.tree)
 
 
 class AggregateSummaryModel(ResourceSummaryModel):

@@ -9,9 +9,12 @@ from StringIO import StringIO
 from django.contrib.auth.models import User, UserManager, Permission as P, AnonymousUser
 from django.contrib.gis.geos import Point
 from django.contrib.contenttypes.models import ContentType
+from profiles.models import UserProfile
 from django_reputation.models import Reputation
 from django.test import TestCase
-from django_reputation.models import UserReputationAction
+from django.test.client import Client
+import unittest
+from django_reputation.models import UserReputationAction, ReputationAction
 from simplejson import loads, dumps
 
 from django.conf import settings
@@ -143,6 +146,19 @@ class Authentication(TestCase):
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 200)
 
+    def test_malformed_auth(self):
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "FUUBAR")])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+        auth = base64.b64encode("foobar")
+        withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+
     def test_bad_cred(self):
         auth = base64.b64encode("jim:passwordz")
         withauth = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
@@ -169,6 +185,56 @@ class Authentication(TestCase):
         self.assertEqual(amys_perm_count, len(content_dict['permissions']))
         self.assertTrue('treemap.delete_tree' in content_dict['permissions'], 'The "delete_tree" permission was not in the permissions list for the test user.')
 
+    def user_has_type(self, user, typ):
+        auth = base64.b64encode("%s:%s" % (user.username,user.username))
+        withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        
+        self.assertEqual(ret.status_code, 200)
+        json = loads(ret.content)
+
+        self.assertEqual(json['username'], user.username)        
+        self.assertEqual(json['user_type'], typ)        
+
+    def create_user(self, username):
+        ben = User.objects.create_user(username, "%s@test.org" % username, username)
+        ben.set_password(username)
+        ben.save()
+        ben_profile = UserProfile(user=ben)
+        ben_profile.save()
+        ben.reputation = Reputation(user=ben)
+        ben.reputation.save()        
+        return ben
+
+    def test_user_is_admin(self):
+        ben = self.create_user("ben")
+        ben.is_superuser = True
+        ben.save()
+
+        self.user_has_type(ben, {'name': 'administrator', 'level': 1000 })
+    
+        ben.delete()
+    
+    def test_user_is_editor(self):
+        carol = self.create_user("carol")
+        carol.reputation.reputation = 1001
+        carol.reputation.save()
+    
+        self.user_has_type(carol, {'name': 'editor', 'level': 500 })
+    
+        carol.delete()
+    
+    def test_user_is_public(self):
+        dave = self.create_user("dave")
+        dave.reputation.reputation = 0
+        dave.reputation.save()
+    
+        self.user_has_type(dave, {"name": "public", 'level': 0})
+    
+        dave.delete()
+
+
     def tearDown(self):
         teardownTreemapEnv()
 
@@ -180,6 +246,8 @@ class Logging(TestCase):
         self.sign = create_signer_dict(self.u)
 
     def test_log_request(self):
+        settings.SITE_ROOT = ''
+
         ret = self.client.get("%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 200)
         
@@ -191,7 +259,7 @@ class Logging(TestCase):
         log = logs[0]
 
         self.assertEqual(log.apikey,key)
-        self.assertEqual(log.url, "%s/version?rvar=4,rvar2=5" % API_PFX)
+        self.assertTrue(log.url.endswith("%s/version?rvar=4,rvar2=5" % API_PFX))
         self.assertEqual(log.method, "GET")
         self.assertEqual(log.requestvars, "rvar=4,rvar2=5")
 
@@ -327,9 +395,113 @@ class PlotListing(TestCase):
 
         self.u = User.objects.get(username="jim")
         self.sign = create_signer_dict(self.u)
+        self.client = Client()
 
     def tearDown(self):
         teardownTreemapEnv()
+
+    def test_recent_edits(self):
+        user = self.u
+        p = mkPlot(user)
+        p2 = mkPlot(user)
+        t3 = mkTree(user)
+        acts = ReputationAction.objects.all()
+
+        content_type_p = ContentType(app_label='auth', model='Plot')
+        content_type_p.save()
+
+        reputation1 = UserReputationAction(action=acts[0],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=p.pk,
+                                           content_object=p,
+                                           value=20)
+        reputation1.save()
+
+        auth = base64.b64encode("%s:%s" % (user.username,user.username))
+        withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p.pk)
+        self.assertEqual(json[0]['id'], reputation1.pk)
+
+        reputation2 = UserReputationAction(action=acts[1 % len(acts)],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=p2.pk,
+                                           content_object=p2,
+                                           value=20)
+        reputation2.save()
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 2) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p2.pk)
+        self.assertEqual(json[0]['id'], reputation2.pk)
+
+        self.assertEqual(json[1]['plot_id'], p.pk)
+        self.assertEqual(json[1]['id'], reputation1.pk)
+
+        reputation3 = UserReputationAction(action=acts[2 % len(acts)],
+                                           user=user,
+                                           originating_user=user,
+                                           content_type=content_type_p,
+                                           object_id=t3.pk,
+                                           content_object=t3,
+                                           value=20)
+        reputation3.save()
+
+
+        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 3) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], t3.plot.pk)
+        self.assertEqual(json[0]['id'], reputation3.pk)
+
+        self.assertEqual(json[1]['plot_id'], p2.pk)
+        self.assertEqual(json[1]['id'], reputation2.pk)
+
+        self.assertEqual(json[2]['plot_id'], p.pk)
+        self.assertEqual(json[2]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?offset=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 2) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p2.pk)
+        self.assertEqual(json[0]['id'], reputation2.pk)
+
+        self.assertEqual(json[1]['plot_id'], p.pk)
+        self.assertEqual(json[1]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?offset=2&length=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], p.pk)
+        self.assertEqual(json[0]['id'], reputation1.pk)
+
+        ret = self.client.get("%s/user/%s/edits?length=1" % (API_PFX, user.pk), **withauth)
+        json = loads(ret.content)
+        
+        self.assertEqual(len(json), 1) # Just on reputation item
+        self.assertEqual(json[0]['plot_id'], t3.plot.pk)
+        self.assertEqual(json[0]['id'], reputation3.pk)
+        
+        reputation1.delete()
+        reputation2.delete()
+        reputation3.delete()
+        content_type_p.delete()                
+        p.delete()
+        p2.delete()
+        t3.delete()
 
     def test_edit_flags(self):
         content_type_p = ContentType(app_label='auth', model='Plot')
@@ -565,6 +737,13 @@ class Locations(TestCase):
         self.user = User.objects.get(username="jim")
         self.sign = create_signer_dict(self.user)
 
+    def test_locations_plots_endpoint_with_auth(self):
+        auth = base64.b64encode("%s:%s" % (self.user.username,self.user.username))
+        withauth = dict(create_signer_dict(self.user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        response = self.client.get("%s/locations/0,0/plots" % API_PFX, **withauth)
+        self.assertEqual(response.status_code, 200)
+
     def test_locations_plots_endpoint(self):
         response = self.client.get("%s/locations/0,0/plots" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
@@ -641,8 +820,8 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
         response_json = loads(response.content)
-        self.assertTrue("ok" in response_json)
-        id = response_json["ok"]
+        self.assertTrue("id" in response_json)
+        id = response_json["id"]
         plot = Plot.objects.get(pk=id)
         self.assertEqual(35.0, plot.geometry.x)
         self.assertEqual(25.0, plot.geometry.y)
@@ -705,8 +884,8 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
 
         response_json = loads(response.content)
-        self.assertTrue("ok" in response_json)
-        id = response_json["ok"]
+        self.assertTrue("id" in response_json)
+        id = response_json["id"]
         plot = Plot.objects.get(pk=id)
         self.assertEqual(35.0, plot.geometry.x)
         self.assertEqual(25.0, plot.geometry.y)
@@ -1018,3 +1197,62 @@ class UpdatePlotAndTree(TestCase):
 
         for tree_pending in TreePending.objects.all():
             self.assertEqual('pending', tree_pending.status, 'The status of tree pends should still be "pending"')
+
+    def test_remove_plot(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+        tree_id = tree.pk
+
+        response = self.client.delete("%s/plots/%d" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('ok' in response_dict, 'Expected a json object response with a "ok" key')
+        self.assertTrue(response_dict['ok'], 'Expected a json object response with a "ok" key set to True')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertFalse(plot.present, 'Expected "present" to be False on a deleted plot')
+        for audit_trail_record in plot.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted plot')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_remove_tree(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+        tree_id = tree.pk
+
+        response = self.client.delete("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertIsNone(response_dict['tree'], 'Expected a json object response to a None value for "tree" key after the tree is deleted')
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = Tree.objects.get(pk=tree_id)
+
+        self.assertTrue(plot.present, 'Expected "present" to be True after tree is deleted from plot')
+        for audit_trail_record in plot.history.all():
+            self.assertTrue(audit_trail_record.present, 'Expected "present" to be True for all audit trail records for plot with a deleted tree')
+
+        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
+        for audit_trail_record in tree.history.all():
+            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+
+    def test_get_current_tree(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+
+        response = self.client.get("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
+        self.assertEqual(tree.species.pk, response_dict['species'])

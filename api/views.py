@@ -1,11 +1,13 @@
 import datetime
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.files.base import ContentFile
 
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
@@ -13,7 +15,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django_reputation.models import Reputation, UserReputationAction
 from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree, TreeResource, PlotPending, TreePending
+from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
+from treemap.models import BenefitValues
+from treemap.models import TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
 from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
 from api.models import APIKey, APILog
@@ -86,7 +90,10 @@ def validate_and_log_api_req(request):
            remoteip=request.META["REMOTE_ADDR"],
            requestvars=reqstr,
            method=request.method,
-           apikey=apikey).save()
+           apikey=apikey,
+           useragent=request.META.get("HTTP_USER_AGENT",''),
+           appver=request.META.get("HTTP_APPLICATIONVERSION",'')
+    ).save()
 
     return apikey
     
@@ -190,6 +197,23 @@ def plot_or_tree_permissions(obj, user):
             
     return { "can_delete": can_delete, "can_edit": can_edit }
 
+def can_delete_tree_or_plot(obj, user):
+    permissions = plot_or_tree_permissions(obj, user)
+    if "can_delete" in permissions:
+        return permissions["can_delete"]
+    else:
+        # This should never happen, but raising an exception ensures that it will fail loudly if a
+        # future refactoring introduces a bug.
+        raise Exception("Expected the dict returned from plot_or_tree_permissions to contain 'can_delete'")
+
+
+@require_http_methods(["GET"])
+@api_call()
+def status(request):
+    return [{ 'api_version': 'v0.1',
+              'status': 'online',
+              'message': '' }]
+
 @require_http_methods(["GET"])
 @api_call()
 @login_required
@@ -211,6 +235,9 @@ def register(request):
     user.set_password(data["password"])
     user.save()
 
+    user.reputation = Reputation(user=user)
+    user.reputation.save()
+
     profile = UserProfile(user=user,zip_code=data["zipcode"],active=True)
     profile.save()
 
@@ -218,7 +245,7 @@ def register(request):
 
 @require_http_methods(["POST"])
 @api_call()
-#@login_required
+@login_required
 def add_tree_photo(request, plot_id):
     uploaded_image = ContentFile(request.raw_post_data)
     uploaded_image.name = "plot_%s.png" % plot_id
@@ -227,17 +254,18 @@ def add_tree_photo(request, plot_id):
     tree = plot.current_tree()
 
     if tree is None:
-        tree = Tree()
-        plot.tree = tree
+        import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
+        tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
+        tree.plot = plot
+        tree.last_updated_by = request.user
         tree.save()
-        plot.save()
 
-    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=User.objects.all()[0])
+    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=request.user)
     treephoto.photo.save("plot_%s.png" % plot_id, uploaded_image)
 
     treephoto.save()
 
-    return { "status": "succes" }
+    return { "status": "succes", "title": treephoto.title, "id": treephoto.pk }
 
 
 @require_http_methods(["POST"])
@@ -254,6 +282,15 @@ def add_profile_photo(request, user_id, title):
 
     return { "status": "succes" }
 
+def extract_plot_id_from_rep(repact):
+    content_type = repact.content_type
+    if content_type.model == "plot":
+        return repact.object_id
+    elif content_type.model == 'tree':
+        return Tree.objects.get(pk=repact.object_id).plot.pk
+    else:
+        return None
+
 @require_http_methods(["GET"])
 @api_call()
 @login_required
@@ -266,10 +303,23 @@ def recent_edits(request, user_id):
 
     acts = UserReputationAction.objects.filter(user=request.user).order_by('-date_created')[result_offset:(result_offset+num_results)]
 
-    acts = [dict([("id",a.pk),("name",a.action.name),("created",datetime_to_iso_string(a.date_created)),("value",a.value)]) for a in acts]
+    keys = []
+    for act in acts:
+        d = {}
+        plot_id = extract_plot_id_from_rep(act)
+        d["plot_id"] = plot_id
 
-    return acts
+        if plot_id:
+            d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
 
+        d["id"] = act.pk
+        d["name"] = act.action.name
+        d["created"] = datetime_to_iso_string(act.date_created)
+        d["value"] = act.value
+
+        keys.append(d)
+
+    return keys
     
 
 @require_http_methods(["PUT"])
@@ -620,16 +670,38 @@ def plots_closest_to_point(request, lat=None, lon=None):
     else:
         sort_pending = False
 
+    has_tree = request.GET.get("has_tree",None)
+    if has_tree:
+        if has_tree == "true":
+            has_tree = True
+        else:
+            has_tree = False
 
-    plots, extent = Plot.locate.with_geometry(point, distance, max_plots, species,
-                                              native=str2bool(request.GET,"filter_native"),
-                                              flowering=str2bool(request.GET,'filter_flowering'),
-                                              fall=str2bool(request.GET,'filter_fall_colors'),
-                                              edible=str2bool(request.GET,'filter_edible'),
-                                              dbhmin=request.GET.get("filter_dbh_min",None),
-                                              dbhmax=request.GET.get("filter_dbh_max",None),
-                                              species=request.GET.get("filter_species",None),
-                                              sort_recent=sort_recent, sort_pending=sort_pending)
+    has_species = request.GET.get("has_species",None)
+    if has_species:
+        if has_species == "true":
+            has_species = True
+        else:
+            has_species = False
+
+    has_dbh = request.GET.get("has_dbh",None)
+    if has_dbh:
+        if has_dbh == "true":
+            has_dbh = True
+        else:
+            has_dbh = False
+
+    plots, extent = Plot.locate.with_geometry(
+        point, distance, max_plots, species,
+        native=str2bool(request.GET,"filter_native"),
+        flowering=str2bool(request.GET,'filter_flowering'),
+        fall=str2bool(request.GET,'filter_fall_colors'),
+        edible=str2bool(request.GET,'filter_edible'),
+        dbhmin=request.GET.get("filter_dbh_min",None),
+        dbhmax=request.GET.get("filter_dbh_max",None),
+        species=request.GET.get("filter_species",None),
+        sort_recent=sort_recent, sort_pending=sort_pending,
+        has_tree=has_tree, has_species=has_species, has_dbh=has_dbh)
 
     return plots_to_list_of_dict(plots, longform=True, user=request.user)
 
@@ -788,25 +860,34 @@ def plot_to_dict(plot,longform=False,user=None):
     return base
 
 def tree_resource_to_dict(tr):
+    b = BenefitValues.objects.all()[0]
+
+    ac_dollar = tr.annual_ozone * b.ozone + tr.annual_nox * b.nox + \
+                tr.annual_pm10 * b.pm10 + tr.annual_sox * b.sox + \
+                tr.annual_voc * b.voc + tr.annual_bvoc * b.bvoc
+
     return {
-    "annual_stormwater_management": with_unit(tr.annual_stormwater_management, "gallons"),
-    "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, "kWh"),
-    "annual_energy_conserved": with_unit(tr.annual_energy_conserved, "kWh"),
-    "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, "kWh"),
-    "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, "lbs"),
-    "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, "lbs"),
-    "annual_co2_avoided": with_unit(tr.annual_co2_avoided, "lbs"),
-    "annual_co2_reduced": with_unit(tr.annual_co2_reduced, "lbs"),
-    "total_co2_stored": with_unit(tr.total_co2_stored, "lbs"),
-    "annual_ozone": with_unit(tr.annual_ozone, "lbs"),
-    "annual_nox": with_unit(tr.annual_nox, "lbs"),
-    "annual_pm10": with_unit(tr.annual_pm10, "lbs"),
-    "annual_sox": with_unit(tr.annual_sox, "lbs"),
-    "annual_voc": with_unit(tr.annual_voc, "lbs"),
-    "annual_bvoc": with_unit(tr.annual_bvoc, "lbs") }
+        "annual_stormwater_management": with_unit(tr.annual_stormwater_management, b.stormwater, "gallons"),
+        "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, b.electricity, "kWh"),
+        "annual_energy_conserved": with_unit(tr.annual_energy_conserved, b.electricity, "kWh"),
+        "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, b.electricity, "kWh"),
+        "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, None, "lbs", dollar=ac_dollar),
+        "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, b.co2, "lbs"),
+        "annual_co2_avoided": with_unit(tr.annual_co2_avoided, b.co2, "lbs"),
+        "annual_co2_reduced": with_unit(tr.annual_co2_reduced, b.co2, "lbs"),
+        "total_co2_stored": with_unit(tr.total_co2_stored, b.co2, "lbs"),
+        "annual_ozone": with_unit(tr.annual_ozone, b.ozone, "lbs"),
+        "annual_nox": with_unit(tr.annual_nox, b.nox, "lbs"),
+        "annual_pm10": with_unit(tr.annual_pm10, b.pm10,  "lbs"),
+        "annual_sox": with_unit(tr.annual_sox, b.sox, "lbs"),
+        "annual_voc": with_unit(tr.annual_voc, b.voc, "lbs"),
+        "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, "lbs") }
     
-def with_unit(val,unit):
-    return { "value": val, "unit": unit }
+def with_unit(val,dollar_factor,unit,dollar=None):
+    if not dollar:
+        dollar = dollar_factor * val
+
+    return { "value": val, "unit": unit, "dollars": dollar }
         
 
 def species_to_dict(s):
@@ -826,11 +907,21 @@ def user_to_dict(user):
         "firstname": user.first_name,
         "lastname": user.last_name,
         "email": user.email,
+        "username": user.username,
         "zipcode": UserProfile.objects.get(user__pk=user.pk).zip_code,
         "reputation": Reputation.objects.reputation_for_user(user).reputation,
-        "permissions": list(user.get_all_permissions())
+        "permissions": list(user.get_all_permissions()),
+        "user_type": user_access_type(user)
         }
 
+def user_access_type(user):
+    """ Given a user, determine the name and "level" of a user """
+    if user.is_superuser:
+        return { 'name': 'administrator', 'level': 1000 }
+    elif Reputation.objects.reputation_for_user(user).reputation > 1000:
+        return { 'name': 'editor', 'level': 500 }
+    else:
+        return { 'name': 'public', 'level': 0 }
 
 
 @require_http_methods(["GET"])
@@ -881,7 +972,7 @@ def geocode_address(request, address):
         return {"error": "The geocoder failed to generate a list of results."}
 
 def flatten_plot_dict_with_tree_and_geometry(plot_dict):
-    if 'tree' in plot_dict:
+    if 'tree' in plot_dict and plot_dict['tree'] is not None:
         tree_dict = plot_dict['tree']
         for field_name in tree_dict.keys():
             plot_dict[field_name] = tree_dict[field_name]
@@ -949,9 +1040,25 @@ def create_plot_optional_tree(request):
         change_reputation_for_user(request.user, 'add plot', new_plot)
 
     response.status_code = 201
-    response.content = "{\"ok\": %d}" % new_plot.id
+    new_plot = plot_to_dict(Plot.objects.get(pk=new_plot.id),longform=True,user=request.user)
+    response.content = json.dumps(new_plot)
     return response
 
+@require_http_methods(["GET"])
+@api_call()
+@login_optional
+def get_plot(request, plot_id):
+    return plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
+
+def compare_fields(v1,v2):
+    if v1 is None:
+        return v1 == v2
+    try:
+        v1f = float(v1)
+        v2f = float(v2)
+        return v1f == v2f
+    except ValueError:
+        return v1 == v2
 
 @require_http_methods(["PUT"])
 @api_call()
@@ -987,7 +1094,7 @@ def update_plot_and_tree(request, plot_id):
             else:
                 new_name = plot_field_name
             new_value = request_dict[plot_field_name]
-            if getattr(plot, new_name) != new_value:
+            if not compare_fields(getattr(plot, new_name), new_value):
                 if should_create_plot_pends:
                     plot_pend = PlotPending(plot=plot)
                     plot_pend.set_create_attributes(request.user, new_name, new_value)
@@ -1056,7 +1163,7 @@ def update_plot_and_tree(request, plot_id):
                     response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
-                if getattr(tree, tree_field.name) != request_dict[tree_field.name]:
+                if not compare_fields(getattr(tree, tree_field.name), request_dict[tree_field.name]):
                     if should_create_tree_pends:
                         tree_pend = TreePending(tree=tree)
                         tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
@@ -1115,3 +1222,43 @@ def reject_pending_edit(request, pending_edit_id):
     else: # model == 'Plot'
         updated_plot = Plot.objects.get(pk=pend.plot.id)
     return plot_to_dict(updated_plot, longform=True)
+
+
+@require_http_methods(["DELETE"])
+@api_call()
+@login_required
+@transaction.commit_on_success
+def remove_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    if can_delete_tree_or_plot(plot, request.user):
+        plot.remove()
+        return {"ok": True}
+    else:
+        raise PermissionDenied('%s does not have permission to delete plot %s' % (request.user.username, plot_id))
+
+@require_http_methods(["DELETE"])
+@api_call()
+@login_required
+@transaction.commit_on_success
+def remove_current_tree_from_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    tree = plot.current_tree()
+    if tree:
+        if can_delete_tree_or_plot(tree, request.user):
+            tree.remove()
+            updated_plot = Plot.objects.get(pk=plot_id)
+            return plot_to_dict(updated_plot, longform=True, user=request.user)
+        else:
+            raise PermissionDenied('%s does not have permission to the current tree from plot %s' % (request.user.username, plot_id))
+    else:
+        raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
+
+@require_http_methods(["GET"])
+@api_call()
+def get_current_tree_from_plot(request, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id)
+    if  plot.current_tree():
+        plot_dict = plot_to_dict(plot, longform=True)
+        return plot_dict['tree']
+    else:
+        raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
