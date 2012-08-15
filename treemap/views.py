@@ -1470,6 +1470,9 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.filter(zipcode = z[0])
             geog_obj = z[0]
             tile_query.append("zipcode_id = %d" % z[0].id)
+    elif 'distance' in request.GET:
+        # geographic search handled in the plot_location_search function
+        pass
     else:
         ns = None
         if 'geoName' in request.GET:
