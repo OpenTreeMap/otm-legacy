@@ -114,7 +114,7 @@ def location_map(request):
 def json_home_feeds(request):
     feeds = {}
     feeds['species'] = [(s.id, s.common_name) for s in Species.objects.order_by('-tree_count')[0:4]]
-    feeds['active_nhoods'] = [(n.id, n.name) for n in Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]]
+    feeds['active_nhoods'] = [(n.id, n.name, n.aggregates.total_trees) for n in Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]]
     return render_to_json(feeds)
 
 def home_feeds(request):
@@ -1424,9 +1424,9 @@ def tree_add(request, tree_id = ''):
             elif form.cleaned_data.get('target') == "view":
                 return redirect("trees/new/%i/" % request.user.id)
             elif form.cleaned_data.get('target') == "edit":
-                return redirect("plots/%i/" % new_tree.id)
+                return redirect("plots/%i/edit/" % new_tree.id)
             else:
-                return redirect("trees/%i/" % new_tree.id)
+                return redirect("plots/%i/" % new_tree.id)
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
@@ -1462,16 +1462,7 @@ def _build_tree_search_result(request, with_benefits=True):
     plots = Plot.objects.filter(present=True)
 
     geog_obj = None
-    if 'geoName' in request.GET:
-        ns = Neighborhood.objects.all().order_by('id')
-        geoname = request.GET['geoName']
-        ns = ns.filter(name=geoname)
-        if ns:
-            trees = trees.filter(plot__neighborhood = ns[0])
-            plots = plots.filter(neighborhood = ns[0])
-            geog_obj = ns[0]
-            tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
-    elif 'location' in request.GET:
+    if 'location' in request.GET:
         loc = request.GET['location']
         z = ZipCode.objects.filter(zip=loc)
         if z.count():
@@ -1479,13 +1470,22 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.filter(zipcode = z[0])
             geog_obj = z[0]
             tile_query.append("zipcode_id = %d" % z[0].id)
-    elif 'hood' in request.GET:
-        ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
+    else:
+        ns = None
+        if 'geoName' in request.GET:
+            ns = Neighborhood.objects.all().order_by('id')
+            geoname = request.GET['geoName']
+            ns = ns.filter(name=geoname)
+        elif 'hood' in request.GET:
+            ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
+        elif 'lat' in request.GET and 'lon' in request.GET:
+            pnt = Point(float(request.GET['lon']), float(request.GET['lat']))
+            ns = Neighborhood.objects.filter(geometry__contains=pnt)
         if ns:
-             trees = trees.filter(plot__neighborhood = ns[0])
-             plots = plots.filter(neighborhood = ns[0])
-             geog_obj = ns[0]
-             tile_query.append("neighborhoods LIKE '%%%d%%'" % geog_obj.id)
+            trees = trees.filter(plot__neighborhood = ns[0])
+            plots = plots.filter(neighborhood = ns[0])
+            geog_obj = ns[0]
+            tile_query.append("(neighborhoods = '%d' OR neighborhoods LIKE '%% %d' OR neighborhoods LIKE '%d %%')" % (geog_obj.id, geog_obj.id, geog_obj.id)) 
 
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
@@ -1593,7 +1593,7 @@ def _build_tree_search_result(request, with_benefits=True):
     if len(local_cql) > 0:        
         trees = trees.filter(treeflags__key__in=local_list)
         plots = plots.filter(tree__treeflags__key__in=local_list)
-        tile_query.append("projects LIKE '%" + k + "%'")
+        tile_query.append("(" + " OR ".join(local_cql) + ")")
 
     missing_species = request.GET.get('missing_species','')
     if missing_species:

@@ -46,7 +46,7 @@ tm.deleteTree = function(tree_id) {
             type: 'POST',
             success: function(response) {
                 tm.trackEvent('Edit', 'Delete');
-                location.reload();
+                location = tm_static + "plots/" + tm.currentPlotId + "/";
             },
             error: tm.genericErrorAlert
         });
