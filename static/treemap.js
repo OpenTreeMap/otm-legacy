@@ -892,6 +892,11 @@ tm = {
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
        
         tm.geocode_address = search;
+        // clean up any previous location search params
+        delete tm.searchParams.location; 
+        delete tm.searchParams.geoName;
+        delete tm.searchParams.lat;
+        delete tm.searchParams.lon;       
 
         function continueSearchWithFeature(nbhoods) {
             var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
@@ -903,7 +908,6 @@ tm = {
                 tm.searchParams['geoName'] = featureName;
             }
             else {    
-		        delete tm.searchParams.geoName;
                 featureName = nbhoods.features[0].properties.zip;
                 tm.searchParams['location'] = featureName;
                 tm.geocoded_locations[search] = featureName;
@@ -934,7 +938,6 @@ tm = {
                 if (nbhoods.features.length > 0) {
                     continueSearchWithFeature(nbhoods);
                 } else {                 
-                    delete tm.searchParams.geoName;        
                     tm.geocode(search, function(lat, lng, place) {
                         var olPoint = new OpenLayers.LonLat(lng, lat);
                         var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
