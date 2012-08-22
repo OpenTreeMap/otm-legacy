@@ -365,6 +365,8 @@ tm.baseTemplatePageLoad = function() {
                 $("#location_search_input").val(tm.initial_location_string);
                 delete tm.searchParams['location'];
                 delete tm.searchParams['geoName'];
+                delete tm.searchParams['lat'];
+                delete tm.searchParams['lon'];
                 if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
                 if (tm.map) {
                     tm.map.setCenter(
