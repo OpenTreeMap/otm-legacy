@@ -12,6 +12,7 @@ from treemap.models import Neighborhood, ZipCode, ExclusionMask
 from treemap.models import Plot, ImportEvent, Species, Tree, TreeFlags
 from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.views import *
+from treemap.shortcuts import get_add_initial
 
 from profiles.models import UserProfile
 from django_reputation.models import Reputation, ReputationAction
@@ -308,6 +309,17 @@ class ViewTests(TestCase):
         else:
             return set()
 
+#############################################
+#  shortcut tests
+
+    def test_add_initial_defaults(self):        
+        settings.ADD_INITIAL_DEFAULTS = {
+            'dbh': "Size", 
+        }
+        # the changed setting should show up
+        self.assertEqual(get_add_initial('dbh'), 'Size')
+        # an unchanged settings should be the default still
+        self.assertEqual(get_add_initial('height'), '')
 
 
 #############################################

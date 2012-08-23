@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ValidationError
 from django.forms.forms import NON_FIELD_ERRORS
 
+from django.conf import settings
+
 def validate_form(form, request):
     if form.is_valid():
         try:
@@ -40,6 +42,22 @@ def get_pt_or_bbox(rg):
         return p1.union(p2).envelope
     return None
 
+ADD_INITIAL_DEFAULTS = {
+    'address': "Enter an Address or Intersection", 
+    'city': "Enter a City", 
+    'species_full': "Enter a Species Name", 
+    'genus': "", 
+    'species': "", 
+    'dbh': "", 
+    'height': "", 
+    'canopy': "", 
+    'owner': ""
+}
+def get_add_initial(setting_name):
+    if settings.ADD_INITIAL_DEFAULTS and set([setting_name]).issubset(settings.ADD_INITIAL_DEFAULTS):
+        return settings.ADD_INITIAL_DEFAULTS[setting_name]
+    else:
+        return ADD_INITIAL_DEFAULTS[setting_name]
 
 def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_print=True, excluded_fields=[], simplify='', additional_data=None, model=None, extent=None):
     '''

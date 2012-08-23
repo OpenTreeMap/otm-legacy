@@ -1,5 +1,6 @@
 from django import forms
 from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, status_choices
+from shortcuts import get_add_initial
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
@@ -29,21 +30,21 @@ class TreeEditPhotoForm(forms.ModelForm):
         fields = ('title','photo',)
 
 class TreeAddForm(forms.Form):
-    edit_address_street = forms.CharField(max_length=200, required=True, initial=settings.ADDRESS_INITIAL)
+    edit_address_street = forms.CharField(max_length=200, required=True, initial=get_add_initial('address'))
     geocode_address = forms.CharField(widget=forms.HiddenInput, max_length=255, required=True)
-    edit_address_city = forms.CharField(max_length=200, required=False, initial=settings.CITY_INITIAL)
+    edit_address_city = forms.CharField(max_length=200, required=False, initial=get_add_initial('city'))
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     initial_map_location = forms.CharField(max_length=200, required=False, widget=forms.HiddenInput)
-    species_name = forms.CharField(required=False, initial=settings.SPECIES_FULL_INITIAL)
-    species_other1 = forms.CharField(required=False, initial=settings.GENUS_INITIAL)
-    species_other2 = forms.CharField(required=False, initial=settings.SPECIES_INITIAL)
+    species_name = forms.CharField(required=False, initial=get_add_initial('species_full'))
+    species_other1 = forms.CharField(required=False, initial=get_add_initial('genus'))
+    species_other2 = forms.CharField(required=False, initial=get_add_initial('species'))
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
-    dbh = forms.FloatField(required=False, label="Trunk size", initial=settings.DBH_INITIAL)
+    dbh = forms.FloatField(required=False, label="Trunk size", initial=get_add_initial('dbh'))
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
-    height = forms.FloatField(required=False, label="Tree height", initial=settings.HEIGHT_INITIAL)
-    canopy_height = forms.IntegerField(required=False, initial=settings.CANOPY_INITIAL)
+    height = forms.FloatField(required=False, label="Tree height", initial=get_add_initial('height'))
+    canopy_height = forms.IntegerField(required=False, initial=get_add_initial('canopy'))
     plot_width = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
@@ -54,7 +55,7 @@ class TreeAddForm(forms.Form):
     condition = forms.ChoiceField(choices=settings.CHOICES["conditions"], required=False)
     canopy_condition = forms.ChoiceField(choices=settings.CHOICES["canopy_conditions"], required=False)
     target = forms.ChoiceField(required=False, choices=settings.ADD_FORM_TARGETS, initial=settings.ADD_FORM_TARGETS_DEFAULT, widget=forms.RadioSelect)        
-    owner_additional_id = forms.CharField(required=False, initial=settings.OWNER_INITIAL)
+    owner_additional_id = forms.CharField(required=False, initial=get_add_initial('owner'))
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)

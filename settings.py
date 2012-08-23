@@ -1,5 +1,7 @@
 import os
 
+ADD_INITIAL_DEFAULTS = {}
+
 try:
    from impl_settings import *
 except ImportError, e:
@@ -17,7 +19,6 @@ THUMBNAIL_DEBUG = True
 THUMBNAIL_SUBDIR = '_thumbs'
 
 AUTH_PROFILE_MODULE = 'profiles.userprofile'
-
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
