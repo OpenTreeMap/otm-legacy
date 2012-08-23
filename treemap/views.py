@@ -1480,10 +1480,12 @@ def _build_tree_search_result(request, with_benefits=True):
             geoname = request.GET['geoName']
             ns = ns.filter(name=geoname)
         elif 'hood' in request.GET:
-            ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
+            ns = Neighborhood.objects.all().order_by('id')
+            ns = ns.filter(name__icontains = request.GET.get('hood'))
         elif 'lat' in request.GET and 'lon' in request.GET:
             pnt = Point(float(request.GET['lon']), float(request.GET['lat']))
-            ns = Neighborhood.objects.filter(geometry__contains=pnt)
+            ns = Neighborhood.objects.all().order_by('id')
+            ns = ns.filter(geometry__contains=pnt)
         if ns:
             trees = trees.filter(plot__neighborhood = ns[0])
             plots = plots.filter(neighborhood = ns[0])
