@@ -1,0 +1,18 @@
+Script run order:
+
+1) 1.0_1.1.sql
+2) 1.1_plot_updates.sql
+3) 1.1_species_updates.sql
+4) 1.1_tree_search_view.sql
+5) resave_plot_neighborhoods.py
+
+These update scripts are meant to be run against a funcitoning v1.0 OpenTreeMap system. 
+
+The first sql script must be run as a superuser to allow certain triggers to be disabled
+while within a transaction. You will also need to replace the <<user>> placeholder with
+your database's owner username before running this script. 
+
+If you have already run django's syncdb command, then you will still need to run all of the
+commands/functions in the first script that do not create tables. 
+
+

@@ -1,3 +1,12 @@
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+--  Before running this script, find and replace all instances of <<user>> with your 
+--  database user. This script creates tables and views needed to migrate from version 1.0
+--  to version 1.1 of OpenTreeMap. It will also migrate any existing tree data into the
+--  tree/plot structure used in v1.1 and DELETE any trees that no longer have any data
+--  after the migration.
+
+
 BEGIN;
 
 ------------------------------------------------------------------------------------------
@@ -53,7 +62,7 @@ CREATE TABLE treemap_plot
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE treemap_plot OWNER TO phillytreemap;
+ALTER TABLE treemap_plot OWNER TO <<user>>;
 
 CREATE INDEX treemap_plot_geometry_id
   ON treemap_plot
@@ -138,7 +147,7 @@ CREATE TABLE treemap_plot_audit
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE treemap_plot_audit OWNER TO phillytreemap;
+ALTER TABLE treemap_plot_audit OWNER TO <<user>>;
 
 CREATE INDEX treemap_plot_audit__audit_timestamp
   ON treemap_plot_audit
@@ -197,7 +206,7 @@ CREATE TABLE treemap_plot_neighborhood
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE treemap_plot_neighborhood OWNER TO phillytreemap;
+ALTER TABLE treemap_plot_neighborhood OWNER TO <<user>>;
 
 CREATE INDEX treemap_plot_neighborhood_neighborhood_id
   ON treemap_plot_neighborhood
@@ -271,14 +280,14 @@ CREATE TABLE "treemap_pending" (
 );
 CREATE INDEX "treemap_pending_submitted_by_id" ON "treemap_pending" ("submitted_by_id");
 CREATE INDEX "treemap_pending_updated_by_id" ON "treemap_pending" ("updated_by_id");
-ALTER TABLE treemap_pending OWNER TO phillytreemap;
+ALTER TABLE treemap_pending OWNER TO <<user>>;
 
 CREATE TABLE "treemap_treepending" (
     "pending_ptr_id" integer NOT NULL PRIMARY KEY REFERENCES "treemap_pending" ("id") DEFERRABLE INITIALLY DEFERRED,
     "tree_id" integer NOT NULL REFERENCES "treemap_tree" ("id") DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX "treemap_treepending_tree_id" ON "treemap_treepending" ("tree_id");
-ALTER TABLE treemap_treepending OWNER TO phillytreemap;
+ALTER TABLE treemap_treepending OWNER TO <<user>>;
 
 CREATE TABLE "treemap_plotpending" (
     "pending_ptr_id" integer NOT NULL PRIMARY KEY REFERENCES "treemap_pending" ("id") DEFERRABLE INITIALLY DEFERRED,
@@ -287,7 +296,7 @@ CREATE TABLE "treemap_plotpending" (
 CREATE INDEX "treemap_plotpending_plot_id" ON "treemap_plotpending" ("plot_id");
 SELECT AddGeometryColumn('treemap_plotpending', 'geometry', 4326, 'POINT', 2);
 CREATE INDEX "treemap_plotpending_geometry_id" ON "treemap_plotpending" USING GIST ( "geometry" GIST_GEOMETRY_OPS );
-ALTER TABLE treemap_plotpending OWNER TO phillytreemap;
+ALTER TABLE treemap_plotpending OWNER TO <<user>>;
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -343,7 +352,7 @@ CREATE OR REPLACE VIEW plots_with_trees AS
    FROM treemap_plot a, treemap_tree b
   WHERE a.present AND b.present AND a.id = b.plot_id;
 
-ALTER TABLE plots_with_trees OWNER TO phillytreemap;
+ALTER TABLE plots_with_trees OWNER TO <<user>>;
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -358,23 +367,7 @@ SELECT AddGeometryColumn('treemap_exclusionmask', 'geometry', 4326, 'MULTIPOLYGO
 ALTER TABLE "treemap_exclusionmask" ALTER "geometry" SET NOT NULL;
 CREATE INDEX "treemap_exclusionmask_geometry_id" ON "treemap_exclusionmask" USING GIST ( "geometry" GIST_GEOMETRY_OPS );
 
-COMMIT;
-
-------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
--- Connecting plots to neighborhoods - run in django's python shell
-
-from treemap.models import *
-plots = Plot.objects.all()
-for p in plots:
-   p.neighborhoods = ""
-   p.neighborhood.clear()
-   n = Neighborhood.objects.filter(geometry__contains=p.geometry)
-   if n:
-     for nhood in n:
-       p.neighborhoods = p.neighborhoods + " " + nhood.id.__str__()
-       p.neighborhood.add(nhood)
-   p.quick_save()
+ALTER TABLE treemap_exclusionmask OWNER TO <<user>>;
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -409,7 +402,7 @@ WHERE 'remove stewardship' NOT IN (
 -- Cleanup
 
 
-drop table treemap_tree_neighborhood ;
+drop table if exists treemap_tree_neighborhood ;
 
 delete from treemap_tree 
   where species_id IS NULL
@@ -436,7 +429,7 @@ alter table treemap_resource drop column lsa_dbh;
 alter table treemap_resource drop column cpa_dbh;
 alter table treemap_resource drop column dbh_by_age_class_dbh;
 
-DROP VIEW geoserver_tree_highlight ;
+DROP VIEW if exists geoserver_tree_highlight ;
 
 alter table treemap_tree drop column powerline_conflict_potential;
 alter table treemap_tree drop column plot_length;
