@@ -1,0 +1,11 @@
+General steps to upgrade a functional v1.1 database to v1.2:
+
+1. Run django's manage.py syncdb command
+2. Run three south migration commands:
+    -- manage.py migrate profiles --fake
+    -- manage.py migrate treemap --fake
+    -- manage.py migrate api
+3. Create a view for geoserver to only load existing plots:
+    -- create view present_plot as (select id, geometry from treemap_plot where present=True)
+
+
