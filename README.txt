@@ -15,7 +15,7 @@ Required libraries from aptitude
     python-psycopg2 (only for postgres access)
     binutils
     libgeos-3.2.0
-    libgeos-cl
+    libgeos-c1
     libgdal1-1.6.0
     libproj0
     python-django-tagging 

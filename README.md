@@ -19,7 +19,7 @@ For issues or questions you can try mailing the user list: http://groups.google.
 * python-psycopg2 (only for postgres access)
 * binutils
 * libgeos-3.2.0
-* libgeos-cl
+* libgeos-c1
 * libgdal1-1.6.0
 * libproj0
 * python-django-tagging
