@@ -395,7 +395,7 @@ class PlotLocateManager(models.GeoManager):
             plots = plots.filter(tree__dbh__gte=dbhmin, tree__present=True)
 
         if dbhmax is not None:
-            plots = plots.filter(tree__dbh__gte=dbhmax, tree__present=True)
+            plots = plots.filter(tree__dbh__lte=dbhmax, tree__present=True)
 
         has_filter_q = None
         def filter_or(f,has):
