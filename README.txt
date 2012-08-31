@@ -15,7 +15,7 @@ Required libraries from aptitude
     python-psycopg2 (only for postgres access)
     binutils
     libgeos-3.2.0
-    libgeos-cl
+    libgeos-c1
     libgdal1-1.6.0
     libproj0
     python-django-tagging 
@@ -56,7 +56,7 @@ Patches:
 		Apply patch to django-sorting: 
             https://github.com/directeur/django-sorting/issues#issue/8
 			-including comment by Alsaihn
-		sudo cp django-sorting -R /usr/local/lib/python2.6/dist-packages/django_sorting
+		sudo cp django_sorting -R /usr/local/lib/python2.6/dist-packages/django_sorting
     Get django-shapes and remove HttpResponse call
         wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
         In shapes/views/export.py - zip-response method - change >
@@ -76,7 +76,7 @@ Patches:
 			In config.py - <change values as needed>
             In model.py - change >
                 ....
-                relevent_reputation_actions = UserReputationAction.onbjects.filter(user=user).filter........
+                relevant_reputation_actions = UserReputationAction.objects.filter(user=user).filter........
                 ....
                 if expected_delta <= MAX_REPUTATION_GAIN_PER_DAY and expected_delta >= -1 * MAX_REPUTATION_LOSS_PER_DAY:
                     delta = action_value
