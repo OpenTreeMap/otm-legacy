@@ -515,7 +515,7 @@ tm.load_streetview = function(ll, div){
             
         }
         else {
-            $(div).hide()
+            $(div).html("<div class='no_streetview'>Streetview is not available at this location.</div>");
         }
     });       
     
