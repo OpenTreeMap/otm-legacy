@@ -265,7 +265,7 @@ def add_tree_photo(request, plot_id):
 
     treephoto.save()
 
-    return { "status": "succes", "title": treephoto.title, "id": treephoto.pk }
+    return { "status": "success", "title": treephoto.title, "id": treephoto.pk }
 
 
 @require_http_methods(["POST"])
@@ -280,7 +280,7 @@ def add_profile_photo(request, user_id, title):
 
     profile.save()
 
-    return { "status": "succes" }
+    return { "status": "success" }
 
 def extract_plot_id_from_rep(repact):
     content_type = repact.content_type
