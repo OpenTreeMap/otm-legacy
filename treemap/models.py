@@ -667,10 +667,11 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         
         if n:
             oldns = self.neighborhoods
-            self.neighborhoods = ""
+            new_nhoods = []
             for nhood in n:
                 if nhood:
-                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+                    new_nhoods.append(nhood.id.__str__())
+            self.neighborhoods = " ".join(new_nhoods)
         else: 
             self.neighborhoods = ""
             oldns = None
