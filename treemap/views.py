@@ -401,8 +401,8 @@ def trees(request, tree_id=''):
         if trees.count() == 0:
             raise Http404
         
+        plot = trees[0].plot
         if trees[0].present == False:
-            plot = trees[0].plot
             if plot.present == False:
                 raise Http404
             else:
@@ -410,6 +410,7 @@ def trees(request, tree_id=''):
 
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
+        history = list(chain(history, plot.history.order_by('-last_updated')[:5]))
         
         recent_edits = unified_history(history)
     
