@@ -1131,7 +1131,7 @@ def update_plot_and_tree(request, plot_id):
     tree_was_edited = False
     tree_was_added = False
     tree = plot.current_tree()
-    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition']
+    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition', 'condition']
 
     if tree is None:
         should_create_tree_pends = False
