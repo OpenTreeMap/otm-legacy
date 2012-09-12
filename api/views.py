@@ -1,4 +1,5 @@
 import datetime
+import Image
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.files.base import ContentFile
 
@@ -106,7 +107,11 @@ def api_call_raw(content_type="image/jpeg"):
             try:
                 validate_and_log_api_req(request)
                 outp = req_function(request, *args, **kwargs)
-                response = HttpResponse(outp)
+                if issubclass(outp.__class__, HttpResponse):
+                    response = outp
+                else:
+                    response = HttpResponse(outp)
+
                 response['Content-length'] = str(len(response.content))
                 response['Content-Type'] = content_type
             except HttpBadRequestException, bad_request:
@@ -574,7 +579,7 @@ def version(request):
              "api_version": settings.API_VERSION }
 
 @require_http_methods(["GET"])
-@api_call_raw("image/jpeg")
+@api_call_raw("image/png")
 def get_tree_image(request, plot_id, photo_id):
     """ API Request
 
@@ -587,7 +592,10 @@ def get_tree_image(request, plot_id, photo_id):
     treephoto = TreePhoto.objects.get(pk=photo_id)
 
     if treephoto.tree.plot.pk == int(plot_id):
-        return open(treephoto.photo.path, 'rb').read()
+        img = Image.open(treephoto.photo.path).resize((144,132), Image.ANTIALIAS)
+        response = HttpResponse(mimetype="image/png")
+        img.save(response, "PNG")
+        return response
     else:
         raise HttpBadRequestException('invalid url (missing objects)')
 
