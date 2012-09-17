@@ -26,7 +26,7 @@
 		<ul>
 		{% for image in tree_images %}
 			<li>
-            {% thumbnail image.photo "100x100" as image  %}
+            {% thumbnail image.photo "100x100" crop="center" as image  %}
                 <img src="{{ image.url }}" />
             {% endthumbnail %}
 			<a class="view" href="{% url treemap.views.trees image.tree.id %}" >View</a>
