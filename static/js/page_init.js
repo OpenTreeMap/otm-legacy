@@ -63,7 +63,7 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
     });
     var curmin = 0;
     var curmax = 50;
-    $("#diameter_slider").slider({'range': true, max: 50, min: 0, values: [0, 50],
+    $("#diameter_slider").slider({'range': true, max: 75, min: 0, values: [0, 75],
                                   slide: function() { 
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
@@ -188,9 +188,9 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
     });
 
     $("#close-filters").click(function(evt) {
-        $("#diameter_slider").slider('option', 'values', [0, 50]);
+        $("#diameter_slider").slider('option', 'values', [0, 75]);
         $('#min_diam').html(0);
-        $('#max_diam').html(50);
+        $('#max_diam').html(75);
         $("#planted_slider").slider('option', 'values', [min_year, current_year]);
         $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
         if ($("#planted_slider").length) {
