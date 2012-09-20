@@ -7,7 +7,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.auth.models import User
-from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, Choices, ImportEvent
+from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, ImportEvent
+
+from OpenTreeMap.choices import CHOICES as choices
 
 class Command(BaseCommand):
     args = '<input_file_name, data_owner_id, base_srid, read_only>'
@@ -317,7 +319,7 @@ class Command(BaseCommand):
         plot.readonly = self.readonly
 
         if row.get('PLOTTYPE'):
-            for k, v in Choices().get_field_choices('plot_type'):
+            for k, v in choices['plot_types']:
                 if v == row['PLOTTYPE']:
                     plot.type = k
                     break;
@@ -341,7 +343,7 @@ class Command(BaseCommand):
             plot.owner_additional_id = str(row['OWNER_ADDITIONAL_ID'])
     
         if row.get('POWERLINE'):
-            for k, v in Choices().get_field_choices('powerline'):
+            for k, v in choices['powerlines']:
                 if v == row['POWERLINE']:
                     plot.powerline = k
                     break;
@@ -414,13 +416,13 @@ class Command(BaseCommand):
                 tree.canopy_height = float(row['CANOPYHEIGHT'])
 
             if row.get('CONDITION'):
-                for k, v in Choices().get_field_choices('condition'):
+                for k, v in choices['conditions']:
                     if v == row['CONDITION']:
                         tree.condition = k
                         break;
 
             if row.get('CANOPYCONDITION'):
-                for k, v in Choices().get_field_choices('canopy_condition'):
+                for k, v in choices['canopy_conditions']:
                     if v == row['CANOPYCONDITION']:
                         tree.canopy_condition = k
                         break;

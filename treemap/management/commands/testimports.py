@@ -1,15 +1,8 @@
-from os.path import dirname
-import csv
 import os
 
 from subprocess import Popen, PIPE, STDOUT
-from datetime import datetime
-from dbfpy import dbf
-from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.geos import Point
-from django.contrib.auth.models import User
-from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, Choices, ImportEvent
+from OpenTreeMap.treemap.models import Tree, Plot
 # ID - number
 # POINT_X - EPSG:4326
 # POINT_Y - EPSG:4326
@@ -76,7 +69,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if args and args[0]:
             for t in self.tests:
-                if t.name == args[0]: t.run(6)
+                if t.name == args[0]: t.run(1)
         else:
             for t in self.tests:
-                t.run(6)
+                t.run(1)
