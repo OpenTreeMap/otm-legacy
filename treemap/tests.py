@@ -1317,7 +1317,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["trees.csv", "plots.csv"]))       
+        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv']))       
 
     def test_ogr_search_kml(self):
         response = self.client.get("/search/kml/")

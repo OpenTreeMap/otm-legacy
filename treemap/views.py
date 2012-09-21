@@ -1931,12 +1931,15 @@ def advanced_search(request, format='json'):
     else: 
         plot_query = str(plots.query)
 
+    species_query = "SELECT * FROM treemap_species order by id asc"
+
     if format == "shp":
         return ogr_conversion('ESRI Shapefile', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}])
     elif format == "kml":
         return ogr_conversion('KML', [{'name':'trees', 'sql': tree_query}, {'name':'plots','sql':plot_query}], 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}])
+        return ogr_conversion('CSV', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}, 
+            {'name': 'species', 'sql': species_query}])
         
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
