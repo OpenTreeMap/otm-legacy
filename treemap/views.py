@@ -729,7 +729,7 @@ def user_opt_export(request, format):
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
     
-    return ogr_conversion('CSV', sql, "", name="emails", geo=False)    
+    return ogr_conversion('CSV', [{'name':'emails', 'sql':sql}], name="emails", geo=False)    
 
 @permission_required('auth.change_user')
 def ban_user(request):
@@ -1815,7 +1815,65 @@ def zip_files(file_paths,archive_name):
         buffer.close()
         return zip_stream
 
-def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees", geo=True):   
+def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=True):   
+    dbsettings = settings.DATABASES['default'] 
+    host = dbsettings['HOST']
+    port = dbsettings['PORT']
+    if host == '':
+        host = 'localhost'
+    if port == '':
+        port = 5432
+
+    tmp_dirs = []
+    done = 0
+    for s in named_sql:
+        sql_name = s["name"]
+        sql = s["sql"]
+        if "srs" in named_sql:
+            srs = s["srs"]
+        else: srs = 'EPSG:4326'
+        
+        tmp_dir = tempfile.mkdtemp() + "/" + sql_name
+        tmp_dirs.append(tmp_dir)
+
+        if extension != None:
+            os.mkdir(tmp_dir)
+            tmp_name = tmp_dir + "/" + sql_name + "." + extension
+        else:
+            tmp_name = tmp_dir
+        
+        command = ['ogr2ogr', '-sql', sql, '-a_srs', srs, '-f', output_type, tmp_name, 
+            'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+            dbsettings['PASSWORD'], dbsettings['USER'])]
+        
+        if output_type == 'CSV' and geo:
+            command.append('-lco')
+            command.append('GEOMETRY=AS_WKT')
+        elif output_type == 'ESRI Shapefile' and (sql_name == 'trees'):
+            command.append('-nlt')
+            command.append('NONE')
+        elif output_type == 'ESRI Shapefile' and (sql_name == 'plots'):
+            command.append('-nlt')
+            command.append('POINT')
+        
+        done = subprocess.call(command)
+
+        if done != 0: 
+            return render_to_json({'status':'error', 'command': command})
+
+    if done != 0: 
+        return render_to_json({'status':'error'})
+    else: 
+        zipfile = zip_files(tmp_dirs, name)
+
+        response = HttpResponse(zipfile, mimetype='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
+        return response
+
+
+
+
+def ogr_conversion_old(output_type, tree_sql, plot_sql, extension=None, name="trees", geo=True):   
     dbsettings = settings.DATABASES['default'] 
     tmp_treedir = tempfile.mkdtemp() + "/" + name 
     tmp_plotdir = tempfile.mkdtemp() + "/plots"
@@ -1839,7 +1897,13 @@ def ogr_conversion(output_type, tree_sql, plot_sql, extension=None, name="trees"
     command = ['ogr2ogr', '-sql', tree_sql, '-a_srs', 'EPSG:4326', '-f', output_type, tmp_treename, 
         'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
         dbsettings['PASSWORD'], dbsettings['USER'])]
-
+    
+    #debug
+    sys.stderr.write("kawasaki " + dbsettings['NAME'])
+    sys.stderr.write(tmp_treename)
+    sys.stderr.write("%s" % command)
+    sys.stderr.write("\n")
+    
     if output_type == 'CSV' and geo:
         command.append('-lco')
         command.append('GEOMETRY=AS_WKT')
@@ -1936,11 +2000,11 @@ def advanced_search(request, format='json'):
         plot_query = str(plots.query)
 
     if format == "shp":
-        return ogr_conversion('ESRI Shapefile', tree_query, plot_query)
+        return ogr_conversion('ESRI Shapefile', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}])
     elif format == "kml":
-        return ogr_conversion('KML', tree_query, plot_query, 'kml')
+        return ogr_conversion('KML', [{'name':'trees', 'sql': tree_query}, {'name':'plots','sql':plot_query}], 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', tree_query, plot_query)
+        return ogr_conversion('CSV', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}])
         
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
@@ -2345,7 +2409,7 @@ def export_comments(request, format):
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
     
-    return ogr_conversion('CSV', sql, "", name="comments", geo=False)    
+    return ogr_conversion('CSV', [{'name':'comments', 'sql':sql}], name="comments", geo=False)    
 
 
    
