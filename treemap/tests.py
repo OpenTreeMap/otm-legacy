@@ -1293,22 +1293,27 @@ class ViewTests(TestCase):
 ##################################################################
 # ogr conversion tests
 #
-    def _check_zip_response_contains_files(self, response, files):
+    def assert_zip_response_contains_files(self, response, files):
         tmp_dir = tempfile.mkdtemp()
-        tmp_file = tmp_dir + '/attachment.zip'
+        tmp_file = os.path.join(tmp_dir, "attachment.zip")
         f = open(tmp_file, 'w')
         f.write(response.content)
         f.close()
-        if (zipfile.is_zipfile(tmp_file) ==False):
-            return 'error: %s does not look like a zip file.' % tmp_file
+        is_zipfile = zipfile.is_zipfile(tmp_file)
+        self.assertTrue(is_zipfile, msg='error: %s does not look like a zip file.' % tmp_file)
         
         zf = zipfile.ZipFile(tmp_file, 'r')
-        if (sorted(files) != sorted(zf.namelist()) ):
-            return "error: file list in %s is: %s but I expected: %s" % (tmp_file, sorted(zf.namelist()), sorted(files))
+        
+        file_lists_match = (sorted(files) == sorted(zf.namelist()))
+        self.assertTrue(file_lists_match, 
+            msg="error: file list in %s is: %s but I expected: %s" % (tmp_file, sorted(zf.namelist()), sorted(files)))
         
         zf.close()
-        shutil.rmtree(tmp_dir) 
-        return "OK"
+        
+        if (file_lists_match and is_zipfile): # leave the tmp file in case of an error.
+            shutil.rmtree(tmp_dir) 
+
+        return
         
  
     def test_ogr_search_csv(self): 
@@ -1317,7 +1322,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv']))       
+        self.assert_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv'])       
 
     def test_ogr_search_kml(self):
         response = self.client.get("/search/kml/")
@@ -1325,7 +1330,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["trees.kml", "plots.kml"]))   
+        self.assert_zip_response_contains_files(response, ["trees.kml", "plots.kml"])   
     
     def test_ogr_search_shp(self):
         response = self.client.get("/search/shp/")
@@ -1333,8 +1338,8 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["plots.dbf", "plots.prj", "plots.shp", 
-            "plots.shx", "trees.dbf", "trees.prj"]))        
+        self.assert_zip_response_contains_files(response, ["plots.dbf", "plots.prj", "plots.shp", 
+            "plots.shx", "trees.dbf", "trees.prj"])        
 
     def test_ogr_comments_all_csv(self):
         # Test the admin-only exports
@@ -1346,7 +1351,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=comments.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["comments.csv"]))        
+        self.assert_zip_response_contains_files(response, ["comments.csv"])      
 
     def test_ogr_users_optin_csv(self):
         # Test the admin-only exports
@@ -1357,7 +1362,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assertEqual("OK", self._check_zip_response_contains_files(response, ["emails.csv"]))     
+        self.assert_zip_response_contains_files(response, ["emails.csv"])    
        
 
 ##################################################################

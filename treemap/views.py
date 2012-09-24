@@ -1816,6 +1816,26 @@ def zip_files(file_paths,archive_name):
         return zip_stream
 
 def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=True):   
+    """ 
+    given  an output type such as CSV, "ESRI ShapeFile" or KML
+
+    plus a list of named_sql in the form of 
+       named_sql =  [{
+            "name":"trees", 
+            "sql":"SELECT * from treemap_tree...", 
+            "srs":'EPSG:4326' #optional, srs default=EPSG:4236
+        },
+         {
+          "name":"plots", 
+          "sql":"SELECT * from treemap_plot...", 
+          "srs":'EPSG:4326' 
+         }] 
+        
+    renders a response with the appropriate zip file attachment.
+
+    requires gdal/ogr2ogr
+    """ 
+    
     dbsettings = settings.DATABASES['default'] 
     host = dbsettings['HOST']
     port = dbsettings['PORT']
@@ -1829,19 +1849,18 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
     for s in named_sql:
         sql_name = s["name"]
         sql = s["sql"]
-        if "srs" in named_sql:
-            srs = s["srs"]
-        else: srs = 'EPSG:4326'
+        srs = s["srs"] if "srs" in s else 'EPSG:4326'        
         
-        tmp_dir = tempfile.mkdtemp() + "/" + sql_name
+        tmp_dir = os.path.join(tempfile.mkdtemp(), sql_name)
         tmp_dirs.append(tmp_dir)
 
         if extension != None:
             os.mkdir(tmp_dir)
-            tmp_name = tmp_dir + "/" + sql_name + "." + extension
+            tmp_name = os.path.join(tmp_dir, sql_name + "." + extension)
         else:
             tmp_name = tmp_dir
         
+        #command is about to get the db password, careful.
         command = ['ogr2ogr', '-sql', sql, '-a_srs', srs, '-f', output_type, tmp_name, 
             'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
             dbsettings['PASSWORD'], dbsettings['USER'])]
@@ -1855,20 +1874,21 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
         elif output_type == 'ESRI Shapefile' and (sql_name == 'plots'):
             command.append('-nlt')
             command.append('POINT')
-        
-        done = subprocess.call(command)
+
+        done = None
+        try:
+            done = subprocess.call(command)
+        except:
+            raise Exception("ogr2ogr2 command failed (are the gdal binaries installed?)")
 
         if done != 0: 
-            return render_to_json({'status':'error', 'command': command})
+            return render_to_json({'status':'error'})
 
-    if done != 0: 
-        return render_to_json({'status':'error'})
-    else: 
-        zipfile = zip_files(tmp_dirs, name)
+    zipfile = zip_files(tmp_dirs, name)
 
-        response = HttpResponse(zipfile, mimetype='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
-        return response
+    response = HttpResponse(zipfile, mimetype='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
+    return response
 
 
 def geo_search(request):
@@ -1933,13 +1953,16 @@ def advanced_search(request, format='json'):
 
     species_query = "SELECT * FROM treemap_species order by id asc"
 
+    trees   = { 'name': 'trees', 'sql': tree_query }
+    plots   = { 'name': 'plots', 'sql': plot_query }
+    species = { 'name': 'species', 'sql': species_query }
+
     if format == "shp":
-        return ogr_conversion('ESRI Shapefile', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}])
+        return ogr_conversion('ESRI Shapefile', [trees, plots])
     elif format == "kml":
-        return ogr_conversion('KML', [{'name':'trees', 'sql': tree_query}, {'name':'plots','sql':plot_query}], 'kml')
+        return ogr_conversion('KML', [trees, plots], 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', [{'name':'trees', 'sql':tree_query}, {'name':'plots', 'sql':plot_query}, 
-            {'name': 'species', 'sql': species_query}])
+        return ogr_conversion('CSV', [trees, plots, species])
         
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
