@@ -27,6 +27,9 @@ from treemap.test_choices import *
 settings.CHOICES = CHOICES
 
 import django.shortcuts
+import tempfile
+import zipfile
+import shutil
 
 class ModelTests(TestCase):
 
@@ -272,6 +275,7 @@ class ViewTests(TestCase):
         self.t2 = t2
         self.t3 = t3
         
+       
     def tearDown(self):
         self.agn1.delete()
         self.agn2.delete()
@@ -1352,25 +1356,55 @@ class ViewTests(TestCase):
 ##################################################################
 # ogr conversion tests
 #
-    def test_ogr(self):
+    def assert_zip_response_contains_files(self, response, files):
+        tmp_dir = tempfile.mkdtemp()
+        tmp_file = os.path.join(tmp_dir, "attachment.zip")
+        f = open(tmp_file, 'w')
+        f.write(response.content)
+        f.close()
+        is_zipfile = zipfile.is_zipfile(tmp_file)
+        self.assertTrue(is_zipfile, msg='error: %s does not look like a zip file.' % tmp_file)
+        
+        zf = zipfile.ZipFile(tmp_file, 'r')
+        
+        file_lists_match = (sorted(files) == sorted(zf.namelist()))
+        self.assertTrue(file_lists_match, 
+            msg="error: file list in %s is: %s but I expected: %s" % (tmp_file, sorted(zf.namelist()), sorted(files)))
+        
+        zf.close()
+        
+        if (file_lists_match and is_zipfile): # leave the tmp file in case of an error.
+            shutil.rmtree(tmp_dir) 
+
+        return
+        
+ 
+    def test_ogr_search_csv(self): 
         response = self.client.get("/search/csv/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
+        self.assert_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv'])       
 
+    def test_ogr_search_kml(self):
         response = self.client.get("/search/kml/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-
+        self.assert_zip_response_contains_files(response, ["trees.kml", "plots.kml"])   
+    
+    def test_ogr_search_shp(self):
         response = self.client.get("/search/shp/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
+        self.assert_zip_response_contains_files(response, ["plots.dbf", "plots.prj", "plots.shp", 
+            "plots.shx", "trees.dbf", "trees.prj"])        
 
+    def test_ogr_comments_all_csv(self):
         # Test the admin-only exports
         c = self.client
         login = c.login(username="jim",password="jim")
@@ -1380,14 +1414,19 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=comments.zip')
         self.assertNotEqual(len(response.content), 0)
+        self.assert_zip_response_contains_files(response, ["comments.csv"])      
 
+    def test_ogr_users_optin_csv(self):
+        # Test the admin-only exports
+        c = self.client
+        login = c.login(username="jim",password="jim")
         response = c.get("/users/opt-in/csv/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
         self.assertNotEqual(len(response.content), 0)
-
-
+        self.assert_zip_response_contains_files(response, ["emails.csv"])    
+       
 
 ##################################################################
 # stewardship tests
