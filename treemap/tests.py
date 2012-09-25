@@ -334,6 +334,181 @@ class ViewTests(TestCase):
         # an unchanged settings should be the default still
         self.assertEqual(get_add_initial('height'), '')
 
+#############################################
+#  page setup tests
+
+    def test_homepage_feeds(self):  
+        response = self.client.get("/home/")
+        self.assertTemplateUsed(response, 'treemap/index.html') 
+        response = self.client.get("/home/feeds/")
+        self.assertTemplateUsed(response, 'treemap/index.html') 
+        feeds = response.context["feeds"]
+        self.assertNotEqual(len(feeds["active_nhoods"]), 0)
+        self.assertIsInstance(feeds["active_nhoods"][0], Neighborhood)
+        self.assertNotEqual(len(feeds["species"]), 0)
+        self.assertIsInstance(feeds["species"][0], Species)
+        self.assertEqual(len(feeds["recent_photos"]), 0)
+        self.assertNotEqual(len(feeds["recent_edits"]), 0)
+        self.assertEqual(feeds["recent_edits"][0][0], u'jim')
+        self.assertIsInstance(feeds["recent_edits"][0][1], datetime)
+        
+        response = self.client.get("/home/feeds/json/")
+        json = loads(response.content)
+        self.assertNotEqual(len(json["species"]), 0)
+        self.assertNotEqual(len(json["active_nhoods"]), 0)
+        
+
+    def test_get_choices(self):
+        response = self.client.get("/choices/")
+        choices = loads(response.content)
+        self.assertNotEqual(len(choices['plot_types']), 0)
+        
+#############################################
+#  Species Lists Tests
+
+    def test_species(self):
+        #############################################
+        #  different ways to get the full list: no args, no args/json, all, all/json
+        response = self.client.get("/species/")
+        self.assertTemplateUsed(response, 'treemap/species.html') 
+        all_species_count = len(response.context['species'])
+        self.assertNotEqual(all_species_count, 0)
+        self.assertIsInstance(response.context["species"][0], Species)
+
+        response = self.client.get("/species/all/")
+        self.assertNotEqual(len(response.context['species']), 0)
+        self.assertEqual(all_species_count, len(response.context['species']))
+        self.assertIsInstance(response.context["species"][0], Species)
+
+        response = self.client.get("/species/all/json/")
+        json_species = loads(response.content)
+        self.assertNotEqual(len(json_species), 0)
+        self.assertEqual(all_species_count, len(json_species))
+
+        response = self.client.get("/species/json/")
+        json_species = loads(response.content)
+        self.assertNotEqual(len(json_species), 0)
+        self.assertEqual(all_species_count, len(json_species))
+
+        #############################################
+        #  nearby and in-use selections, as json and html
+
+        response = self.client.get("/species/in-use/")
+        self.assertTemplateUsed(response, 'treemap/species.html') 
+        in_use_species_count = len(response.context['species'])
+        self.assertNotEqual(in_use_species_count, 0)
+        self.assertIsInstance(response.context["species"][0], Species)
+
+        response = self.client.get("/species/in-use/json/")
+        json_species = loads(response.content)
+        self.assertNotEqual(len(json_species), 0)
+        self.assertEqual(in_use_species_count, len(json_species))
+
+        response = self.client.get("/species/nearby/")
+        self.assertEqual(response.status_code, 404)
+
+        location = {'location': '50,100'}
+        response = self.client.get("/species/nearby/", location)
+        self.assertNotEqual(len(response.context['species']), 0)
+        self.assertNotEqual(all_species_count, len(response.context['species']))
+        self.assertIsInstance(response.context["species"][0], Species)
+        
+        response = self.client.get("/species/nearby/json/", location)
+        json_species = loads(response.content)
+        self.assertNotEqual(len(json_species), 0)
+        self.assertNotEqual(all_species_count, len(json_species))
+
+        #############################################
+        #  csv exports
+
+        response = self.client.get("/species/csv/", location)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
+        self.assertNotEqual(len(response.content), 0)
+        
+        response = self.client.get("/species/all/csv/", location)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = self.client.get("/species/in-use/csv/", location)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
+        self.assertNotEqual(len(response.content), 0)
+
+        response = self.client.get("/species/nearby/csv/", location)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/zip')
+        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
+        self.assertNotEqual(len(response.content), 0)
+        
+
+#############################################
+#  Geocoder Tests
+
+    def test_geocoder(self):
+        response = self.client.get("/geocode/")
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("No geocoder", json["error"])
+
+        form = {}
+        form["geocoder_name"] = "CitizenAtlas"
+        response = self.client.get("/geocode/", form)
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("No address", json["error"])
+    
+        form["address"] = "100 somewhere"
+        response = self.client.get("/geocode/", form)
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("No results", json["error"])
+
+        form["address"] = "100 10th St SE"
+        response = self.client.get("/geocode/", form)
+        json = loads(response.content)
+        self.assertTrue(json["success"])
+        self.assertIn("10TH", json["place"])
+        self.assertIn("20003", json["place"])
+        self.assertAlmostEqual(float(json['lat']), 38.88857251)
+        self.assertAlmostEqual(float(json['lng']), -76.99244160)
+
+        #############################################
+        #  reverse geocoding
+
+        response = self.client.get("/geocode/reverse/")
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("No geocoder", json["error"])
+
+        form = {}
+        form["geocoder_name"] = "CitizenAtlas"
+        response = self.client.get("/geocode/reverse/", form)
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("No point", json["error"])
+
+        form["lat"] = "abc"
+        form["lng"] = "def"
+        response = self.client.get("/geocode/reverse/", form)
+        json = loads(response.content)
+        self.assertFalse(json["success"])
+        self.assertIn("could not convert", json["error"])
+
+        form["lat"] = 38.88857251
+        form["lng"] = -76.99244160
+        response = self.client.get("/geocode/reverse/", form)
+        json = loads(response.content)
+        self.assertTrue(json["success"])
+        self.assertIn("10TH", json["place"])
+        self.assertIn("20003", json["place"])
+        self.assertAlmostEqual(float(json['lat']), form['lat'])
+        self.assertAlmostEqual(float(json['lng']), form['lng'])
+
 
 #############################################
 #  Search Tests
@@ -974,7 +1149,11 @@ class ViewTests(TestCase):
         # Test required information: 
         #     lat,lon,entered address and geocoded address
         
+        form['lat'] = 1000
+        form['lon'] = 1000
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        del form['lat']
+        del form['lon']
         form['lat'] = 50
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['lon'] = 50
@@ -1016,10 +1195,10 @@ class ViewTests(TestCase):
         # plot width < 15
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')      
         form['plot_width'] = "5"
-        # plot width < 12
+        # plot width inches < 12
         form['plot_width_in'] = "20"
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
-        form['plot_width_in'] = ""
+        form['plot_width_in'] = "6"
         # plot type in type list
         form['plot_type'] = "Blargh"
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
@@ -1032,13 +1211,14 @@ class ViewTests(TestCase):
         form['sidewalk_damage'] = 15
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
         form['sidewalk_damage'] = 1
+        form['owner_additional_id'] = 111
     
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
         
         response = self.client.get('/trees/new/%i/' % self.u.id)
         new_plot = response.context['plots'][0]   
-        self.assertAlmostEqual(new_plot.width, 5.0)
+        self.assertAlmostEqual(new_plot.width, 5.5)
         self.assertAlmostEqual(new_plot.length, 6.5)
         self.assertEqual(new_plot.current_tree(), None)
         self.assertEqual(new_plot.zipcode, self.z1)
@@ -1094,8 +1274,22 @@ class ViewTests(TestCase):
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
         
+        # diameter instead
+        del form['dbh_type']
+        # no species
+        del form['species_id']
+
+        response = self.client.post("/trees/add/", form)
+        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+
+        # no species match        
+        form['species_id'] = 9999
+
+        response = self.client.post("/trees/add/", form)
+        self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
+
         response = self.client.get('/trees/new/%i/' % self.u.id)
-        new_plot = response.context['plots'][0]   
+        new_plot = response.context['plots'][2]   #first one created
         new_tree = new_plot.current_tree()
         self.assertNotEqual(new_tree, None)
         self.assertEqual(new_tree.species.genus, "testus1")
@@ -1107,6 +1301,20 @@ class ViewTests(TestCase):
         self.assertNotEqual(tr, None)
         self.assertNotEqual(tr.get_benefits()['total'], 0.0)
         
+    def test_add_empty_tree(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        orig_rep = User.objects.filter(username='jim')[0].reputation.reputation
+
+        response = c.get("/plots/%i/addtree/" % self.p1_no_tree.id)
+        json_status = loads(response.content)
+        self.assertEquals(json_status['status'], "success")
+        self.assertNotEquals(orig_rep, User.objects.filter(username='jim')[0].reputation.reputation)
+        self.assertNotEquals(self.p1_no_tree.current_tree(), None)
+        tree = self.p1_no_tree.current_tree()
+        self.assertEquals(tree.last_updated_by.username, "jim")
+        self.assertEquals(tree.species, None)
+
 
     def test_update_plot_no_pending(self):
         settings.PENDING_ON = False
@@ -1387,7 +1595,65 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
         self.assertNotEqual(len(response.content), 0)
 
+##################################################################
+# Tree/Plot Detail tests
+#
 
+    def test_tree_details(self):
+        response = self.client.get('/trees/%i/' % 9999)
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.get('/trees/%i/' % self.t3.id)
+        self.assertTemplateUsed(response, 'treemap/tree_detail.html') 
+        self.assertIs(type(response.context['tree']), Tree)
+        self.assertIs(type(response.context['plot']), Plot)
+        self.assertEqual(response.context['tree'].id, self.t3.id)
+        self.assertEqual(response.context['plot'].id, self.t3.plot.id)
+
+    def test_plot_details(self):
+        response = self.client.get('/plots/')
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get('/plots/%i/' % 9999)
+        self.assertEqual(response.status_code, 404)
+        
+        response = self.client.get('/plots/%i/' % self.p2_tree.id)
+        self.assertTemplateUsed(response, 'treemap/tree_detail.html') 
+        self.assertIs(type(response.context['tree']), Tree)
+        self.assertIs(type(response.context['plot']), Plot)
+        self.assertEqual(response.context['tree'].id, self.p2_tree.current_tree().id)
+        self.assertEqual(response.context['plot'].id, self.p2_tree.id)
+
+        plot_format = {'format':'popup'}
+        response = self.client.get('/plots/%i/' % self.p2_tree.id, plot_format)
+        self.assertTemplateUsed(response, 'treemap/plot_detail_infowindow.html') 
+        self.assertIs(type(response.context['tree']), Tree)
+        self.assertIs(type(response.context['plot']), Plot)
+        self.assertEqual(response.context['tree'].id, self.p2_tree.current_tree().id)
+        self.assertEqual(response.context['plot'].id, self.p2_tree.id)
+
+
+    def test_get_choice_values(self):
+        
+        tree_url = ('/trees/%i/edit/choices/' % self.p2_tree.current_tree().id) + '%s/'
+        plot_url = ('/plots/%i/edit/choices/' % self.p2_tree.id) + '%s/'
+
+        response = self.client.get(tree_url % 'conditions')
+        choices = loads(response.content)
+        self.assertEquals(CHOICES['conditions'][0][1], choices[CHOICES['conditions'][0][0]] )
+        response = self.client.get(tree_url % 'canopy_conditions')
+        choices = loads(response.content)
+        self.assertEquals(CHOICES['canopy_conditions'][0][1], choices[CHOICES['canopy_conditions'][0][0]] )
+        response = self.client.get(tree_url % 'actions')
+        choices = loads(response.content)
+        self.assertEquals(CHOICES['actions'][0][1], choices[CHOICES['actions'][0][0]] )
+        
+        response = self.client.get(plot_url % 'sidewalks')
+        choices = loads(response.content)
+        self.assertEquals(CHOICES['sidewalks'][0][1], choices[CHOICES['sidewalks'][0][0]] )
+        response = self.client.get(plot_url % 'powerlines')
+        choices = loads(response.content)
+        self.assertEquals(CHOICES['powerlines'][0][1], choices[CHOICES['powerlines'][0][0]] )
+    
 
 ##################################################################
 # stewardship tests

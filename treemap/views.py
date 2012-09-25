@@ -59,9 +59,11 @@ def redirect(rel):
 
 app_models = {'UserProfile':'profiles','User':'auth'}
 
+#TODO: is this used anywhere?
 def average(seq):
     return float(sum(l))/len(l)
 
+#TODO: is this used anywhere?
 def get_app(name):
     app = app_models.get(name)
     return app or 'treemap'
@@ -350,10 +352,10 @@ def species(request, selection='all', format='html'):
     if selection == 'nearby':
         location = request.GET.get('location','')
         if not location:
-            return 404
+            raise Http404
         coord = map(float,location.split(','))
         pt = Point(coord[0], coord[1])
-        trees =  Tree.objects.filter(present=True).filter(geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
+        trees =  Tree.objects.filter(present=True).filter(plot__geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
         species = Species.objects.filter(tree__in=trees)
     
     if selection == 'all':
@@ -369,7 +371,7 @@ def species(request, selection='all', format='html'):
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
         
     if format == 'csv':
-        return ExcelResponse(species)
+        return ogr_conversion('CSV', str(species.query), "", name="species", geo=False)    
 
     #render to html    
     return render_to_response('treemap/species.html',RequestContext(request,{
@@ -378,6 +380,7 @@ def species(request, selection='all', format='html'):
         }))
         
 
+#TODO: is this used anywhere? Does it even do anything?
 @cache_page(60*5)    
 def top_species(request):
     Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')        
@@ -430,6 +433,7 @@ def trees(request, tree_id=''):
         raise Http404
     if request.GET.get('format','') == 'base_infowindow':
         raise Http404
+    #TODO: is this used anymore now that the plot info window is called from the map page?
     if request.GET.get('format','') == 'eco_infowindow':
         return render_to_response('treemap/tree_detail_eco_infowindow.html',RequestContext(request,{'tree':first}))
     else:
@@ -519,6 +523,7 @@ def tree_edit_choices(request, tree_id, type_):
         val = getattr(tree, type_)
         data['selected'] = val   
     else:
+        #TODO: this code looks to be defunct after switch to choices.py archetecture
         if type_ == "condition":
             sidewalks = tree.treestatus_set.filter(key="condition").order_by("-reported")
             if sidewalks.count():
@@ -538,6 +543,7 @@ def plot_edit_choices(request, plot_id, type_):
         val = getattr(plot, type_)
         data['selected'] = val   
     else:
+        #TODO: this code looks to be defunct after switch to choices.py archetecture
         if type_ == "sidewalk_damage":
             sidewalks = plot.treestatus_set.filter(key="sidewalk_damage").order_by("-reported")
             if sidewalks.count():
@@ -571,6 +577,7 @@ def tree_add_edit_photos(request, tree_id = ''):
          
 
 @login_required
+#TODO: possibly unused
 def batch_edit(request):
     return render_to_response('treemap/batch_edit.html',RequestContext(request,{ }))
 
