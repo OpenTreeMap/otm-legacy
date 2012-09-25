@@ -371,7 +371,12 @@ def species(request, selection='all', format='html'):
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
         
     if format == 'csv':
-        return ogr_conversion('CSV', str(species.query), "", name="species", geo=False)    
+        sql_object =  [{
+            "name":"species", 
+            "sql":str(species.query), 
+            "srs":'EPSG:4326'
+        }]
+        return ogr_conversion('CSV', sql_object, "", name="species", geo=False)    
 
     #render to html    
     return render_to_response('treemap/species.html',RequestContext(request,{
