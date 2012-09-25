@@ -4,6 +4,10 @@
 For updates join the announcement email list here: http://groups.google.com/group/opentreemap-user
 For issues or questions you can try mailing the user list: http://groups.google.com/group/opentreemap-user or connect with us via IRC at #opentreemap on freenode
 
+#Other Repositories
+OpenTreeMap is also available for iOS. The code is available at https://github.com/azavea/OpenTreeMap-iOS <br>
+Default graphics and config files for the OpenTreeMap iOS are available at https://github.com/azavea/OpenTreeMap-iOS-skin
+
 #Installation Instructions#
 ###Required programs:###
 * Webserver - Apache2 is recommended
