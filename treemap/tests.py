@@ -749,7 +749,7 @@ class ViewTests(TestCase):
 
         ##################################################################
         # Test geographic searches
-        #    neighborhood, zipcode 
+        #    neighborhood, zipcode, lat/lon
         #
         response = self.client.get("/search/?geoName=%s" % self.n1.name )
         req = loads(response.content)
@@ -765,12 +765,22 @@ class ViewTests(TestCase):
         req = loads(response.content)
         trees = present_trees.filter(plot__zipcode=self.z1)
         plots = present_plots.filter(zipcode=self.z1)
-
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
         self.assertEqual(req['geography']['type'], 'Polygon')
         self.assertEqual(req['geography']['name'], self.z1.zip)
         self.assertTrue('zipcode' in req['tile_query'])
+
+        response = self.client.get("/search/?lat=%d&lon=%d" % (25.0,25.0))
+        req = loads(response.content)
+        nbhood = Neighborhood.objects.filter(geometry__contains=Point(25,25))[0]
+        trees = present_trees.filter(plot__zipcode=nbhood)
+        plots = present_plots.filter(zipcode=nbhood)
+        assert_counts(trees.count(), plots.count(), req)
+        assert_benefits(req)
+        self.assertEqual(req['geography']['type'], 'Polygon')
+        self.assertEqual(req['geography']['name'], nbhood.name)
+        self.assertTrue('neighborhoods' in req['tile_query'])
 
         ##################################################################
         # Test plot data searches
@@ -1175,10 +1185,13 @@ class ViewTests(TestCase):
 
         response = self.client.get('/trees/new/%i/' % self.u.id)
         self.assertNotEqual(len(response.context['plots']), 0)
-        new_plot = response.context['plots'][0]        
-        
+        new_plot = response.context['plots'][0]
         self.assertTrue(new_plot.geocoded_address, form['geocode_address'])
-    
+        
+        response = self.client.get('/trees/new/%i/geojson/' % self.u.id)
+        json_plots = loads(response.content)
+        self.assertEqual(json_plots[0]['id'], new_plot.id)
+
         new_plot = None
 
         ##################################################################
@@ -1777,3 +1790,46 @@ class ViewTests(TestCase):
         self.assertFalse(tree.present, 'Expected "present" to be False on a deleted tree')
         for audit_trail_record in tree.history.all():
             self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted tree')
+
+
+##################################################################
+# Management page tests
+#
+
+    def test_watch_list(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        
+        response = c.post('/trees/watch/')
+        self.assertTemplateUsed(response, 'treemap/watch_list.html')
+
+    def test_user_rep_list(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        
+        response = c.get('/users/activity/')
+        self.assertTemplateUsed(response, 'treemap/rep_changes.html')
+
+    def test_comments_list(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        
+        response = c.get('/comments/all/')
+        self.assertTemplateUsed(response, 'comments/edit.html')
+
+    def test_flagged_comments_list(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        
+        response = c.get('/comments/moderate/')
+        self.assertTemplateUsed(response, 'comments/edit_flagged.html')
+
+    def test_images_list(self):
+        c = self.client
+        c.login(username='jim',password='jim')
+        
+        response = c.get('/images/')
+        self.assertTemplateUsed(response, 'treemap/images.html')
+
+
+

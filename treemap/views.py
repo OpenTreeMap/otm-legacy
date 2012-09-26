@@ -1902,7 +1902,7 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
     response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
     return response
 
-
+#TODO: not sure this is used anymore
 def geo_search(request):
     """
     Given a simple polygon in format: x1 y1,x2 y2,x3 y3,...,x1 y1
