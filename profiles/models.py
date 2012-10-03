@@ -50,7 +50,7 @@ class UserProfile(models.Model):
             if actual_plot.current_tree():
                 recent_edits.append((actual_plot.current_tree().species, actual_plot.current_tree().date_planted, p.last_updated, p.id))
             else:
-                recent_edits.append(("", p.date_planted, p.last_updated, p.id))
+                recent_edits.append(("", p.last_updated, p.id))
         return sorted(recent_edits, key=itemgetter(2), reverse=True)[:7]
 
 
