@@ -43,6 +43,9 @@ import simplejson
 class HttpBadRequestException(Exception):
     pass
 
+class HttpConflictException(Exception):
+    pass
+
 class InvalidAPIKeyException(Exception):
     pass
 
@@ -143,8 +146,12 @@ def api_call(content_type="application/json"):
             except HttpBadRequestException, bad_request:
                 response = HttpResponseBadRequest(bad_request.message)
 
+            except HttpConflictException, conflict:
+                response = HttpResponse(conflict.message)
+                response.status_code = 409
+
             return response
-            
+
         return newreq
     return decorate
 
@@ -229,8 +236,15 @@ def verify_auth(request):
 
 @require_http_methods(["POST"])
 @api_call()
+@transaction.commit_on_success
 def register(request):
     data = json.loads(request.raw_post_data)
+
+    # If a user already exists with the specified username, return a 409 Conflict
+    if User.objects.filter(username=data["username"]).count():
+        raise HttpConflictException(simplejson.dumps(
+            { "status": "failure", "id": -1, "detail": "Username %s exists" % data["username"]}
+        ))
 
     user = User(username=data["username"],
                 first_name=data["firstname"],

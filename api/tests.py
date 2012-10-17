@@ -1256,3 +1256,38 @@ class UpdatePlotAndTree(TestCase):
         response_dict = loads(response.content)
         self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
         self.assertEqual(tree.species.pk, response_dict['species'])
+
+    def test_registration(self):
+        self.assertTrue(User.objects.filter(username='foobar').count() == 0, "The test expects the foobar user to not exists.")
+        data = {
+            'username': 'foobar',
+            'firstname': 'foo',
+            'lastname': 'bar',
+            'email': 'foo@bar.com',
+            'password': 'drowssap',
+            'zipcode': 19107
+        }
+        response = post_json("%s/user/" % API_PFX, data, self.client, self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after creating user")
+        response_dict = loads(response.content)
+        self.assertTrue('status' in response_dict, 'Expected "status" to be a top level key in the response object')
+        self.assertEqual('success', response_dict['status'], 'Expected "status" to be "success"')
+        self.assertTrue(User.objects.filter(username='foobar').count() == 1, 'Expected the "foobar" user to be created.')
+
+    def test_duplicate_registration(self):
+        self.assertTrue(User.objects.filter(username='jim').count() == 1, "The test expects the jim user to exist.")
+        data = {
+            'username': 'jim',
+            'firstname': 'Jim',
+            'lastname': 'User',
+            'email': 'jim@user.com',
+            'password': 'drowssap',
+            'zipcode': 19107
+        }
+        response = post_json("%s/user/" % API_PFX, data, self.client, self.sign)
+        self.assertEqual(409, response.status_code, "Expected 409 status code after attempting to create duplicate username")
+        response_dict = loads(response.content)
+        self.assertTrue('status' in response_dict, 'Expected "status" to be a top level key in the response object')
+        self.assertEqual('failure', response_dict['status'], 'Expected "status" to be "failure"')
+        self.assertTrue('detail' in response_dict, 'Expected "detail" to be a top level key in the response object')
+        self.assertEqual('Username jim exists', response_dict['detail'])
