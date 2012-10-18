@@ -32,6 +32,7 @@ urlpatterns = patterns('',
     (r'^geocode/reverse/$', get_reverse_geocode),
     
     (r'^neighborhoods/$', geographies, {'model' : Neighborhood}),
+    (r'^neighborhoods/list/$', list_neighborhoods),
     (r'^neighborhoods/(?P<id>\d+)/$', geographies, {'model' : Neighborhood}),
     (r'^zipcodes/$', zips),
     (r'^zipcodes/(?P<id>\d+)/$', zips),
