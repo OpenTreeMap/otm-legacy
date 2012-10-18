@@ -16,9 +16,8 @@ tm.buildSpeciesList = function() {
 };
 
 tm.buildLocationList = function() {
-    $.getJSON(tm_static + 'neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
-        tm.locations = nbhoods;
-        tm.generateLocationDropdown(tm.locations);
+    $.getJSON(tm_static + 'neighborhoods/list/', {}, function(nbhoods){
+        tm.generateLocationDropdown(nbhoods);
     });
 };
 
@@ -232,9 +231,9 @@ tm.generateLocationDropdown = function(locations) {
     var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
     $("#searchNBList").append(ul).hide();
     var states = {}
-    for(var i=0; i<locations.features.length;i++) {
-        var feature = locations.features[i];
-        var st_co = feature.properties.state + "-" + feature.properties.county;
+    for(var i=0; i<locations.length;i++) {
+        var feature = locations[i];
+        var st_co = feature.state + "-" + feature.county;
         if (!states[st_co])
         {
             states[st_co] = []
@@ -248,7 +247,7 @@ tm.generateLocationDropdown = function(locations) {
         for(i=0;i<entries.length;i++) {
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
-            var name = entries[i].properties.name;
+            var name = entries[i].name;
             ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
         }
     }
@@ -269,8 +268,8 @@ tm.generateLocationDropdown = function(locations) {
             select_nh.append("<option class='header' disabled='disabled'>" + state + " County</li>")
             var entries = states[state];
             for(i=0;i<entries.length;i++) {
-                var name = entries[i].properties.name;
-                var id = entries[i].properties.id;
+                var name = entries[i].name;
+                var id = entries[i].id;
                 select_nh.append("<option value='" + id + "' >" + name + "</li>")
             }
         }

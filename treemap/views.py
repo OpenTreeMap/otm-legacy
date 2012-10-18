@@ -80,6 +80,19 @@ def user_activated_callback(sender, **kwargs):
     #print rep
 user_activated.connect(user_activated_callback)
 
+def list_neighborhoods(request):
+    n = Neighborhood.objects.all().defer('geometry')
+    ns = []
+    for hood in n:
+        ns.append({
+            'name': hood.name,
+            'region_id': hood.region_id,
+            'city': hood.city,
+            'county': hood.county,
+            'state': hood.state })
+
+    return render_to_json(ns)
+
 #@cache_page(60*5)
 # Static pages have user information in them, so caching them doesn't work.
 def static(request, template, subdir="treemap"):
