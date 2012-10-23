@@ -906,7 +906,7 @@ def tree_resource_to_dict(tr):
         "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, "lbs") }
     
 def with_unit(val,dollar_factor,unit,dollar=None):
-    if not dollar:
+    if dollar is None:
         dollar = dollar_factor * val
 
     return { "value": val, "unit": unit, "dollars": dollar }
