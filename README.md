@@ -2,7 +2,9 @@
 
 #Updates? Issues? Questions?#
 For updates join the announcement email list here: http://groups.google.com/group/opentreemap-user
-For issues or questions you can try mailing the user list: http://groups.google.com/group/opentreemap-user or connect with us via IRC at #opentreemap on freenode
+For issues or questions you can try mailing the user list: http://groups.google.com/group/opentreemap-user or connect with us via IRC at #opentreemap on freenode (freenode.net).
+
+This is v1.2 of OpenTreeMap, the most recent production release. Curious what's new? Check out the release notes here: https://gist.github.com/3953787
 
 #Other Repositories
 OpenTreeMap is also available for iOS. The code is available at https://github.com/azavea/OpenTreeMap-iOS <br>
