@@ -81,7 +81,7 @@ def user_activated_callback(sender, **kwargs):
 user_activated.connect(user_activated_callback)
 
 def list_neighborhoods(request):
-    n = Neighborhood.objects.all().defer('geometry')
+    n = Neighborhood.objects.all().defer('geometry').order_by('state','county','name')
     ns = []
     for hood in n:
         ns.append({
