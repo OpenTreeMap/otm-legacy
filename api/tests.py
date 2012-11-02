@@ -26,6 +26,7 @@ from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPendin
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict
 
+import os
 import struct
 import base64
 
@@ -37,6 +38,16 @@ def create_signer_dict(user):
 
     return { "HTTP_X_API_KEY": key.key }
 
+def _get_path(parsed_url):
+    """
+    Taken from a class method in the Django test client
+    """
+    # If there are parameters, add them
+    if parsed_url[3]:
+        return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
+    else:
+        return urllib.unquote(parsed_url[2])
+
 def send_json_body(url, body_object, client, method, sign_dict=None):
     """
     Serialize a list or dictionary to JSON then send it to an endpoint.
@@ -44,16 +55,6 @@ def send_json_body(url, body_object, client, method, sign_dict=None):
     are posting form data, so you need to manually setup the parameters
     to override that default functionality.
     """
-    def _get_path(parsed_url):
-        """
-        Taken from a class method in the Django test client
-        """
-        # If there are parameters, add them
-        if parsed_url[3]:
-            return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
-        else:
-            return urllib.unquote(parsed_url[2])
-
     body_string = dumps(body_object)
     body_stream = StringIO(body_string)
     parsed_url = urlparse(url)
@@ -65,11 +66,26 @@ def send_json_body(url, body_object, client, method, sign_dict=None):
         'REQUEST_METHOD': method,
         'wsgi.input': body_stream,
     }
+    return _send_with_client_params(url, client, client_params, sign_dict)
 
+def send_binary_body(url, body_stream, size, content_type, client, method, sign_dict=None):
+    parsed_url = urlparse(url)
+    client_params = {
+        'CONTENT_LENGTH': size,
+        'CONTENT_TYPE': content_type,
+        'PATH_INFO': _get_path(parsed_url),
+        'QUERY_STRING': parsed_url[4],
+        'REQUEST_METHOD': method,
+        'wsgi.input': body_stream,
+    }
+    return _send_with_client_params(url, client, client_params, sign_dict)
+
+def _send_with_client_params(url, client, client_params, sign_dict=None):
     if sign_dict is not None:
         client_params.update(sign_dict)
 
     return client.post(url, **client_params)
+
 
 def post_json(url, body_object, client, sign_dict=None):
     """
@@ -79,6 +95,22 @@ def post_json(url, body_object, client, sign_dict=None):
     to override that default functionality.
     """
     return send_json_body(url, body_object, client, 'POST', sign_dict)
+
+def post_jpeg_file(url, file_path, client, sign_dict):
+    return _post_binary_file(url, file_path, 'image/jpeg', client, sign_dict)
+
+def post_png_file(url, file_path, client, sign_dict):
+    return _post_binary_file(url, file_path, 'image/png', client, sign_dict)
+
+def _post_binary_file(url, file_path, content_type, client, sign_dict=None):
+    stat = os.stat(file_path)
+    response = None
+    f = open(file_path, 'rb')
+    try:
+        response = send_binary_body(url, f, stat.st_size, content_type, client, 'POST', sign_dict)
+    finally:
+        f.close()
+    return response
 
 def put_json(url, body_object, client, sign_dict=None):
     return send_json_body(url, body_object, client, 'PUT', sign_dict)
@@ -1322,3 +1354,56 @@ class Resource(TestCase):
 
         resource_dict = tree_resource_to_dict(tr)
         self.assertIsNotNone(resource_dict)
+
+class TreePhoto(TestCase):
+
+    def setUp(self):
+        setupTreemapEnv()
+        self.user = User.objects.get(username="jim")
+        self.user.set_password("password")
+        self.user.save()
+        self.sign = create_signer_dict(self.user)
+        auth = base64.b64encode("jim:password")
+        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        self.test_jpeg_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.jpeg')
+        self.test_png_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.png')
+
+        def assertSuccessfulResponse(response):
+            self.assertIsNotNone(response)
+            self.assertIsNotNone(response.content)
+            response_dict = loads(response.content)
+            self.assertTrue('status' in response_dict)
+            self.assertEqual('success', response_dict['status'])
+        self.assertSuccessfulResponse = assertSuccessfulResponse
+
+    def tearDown(self):
+        teardownTreemapEnv()
+
+    def test_jpeg_tree_photo_file_name(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+        response = post_jpeg_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_jpeg_path,
+            self.client, self.sign)
+
+        self.assertSuccessfulResponse(response)
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = plot.current_tree()
+        self.assertIsNotNone(tree)
+        photo = tree.treephoto_set.all()[0]
+        self.assertEqual('plot_%d.jpeg' % plot_id, photo.title)
+
+    def test_png_tree_photo_file_name(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+        response = post_png_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_png_path,
+            self.client, self.sign)
+
+        self.assertSuccessfulResponse(response)
+
+        plot = Plot.objects.get(pk=plot_id)
+        tree = plot.current_tree()
+        self.assertIsNotNone(tree)
+        photo = tree.treephoto_set.all()[0]
+        self.assertEqual('plot_%d.png' % plot_id, photo.title)

@@ -266,8 +266,12 @@ def register(request):
 @api_call()
 @login_required
 def add_tree_photo(request, plot_id):
+    content_type = request.META.get('CONTENT_TYPE')
+    if not content_type:
+        content_type = "image/png" # Older versions of the iOS client sent PNGs exclusively
+    file_type = content_type.lower().split('/')[-1]
     uploaded_image = ContentFile(request.raw_post_data)
-    uploaded_image.name = "plot_%s.png" % plot_id
+    uploaded_image.name = "plot_%s.%s" % (plot_id, file_type)
 
     plot = Plot.objects.get(pk=plot_id)
     tree = plot.current_tree()
@@ -280,7 +284,7 @@ def add_tree_photo(request, plot_id):
         tree.save()
 
     treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=request.user)
-    treephoto.photo.save("plot_%s.png" % plot_id, uploaded_image)
+    treephoto.photo.save("plot_%s.%s" % (plot_id, file_type), uploaded_image)
 
     treephoto.save()
 
