@@ -797,6 +797,8 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
     canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["canopy_conditions"])
 
     readonly = models.BooleanField(default=False)
+    url = models.URLField(max_length=255, null=True, blank=True)
+    pests = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["pests"])
 
     def has_common_attributes(self):
         if self.get_flag_count > 0:
@@ -811,11 +813,20 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         return "/trees/%i/" % self.id
     
 
-    def get_condition_display(self):
-        for key, value in settings.CHOICES["conditions"]:
-            if key == self.condition:
+    def get_display(self, choices, val):
+        for key, value in settings.CHOICES[choices]:
+            if key == val:
                 return value
         return None
+
+    def get_condition_display(self):
+        return self.get_display("conditions", self.condition)
+
+    def get_canopy_condition_display(self):
+        return self.get_display("canopy_condition", self.canopy_condition)
+
+    def get_pests_display(self):
+        return self.get_display("pests",self.pests)
        
     def get_scientific_name(self):
         if self.species:
