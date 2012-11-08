@@ -6,6 +6,20 @@ from django.template import Library, Node
 from django.db.models import get_model
      
 register = Library()
+
+@register.filter
+def gal2litres(value):
+    if value:
+        return value * 3.78541
+    else:
+        return value
+
+@register.filter
+def lbs2kgs(value):
+    if value:
+        return value * 0.453592
+    else:
+        return value
      
 @register.filter
 def unit_or_missing(value, unit=None):
