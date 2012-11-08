@@ -49,6 +49,7 @@ class TreeAddForm(forms.Form):
     plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
+    pests = forms.ChoiceField(choices=settings.CHOICES['pests'], required=False)
     plot_type = forms.TypedChoiceField(choices=settings.CHOICES["plot_types"], required=False)
     power_lines = forms.TypedChoiceField(choices=settings.CHOICES["powerlines"], required=False)
     sidewalk_damage = forms.ChoiceField(choices=settings.CHOICES["sidewalks"], required=False)
@@ -60,6 +61,7 @@ class TreeAddForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
         if not self.fields['plot_type'].choices[0][0] == '':        
+            self.fields['pests'].choices.insert(0, ('','Select One...' ) )
             self.fields['plot_type'].choices.insert(0, ('','Select One...' ) )
             self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
@@ -165,7 +167,9 @@ class TreeAddForm(forms.Form):
         canopy_condition = self.cleaned_data.get('canopy_condition')
 
         #TODO: fix this
-        if species or height or canopy_height or dbh or condition or canopy_condition:
+        pests = self.cleaned_data.get('pests')
+        if species or height or canopy_height or dbh or \
+           condition or canopy_condition or pests:
            # print species, height, canopy_height, dbh, condition, canopy_condition
             if species:
                 spp = Species.objects.filter(id=species)
@@ -175,6 +179,8 @@ class TreeAddForm(forms.Form):
                     new_tree = Tree()
             else:
                 new_tree = Tree()
+
+            new_tree.pests = pests
 
             if species_other1:
                 new_tree.species_other1 = species_other1
