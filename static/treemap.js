@@ -34,6 +34,8 @@ tm = {
 
     searchParams: {},
 
+    benefitUnitTransformer: function(k,v) { return v; },
+
     //initializes the map where a user places a new tree    
     get_icon: function(type, size) {
         var size = new OpenLayers.Size(size, size);
@@ -87,8 +89,8 @@ tm = {
         {
             $("#no_results").show();
         }   
-    },
-        
+    },         
+
     display_summaries : function(summaries){
         $(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
         $(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
@@ -100,11 +102,11 @@ tm = {
             $(".moretrees").html("");
             $(".notrees").html("");
         }
-        
         $.each(summaries, function(k,v){
             var span = $('#' + k);
             if (span.length > 0){
-                span.html(tm.addCommas(parseInt(v)));
+                span.html(tm.addCommas(
+                    tm.benefitUnitTransformer(k,parseInt(v))));
             }
         });
 
