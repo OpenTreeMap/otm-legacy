@@ -1568,6 +1568,13 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.filter(sidewalk_damage__in=s_list)
         
 
+    pests = [k.split("_")[1] for (k,v) in request.GET.items() if "pests_" in k and v]
+    if pests:
+        pests_cql = ["pests = %s" % k for k in pests]
+        tile_query.append("(" + " OR ".join(pests_cql) + ")")
+        trees = trees.filter(pests__in=pests)
+        plots = plots.filter(tree__pests__in=pests)
+
     missing_powerlines = request.GET.get("missing_powerlines", '')
     if missing_powerlines:
         trees = trees.filter(plot__powerline_conflict_potential__isnull=True)
@@ -1676,6 +1683,30 @@ def _build_tree_search_result(request, with_benefits=True):
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)
             plots = plots.filter(tree__condition__in=c_list)
+
+    missing_canopy_condition = request.GET.get("missing_canopy_condition", '')
+    if missing_canopy_condition:
+        trees = trees.filter(canopy_condition__isnull=True)
+        plots = plots.filter(tree__canopy_condition__isnull=True)
+        tile_query.append("canopy_condition IS NULL")
+    else:   
+        c_cql = []
+        c_list = []
+        for k, v in settings.CHOICES["canopy_conditions"]:
+            get_key = "canopy_%s" % k
+            if get_key in request.GET:
+                c_list.append(k)
+                c_cql.append("condition = " + k)
+        if len(c_cql) > 0:
+            tile_query.append("(" + " OR ".join(c_cql) + ")")
+            trees = trees.filter(canopy_condition__in=c_list)
+            plots = plots.filter(tree__canopy_condition__in=c_list)
+
+    tree_owner = request.GET.get("tree_owner", "")
+    if tree_owner:
+        trees = trees.filter(tree_owner__icontains=tree_owner)
+        plots = plots.filter(tree__tree_owner__icontains=tree_owner)
+        tile_query.append("tree_owner LIKE '%" + tree_owner + "%'")
 
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
