@@ -284,9 +284,10 @@ class Version(TestCase):
 
         self.assertEqual(json["otm_version"], settings.OTM_VERSION)
         self.assertEqual(json["api_version"], settings.API_VERSION)
-        
-        def tearDown(self):
-            tearDownTreemapEnv()
+
+    def tearDown(self):
+        tearDownTreemapEnv()
+
 
 class TileRequest(TestCase):
     def setUp(self):
