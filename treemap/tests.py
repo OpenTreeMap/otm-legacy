@@ -844,8 +844,8 @@ class ViewTests(TestCase):
         plot_range = [3, 11]      
         response = self.client.get("/search/?plot_range=%s-%s" % (plot_range[0], plot_range[1]) )
         req = loads(response.content)
-        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__length__lte=plot_range[1]))
-        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(length__lte=plot_range[1]))
+        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__width__lte=plot_range[1]))
+        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(width__lte=plot_range[1]))
 
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
