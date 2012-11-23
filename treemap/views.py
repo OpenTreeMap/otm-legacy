@@ -1480,6 +1480,77 @@ def added_today_list(request, user_id=None, format=None):
         'plots' : plots,
         'user': user}))
 
+def apply_stewardship_filter(request, trees, plots, tile_query):
+    stewardship_reverse = request.get('stewardship_reverse',False) == "true"
+
+    if 'stewardship_range' in request:
+        (start_date, end_date) = [datetime.utcfromtimestamp(float(z))
+                                  for z in request['stewardship_range'].split('-')]
+
+    def tile_query_for_stewardship_actions(actions, tree_or_plot):
+        tq = []
+        for a in actions:
+            if stewardship_reverse:
+                tq.append(
+                    "%s_stewardship_%s IS NOT NULL" % (tree_or_plot,a))
+            else:
+                tq.append(
+                    "%s_stewardship_%s IS NOT NULL" % (tree_or_plot,a))
+
+                if start_date and end_date:
+                    tq.append(
+                        "%(tree)s_stewardship_%(action)s AFTER %(start)sZ AND "
+                        "%(tree)s_stewardship_%(action)s BEFORE %(end)sZ" %
+                        { "action": a, 
+                          "start": start_date.isoformat(),
+                          "end": end_date.isoformat(),
+                          "tree": tree_or_plot })
+        return tq
+
+    if 'tree_stewardship' in request:
+        tree_stewardship = request['tree_stewardship']
+        actions = tree_stewardship.split(',')
+
+        steward_ids = Stewardship.trees_with_activities(actions)
+        tile_query += tile_query_for_stewardship_actions(actions, "tree")
+            
+        if stewardship_reverse:
+            trees = trees.filter(id__in=steward_ids)  
+        else:
+            trees = trees.exclude(id__in=steward_ids)
+
+        if start_date and end_date:
+            trees = trees.exclude(
+                treestewardship__performed_date__lte=start_date,
+                treestewardship__performed_date__gte=end_date)
+
+        # Also not clear why this goes here...
+        # reset plots search?
+        plots = Plot.objects.filter(present=True).filter(tree__in=trees)
+        
+    if 'plot_stewardship' in request:
+        plot_stewardship = request["plot_stewardship"]
+        actions = plot_stewardship.split(',')
+
+        steward_ids = Stewardship.plots_with_activities(actions)
+        tile_query += tile_query_for_stewardship_actions(actions, "plot")
+
+        if stewardship_reverse:
+            plots = plots.filter(id__in=steward_ids)
+        else:
+            plots = plots.exclude(id__in=steward_ids)
+
+        if start_date and end_date:
+            plots = plots.exclude(
+                plotstewardship__performed_date__lte=start_date,
+                plotstewardship__performed_date__gte=end_date)
+
+        # Not sure why this goes in under the plot_stewardship
+        # if block....
+        trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"}).filter(plot__in=plots)
+
+    return (trees, plots, tile_query)
+
 
 def _build_tree_search_result(request, with_benefits=True):
     # todo - optimize! OMG Clean it up! >.<
@@ -1777,51 +1848,8 @@ def _build_tree_search_result(request, with_benefits=True):
     else:
         stewardship_reverse = ""
 
-    stewardship_range = request.GET.get("stewardship_range", "") 
-    if stewardship_range:
-        st_min, st_max = map(float,stewardship_range.split("-"))
-        st_min = datetime.utcfromtimestamp(st_min)
-        st_max = datetime.utcfromtimestamp(st_max)
+    (trees, plots, tile_query) = apply_stewardship_filter(request.GET, trees, plots, tile_query)
 
-    tree_stewardship = request.GET.get("tree_stewardship", "")
-    if tree_stewardship:
-        actions = tree_stewardship.split(',')
-        steward_ids = [s.tree_id for s in TreeStewardship.objects.order_by("tree__id").distinct("tree__id")]
-        for a in actions:
-            tile_query.append("tree_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
-            steward_ids = [s.tree_id for s in TreeStewardship.objects.filter(tree__id__in=steward_ids).filter(activity=a)]
-            if stewardship_range:
-                tile_query.append("tree_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND tree_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z") 
-            
-        if stewardship_reverse:
-            trees = trees.filter(id__in=steward_ids)  
-        else:
-            trees = trees.exclude(id__in=steward_ids)
-        if stewardship_range:
-            trees = trees.exclude(treestewardship__performed_date__lte=st_min)
-            trees = trees.exclude(treestewardship__performed_date__gte=st_max)
-
-        plots = Plot.objects.filter(present=True).filter(tree__in=trees)
-        
-    plot_stewardship = request.GET.get("plot_stewardship", "")
-    if plot_stewardship:
-        actions = plot_stewardship.split(',')
-        steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
-        for a in actions:
-            tile_query.append("plot_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
-            steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=a)] 
-            if stewardship_range:
-                tile_query.append("plot_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND plot_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z")
-        if stewardship_reverse:
-            plots = plots.filter(id__in=steward_ids)
-        else:
-            plots = plots.exclude(id__in=steward_ids)
-        if stewardship_range:
-            plots = plots.exclude(plotstewardship__performed_date__lte=st_min)
-            plots = plots.exclude(plotstewardship__performed_date__gte=st_max)   
-
-        trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"}).filter(plot__in=plots)
-        
     agg_object = None
     
     if with_benefits:        

@@ -31,11 +31,6 @@ import tempfile
 import zipfile
 import shutil
 
-class ModelTests(TestCase):
-
-    def test_plot_validate(self):
-        pass
-
 class ViewTests(TestCase):
 
     def setUp(self):
@@ -300,6 +295,54 @@ class ViewTests(TestCase):
 
         for r in self.ra:
             r.delete();
+
+
+##############################################
+#  Stewardship raw sql tests
+
+    def test_stewardship(self):
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        # Two actions at different times
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set())
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t2,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk, self.t2.pk]))
+
+        trees = Stewardship.trees_with_activities(["test"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk]))
+            
+        
 
 ##############################################
 #  Assertion helpers

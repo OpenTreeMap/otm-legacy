@@ -65,6 +65,10 @@ CHOICES = {
                 ("2","Adding a Guard"),
                 ("3","Removing a Guard"),
                 ("4","Herbaceous Planting")
+            ],
+            'pests': [
+                ("1", "Devil of Doom"),
+                ("2", "Spidermonkey")
             ]
     }
 
