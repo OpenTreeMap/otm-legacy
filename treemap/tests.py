@@ -31,11 +31,6 @@ import tempfile
 import zipfile
 import shutil
 
-class ModelTests(TestCase):
-
-    def test_plot_validate(self):
-        pass
-
 class ViewTests(TestCase):
 
     def setUp(self):
@@ -300,6 +295,54 @@ class ViewTests(TestCase):
 
         for r in self.ra:
             r.delete();
+
+
+##############################################
+#  Stewardship raw sql tests
+
+    def test_stewardship(self):
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        # Two actions at different times
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set())
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t2,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk, self.t2.pk]))
+
+        trees = Stewardship.trees_with_activities(["test"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk]))
+            
+        
 
 ##############################################
 #  Assertion helpers
@@ -801,8 +844,8 @@ class ViewTests(TestCase):
         plot_range = [3, 11]      
         response = self.client.get("/search/?plot_range=%s-%s" % (plot_range[0], plot_range[1]) )
         req = loads(response.content)
-        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__length__lte=plot_range[1]))
-        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(length__lte=plot_range[1]))
+        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__width__lte=plot_range[1]))
+        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(width__lte=plot_range[1]))
 
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
