@@ -1208,6 +1208,37 @@ class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
     performed_date = models.DateTimeField()
 
+    @classmethod
+    def thing_with_activities(clazz, actions, idfld):
+        count = len(actions)
+        actions = ",".join(["'%s'" % z for z in actions])
+
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT %(tree_or_plot)s_id
+            FROM treemap_%(tree_or_plot)sstewardship 
+            WHERE activity in ( %(activities)s )
+            GROUP BY %(tree_or_plot)s_id
+            HAVING COUNT(DISTINCT activity) = %(count)d
+            """ % {
+                "tree_or_plot": idfld,
+                "activities": actions,
+                "count": count
+            })
+
+        return [k[0] for k in cursor.fetchall()]
+
+    @classmethod
+    def trees_with_activities(clazz, actions):
+        return Stewardship.thing_with_activities(actions, "tree")
+
+    @classmethod
+    def plots_with_activities(clazz, actions):
+        return Stewardship.thing_with_activities(actions, "plot")
+
     class Meta:
         ordering = ["performed_date"]
 
