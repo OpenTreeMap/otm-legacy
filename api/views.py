@@ -38,7 +38,11 @@ import struct
 import ctypes
 import math
 
-import simplejson 
+import simplejson
+
+from copy import deepcopy
+
+from decimal import *
 
 class HttpBadRequestException(Exception):
     pass
@@ -329,7 +333,9 @@ def recent_edits(request, user_id):
         d["plot_id"] = plot_id
 
         if plot_id:
-            d["plot"] = plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
+            d["plot"] = convert_response_plot_dict_choice_values(request,
+                plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
+            )
 
         d["id"] = act.pk
         d["name"] = act.action.name
@@ -648,7 +654,7 @@ def get_plot_list(request):
     # order_by prevents testing weirdness
     plots = Plot.objects.filter(present=True).order_by('id')[start:end]
 
-    return plots_to_list_of_dict(plots,user=request.user)
+    return [convert_response_plot_dict_choice_values(request, plot) for plot in plots_to_list_of_dict(plots,user=request.user)]
 
 @require_http_methods(["GET"])
 @api_call()
@@ -725,7 +731,7 @@ def plots_closest_to_point(request, lat=None, lon=None):
         sort_recent=sort_recent, sort_pending=sort_pending,
         has_tree=has_tree, has_species=has_species, has_dbh=has_dbh)
 
-    return plots_to_list_of_dict(plots, longform=True, user=request.user)
+    return [convert_response_plot_dict_choice_values(request, plot) for plot in plots_to_list_of_dict(plots, longform=True, user=request.user)]
 
 def str2bool(ahash, akey):
     if akey in ahash:
@@ -881,6 +887,61 @@ def plot_to_dict(plot,longform=False,user=None):
 
     return base
 
+
+def convert_response_plot_dict_choice_values(request, plot_dict):
+    return convert_plot_dict_choice_values(request, plot_dict, 'reverse')
+
+
+def convert_request_plot_dict_choice_values(request, plot_dict):
+    return convert_plot_dict_choice_values(request, plot_dict, 'forward')
+
+
+def convert_plot_dict_choice_values(request, plot_dict, direction):
+
+    if direction not in ['forward', 'reverse']:
+        raise ValueError('direction argument must be "forward" or "reverse"')
+
+    # TODO: Convert pending edit values
+
+    # The list of attributes that are nested under the 'tree' key in the plot dict
+    TREE_ATTRS = ['condition', 'canopy_condition']
+    # A map from the Django model atrributes to serialized attribute names
+    ATTR_TO_KEY = {
+        'powerline_conflict_potential': 'power_lines'
+    }
+    converted_plot_dict = deepcopy(plot_dict)
+    if settings.CHOICE_CONVERSIONS:
+        for attr in settings.CHOICE_CONVERSIONS.keys():
+            if _attribute_requires_conversion(request, attr):
+                if attr in ATTR_TO_KEY.keys():
+                    dict_key = ATTR_TO_KEY[attr]
+                else:
+                    dict_key = attr
+
+                conversions = settings.CHOICE_CONVERSIONS[attr][direction]
+
+                if attr in TREE_ATTRS:
+                    if converted_plot_dict['tree']:
+                        value = converted_plot_dict['tree'].get(dict_key, None)
+                    else:
+                        value = None
+                else:
+                    value = converted_plot_dict.get(dict_key, None)
+
+                if value is not None:
+                    for (a, b) in conversions:
+                        if str(value) == str(a):
+                            value = b
+                            break
+
+                    if attr in TREE_ATTRS:
+                        converted_plot_dict['tree'][dict_key] = value
+                    else:
+                        converted_plot_dict[dict_key] = value
+
+    return converted_plot_dict
+
+
 def tree_resource_to_dict(tr):
     b = BenefitValues.objects.all()[0]
 
@@ -1027,6 +1088,9 @@ def create_plot_optional_tree(request):
     # Unit tests fail to access request.raw_post_data
     request_dict = json_from_request(request)
 
+    # Convert any 'legacy' choice values
+    request_dict = convert_request_plot_dict_choice_values(request, request_dict)
+
     # The Django form used to validate and save plot and tree information expects
     # a flat dictionary. Allowing the tree and geometry details to be in nested
     # dictionaries in API calls clarifies, to API clients, the distinction between
@@ -1062,7 +1126,7 @@ def create_plot_optional_tree(request):
         change_reputation_for_user(request.user, 'add plot', new_plot)
 
     response.status_code = 201
-    new_plot = plot_to_dict(Plot.objects.get(pk=new_plot.id),longform=True,user=request.user)
+    new_plot = convert_response_plot_dict_choice_values(request, plot_to_dict(Plot.objects.get(pk=new_plot.id),longform=True,user=request.user))
     response.content = json.dumps(new_plot)
     return response
 
@@ -1070,7 +1134,9 @@ def create_plot_optional_tree(request):
 @api_call()
 @login_optional
 def get_plot(request, plot_id):
-    return plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
+    return convert_response_plot_dict_choice_values(request,
+        plot_to_dict(Plot.objects.get(pk=plot_id), longform=True, user=request.user)
+    )
 
 def compare_fields(v1,v2):
     if v1 is None:
@@ -1082,10 +1148,78 @@ def compare_fields(v1,v2):
     except ValueError:
         return v1 == v2
 
+
+def _parse_application_version_header_as_dict(request):
+    if request is None:
+        return None
+
+    app_version = {
+        'platform': 'UNKNOWN',
+        'version': 'UNKNOWN',
+        'build': 'UNKNOWN'
+    }
+
+    version_string = request.META.get("HTTP_APPLICATIONVERSION", '')
+    if version_string == '':
+        return app_version
+
+    segments = version_string.rsplit('-')
+    if len(segments) >= 1:
+        app_version['platform'] = segments[0]
+    if len(segments) >= 2:
+        app_version['version'] = segments[1]
+    if len(segments) >= 3:
+        app_version['build'] = segments[2]
+
+    return app_version
+
+
+def _attribute_requires_conversion(request, attr):
+    if attr is None:
+        return False
+
+    if settings.CHOICE_CONVERSIONS and attr in settings.CHOICE_CONVERSIONS:
+        conversion = settings.CHOICE_CONVERSIONS[attr]
+        app_version = _parse_application_version_header_as_dict(request)
+        if 'version-threshold' in conversion \
+        and app_version['platform'] in conversion['version-threshold']:
+            threshold = conversion['version-threshold'][app_version['platform']]
+            return Decimal(app_version['version']) < Decimal(threshold)
+        else:
+            # If a version threshold is not defined for the platform specified in the
+            # ApplicationVersion header or the ApplicationVersion header is missing
+            # or does not match anything
+            return True
+    else:
+        # If CHOICE_CONVERSIONS is not definied in settings or the CHOICE_CONVERSIONS
+        # hash does not contain the attribute name then no conversion is required
+        return False
+
+
 @require_http_methods(["PUT"])
 @api_call()
 @login_required
 def update_plot_and_tree(request, plot_id):
+
+    def set_attr_with_choice_correction(request, model, attr, value):
+        if _attribute_requires_conversion(request, attr):
+            conversions = settings.CHOICE_CONVERSIONS[attr]['forward']
+            for (old, new) in conversions:
+                if str(value) == str(old):
+                    value = new
+                    break
+        setattr(model, attr, value)
+
+    def get_attr_with_choice_correction(request, model, attr):
+        value = getattr(model, attr)
+        if _attribute_requires_conversion(request, attr):
+            conversions = settings.CHOICE_CONVERSIONS[attr]['reverse']
+            for (new, old) in conversions:
+                if str(value) == str(new):
+                    value = old
+                    break
+        return value
+
     response = HttpResponse()
     try:
         plot = Plot.objects.get(pk=plot_id)
@@ -1116,13 +1250,13 @@ def update_plot_and_tree(request, plot_id):
             else:
                 new_name = plot_field_name
             new_value = request_dict[plot_field_name]
-            if not compare_fields(getattr(plot, new_name), new_value):
+            if not compare_fields(get_attr_with_choice_correction(request, plot, new_name), new_value):
                 if should_create_plot_pends:
                     plot_pend = PlotPending(plot=plot)
                     plot_pend.set_create_attributes(request.user, new_name, new_value)
                     plot_pend.save()
                 else:
-                    setattr(plot, new_name, new_value)
+                    set_attr_with_choice_correction(request, plot, new_name, new_value)
                     plot_was_edited = True
 
     # TODO: Standardize on lon or lng
@@ -1185,13 +1319,13 @@ def update_plot_and_tree(request, plot_id):
                     response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
-                if not compare_fields(getattr(tree, tree_field.name), request_dict[tree_field.name]):
+                if not compare_fields(get_attr_with_choice_correction(request, tree, tree_field.name), request_dict[tree_field.name]):
                     if should_create_tree_pends:
                         tree_pend = TreePending(tree=tree)
                         tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
                         tree_pend.save()
                     else:
-                        setattr(tree, tree_field.name, request_dict[tree_field.name])
+                        set_attr_with_choice_correction(request, tree, tree_field.name, request_dict[tree_field.name])
                         tree_was_edited = True
 
     if tree_was_edited:
@@ -1209,7 +1343,7 @@ def update_plot_and_tree(request, plot_id):
         change_reputation_for_user(request.user, 'edit tree', tree)
 
     full_plot = Plot.objects.get(pk=plot.id)
-    return_dict = plot_to_dict(full_plot, longform=True,user=request.user)
+    return_dict = convert_response_plot_dict_choice_values(request, plot_to_dict(full_plot, longform=True,user=request.user))
     response.status_code = 200
     response.content = simplejson.dumps(return_dict)
     return response
@@ -1230,7 +1364,7 @@ def approve_pending_edit(request, pending_edit_id):
         change_reputation_for_user(pend.submitted_by, 'edit plot', pend.plot, change_initiated_by_user=pend.updated_by)
         updated_plot = Plot.objects.get(pk=pend.plot.id)
 
-    return plot_to_dict(updated_plot, longform=True)
+    return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True))
 
 @require_http_methods(["POST"])
 @api_call()
@@ -1243,7 +1377,7 @@ def reject_pending_edit(request, pending_edit_id):
         updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
     else: # model == 'Plot'
         updated_plot = Plot.objects.get(pk=pend.plot.id)
-    return plot_to_dict(updated_plot, longform=True)
+    return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True))
 
 
 @require_http_methods(["DELETE"])
@@ -1269,7 +1403,7 @@ def remove_current_tree_from_plot(request, plot_id):
         if can_delete_tree_or_plot(tree, request.user):
             tree.remove()
             updated_plot = Plot.objects.get(pk=plot_id)
-            return plot_to_dict(updated_plot, longform=True, user=request.user)
+            return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True, user=request.user))
         else:
             raise PermissionDenied('%s does not have permission to the current tree from plot %s' % (request.user.username, plot_id))
     else:
@@ -1280,7 +1414,9 @@ def remove_current_tree_from_plot(request, plot_id):
 def get_current_tree_from_plot(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
     if  plot.current_tree():
-        plot_dict = plot_to_dict(plot, longform=True)
+        plot_dict = convert_response_plot_dict_choice_values(request,
+            plot_to_dict(plot, longform=True)
+        )
         return plot_dict['tree']
     else:
         raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
