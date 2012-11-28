@@ -897,11 +897,12 @@ def convert_request_plot_dict_choice_values(request, plot_dict):
 
 
 def convert_plot_dict_choice_values(request, plot_dict, direction):
-
     if direction not in ['forward', 'reverse']:
         raise ValueError('direction argument must be "forward" or "reverse"')
 
-    # TODO: Convert pending edit values
+    # If no conversions are defined, bail out quickly since no work has to be done
+    if not hasattr(settings, 'CHOICE_CONVERSIONS'):
+        return plot_dict
 
     # The list of attributes that are nested under the 'tree' key in the plot dict
     TREE_ATTRS = ['condition', 'canopy_condition']
@@ -909,35 +910,61 @@ def convert_plot_dict_choice_values(request, plot_dict, direction):
     ATTR_TO_KEY = {
         'powerline_conflict_potential': 'power_lines'
     }
+
     converted_plot_dict = deepcopy(plot_dict)
-    if settings.CHOICE_CONVERSIONS:
-        for attr in settings.CHOICE_CONVERSIONS.keys():
-            if _attribute_requires_conversion(request, attr):
-                if attr in ATTR_TO_KEY.keys():
-                    dict_key = ATTR_TO_KEY[attr]
-                else:
-                    dict_key = attr
 
-                conversions = settings.CHOICE_CONVERSIONS[attr][direction]
+    for attr in [x for x in settings.CHOICE_CONVERSIONS.keys() if _attribute_requires_conversion(request, x)]:
+        if attr in ATTR_TO_KEY.keys():
+            dict_key = ATTR_TO_KEY[attr]
+        else:
+            dict_key = attr
 
-                if attr in TREE_ATTRS:
-                    if converted_plot_dict['tree']:
-                        value = converted_plot_dict['tree'].get(dict_key, None)
-                    else:
-                        value = None
-                else:
-                    value = converted_plot_dict.get(dict_key, None)
+        conversions = settings.CHOICE_CONVERSIONS[attr][direction]
 
+        def do_conversion(value):
+            if value is not None:
+                for (a, b) in conversions:
+                    if str(value) == str(a):
+                        value = b
+                        break
+            return value
+
+        # Regular fields
+        if attr in TREE_ATTRS:
+            if 'tree' in converted_plot_dict and converted_plot_dict['tree'] is not None:
+                value = do_conversion(converted_plot_dict['tree'].get(dict_key, None))
+            else:
+                value = None
+        else:
+            value = do_conversion(converted_plot_dict.get(dict_key, None))
+
+        if value is not None:
+            if attr in TREE_ATTRS:
+                converted_plot_dict['tree'][dict_key] = value
+            else:
+                converted_plot_dict[dict_key] = value
+
+        # Pending edits
+        if 'pending_edits' in converted_plot_dict:
+            if attr in TREE_ATTRS:
+                pend_key = 'tree.' + dict_key
+            else:
+                pend_key = dict_key
+
+            pend_field_dict = converted_plot_dict['pending_edits'].get(pend_key, None)
+            if pend_field_dict is not None:
+                # Update the latest value
+                value = do_conversion(pend_field_dict.get('latest_value', None))
                 if value is not None:
-                    for (a, b) in conversions:
-                        if str(value) == str(a):
-                            value = b
-                            break
+                    pend_field_dict['latest_value'] = value
 
-                    if attr in TREE_ATTRS:
-                        converted_plot_dict['tree'][dict_key] = value
-                    else:
-                        converted_plot_dict[dict_key] = value
+                # Update each pending value
+                pend_values_dicts = pend_field_dict.get('pending_edits', None)
+                if pend_values_dicts is not None:
+                    for pend_value_dict in pend_values_dicts:
+                        value = do_conversion(pend_value_dict.get('value', None))
+                        if value is not None:
+                            pend_value_dict['value'] = value
 
     return converted_plot_dict
 
@@ -1228,7 +1255,8 @@ def update_plot_and_tree(request, plot_id):
         response.content = simplejson.dumps({"error": "No plot with id %s" % plot_id})
         return response
 
-    request_dict = json_from_request(request)
+    request_dict = convert_request_plot_dict_choice_values(request, json_from_request(request))
+
     flatten_plot_dict_with_tree_and_geometry(request_dict)
 
     plot_field_whitelist = ['plot_width','plot_length','type','geocoded_address','edit_address_street', 'address_city', 'address_street', 'address_zip', 'power_lines', 'sidewalk_damage']
