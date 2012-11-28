@@ -413,13 +413,13 @@ def apply_canopy_condition_filter(request, search):
                 ids.append(k)
 
 
-        cqls = ["condition = %s" for d in ids]
+        cqls = ["canopy_condition = '%s'" % d for d in ids]
         
         if ids:
             search.trees = search.trees.filter(canopy_condition__in=ids)
             search.plots = search.plots.filter(tree__canopy_condition__in=ids)
 
-            tile_query.append(
+            search.tile_query.append(
                 "( %s )" % " OR ".join(cqls))
 
     return search
