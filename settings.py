@@ -1,12 +1,12 @@
 import os
 
 ADD_INITIAL_DEFAULTS = {}
+POSTAL_CODE_FIELD = "USZipCodeField"
 
 try:
    from impl_settings import *
 except ImportError, e:
    pass
-
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
