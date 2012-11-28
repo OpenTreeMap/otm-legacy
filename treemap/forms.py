@@ -3,7 +3,7 @@ from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighb
 from shortcuts import get_add_initial
 from django.conf import settings
 from django.contrib.auth.models import User
-from treemap.localization import PostalCostField
+from treemap.localization import PostalCodeField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from datetime import datetime
@@ -33,7 +33,7 @@ class TreeAddForm(forms.Form):
     edit_address_street = forms.CharField(max_length=200, required=True, initial=get_add_initial('address'))
     geocode_address = forms.CharField(widget=forms.HiddenInput, max_length=255, required=True)
     edit_address_city = forms.CharField(max_length=200, required=False, initial=get_add_initial('city'))
-    edit_address_zip = PostalCostField(required=False)
+    edit_address_zip = PostalCodeField(required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     initial_map_location = forms.CharField(max_length=200, required=False, widget=forms.HiddenInput)
