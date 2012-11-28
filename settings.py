@@ -104,7 +104,6 @@ INSTALLED_APPS = (
     'badges',
     'pagination',
     'django_sorting',
-    'geopy_extensions',
     'pipeline',
 )
 
