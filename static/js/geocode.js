@@ -117,7 +117,11 @@ tm.reverse_geocode = function(ll, callback, error_callback){
                         if ($.inArray('locality', addy[i].types) > -1) {
                             city = addy[i].long_name;
                         }
-                        else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                        // Some british postal codes just have a
+                        // prefix (i.e. E6) which isn't a fully valid
+                        // code
+                        else if ($.inArray('postal_code', addy[i].types) > -1 &&
+                                 $.inArray('postal_code_prefix', addy[i].types) == -1) {    
                             zip = addy[i].long_name;
                         }
                     }
