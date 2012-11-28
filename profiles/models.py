@@ -18,7 +18,7 @@ class UserProfile(models.Model):
     # not going to use volunteer, comment at a good moment...
     volunteer = models.BooleanField("Volunteer Opportunities",choices=BOOLEAN_CHOICES,default=False)
     updates = models.BooleanField('I would like to receive occasional email updates and newsletters',choices=BOOLEAN_CHOICES,default=False)
-    zip_code = models.CharField(max_length=6,null=True,blank=True)
+    zip_code = models.CharField(max_length=20,null=True,blank=True)
     photo = models.ImageField(upload_to='photos',height_field=None, width_field=None, max_length=200,null=True,blank=True)
     site_edits = models.IntegerField(_('Site Edits (to track activity)'),default=0,editable=False)
     uid = models.IntegerField(_('Random User ID'),null=True,blank=True,editable=False)

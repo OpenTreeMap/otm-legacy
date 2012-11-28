@@ -1,5 +1,4 @@
 from django import forms
-from django.contrib.localflavor.us.forms import USZipCodeField
 from django.core.exceptions import ObjectDoesNotExist
 
 from registration.backends.default import DefaultBackend
@@ -7,6 +6,7 @@ from registration.forms import RegistrationForm,RegistrationFormUniqueEmail
 from django.utils.translation import ugettext_lazy as _
 from profiles.models import UserProfile
 from django.db import transaction
+from treemap.localization import PostalCodeField
 
 class TreeRegistrationForm(RegistrationForm):
     volunteer = forms.BooleanField(required=False)
@@ -23,7 +23,7 @@ class TreeRegistrationForm(RegistrationForm):
                                 label=_("Last Name"),
                                 error_messages={ 'invalid': _("This value must contain only letters") },
                                 required=False)
-    zip_code = USZipCodeField(required=False)
+    zip_code = PostalCodeField(required=False)
     photo = forms.ImageField(required=False)
                                 
                                     
