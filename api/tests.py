@@ -24,7 +24,7 @@ from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPending, TreeResource
 
 from api.models import APIKey, APILog
-from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict
+from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion
 
 import os
 import struct
@@ -316,9 +316,10 @@ class Version(TestCase):
 
         self.assertEqual(json["otm_version"], settings.OTM_VERSION)
         self.assertEqual(json["api_version"], settings.API_VERSION)
-        
-        def tearDown(self):
-            tearDownTreemapEnv()
+
+    def tearDown(self):
+        teardownTreemapEnv()
+
 
 class TileRequest(TestCase):
     def setUp(self):
@@ -1323,6 +1324,287 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual('failure', response_dict['status'], 'Expected "status" to be "failure"')
         self.assertTrue('detail' in response_dict, 'Expected "detail" to be a top level key in the response object')
         self.assertEqual('Username jim exists', response_dict['detail'])
+
+
+def _create_mock_request_without_version():
+    return _create_mock_request_with_version_string(None)
+
+
+def _create_mock_request_with_version_string(version_string):
+    class MockRequest(object):
+        def __init__(self):
+            self.META = {}
+            if version_string:
+                self.META['HTTP_APPLICATIONVERSION'] = version_string
+    return MockRequest()
+
+
+class VersionHeaderParsing(TestCase):
+    def test_missing_version_header(self):
+        request = _create_mock_request_without_version()
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'UNKNOWN',
+            'version': 'UNKNOWN',
+            'build': 'UNKNOWN'
+        }, version_dict)
+
+    def test_platform_only(self):
+        request = _create_mock_request_with_version_string('ios')
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'ios',
+            'version': 'UNKNOWN',
+            'build': 'UNKNOWN'
+        }, version_dict)
+
+    def test_platform_and_version_missing_build(self):
+        request = _create_mock_request_with_version_string('ios-1.2')
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'ios',
+            'version': '1.2',
+            'build': 'UNKNOWN'
+        }, version_dict)
+
+    def test_all(self):
+        request = _create_mock_request_with_version_string('ios-1.2-b32')
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'ios',
+            'version': '1.2',
+            'build': 'b32'
+        }, version_dict)
+
+    def test_extra_segments_dropped(self):
+        request = _create_mock_request_with_version_string('ios-1.2-b32-some-other junk')
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'ios',
+            'version': '1.2',
+            'build': 'b32'
+        }, version_dict)
+
+
+class ChoiceConversion(TestCase):
+
+    def setUp(self):
+        setupTreemapEnv()
+        self._setup_test_choice_conversions()
+
+        self.user = User.objects.get(username="jim")
+        self.user.set_password("password")
+        self.user.save()
+        self.sign = create_signer_dict(self.user)
+        auth = base64.b64encode("jim:password")
+        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        self.public_user = User.objects.get(username="amy")
+        self.public_user.set_password("password")
+        self.public_user.save()
+        self.public_user_sign = create_signer_dict(self.public_user)
+        public_user_auth = base64.b64encode("amy:password")
+        self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
+
+
+    def tearDown(self):
+        self._restore_choice_conversions()
+        teardownTreemapEnv()
+
+    def _setup_test_choice_conversions(self):
+        self.original_choices = settings.CHOICES
+        self.original_choice_conversions = settings.CHOICE_CONVERSIONS
+        settings.CHOICES['conditions'] = [
+                ("10", "Good"),
+                ("11", "Bad")
+            ]
+        settings.CHOICE_CONVERSIONS = {
+            "condition": {
+                'version-threshold': {
+                    'ios': '1.2'
+                },
+                "forward": [
+                    ("1", "10"),
+                    ("2", "11"),
+                    ("3", "11")
+                ],
+                "reverse": [
+                    ("10", "1"),
+                    ("11", "3")
+                ]
+            }
+        }
+
+    def _restore_choice_conversions(self):
+        settings.CHOICES = self.original_choices
+        settings.CHOICE_CONVERSIONS = self.original_choice_conversions
+
+    def test_attribute_requires_conversion_when_no_version_is_specified(self):
+        request = _create_mock_request_without_version()
+        self.assertTrue(_attribute_requires_conversion(request, 'condition'))
+
+    def test_attribute_requires_conversion_when_version_is_under_threshold(self):
+        request = _create_mock_request_with_version_string('ios-1.1-b12')
+        self.assertTrue(_attribute_requires_conversion(request, 'condition'))
+
+    def test_attribute_does_not_require_conversion_when_version_is_equal_to_threshold(self):
+        request = _create_mock_request_with_version_string('ios-1.2-b12')
+        self.assertFalse(_attribute_requires_conversion(request, 'condition'))
+
+    def test_set_tree_attribute_with_choice_conversion(self):
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.condition = "10"
+        test_tree.save()
+
+        # We expect the 2 to be converted to an 11
+        updated_values = {'tree': {'condition': '2'}}
+        response = put_json("%s/plots/%d" %
+            (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual("11", tree.condition)
+
+    def test_get_tree_with_choice_conversion(self):
+        plot = mkPlot(self.user)
+        plot_id = plot.pk
+
+        tree = mkTree(self.user, plot=plot)
+        tree.condition = "10"
+        tree.save()
+
+        response = self.client.get("%s/plots/%d" % (API_PFX, plot_id), **self.sign)
+        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response_dict = loads(response.content)
+        self.assertTrue('tree' in response_dict, 'Expected "tree" to be a top level key in the response object')
+        tree_dict = response_dict['tree']
+        self.assertTrue('condition' in tree_dict, 'Expected "condition" to be a key in the tree object')
+        self.assertEqual(tree_dict['condition'], '1')
+
+    def test_create_plot_with_tree(self):
+        data = {
+            "lon": 35,  # Location properties are required
+            "lat": 25,  # Location properties are required
+            "geocode_address": "1234 ANY ST",  # Location properties are required
+            "edit_address_street": "1234 ANY ST",  # Location properties are required
+            'tree': {
+                'condition': 1
+            }
+        }
+
+        response = post_json('%s/plots' % API_PFX, data, self.client, self.sign)
+
+        self.assertEqual(201, response.status_code, 'Create failed:' + response.content)
+
+        response_json = loads(response.content)
+        self.assertTrue('tree' in response_json)
+        self.assertTrue('condition' in response_json['tree'])
+        # Check that the server responds with the 'old' choice value
+        self.assertEqual('1', response_json['tree']['condition'])
+
+        self.assertTrue('id' in response_json)
+        id = response_json['id']
+        plot = Plot.objects.get(pk=id)
+        tree = plot.current_tree()
+        self.assertIsNotNone(tree)
+        # Check that the 'new' choice value was set in the database
+        self.assertEqual('10', tree.condition)
+
+    def test_update_tree_with_pending(self):
+        settings.PENDING_ON = True
+        try:
+            test_plot = mkPlot(self.user)
+            test_tree = mkTree(self.user, plot=test_plot)
+            test_tree_id = test_tree.id
+            test_tree.condition = 11
+            test_tree.save()
+
+            updated_values = {'tree': {'condition': 1}}
+            response = put_json("%s/plots/%d" % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+            self.assertEqual(200, response.status_code)
+            tree = Tree.objects.get(pk=test_tree_id)
+            self.assertIsNotNone(tree)
+            self.assertEqual('11', tree.condition, "A pend should have been created instead of editing the tree value.")
+
+            self.assertEqual(1, len(TreePending.objects.all()))
+            pend = TreePending.objects.all()[0]
+            self.assertEqual('10', pend.value, "Expected the updated value of 1 to be converted to a 10")
+
+            response_json = loads(response.content)
+            self.assertEqual(1, len(response_json['pending_edits'].keys()), "Expected the json response to have a pending_edits dict with 1 keys")
+            self.assertEqual('tree.condition', response_json['pending_edits'].keys()[0], "Expected 'tree.condition' to have a pending edit")
+            pending_edit = response_json['pending_edits']['tree.condition']
+            self.assertEqual('1', pending_edit['latest_value'], "Expected the latest_value to be 1 in the JSON response")
+            pending_edit_item = pending_edit['pending_edits'][0]
+            self.assertEqual('1', pending_edit_item['value'], "Expected the pending edit value to be 1 in the JSON response")
+
+        finally:
+            settings.PENDING_ON = False
+
+    def test_approve_pending_edit(self):
+        self.assert_pending_edit_operation('approve')
+
+    def test_reject_pending_edit(self):
+        self.assert_pending_edit_operation('reject')
+
+    def assert_pending_edit_operation(self, action):
+        settings.PENDING_ON = True
+
+        old_original_conditions = ['2', '3']
+        old_edited_condition = '1'
+
+        new_original_condition = '11'
+        new_edited_condition = '10'
+
+        test_plot = mkPlot(self.user)
+        test_tree = mkTree(self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.condition = new_original_condition
+        test_tree.save()
+
+        if action == 'approve':
+            status_after_action = 'approved'
+        elif action == 'reject':
+            status_after_action = 'rejected'
+        else:
+            raise Exception('Action must be "approve" or "reject"')
+
+        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+
+        updated_values = {'tree': {'condition': old_edited_condition}}
+        response = put_json("%s/plots/%d" % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        self.assertEqual(200, response.status_code)
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(new_original_condition, tree.condition, "A pend should have been created instead of editing the tree value.")
+        self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
+
+        pending_edit = TreePending.objects.all()[0]
+        self.assertEqual('pending', pending_edit.status, "Expected the status of the Pending to be 'pending'")
+
+        response = post_json("%s/pending-edits/%d/%s/" % (API_PFX, pending_edit.id, action), None, self.client, self.sign)
+        self.assertEqual(200, response.status_code)
+
+        pending_edit = TreePending.objects.get(pk=pending_edit.id)
+        self.assertEqual(status_after_action, pending_edit.status, "Expected the status of the Pending to be '%s'" % status_after_action)
+        test_tree = Tree.objects.get(pk=test_tree_id)
+
+        if action == 'approve':
+            self.assertEqual(new_edited_condition, test_tree.condition, "Expected condition to have been updated on the Tree")
+        elif action == 'reject':
+            self.assertEqual(new_original_condition, test_tree.condition, "Expected condition to NOT have been updated on the Tree")
+
+        response_json = loads(response.content)
+        self.assertTrue('tree' in response_json)
+        self.assertTrue('condition' in response_json['tree'])
+        if action == 'approve':
+            self.assertEqual(old_edited_condition, response_json['tree']['condition'], "Expected condition to have been updated in the JSON response")
+        elif action == 'reject':
+            # Because both 2 and 3 convert to the same value the values that gets restored on
+            # rejection is not deterministic
+            self.assertTrue(response_json['tree']['condition'] in old_original_conditions, "Expected condition to NOT have been updated in the JSON response")
 
 
 class Resource(TestCase):
