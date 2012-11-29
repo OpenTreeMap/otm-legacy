@@ -1205,7 +1205,12 @@ def _attribute_requires_conversion(request, attr):
     if attr is None:
         return False
 
-    if settings.CHOICE_CONVERSIONS and attr in settings.CHOICE_CONVERSIONS:
+    if not hasattr(settings, 'CHOICE_CONVERSIONS'):
+        # If CHOICE_CONVERSIONS is not defined in settings then
+        # no conversion is required
+        return False
+
+    if attr in settings.CHOICE_CONVERSIONS:
         conversion = settings.CHOICE_CONVERSIONS[attr]
         app_version = _parse_application_version_header_as_dict(request)
         if 'version-threshold' in conversion \
@@ -1218,8 +1223,8 @@ def _attribute_requires_conversion(request, attr):
             # or does not match anything
             return True
     else:
-        # If CHOICE_CONVERSIONS is not definied in settings or the CHOICE_CONVERSIONS
-        # hash does not contain the attribute name then no conversion is required
+        # If the settings.CHOICE_CONVERSIONS hash does not contain the attribute name
+        # then no conversion is required
         return False
 
 
