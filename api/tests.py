@@ -22,6 +22,7 @@ from urlparse import urlparse
 import urllib
 from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPending, TreeResource
+from treemap.forms import TreeAddForm
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion
@@ -1437,9 +1438,16 @@ class ChoiceConversion(TestCase):
                 ]
             }
         }
+        # Form field definitions are cached so a change to settings.CHOICES after the
+        # form class has been imported will not be reflected automatically
+        TreeAddForm.base_fields['condition'].choices = settings.CHOICES['conditions']
 
     def _restore_choice_conversions(self):
         settings.CHOICES = self.original_choices
+        # Form field definitions are cached so a change to settings.CHOICES after the
+        # form class has been imported will not be reflected automatically
+        TreeAddForm.base_fields['condition'].choices = settings.CHOICES['conditions']
+
         if self.original_choice_conversions is not None:
             settings.CHOICE_CONVERSIONS = self.original_choice_conversions
 
