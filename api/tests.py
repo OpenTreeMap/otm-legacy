@@ -1406,14 +1406,17 @@ class ChoiceConversion(TestCase):
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
 
-
     def tearDown(self):
         self._restore_choice_conversions()
         teardownTreemapEnv()
 
     def _setup_test_choice_conversions(self):
         self.original_choices = settings.CHOICES
-        self.original_choice_conversions = settings.CHOICE_CONVERSIONS
+        if hasattr(settings, 'CHOICE_CONVERSIONS'):
+            self.original_choice_conversions = settings.CHOICE_CONVERSIONS
+        else:
+            self.original_choice_conversions = None
+
         settings.CHOICES['conditions'] = [
                 ("10", "Good"),
                 ("11", "Bad")
@@ -1437,7 +1440,8 @@ class ChoiceConversion(TestCase):
 
     def _restore_choice_conversions(self):
         settings.CHOICES = self.original_choices
-        settings.CHOICE_CONVERSIONS = self.original_choice_conversions
+        if self.original_choice_conversions is not None:
+            settings.CHOICE_CONVERSIONS = self.original_choice_conversions
 
     def test_attribute_requires_conversion_when_no_version_is_specified(self):
         request = _create_mock_request_without_version()
