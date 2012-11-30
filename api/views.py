@@ -42,7 +42,7 @@ import simplejson
 
 from copy import deepcopy
 
-from decimal import *
+from distutils.version import StrictVersion
 
 class HttpBadRequestException(Exception):
     pass
@@ -1219,8 +1219,20 @@ def _attribute_requires_conversion(request, attr):
         app_version = _parse_application_version_header_as_dict(request)
         if 'version-threshold' in conversion \
         and app_version['platform'] in conversion['version-threshold']:
-            threshold = conversion['version-threshold'][app_version['platform']]
-            return Decimal(app_version['version']) < Decimal(threshold)
+            threshold_string = conversion['version-threshold'][app_version['platform']]
+            # If the threshold is not parsable as a version number, we want this method
+            # to crash hard. The CHOICE_CONVERSIONS are misconfigured.
+            threshold = StrictVersion(threshold_string)
+
+            try:
+                version = StrictVersion(app_version['version'])
+            except ValueError:
+                # If the version number reported from the app is not parsable as a
+                # version number then we assume the app is an old version and that we do
+                # need to convert the values.
+                return True
+
+            return version < threshold
         else:
             # If a version threshold is not defined for the platform specified in the
             # ApplicationVersion header or the ApplicationVersion header is missing
