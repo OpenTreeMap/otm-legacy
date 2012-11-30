@@ -1386,6 +1386,15 @@ class VersionHeaderParsing(TestCase):
             'build': 'b32'
         }, version_dict)
 
+    def test_non_numeric_version(self):
+        request = _create_mock_request_with_version_string('ios-null-bnull')
+        version_dict = _parse_application_version_header_as_dict(request)
+        self.assertEqual({
+            'platform': 'ios',
+            'version': 'null',
+            'build': 'bnull'
+        }, version_dict)
+
 
 class ChoiceConversion(TestCase):
 
@@ -1425,7 +1434,7 @@ class ChoiceConversion(TestCase):
         settings.CHOICE_CONVERSIONS = {
             "condition": {
                 'version-threshold': {
-                    'ios': '1.2'
+                    'ios': '1.2.2'
                 },
                 "forward": [
                     ("1", "10"),
@@ -1459,8 +1468,20 @@ class ChoiceConversion(TestCase):
         request = _create_mock_request_with_version_string('ios-1.1-b12')
         self.assertTrue(_attribute_requires_conversion(request, 'condition'))
 
+    def test_attribute_requires_conversion_when_version_is_non_numeric(self):
+        request = _create_mock_request_with_version_string('ios-null-bnull')
+        self.assertTrue(_attribute_requires_conversion(request, 'condition'))
+
+    def test_attribute_requires_conversion_when_version_is_3_segments(self):
+        request = _create_mock_request_with_version_string('ios-1.2.1-b12')
+        self.assertTrue(_attribute_requires_conversion(request, 'condition'))
+
+    def test_attribute_does_not_require_conversion_when_version_is_3_segments(self):
+        request = _create_mock_request_with_version_string('ios-1.3.1-b12')
+        self.assertFalse(_attribute_requires_conversion(request, 'condition'))
+
     def test_attribute_does_not_require_conversion_when_version_is_equal_to_threshold(self):
-        request = _create_mock_request_with_version_string('ios-1.2-b12')
+        request = _create_mock_request_with_version_string('ios-1.2.2-b12')
         self.assertFalse(_attribute_requires_conversion(request, 'condition'))
 
     def test_set_tree_attribute_with_choice_conversion(self):
