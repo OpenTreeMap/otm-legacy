@@ -21,12 +21,16 @@ class Command(BaseCommand):
             help='Show verbose debug text'),
     )
 
+    def write_headers_if_needed(self):
+        if not self.wrote_headers:
+            self.err_writer.writerow(self.headers)
+            self.wrote_headers = True
+
     def get_dbf_rows(self, in_file):
         reader = dbf.Dbf(in_file)
         print 'Opening input file: %s ' % in_file
 
         self.headers = reader.fieldNames
-        self.err_writer.writerow(self.headers)
         
         print 'Converting input file to dictionary'
         rows = []
@@ -44,15 +48,14 @@ class Command(BaseCommand):
         rows = list(reader)
                 
         self.headers = reader.fieldnames
-        self.err_writer.writerow(self.headers)        
                 
         return rows
     
     def handle(self, *args, **options):
         try:    
             self.file_name = args[0]
-            in_file = dirname(__file__) + "/" + self.file_name
-            err_file = dirname(__file__) + "/" + self.file_name + ".err"
+            in_file = self.file_name
+            err_file = in_file + ".err"
             self.verbose = options.get('verbose')
             self.user_id = args[1]
             if len(args) > 2:
@@ -86,6 +89,9 @@ class Command(BaseCommand):
         
         print 'Importing %d records' % len(rows)
         for i, row in enumerate(rows):
+            if i < 420:
+                continue
+
             self.handle_row(row)
             
             j = i + 1
@@ -106,6 +112,7 @@ class Command(BaseCommand):
     def log_error(self, msg, row):
         print "ERROR: %s" % msg
         columns = [row[s] for s in self.headers]
+        self.write_headers_if_needed()
         self.err_writer.writerow(columns)
     
     def check_coords(self, row):
