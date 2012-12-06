@@ -16,12 +16,16 @@ class Command(BaseCommand):
             help='Show verbose debug text'),
     )
 
+    def write_headers_if_needed(self):
+        if not self.wrote_headers:
+            self.err_writer.writerow(self.headers)
+            self.wrote_headers = True
+
     def get_dbf_rows(self, in_file):
         reader = dbf.Dbf(in_file)
         print 'Opening input file: %s ' % in_file
 
         self.headers = reader.fieldNames
-        self.err_writer.writerow(self.headers)
         
         print 'Converting input file to dictionary'
         rows = []
@@ -39,19 +43,19 @@ class Command(BaseCommand):
         rows = list(reader)
                 
         self.headers = reader.fieldnames
-        self.err_writer.writerow(self.headers)        
                 
         return rows
     
     def handle(self, *args, **options):
         try:    
+            self.wrote_headers = False
             self.file_name = args[0]
-            in_file = dirname(__file__) + "/" + self.file_name
-            err_file = dirname(__file__) + "/" + self.file_name + ".err"
+            in_file = self.file_name
+            err_file = in_file + ".err"
             self.verbose = options.get('verbose')
         except:
             print "Arguments:  Input_File_Name.[dbf|csv]"
-            print "Options:    --verbose, --insert"
+            print "Options:    --verbose"
             return
         
         self.err_writer = csv.writer(open(err_file, 'wb'))
@@ -77,12 +81,13 @@ class Command(BaseCommand):
     
     def log_error(self, msg, row):
         print "ERROR: %s" % msg
-        columns = [row[s] for s in self.headers]
+        columns = [row[s.lower()] for s in self.headers]
+        self.write_headers_if_needed()
         self.err_writer.writerow(columns)
     
     def check_species(self, row):
-        # locate the species and instanciate the tree instance
-        
+        # locate the species and instanciate the tree instance        
+
         if not row["genus"]:            
             self.log_verbose("  No genus information")
             return (False, None)
@@ -118,6 +123,8 @@ class Command(BaseCommand):
     def handle_row(self, row):
         self.log_verbose(row)
         
+        row = dict((k.lower(),v) for (k,v) in row.items())
+
         # check the species (if any)
         ok, species = self.check_species(row)
         if not ok: return
