@@ -84,7 +84,7 @@ class TreeAddForm(forms.Form):
             raise forms.ValidationError("This tree is missing a location. Enter an address in Step 1 and update the map to add a location for this tree.") 
         
         if nbhood.count() < 1:
-            raise forms.ValidationError("The selected location is outside our area. Please specify a location within the " + settings.REGION_NAME + " region.")
+            raise forms.ValidationError("The selected location is outside our area. Please specify a location within " + settings.REGION_NAME)
         
         if height > 300:
             raise forms.ValidationError("Height is too large.")
