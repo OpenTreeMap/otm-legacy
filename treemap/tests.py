@@ -25,6 +25,7 @@ from test_util import set_auto_now
 from treemap.test_choices import *
 
 settings.CHOICES = CHOICES
+settings.POSTAL_CODE_FIELD = "USZipCodeField"
 
 import django.shortcuts
 import tempfile
