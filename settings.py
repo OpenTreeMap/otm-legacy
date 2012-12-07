@@ -14,6 +14,7 @@ API_KEY_GOOGLE_MAP = '' # Can be empty
 API_KEY_GOOGLE_ANALYTICS = 'your-key-here'
 
 POSTAL_CODE_FIELD = "USZipCodeField"
+DBH_TO_INCHES_FACTOR = 1.0
 
 try:
    from impl_settings import *

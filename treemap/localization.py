@@ -7,3 +7,7 @@ def PostalCodeField(*args, **kwargs):
     else:
         from django.contrib.localflavor.us.forms import USZipCodeField
         return USZipCodeField
+
+def convert_dbh_to_inches(dbh):
+    return dbh * settings.DBH_TO_INCHES_FACTOR
+
