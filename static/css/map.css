@@ -1,0 +1,520 @@
+div #results_aside{
+height:370px;
+}
+
+#large_map{
+height:500px;
+width:100%;
+}
+
+/* Tree Detail */
+.tree_detail_item{
+width:400px;
+margin:2px;
+}
+
+.tree_detail_key{
+  width:140px; display:inline;
+}
+.tree_detail_val{
+ width:200px; display:inline;
+ float:right;
+}
+
+
+/* MAP */
+
+#map{
+height:382px;
+}
+#index_map{
+border:10px solid #eef5d8;
+height:400px;
+}
+#results_map{
+position:relative;
+height:503px;
+width:622px;
+}
+#results_map_wrap {
+	height: 503px;
+	width: 622px;
+	border: 7px solid #fff;
+	overflow: hidden;
+	position: relative;
+	box-shadow:
+	-webkit-box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow:    1px 1px 5px rgba(0, 0, 0, 0.3);
+	box-shadow:         1px 1px 5px rgba(0, 0, 0, 0.3);
+}
+#favorite_tree_map{
+height:250px;
+width:260px;
+border:10px solid #eef5d8;
+}
+#edit_tree_map_wrap{
+	height:220px;
+	width:260px;
+	overflow: hidden;
+	position:relative;
+		border: 7px solid #D6E8CF;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-top: 20px;
+}
+#edit_tree_map{
+	height:220px;
+	width:260px;
+	overflow: hidden;
+	position:relative;
+}
+#add_tree_map_wrap{
+	position: relative;
+	float: left;
+	width: 630px;
+	height: 350px;
+	overflow: hidden;
+	border: 7px solid #D6E8CF;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-top: 20px;
+}
+#add_tree_map{
+	position:relative;
+	height:350px;
+	overflow: hidden;
+}
+#add_tree_map #geocode_address {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	z-index: 1000;
+	padding: 10px;
+	text-align:right;
+	background: #000;
+	color: #fff;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	opacity: .9;
+	filter: alpha(opacity=90);
+}
+
+#add_tree_nearby {
+	float: left;
+	min-height: 346px;
+	margin: 20px 0 0 15px;
+	width: 251px;
+	padding: 10px 15px 8px 15px;
+	background-color: #D6E8CF;
+	border-radius: 3px;
+}
+
+#add_tree_nearby h1 {
+	font-size: 22px;
+	color: #414141;
+	font-family: 'Delicious Heavy';
+	font-weight: normal;
+	border-top: 1px dotted #414141;
+	padding-top: 5px;
+}
+
+.addMap{
+	margin-left:210px;
+	margin-bottom:15px;
+}
+#static_map{
+height:40px;%
+width:40px;
+}
+
+#tree_streetview{
+	height:220px;
+	width:260px;
+	padding-top:0;
+	margin-top:0;
+	border: 7px solid #D6E8CF;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-top: 20px;
+}
+
+.no_streetview {
+  color: #000;
+  padding: 80px 30px 30px 30px;
+  text-align: center;
+  font-size: 24px;
+  background: #D6E8CF;
+  height: 110px;
+  background: #D6E8CF url(../images/not-available.png) no-repeat center;
+}
+
+li.tree-delete {
+	padding-top: 15px;
+}
+
+li.tree-delete h3 {
+	font-size: 18px;
+	font-weight: normal;
+	font-family: 'Delicious Heavy';
+}
+
+li.delete-text {
+	padding-botom: 15px;
+}
+
+#add_tree_streetview{
+height:180px;
+width:270px;
+}
+#max_tree_infowindow{
+width:390px;
+min-height:225px;
+background: #fff;
+margin:0;
+padding:0;
+}
+
+#infowindow{
+color:#555;
+}
+#infowindow_left{
+    float:left;
+    width:210px;
+    border-right:1px solid #E25A00;
+}
+#infowindow_right{
+    width:150px;
+    float:right;
+}
+
+.activeEdit button {
+	margin-left: -7px;
+	margin-right: 10px;
+}
+
+.activeEditRowValue {
+    margin:0;
+    padding:0;
+}
+.activeEditTable tr th {
+    font-weight: normal;
+}
+.activeEditTable tr td {
+    font-weight: bold;
+}    
+.activeEditRowLabel {
+    text-align: left;
+    width: 30%;
+    font-weight: normal; 
+}
+.activeEdit {
+    margin: 0;
+    padding: 0;
+    width: 90%;
+/*
+    background-color: #ccc;
+    border: 1px solid red;
+*/
+} 
+
+.activeEdit span {
+	font-size: 10px;
+}
+
+ul.edit .activeEdit input {
+	width:125px;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+    margin-left:0px;
+}
+ul.edit .activeEdit button, input.button {
+	float:left;
+	width:50px;
+	background: #fff url(../images/v2/buttonsm_bg.gif) repeat-x center center;
+	border:2px solid #d8731a;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:11px;
+	font-weight:bold;
+	padding:2px 5px;
+	margin:7px 10px 7px 0;
+	cursor: pointer;
+}
+ul.edit .activeEdit button:hover {
+	background:#e08a00;
+	text-decoration:none;
+} 
+.activeEdit button, input.button {
+display: inline-block;
+  *display: inline;
+  /* IE7 inline-block hack */
+
+  *zoom: 1;
+  margin-bottom: 0;
+  line-height: 20px;
+  *line-height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  color: #333333;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+  background-color: #f5f5f5;
+  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);
+  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  *background-color: #e6e6e6;
+  /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+  border: 1px solid #bbbbbb;
+  *border: 0;
+  border-bottom-color: #a2a2a2;
+  *margin-left: .3em;
+  -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+  padding: 1px 6px;
+  font-size: 10.5px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+input.button {
+    margin-top:-2px;
+}
+.activeEdit button:hover {
+  color: #333333;
+  background-color: #e6e6e6;
+  *background-color: #d9d9d9;
+}    
+.activeEdit input, .activeEdit select {
+/*     display: block; */
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+	line-height:10px;
+    margin:-4px 0 0 -7px;
+/*     width: 50%; */
+}
+#edit_dbh {
+	display:block;
+	margin-top:1px;
+	padding-bottom:22px;
+	border-bottom:1px solid #eef5d8;
+}
+.activeEdit input.hide {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+.activeEdit select {
+    width:195px;
+}
+.activeEdit #month_, .activeEdit #day_, .activeEdit #year_ {
+    width: 55px;
+    margin: 0;
+}
+#actionTypeSelection select, #hazardTypeSelection select {
+    width:125px;
+}
+#actionTypeSelection option, #hazardTypeSelection option, .activeEdit option {
+    font-size:12px;
+    padding:0
+    margin:0;
+    background-color: #f2f2f2;
+    border:1px solid #e2e2e2;
+}
+#hazardTable, #actionTable {
+    font-size:12px;
+}
+
+#feet_, #inches_ {
+    width:50px;
+    margin-right:20px;
+}
+
+
+/* MAP MARKER HOVER */
+.olLayerDiv div {
+cursor:pointer;
+}
+
+/* OPEN LAYERS CONTROLS */
+
+.content .buttomSm.mapToggle {
+    position:absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+	background: rgb(0, 0, 0) ; opacity: 0.75;
+    font-size: 11px;
+	cursor: pointer;
+}
+
+.content .buttomSm.mapToggle:hover {
+	background: rgb(0, 0, 0) ; opacity: 1;
+}
+
+.olControlPanPanel {
+    left: 10px !important;
+    top: 10px !important;
+}
+.olControlPanPanel div {
+    background-image: url("../images/pan-sprite.png") !important;
+	position:absolute
+}
+.olControlPanPanel .olControlPanNorthItemInactive {
+    height: 13px !important;
+    left: 0 !important;
+    width: 38px !important;
+}
+.olControlPanPanel .olControlPanNorthItemInactive:hover {
+    background-position: -37px 0 !important;
+}
+.olControlPanPanel .olControlPanSouthItemInactive {
+    background-position: 0 -25px !important;
+    height: 13px !important;
+    left: 0 !important;
+    top: 25px !important;
+    width: 38px !important;
+}
+.olControlPanPanel .olControlPanSouthItemInactive:hover {
+    background-position: -37px -25px !important;
+}
+.olControlPanPanel .olControlPanWestItemInactive {
+    background-position: 0 -13px !important;
+    height: 12px !important;
+    top: 13px !important;
+    width: 19px !important;
+}
+.olControlPanPanel .olControlPanWestItemInactive:hover {
+    background-position: -37px -13px !important;
+}
+.olControlPanPanel .olControlPanEastItemInactive {
+    background-position: -19px -13px !important;
+    height: 12px !important;
+    left: 19px !important;
+    top: 13px !important;
+    width: 18px !important;
+}
+.olControlPanPanel .olControlPanEastItemInactive:hover {
+    background-position: -56px -13px !important;
+}
+.olControlZoomPanel {
+    left: 19px !important;
+    top: 54px !important;
+}
+
+#tree_detail .olControlZoomPanel, #tree_edit .olControlZoomPanel {
+    left: 19px !important;
+    top: 19px !important;
+}
+
+.olControlZoomPanel div {
+	background-image: url("../images/zoom-sprite.png") !important;
+	background-repeat: no-repeat;
+	position:absolute
+}
+
+.olControlZoomPanel .olControlZoomInItemInactive {
+	background-position: 0 0 !important;
+    height: 16px !important;
+    width: 19px !important;
+}
+.olControlZoomPanel .olControlZoomInItemInactive:hover {
+	background-position: -19px 0 !important;
+}
+.olControlZoomPanel .olControlZoomToMaxExtentItemInactive {
+	background-position: 0 -15px !important;
+    height: 15px !important;
+	width: 19px !important;
+    top: 16px !important;
+}
+.olControlZoomPanel .olControlZoomToMaxExtentItemInactive:hover {
+	background-position: -19px -15px !important;
+}
+.olControlZoomPanel .olControlZoomOutItemInactive {
+    height: 16px !important;
+    width: 19px !important;
+	top: 31px !important;
+	background-position: 0 -32px !important;
+}
+.olControlZoomPanel .olControlZoomOutItemInactive:hover {
+	background-position: -19px -32px !important;
+}
+
+.olControlAttribution {bottom: 0 !important}
+
+.alert {
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 20px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  color: #c09853;
+}
+.alert h4 {
+  margin: 0;
+}
+.alert .close {
+  position: relative;
+  top: -2px;
+  right: -21px;
+  line-height: 20px;
+}
+.alert-success {
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+  color: #468847;
+}
+.alert-danger,
+.alert-error {
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+}
+.alert-info {
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+  color: #3a87ad;
+}
+.alert-block {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.alert-block > p,
+.alert-block > ul {
+  margin-bottom: 0;
+}
+.alert-block p + p {
+  margin-top: 5px;
+}
+
+.errorlist {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	font-size: 13px;
+}
+
+.errorlist li {
+	list-style-type: none;
+}
+
+.alert h2 {
+	padding: 0 0 5px 0;
+	margin: 0;
+}

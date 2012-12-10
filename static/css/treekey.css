@@ -1,0 +1,76 @@
+/*  
+  cream - F9F9DD 
+  light green - F6FFDF
+  med green - 6EA400
+  dark green - 3E5D00  
+  
+*/
+body {margin:0;}
+ul {margin:0px; color:#3E5D00;}
+.list-root {padding-left:0}
+.list-root > li {list-style:none;}
+.list-root li a {line-height:1.5em; color:#3E5D00; font-size: 1.5em; font-weight: bold;}
+.list-root li li a {font-size: 1.3em; }
+.list-root li li li a {font-size: 1em;}
+.list-root li li li li a {font-size: .9em; font-weight: normal}
+.list-branch {padding-left: 15px; list-style:disc;}
+.list-branch ul {list-style: circle; margin-bottom: 3px;}
+a {text-decoration:none; color:#3E5D00;}
+a img {border:0px;}
+
+.head {height:48px; background: #6ea400 url(../images/treekey/header-background.gif);}
+.menu {line-height:48px; padding-left:20px; font-size:20px; color:#F6FFDF; }
+	.menu a {color:inherit; padding-left:20px;}
+
+.content {line-height: 18px; font-size: 1em;}
+
+.trail {
+	clear:both;
+	font-size:20px;
+	font-weight:bold;
+	color:#666;
+	background: url(/static/images/divider-horz.png) 0 100% repeat-x;
+	padding-bottom:12px;
+	padding-top:10px; 
+	background: url(/static/images/divider-horz.png) repeat-x 0 100% ; 
+	}
+.browse {float:right;}
+
+.left-panel {float:left; width:224px; padding-top:20px;}
+.right-panel {float:left; width:660px; padding-top:30px;}
+
+.node-description, .leaf-name, .species-name {font-weight:bold;font-size:1.7em;padding-bottom:10px;}
+
+.leaf {float:left; width:282px; position:relative; margin:15px 30px 15px 0;padding:15px;
+	border:1px solid #ccc; background-color:#fff;-moz-border-radius: 8px; -webkit-border-radius: 8px; border-radius: 8px;}
+.leaf.even {margin-right:0}
+.leaf-text {font-size:.9em; color:#3E5D00; line-height: 1.4em;  margin-top: 3px;}
+.leaf-link {position:absolute; bottom:5px; right:5px;  }
+
+.leaf-choice {position:relative; margin:15px 0;padding:20px 15px 20px 15px;
+	border:1px solid #ccc; background-color:#fff; clear:both; -moz-border-radius: 8px; -webkit-border-radius: 8px; border-radius: 8px;}
+.leaf-choice .leaf-image {float:left; width:20%;}
+.leaf-image img {width:100%; border: 1px solid #ddd}
+.leaf-image-attrib {margin-left: 5px; font-size: 10px; float:right}
+.leaf-info {display:inline-block; vertical-align:top; width:77%; padding-left:2%;}
+.leaf-species-name a {font-size:1.6em; font-weight: bold; }
+.leaf-species-feature {padding-top:20px; font-size:1.2em;}
+	.leaf-species-feature .label {font-weight:bold;}
+	
+.species-name {color:#3E5D00;}
+.species {float:left;padding:20px 15px; margin-bottom:20px; border: 1px solid #ccc; background-color:#fff; -moz-border-radius: 8px; -webkit-border-radius: 8px; border-radius: 8px;}
+.species-scientific {padding-bottom:5px; font-size:1.2em; font-style:italic;}
+.species-feature {padding-top:10px; font-size:1.2em;}
+	.species-feature .label {font-weight:bold;}
+.species-info {margin-top:10px; font-size:0.9em;}
+	.species-info ul {padding-left: 20px}
+	.species-info li {line-height:1.5em;}
+	.species-info .label {font-weight:bold;}
+	.species-info .info {color:black;}
+.species-links {margin-top:15px; margin-left:8px;}
+	.species-links .link {font-size:.9em; line-height:1.4em;}
+.species-images {margin-top:15px;}
+.species-image {float:left; width:30%; vertical-align:top; margin-right:10px; }
+	.species-image img {width:100%;border: 1px solid #ddd;}
+	.species-image-caption {font-size:.8em; color:#3E5D00;}
+	.species-image-attrib {font-size:.8em; color:#3E5D00;} 

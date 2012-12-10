@@ -1,0 +1,59 @@
+/* ========================================================================
+CUSTOM FONTS
+======================================================================== */
+
+
+@font-face {
+    font-family: 'Delicious Bold';
+    src: url('delicious-bold-webfont.eot');
+    src: url('delicious-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('delicious-bold-webfont.woff') format('woff'),
+         url('delicious-bold-webfont.ttf') format('truetype'),
+         url('delicious-bold-webfont.svg#deliciousbold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Delicious Bold Italic';
+    src: url('delicious-bolditalic-webfont.eot');
+    src: url('delicious-bolditalic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('delicious-bolditalic-webfont.woff') format('woff'),
+         url('delicious-bolditalic-webfont.ttf') format('truetype'),
+         url('delicious-bolditalic-webfont.svg#deliciousbold_italic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Delicious Heavy';
+    src: url('delicious-heavy-webfont.eot');
+    src: url('delicious-heavy-webfont.eot?#iefix') format('embedded-opentype'),
+         url('delicious-heavy-webfont.woff') format('woff'),
+         url('delicious-heavy-webfont.ttf') format('truetype'),
+         url('delicious-heavy-webfont.svg#delicious_heavyregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Delicious Italic';
+    src: url('delicious-italic-webfont.eot');
+    src: url('delicious-italic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('delicious-italic-webfont.woff') format('woff'),
+         url('delicious-italic-webfont.ttf') format('truetype'),
+         url('delicious-italic-webfont.svg#deliciousitalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Delicious Regular';
+    src: url('delicious-roman-webfont.eot');
+    src: url('delicious-roman-webfont.eot?#iefix') format('embedded-opentype'),
+         url('delicious-roman-webfont.woff') format('woff'),
+         url('delicious-roman-webfont.ttf') format('truetype'),
+         url('delicious-roman-webfont.svg#deliciousroman') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
