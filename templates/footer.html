@@ -1,0 +1,54 @@
+<div id="footer"> 
+    <div class="footer-holder"> 
+        <div class="ad">
+            <ul id="partners"> 
+                <li id="Treeconomics"><a href="http://www.treeconomics.co.uk/" target="_blank"><img src="{{ STATIC_URL }}images/logos/treeconomics.png" alt="Treeconomics" /></a></li> 
+                <li id="OpenUni"><a href="http://www.open.ac.uk/" target="_blank"><img src="{{ STATIC_URL }}images/logos/openuniversity.png" alt="Open University" /></a></li> 
+                <li id="OpenScienceLab"><a href="http://www.open.ac.uk/openscience/" target="_blank"><img src="{{ STATIC_URL }}images/logos/osu.png" alt="OpenScience Laboratory" /></a></li> 
+				<li id="iSpot"><a href="http://www.ispot.org.uk/" target="_blank"><img src="{{ STATIC_URL }}images/logos/ispot.png" alt="iSpot" /></a></li>
+				<li id="ForestResearch"><a href="http://www.forestry.gov.uk/forestresearch" target="_blank"><img src="{{ STATIC_URL }}images/logos/forest_research.jpg" alt="Forest Research" /></a></li>
+				<li id="PoweredByOTM"><a href="http://www.azavea.com/products/opentreemap" target="_blank"><img src="{{ STATIC_URL }}images/logos/pb_otm.png" alt="OpenTreeMap" /></a></li> 
+            </ul> 
+        </div> 
+        <ul class="footer-nav"> 
+            <li><a href="{{ SITE_ROOT }}about/">About</a></li> 
+            <li><a href="{{ SITE_ROOT }}faq/">FAQs</a></li>
+	    <li><a href="{{ SITE_ROOT }}trees/new/">Recently Added</a></li>
+            <li><a href="{{ SITE_ROOT }}resources/">Resources</a></li> 
+            <li><a href="{{ SITE_ROOT }}contact/">Contact</a></li> 
+            {% if user.is_superuser %}
+            <li class="final"><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
+            {% endif %}
+
+            {% if user.reputation.reputation > 1000 %}
+            <li class="final"><a href="{{ SITE_ROOT }}verify/?sort=last_updated">Recent Changes</a></li>
+            {% endif %}
+            <!--
+			{% if user.is_authenticated %}
+               <li style="clear:both;">Logged in as <a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}</a>
+               <span id="logout"><a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">(Logout)</a></span>
+               {% if user.is_superuser %}
+                   <li><a href="{{ SITE_ROOT }}_admin_/">Admin</a></li>
+               {% endif %}
+               {% if user.reputation.reputation > 1000 %}
+                   <li><a href="{% url treemap.views.verify_edits %}">Recent Changes</a></li>
+               {% endif %}
+            {% else %}
+                <li><a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/" class="buttomSm">Sign up</a></li>
+            {% endif %}
+			-->
+        </ul> 
+		
+		<div id="footer-social">
+			<a href="https://twitter.com/treezilla_org" target="_blank"><img src="{{ STATIC_URL }}images/twitter.png" alt="Twitter" /></a>
+		</div>
+
+    </div> 
+	<!--
+    <a href="https://twitter.com/UrbanForestMap" class="twitter-follow-button" data-show-count="true" data-size="large">Follow @UrbanForestMap</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+    <iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2FUrbanForestMap&amp;width=292&amp;height=72&amp;colorscheme=light&amp;show_faces=false&amp;border_color&amp;stream=false&amp;header=false" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:292px; height:72px; position:absolute; top:50px;right:20px;" allowTransparency="true"></iframe>
+    <g:plus href="https://plus.google.com/105590729994225871729" width="170" height="69" theme="light"></g:plus>
+	-->
+</div> 

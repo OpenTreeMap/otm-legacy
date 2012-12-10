@@ -996,8 +996,8 @@ tm = {
 
         html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Add another trunk?</a></span> <br />";
         html += "<span class='activeEdit'>";
-        html += "<button type='submit' onclick='tm.saveDiameters(); return false;'>Save</button>";
-        html += "<button type='submit' onclick='tm.cancelDiameters(); return false;'>Cancel</button>";
+        html += "<button type='submit' onclick='tm.saveDiameters(); return false;' class='btn'>Save</button>";
+        html += "<button type='submit' onclick='tm.cancelDiameters(); return false;' class='btn'>Cancel</button>";
         html += "</span>";
         $(field).html(html);
     },

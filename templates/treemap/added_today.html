@@ -5,7 +5,7 @@
 
 {% block tophead %}
 	<script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
@@ -27,19 +27,25 @@
 {% endblock %}
 
 {% block left_panel %}
+<!-- START ADDED_TODAY -->
 <div id="register" class="added">
 
-    <h1>Recently added trees </h1>
+    <h1>Recently added trees</h1>
 	<div id="addedTrees">
-		<p>You have added these trees in the last twenty-four hours.<br/>
+		<p id="added-intro-p">You have added these trees in the last twenty-four hours.<br/>
 		Please click on the View Details button to view or add more information about a tree.</p>
 		<!-- PLACEHOLDER TREE MAP -->
 	    <div id="add_tree_map"></div>
-        <table>
-        <tr><th> </th><th>Scientific Name</th><th>Common Name</th><th>Diameter</th><th>Address</th></tr>
+        <table class="table table-striped">
+        <tr>
+			<th>Scientific Name</th>
+			<th>Common Name</th>
+			<th>Diameter</th>
+			<th>Address</th>
+		</tr>
         
         {% for plot in plots %}
-            <tr class="treeRow">
+            <tr>
                 <td><a href="{% url treemap.views.plot_detail plot.id %}">View Details</a></td>
                 <td><i>{{plot.current_tree.species.scientific_name|default:""}}</i></td>
                 <td>{{plot.current_tree.species.common_name|default:""}}</td>
@@ -57,7 +63,7 @@
 	<div id="add_more_trees">
 		<h1 class="title-add">Add more trees</h1>
 		<span>Have more trees you'd like to enter?</span>
-		<span class="mark"><a href="{% url treemap.views.tree_add %}">Add more trees</a></span>
+		<a href="{% url treemap.views.tree_add %}" class="btn btn-success input-block-level" id="add-more-trees">Add more trees</a>
 	</div>
-	</div>
+<!-- END ADDED_TODAY -->
 {% endblock right_panel %}

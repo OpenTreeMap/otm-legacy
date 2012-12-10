@@ -1,10 +1,17 @@
 {% extends "template_1.html" %}
 {% load dynamic_attribute thumbnail %}
 
-{%block body_class%}inner{%endblock %}
+{% block extrahead %}	    
+    {% load compressed %}
+    {% compressed_js 'map' %}
 
+{% endblock %}
+
+{%block body_class%}inner{%endblock %}
+{% block body_id %}id="results"{% endblock %} 
     
             {% block heading %}
+			<!-- START TREEMAP/RESULTS.HTML -->
                 <div class="heading">
                     <div class="holder">
                         <ul id="resultsContainer">
@@ -13,18 +20,19 @@
                                     <li id="title">Results:</li>
                                     <li id="first"><span class="tree_count">0</span> trees selected <span class="notrees"></span></li> 
                                     <!-- <li>XX trees need more info to be included</li> -->
-                                    <li><a href="{% url treemap.views.tree_add %}">Add a tree!</a></li>
+                                    <li id="addTreeBtn"><a class="btn btn-success" href="{% url treemap.views.tree_add %}">Add a tree!</a></li>
                                 </ul>
                             </li>
-                            <li id="export">
+                            {% if user.is_superuser %}
+			    <li id="export">
                                 <ul>
                                     <li id="title">Export options:</li>
-                                    <li id="firstOption">
-                                    <a id="kml_link">KML</a></li> 
+                                    <li id="firstOption"><a id="kml_link">KML</a></li> 
                                     <li><a id="csv_link">CSV</a></li>
                                     <li><a id="shp_link">Shapefile</a></li> 
                                 </ul>
                             </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -43,27 +51,27 @@
             <div id="results_wrapper" style="display:none;">
                 <ul id="messageStats">
                     <li class="impact" id="cost">Total Benefits</li>
-                    <li class="impactStat">$<span id="benefits_total"></span><span class="subnote"> saved</span></li>
+                    <li class="impactStat">&pound;<span id="benefits_total"></span><span class="subnote"> saved</span></li>
                 </ul>
                 <ul id="messageStats">
                     <li class="impact" id="gas">Greenhouse Gas Benefits</li>
-                    <li class="impactStat"><span id="annual_co2_avoided"> </span> lbs CO2 <span class="subnote">reduced</span></li>
-                    <li class="impactStat">$<span id="benefits_greenhouse"> </span><span class="subnote"> saved</span></li>
+                    <li class="impactStat"><span id="annual_co2_reduced"> </span> kgs CO2 <span class="subnote">reduced</span></li>
+                    <li class="impactStat">&pound;<span id="benefits_greenhouse"> </span><span class="subnote"> saved</span></li>
                 </ul>
                 <ul id="messageStats">
                     <li class="impact" id="water">Water Benefits</li>
-                    <li class="impactStat"><span id="annual_stormwater_management"></span> gallons <span class="subnote">conserved</span></li>
-                    <li class="impactStat">$<span id="benefits_water"> </span><span class="subnote"> saved</span></li>
+                    <li class="impactStat"><span id="annual_stormwater_management"></span> litres <span class="subnote">conserved</span></li>
+                    <li class="impactStat">&pound;<span id="benefits_water"> </span><span class="subnote"> saved</span></li>
                 </ul>
                 <ul id="messageStats">
                     <li class="impact" id="energy">Energy Benefits</li>
-                    <li class="impactStat"><span id="annual_electricity_conserved"> </span> kWh <span class="subnote">conserved</span></li>
-                    <li class="impactStat">$<span id="benefits_energy"> </span><span class="subnote"> saved</span></li>
+                    <li class="impactStat"><span id="annual_energy_conserved"> </span> kWh <span class="subnote">conserved</span></li>
+                    <li class="impactStat">&pound;<span id="benefits_energy"> </span><span class="subnote"> saved</span></li>
                 </ul>
                 <ul id="messageStats">
                     <li class="impact" id="air">Air Quality Benefits</li>
-                    <li class="impactStat"><span id="annual_air_quality_improvement"></span> lbs pollutants <span class="subnote">reduced</span></li>
-                    <li class="impactStat">$<span id="benefits_air_quality"> </span><span class="subnote"> saved</span></li>
+                    <li class="impactStat"><span id="annual_air_quality_improvement"></span> kgs pollutants <span class="subnote">reduced</span></li>
+                    <li class="impactStat">&pound;<span id="benefits_air_quality"> </span><span class="subnote"> saved</span></li>
                 </ul>
             </div>
             </div>
@@ -71,7 +79,7 @@
         {% endblock %}
 
         {% block top_right_panel %}
-            <div class="wrap">
+            <div class="wrap" id="results_map_wrap">
                 <div id="results_map">
 					<div class="mapToggle buttomSm">View Satellite</div>
                 </div>
@@ -83,7 +91,7 @@
         <div class="box-1"> 
         <h2>Recent updates</h2> 
         <p>Our database of trees comes from public records and citizen foresters like you.
-            Your help will make it better. <!--<a href="#">Find out how to add and edit trees near you!</a>-->
+            Your help will make it better.
         </p> 
         <table width="100%"> 
         {% for tree in latest_trees %}
@@ -92,12 +100,13 @@
                 
                 {% if tree.last_updated_by.get_profile.photo %}
                     {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
-                    <img src="{{ image.url }}" alt="image description" width="33" height="32" />
+                    <img src="{{image.url}}" alt="image description" width="33" height="32" />
                     {% endthumbnail %}
                 {% else %}
-                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />
+                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />            
                 {% endif %}
-                </td> 
+                </td>  
+                
                 <td> 
                     <span>Neighborhood</span>  <br />
 
@@ -131,7 +140,7 @@
             
             {% for pic in latest_photos %}
                 <li>
-                    <a href="{{ pic.tree.get_absolute_url }}">
+                    <a href="{% url treemap_tree_detail pic.tree.id %}">
                         {% thumbnail pic.photo "43x42" as image %}
                         <img src="{{ image.url }}" alt="image description" width="43" height="42" />
                         {% endthumbnail %}
@@ -142,6 +151,7 @@
             </ul> 
             
         </div> 
+		<!-- END TREEMAP/RESULTS.HTML -->
         {% endblock bottom_right_panel %}
 {% block endpage %}
 	<script type="text/javascript">

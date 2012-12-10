@@ -22,16 +22,14 @@
     <span class="notice" id="taken"></span>
 
     <label>I am a returning user
-        <span id="smError2"></span>
+		<input type="radio" id="account_status" onclick="check(this.value)" value="login" class="radio radio-select" />
     </label>
-     <input type="radio" id="account_status" onclick="check(this.value)" value="login" class="radio" />
     
     <label>I need an account
-        <span id="smError2"></span>
+		<input type="radio" id="account_status" onclick="check(this.value)" checked="checked" value="register" class="radio radio-select" />
     </label>
-    <input type="radio" id="account_status" onclick="check(this.value)" checked="checked" value="register" class="radio" />
     
-    <label class="required" {% if form.password1.errors %}id="error"{% endif %}>{% trans "Password" %}
+    <label class="required" {% if form.password1.errors %}id="error"{% endif %} id="pwd">{% trans "Password" %}
         {% if form.password1.errors %}
              {% for error in form.password1.errors %}
                  <span id="smError2">{{ error }}</span>
@@ -88,7 +86,7 @@
     </label>
     {{ form.last_name }}
     
-    <label {% if form.zip_code.errors %}id="error"{% endif %}>Zip code
+    <label {% if form.zip_code.errors %}id="error"{% endif %}>Postcode 
         {% if form.zip_code.errors %}
              {% for error in form.zip_code.errors %}
                  <span id="smError2">{{ error }}</span>
@@ -110,7 +108,9 @@
     </label>
   	{{ form.photo }}
 	
-    <label {% if form.volunteer.errors %}id="error"{% endif %}>Email me occasional updates
+    <label id="email-updates" {% if form.volunteer.errors %}id="error"{% endif %}>
+	{{ form.volunteer }}
+	Email me occasional updates
         {% if form.volunteer.errors %}
              {% for error in form.volunteer.errors %}
                  <span id="smError2">{{ error }}</span>
@@ -119,7 +119,6 @@
         <span id="smError2"></span>
         {% endif %}
     </label>
-	{{ form.volunteer }}
    
     {% comment %}
     <label {% if form.tos.errors %}id="error"{% endif %}>I accept the <a href="/terms">terms of service</a>
@@ -134,7 +133,7 @@
 	{{ form.tos }}
     {% endcomment %}
 
-    <button type="submit">Sign me up!</button>
+    <button type="submit" class="btn btn-large btn-inverse">Sign me up!</button>
 
     <div class="spacer"></div>
     

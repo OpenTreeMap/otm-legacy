@@ -1,32 +1,31 @@
 {% extends "template_3.html" %}
 
-{% block extrahead %}
+{% block extrahead %} 
+    <title>SUN Interactive Habitat Map</title>
+    <script src="{{ STATIC_URL }}tablesorter/jquery.tablesorter.min.js" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
-    $(document).ready(function() {
+    $(document).ready(function() { 
         jQuery("#species_list_table").tablesorter()
         });
-
+        
     </script>
 {% endblock %}
 
-{% block body_id %}id="species"{% endblock %}
-
     {% block left_panel %}
-			<h2>Species List</h2>
-     Download as <a href="./csv">CSV</a>
-	 
-	 {% if page %}
+     Download as <a href="./csv">CSV</a>  
+    {% endblock left_panel %}
+    
+    {% block right_panel %}
+        {% if page %}
             You are looking at species {{page.start_index}} through {{page.end_index}} <br>
             {% if page.has_previous %}<a href="./?page={{page.previous_page_number}}">previous</a>{% endif %}
             {% if page.has_next %}<a href="./?page={{page.next_page_number}}">next</a>{% endif %}
         {% endif %}
 
-
+        
         <div id="species_list">
-
-		Need Help identifying a tree? View our <a href="{{ SITE_ROOT }}treekey/">Tree Key</a>.
             <table id="species_list_table">
                 <thead>
                 <tr>
@@ -35,28 +34,20 @@
                     <th>Genus</th>
                     <th>Scientific Name</th>
                     <th>Cultivar</th>
-		            <th>Gender</th>
                     <th>Accepted Symbol</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for s in species %}
-                <tr >
+                <tr>
                     <td><i>{{s.tree_count}}</i></td>
-                    <td><a href="{{SITE_ROOT}}search/?species={{s.id}}" target="_none">{{s.common_name}}</a></td> 
+                    <td><a href="{{SITE_ROOT}}map/#?species={{s.id}}" target="_none">{{s.common_name}}</a></td> 
                     <td><i>{{s.genus}}</i></td>
                     <td><i>{{s.scientific_name}}</i></td>
                     <td><i>{{s.cultivar_name}}</i></td>
-		            <td><i>{{s.gender}}</i></td>
                     <td>{{s.accepted_symbol}}</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
-	 
-	 
-    {% endblock left_panel %}
-
-    {% block right_panel %}
-        
     {% endblock right_panel %}
