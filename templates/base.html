@@ -1,8 +1,14 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{% block title %}TreeZilla{% endblock %}</title>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>{% block title %}OpenTreeMap{% endblock %}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="OpenTreeMap is a wiki-inspired, web-based geographic tree inventory application that enables individuals, organizations, and governments to work together and collaboratively map the urban forest.">
+		<meta name="author" content="Azavea">
+		
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" />
 
         <script type="text/javascript">
 	      var tm_static = "{{ SITE_ROOT }}";
@@ -20,9 +26,9 @@
         {% block tophead %}
         {% endblock %}
 
-        
-        <script type="text/javascript" src="{{ STATIC_URL }}jquery/ui/js/jquery-1.7.2.min.js"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}jquery/ui/js/jquery-ui-1.8.22.custom.min.js"></script>
+		<!-- Javascript (include jquery-ui-1.8.22.custom.min.js if the Google-hosted vers. doesn't work -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.address-1.4.min.js"></script>
@@ -30,12 +36,12 @@
         {% load compressed %}
 	    {% compressed_js 'base' %}
         
-		<link rel="stylesheet" href="{{ STATIC_URL }}css/fonts.css" type="text/css"/>
-		<link rel="stylesheet" href="{{ STATIC_URL }}css/buttons-forms.css" type="text/css"/>
-		<link rel="stylesheet" href="{{ STATIC_URL }}css/table.css" type="text/css"/>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/treemap.css" type="text/css"/>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/treezilla.css" type="text/css" media="all" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8.22.custom.css" type="text/css"/>
+		<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.css" type="text/css" />
+		<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.css" type="text/css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/map.css" type="text/css" />
+		<!--
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/otm.css" type="text/css" /> -->
+        <link rel="stylesheet" href="{{ STATIC_URL }}jquery/ui/css/ui-lightness/jquery-ui-1.8.22.custom.css" type="text/css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery.autocomplete.css" type="text/css" />
         <script type="text/javascript">
             tm.initial_location_string = "Milton Keynes, UK";
@@ -44,7 +50,7 @@
                 
         {% block js_ready %}
         <script type="text/javascript">
-	  var tm_static = "{{ SITE_ROOT }}";
+			var tm_static = "{{ SITE_ROOT }}";
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}
@@ -62,14 +68,10 @@
 
         {% block extrahead %}
         {% endblock %}
-		        <link rel="shortcut icon" href="{{ STATIC_URL }}images/favicon.ico" />
-</head>
+	</head>
 
 <body {% block body_load %}{% endblock %} {% block body_id %}{% endblock %}  class="{%block body_class%}base_body{%endblock %}">
-    <div class="border-left"> </div>
-	<div class="border-right"> </div>
-	
-	<div id="wrapper">
+	<div class="container"> <!-- start: main site container -->
     
 		{% include "header.html" %}
 
@@ -87,53 +89,30 @@
             {% endblock callout %}
             
             {% block sub_footer %}
-                <!--
-				<div class="content"> 
-                <div id="subfooterContainer">
-                    <div class="threecolumns"> 
-                        <h2>How you can help</h2> 
-                        <div class="box"> 
-                            <span class="number">1</span> 
-                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Find a tree</a></span>: Search for the trees near you. Find trees that bear edible fruits and nuts or those with beautiful flowers. Search for the biggest trees in your neighborhood -- then go visit them! <a href="{% url treemap.views.result_map %}#?advanced=open" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                        <div class="box"> 
-                            <span class="number">2</span> 
-                            <p><span class="mark"><a href="{% url treemap.views.tree_add %}/">Add a tree</a></span>: The Urban Forest Map grows as citizen foresters like you add trees. Show a tree's location by putting a dot on the map, then  provide as much information as you can. <a href="{% url treemap.views.tree_add %}/" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                        <div class="box" id="boxLast"> 
-                            <span class="number">3</span> 
-                            <p><span class="mark"><a href="{% url treemap.views.result_map %}">Edit a tree</a></span>: Check out the facts about the trees around you and update when you can. Don't forget to add alerts! With your help, we'll  track changes in the urban forest and watch it grow. <a href="{% url treemap.views.result_map %}" class="more">Go  &raquo;</a></p> 
-                        </div> 
-                    </div> 
-                </div>
-                </div>
-				-->
-                <div id="cityFade"></div>    
-             {% endblock %}    
+            {% endblock %}    
             
 			{% include "footer.html" %}
             
-        </div>
+        </div> <!-- end: main site container -->
 
 
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
-</script>
+	<script type="text/javascript">
+	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
+	</script>
 
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker('{{ API_KEY_GOOGLE_ANALYTICS }}');
-pageTracker._setDomainName("none");
-pageTracker._setAllowLinker(true);
-pageTracker._trackPageview();
-} catch(err) {}
-</script>
+	<script type="text/javascript">
+	try {
+	var pageTracker = _gat._getTracker('{{ API_KEY_GOOGLE_ANALYTICS }}');
+	pageTracker._setDomainName("none");
+	pageTracker._setAllowLinker(true);
+	pageTracker._trackPageview();
+	} catch(err) {}
+	</script>
 
+	{% block endpage %}
 
-{% block endpage %}
-
-{% endblock endpage %}
+	{% endblock endpage %}
 
 </body>
 </html>
