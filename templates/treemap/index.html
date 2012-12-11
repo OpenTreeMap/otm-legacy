@@ -14,24 +14,13 @@
 
 	
         {% block top_left_panel %}
-		
-		<div id="intro-container">
-			<h2>We're making a map of Britain's trees and their ecosystem benefits. You can help by adding trees in your area. You can also get involved with many other citizen science tree projects.</h2>
-			<a href="{% url treemap.views.result_map %}" class="btn btn-success btn-large" id="get-started-btn">Get Started</a>
-			
-	<div id="intro-graphic">
-    	<a href="{% url treemap.views.result_map %}"><img src="{{ STATIC_URL }}images/intro-graphic.jpg" alt="Get started with TreeZilla"/></a>
-    </div>
-			
+		<div id="intro" class="container">
+			<div class="span11">
+				<h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque accumsan lacinia venenatis. Sed at est nec ante pellentesque pellentesque ut ut lectus.</h2>
+				<a href="{% url treemap.views.result_map %}" class="btn btn-warning btn-large" id="get-started-btn">Get Started</a>
+			</div>
 		</div>
 		
-		
-		<!-- START TREEMAP/INDEX.HTML -->
-		<!--
-        	<ul>
-        		<li><a href="{% url treemap.views.result_map %}">Get Started</a></li>
-        	</ul>
-		-->
         {% endblock %}
 
         {% block top_right_panel %}
@@ -70,37 +59,31 @@
 
 
         {% block sub_footer %}
-          
-<!-- start: subfooter -->
-
-
-    <div class="content" id="index-content">
-        <div id="subfooterContainer" class="front">
-            <div id="col1">
-                <ul class="header">
-                    <li><a href="{{ SITE_ROOT }}about/#about">About the project</a></li>
-                </ul>
-                <p>Treezilla is an exciting new citizen science platform that everyone from school children to university students and the general public can get involved with.  Learn about your local trees, discover which species are growing in your street and the ecosystem services they provide.</p>
-            <ul class="header">
-                    <li><a href="{{ SITE_ROOT }}faq/">FAQs</a></li>
-                </ul>
-                <p class="faq"><a href="{{ SITE_ROOT }}resources/#species">What if I don't know the species?</a></p>
-                <p class="faq"><a href="{{ SITE_ROOT }}resources/#measuretrunk">How do I measure the trunk diameter?</a></p>
-                <p class="faq"><a href="{{ SITE_ROOT }}resources/#ecoservices">What are the ecosystem services?</a></p>
-                <p class="faq"><a href="{{ SITE_ROOT }}resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></p>
-            
-            </div>
-           
-        </div>
-    </div>
-    
-
-
-    <div id="cityFade"></div> 
-<!-- END TREEMAP/INDEX.HTML -->	
+   
+<!-- START: ADDL INFO -->
+	<div class="container" id="addl-info">
+		<div class="span4">
+			<h3><a href="{{ SITE_ROOT }}about/#about">About the project</a></h3>
+			<p>Treezilla is an exciting new citizen science platform that everyone from school children to university students and the general public can get involved with.  Learn about your local trees, discover which species are growing in your street and the ecosystem services they provide.</p>
+		</div>
+		<div class="span4">
+			<h3><a href="{{ SITE_ROOT }}resources/#why">Your Role</a></h3>
+			<p>As a citizen forester, you can get involved by searching for trees, verifying records, and by adding the trees in your neighborhood! <br /><a href="{{ SITE_ROOT }}resources/#why">More &raquo;</a></p>	
+		</div>
+		<div class="span3">
+			<h3><a href="{{ SITE_ROOT }}resources/#faqs">FAQs</a></h3>
+			<ul>
+				<li><a href="{{ SITE_ROOT }}resources/#species">What if I don't know the species?</a></li>
+				<li><a href="{{ SITE_ROOT }}resources/#measuretrunk">How do I measure the trunk diameter?</a></li>
+				<li><a href="{{ SITE_ROOT }}resources/#ecoservices">What are the ecosystem services?</a></li>
+				<li><a href="{{ SITE_ROOT }}resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+<!-- END: ADDL INFO -->
 
 {% comment %}    
-<!-- end: subfooter -->
 {% endcomment %}
 
         {% endblock %}

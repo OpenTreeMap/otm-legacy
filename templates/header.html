@@ -1,38 +1,48 @@
 <!-- start: navbar -->
-	<div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <div class="nav-collapse collapse">
-            <ul class="nav pull-right">
-				<li><a href="{{ SITE_ROOT }}accounts/login/">Login</a></li>
-				<li><a href="{{ SITE_ROOT }}accounts/register/">Sign up</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-<!-- 
-<div id="header">
-    <h1 class="logo"><a href="{{ SITE_ROOT }}">TreeZilla</a></h1>
-    <ul id="nav">
-        <li>
-			{% if user.is_authenticated %}
-
-                    Hello, <b><a href="{% url profiles.views.profile_detail user.username %}">{{user.username|escape}}!</a></b> <span id="logout"> <a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a></span> <a href="{% url treemap.views.tree_add %}" class="btn btn-success globalAdd">Add a tree</a> <br/><!--{{user.reputation.reputation}} rep
-            {% else %}
-                <a href="{{ SITE_ROOT }}accounts/login/">Login</a> or <a href="{{ SITE_ROOT }}accounts/register/">Sign up</a> <a href="{% url treemap.views.tree_add %}" class="btn btn-success globalAdd">Add a tree</a>
-            {% endif %}
-        </li>
-    </ul>
+<div class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<div class="nav">
+				<ul class="nav">
+				{% if user.is_authenticated %}
+					<li><a href="{% url profiles.views.profile_detail user.username %}">Hello, {{user.username|escape}}!</a></li>
+					<li><a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a></li>
+				{% else %}
+					<li><a href="{{ SITE_ROOT }}accounts/login/">Login</a></li>
+					<li><a href="{{ SITE_ROOT }}accounts/register/">Sign up</a></li>
+				{% endif %}
+				</ul>
+			</div>
+		</div>
+	</div>
 </div>
--->
+<!-- end: navbar -->
 
+
+<div class="container">
+<div id="logo-search">
+	<div class="span3" id="logo">
+		<a href="{{ SITE_ROOT }}"><img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" /></a>
+	</div>
+	<div class="span7 pull-right" id="search">
+		<div class="span3">
+		<h4>Search by Location</h4>
+			<div class="input-prepend">
+				<div id="searchLocationBrowse" class="btn btn-inverse">List</div>
+                <input type="text" name="location" onFocus="this.value=''" id="location_search_input" value="Philadelphia, PA" class="input-medium" />
+			</div>
+		</div>
+		<div class="span3">
+		<h4>Search by Species</h4>
+			<div class="input-prepend">
+				<div id="searchSpeciesBrowse" class="btn btn-inverse">List</div>
+				<input type="text" class="input-medium" id="species_search_input" value="All trees" onFocus='if (this.value == "All trees") { this.value=""; };' />
+			</div>
+		</div>
+	</div>
+	</div>
+</div>
+<!--
 <div id="searchBox">
     <div id="searchBoxContainer">
         <ul id="searchTitles">
@@ -78,6 +88,7 @@
 
     </div>
 </div>
+-->
 
         
 <div class="filter-box" style="display:none"> 
