@@ -79,65 +79,50 @@
         {% endblock %}
 
         {% block top_right_panel %}
-            <div class="wrap" id="results_map_wrap">
-                <div id="results_map">
-					<div class="mapToggle buttomSm">View Satellite</div>
-                </div>
+            <div id="results_map">
+				<div class="mapToggle buttomSm btn btn-inverse btn-mini">View Satellite</div>
             </div>
         {% endblock %}        
         
-        
+     
 {% block bottom_left_panel %}
-        <div class="box-1"> 
-        <h2>Recent updates</h2> 
-        <p>Our database of trees comes from public records and citizen foresters like you.
-            Your help will make it better.
-        </p> 
-        <table width="100%"> 
-        {% for tree in latest_trees %}
-            <tr> 
-                <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
-                
-                {% if tree.last_updated_by.get_profile.photo %}
+        <div class="span6" id="recent-updates"> 
+			<h3>Recent updates</h3> 
+			<p>Our database of trees comes from public records and citizen foresters like you. Your help will make it better.</p> 
+			<table class="table" width="100%"> 
+			{% for tree in latest_trees %}
+				<tr> 
+					<td class="image"><a href="{% url treemap_tree_detail tree.id %}">
+					{% if tree.last_updated_by.get_profile.photo %}
                     {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
-                    <img src="{{image.url}}" alt="image description" width="33" height="32" />
+						<img src="{{image.url}}" alt="image description" width="33" height="32" />
                     {% endthumbnail %}
-                {% else %}
-                    <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />            
-                {% endif %}
-                </td>  
-                
-                <td> 
-                    <span>Neighborhood</span>  <br />
-
-                    {{tree.neighborhood.all.0}} 
-                </td> 
-                <td> 
-                    <span>Tree species</span>  <br />
-
-                    <em>{{tree.species.common_name}}</em> 
-                </td> 
-                <td> 
-                    <span>Updated by</span>  <br />
-
-                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a> 
-                </td> 
-            </tr>
-       {% endfor %}
+					{% else %}
+						<img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />            
+					{% endif %}
+					</td>  
+					<td> 
+						<span>Neighborhood</span>  <br />
+						{{tree.neighborhood.all.0}} 
+					</td> 
+					<td> 
+						<span>Tree species</span>  <br />
+						<em>{{tree.species.common_name}}</em> 
+					</td> 
+					<td> 
+						<span>Updated by</span>  <br />
+						<a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a> 
+					</td> 
+				</tr>
+		{% endfor %}
         </table> 
-    </div> 
-        
+    </div>       
 {% endblock bottom_left_panel %}
 
 {% block bottom_right_panel %}
-
-        <div class="box-2"> 
-            <div class="title"> 
-                <h2>Recent photos from users</h2> 
-<!--                             <a href="#">Upload your own</a>  -->
-            </div> 
+        <div class="span5" id="recent-photos"> 
+        <h3>Recent photos from users</h3> 
             <ul class="photos">
-            
             {% for pic in latest_photos %}
                 <li>
                     <a href="{% url treemap_tree_detail pic.tree.id %}">
@@ -147,12 +132,10 @@
                     </a>
                 </li>
             {% endfor %}
-            
-            </ul> 
-            
+            </ul>
         </div> 
-		<!-- END TREEMAP/RESULTS.HTML -->
-        {% endblock bottom_right_panel %}
+{% endblock bottom_right_panel %}
+
 {% block endpage %}
 	<script type="text/javascript">
 		//jQuery().ready(function() {

@@ -28,25 +28,17 @@ margin:2px;
 height:382px;
 }
 #index_map{
-border:10px solid #eef5d8;
-height:400px;
+	border:10px solid #eef5d8;
+	height:400px;
 }
 #results_map{
-position:relative;
-height:503px;
-width:622px;
+	position:absolute;
+	top: 194px;
+	height: 450px;
+	width:	100%;
+	left: 0;
 }
-#results_map_wrap {
-	height: 503px;
-	width: 622px;
-	border: 7px solid #fff;
-	overflow: hidden;
-	position: relative;
-	box-shadow:
-	-webkit-box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
-	-moz-box-shadow:    1px 1px 5px rgba(0, 0, 0, 0.3);
-	box-shadow:         1px 1px 5px rgba(0, 0, 0, 0.3);
-}
+
 #favorite_tree_map{
 height:250px;
 width:260px;
@@ -356,8 +348,6 @@ cursor:pointer;
     top: 10px;
     right: 10px;
     z-index: 1000;
-	background: rgb(0, 0, 0) ; opacity: 0.75;
-    font-size: 11px;
 	cursor: pointer;
 }
 

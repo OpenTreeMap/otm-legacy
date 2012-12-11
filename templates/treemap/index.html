@@ -17,9 +17,10 @@
 		<div id="intro" class="container">
 			<div class="span11">
 				<h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque accumsan lacinia venenatis. Sed at est nec ante pellentesque pellentesque ut ut lectus.</h2>
-				<a href="{% url treemap.views.result_map %}" class="btn btn-warning btn-large" id="get-started-btn">Get Started</a>
+				<a href="{% url treemap.views.result_map %}" class="btn btn-success btn-large" id="get-started-btn">Get Started</a>
 			</div>
 		</div>
+		
 		
         {% endblock %}
 
@@ -76,7 +77,7 @@
 				<li><a href="{{ SITE_ROOT }}resources/#species">What if I don't know the species?</a></li>
 				<li><a href="{{ SITE_ROOT }}resources/#measuretrunk">How do I measure the trunk diameter?</a></li>
 				<li><a href="{{ SITE_ROOT }}resources/#ecoservices">What are the ecosystem services?</a></li>
-				<li><a href="{{ SITE_ROOT }}resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></li>
+				<li><strong><a href="{{ SITE_ROOT }}resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></strong></li>
 			</ul>
 		</div>
 	</div>

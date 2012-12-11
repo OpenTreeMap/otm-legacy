@@ -17,11 +17,65 @@ row {
 
 .navbar-fixed-top .navbar-inner, 
 .navbar-static-top .navbar-inner {
-	box-shadow: 0 1px 10px rgba(0, 0, 0, 0.15);
+	background-color: rgba(125, 187, 66, 1.0);
+	background-image: none;
+	border: 0;
+	border-bottom: 1px solid #689F41;
+		box-shadow: 0 1px 7px rgba(0, 0, 0, 0.25);
+	
+}
+
+.navbar .nav > li > a {
+	color: #fff;
+	text-shadow: none;
+	font-family: 'Montserrat' sans-serif;
+	text-shadow: 0px -1px 0px #668337;
+}
+
+.navbar .nav > li > a:hover {
+	color: #5C911F;
+	text-shadow: none;
+	font-family: 'Montserrat' sans-serif;
+	text-shadow: 0px -1px 0px #3F6D09;
+}
+
+#main-header {
+	background: #ECF9DC;
+	margin-top: 40px;
+	position: fixed;
+	width: 100%;
+	height: 150px;
+	z-index: -99;
+	left: 0;
+	border-bottom: 1px solid #DCE5C6;
+}
+
+#logo {
+	margin-top: 20px;
 }
 
 #logo-search {
 	padding-top: 65px;
+	position: fixed;
+}
+
+label.search-label {
+	font-size: 11px;
+	padding-top: 3px;
+}
+
+label.search-label a {
+	color: #8BAA3E;
+	font-weight: bold;
+}
+
+label.search-label a:hover {
+	color: #000;
+	text-decoration: none;
+}
+
+#search-btn {
+	margin-top: 40px;
 }
 
 
@@ -29,12 +83,13 @@ row {
 
 #intro {
 	padding: 10px 0 25px 0;
-	margin-top: 25px;
+	margin-top: 215px;
+	border-bottom: 1px solid #EEE;
 }
 
 #intro h2 {
 	font-weight: normal;
-	color: #8BAA3E;
+	color: #666;
 }
 
 #get-started-btn {
@@ -42,12 +97,16 @@ row {
 	margin-bottom: 15px;
 }
 
+#addl-info {
+	margin-top: 25px;
+}
+
 #addl-info h3 a {
 	color: #8BAA3E;
 }
 
 #addl-info h3 a:hover {
-	color: #788E1E;
+	color: #000;
 	text-decoration: none;
 }
 
@@ -57,12 +116,21 @@ row {
 	margin: 0;
 }
 
+#addl-info a {
+	color: #8BAA3E;
+}
+
+#addl-info a:hover {
+	color: #000;
+	text-decoration: none;
+}
+
 /* FOOTER ========================================= */
 
 #footer {
-	border-top: 1px solid #ccc;
 	padding-top: 15px;
 	bottom: 0;
+	padding-top: 125px;
 }
 
 #partners li {
@@ -74,4 +142,27 @@ row {
 #partners img {
 	max-width: 100px;
 	max-height: 45px;
+}
+
+/* MAP STUFF ====================================== */
+
+#recent-photos ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+#recent-photos li {
+	display: inline;
+	padding-right: 10px;
+}
+
+#recent-photos img {
+	border: 1px solid #eee;
+}
+
+#recent-updates,
+#recent-photos {
+	margin-top: 60px;
+	padding-bottom: 50px;
 }

@@ -2,7 +2,7 @@
 <div class="navbar navbar-fixed-top">
 	<div class="navbar-inner">
 		<div class="container">
-			<div class="nav">
+			<div class="nav pull-left">
 				<ul class="nav">
 				{% if user.is_authenticated %}
 					<li><a href="{% url profiles.views.profile_detail user.username %}">Hello, {{user.username|escape}}!</a></li>
@@ -13,32 +13,58 @@
 				{% endif %}
 				</ul>
 			</div>
+			<div class="nav pull-right">
+				<ul class="nav">
+					<li><a href="#">About</a></li>
+					<li><a href="#">Resources</a></li>
+					<li><a href="#">Donate</a></li>
+					<li><a href="#">Contact</a></li>
+				</ul>
+			</div>
+			
 		</div>
 	</div>
 </div>
 <!-- end: navbar -->
 
 
+<div id="main-header"> </div>
 <div class="container">
 <div id="logo-search">
-	<div class="span3" id="logo">
+	<div class="span2" id="logo">
 		<a href="{{ SITE_ROOT }}"><img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" /></a>
 	</div>
-	<div class="span7 pull-right" id="search">
-		<div class="span3">
+	<div class="span8 pull-right" id="search">
+	<form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
+		<div class="span3 pull-left">
 		<h4>Search by Location</h4>
 			<div class="input-prepend">
 				<div id="searchLocationBrowse" class="btn btn-inverse">List</div>
                 <input type="text" name="location" onFocus="this.value=''" id="location_search_input" value="Philadelphia, PA" class="input-medium" />
+				<label class="search-label">
+					Ex: <a onclick='$("#location_search_input").val("1 S Broad St"); $("#location_search_input").change(); return false;' href="#">1 S Broad St</a>, 
+					<a onclick='$("#location_search_input").val("19102"); $("#location_search_input").change(); return false;' href="#">19102</a>
+				</label>
 			</div>
 		</div>
-		<div class="span3">
+		<div class="span3 pull-left">
 		<h4>Search by Species</h4>
 			<div class="input-prepend">
 				<div id="searchSpeciesBrowse" class="btn btn-inverse">List</div>
 				<input type="text" class="input-medium" id="species_search_input" value="All trees" onFocus='if (this.value == "All trees") { this.value=""; };' />
+				<label class="search-label">
+					Ex: <a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> 
+					or <a onclick='$("#species_search_input").val("Ulmus procera"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#"><span class="italics">Ulmus procera</span></a>
+				</label>
 			</div>
 		</div>
+		<div class="span1" id="search-btn">
+			<input class="btn btn-success" id="location_go" type="button" value="Search" />
+				<label class="search-label">
+					<a href="#" id="advanced" class="advanced"><span id="close-filters">+ Advanced</span></a>
+				</label>
+		</div>
+	</form>
 	</div>
 	</div>
 </div>
