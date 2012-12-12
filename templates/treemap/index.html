@@ -1,4 +1,4 @@
-{% extends "template_4.html" %}
+{% extends "base.html" %}
 {% load feeds %}
 {% load tree_tags %}
 {% load cache %}        
@@ -9,60 +9,17 @@
         //todo less js on the homepage (eg no gmaps stuff?)
         tm.initial_location_string = "Milton Keynes, UK";
         tm.initial_species_string = "All trees";
-
     {% endblock %}
 
 	
-        {% block top_left_panel %}
-		<div id="intro" class="container">
-			<div class="span11">
+        {% block content %}
+		<div class="row">
+		<div class="span11" id="intro">
 				<h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque accumsan lacinia venenatis. Sed at est nec ante pellentesque pellentesque ut ut lectus.</h2>
 				<a href="{% url treemap.views.result_map %}" class="btn btn-success btn-large" id="get-started-btn">Get Started</a>
-			</div>
+		</div>
 		</div>
 		
-		
-        {% endblock %}
-
-        {% block top_right_panel %}
-        {% endblock %}
-        
-        
-        {% block xcallout %}
-        <!--Start Callout  --> 
-            <div class="callout"> 
-                <!--Start Callout inner  --> 
-                <div class="callout-inner"> 
-                <ul> 
-                
-                            <li><a href="#"><img src="{{ STATIC_URL }}images/es/image02.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="{{ STATIC_URL }}images/es/image03.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="{{ STATIC_URL }}images/es/image04.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="{{ STATIC_URL }}images/es/image05.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li><a href="#"><img src="{{ STATIC_URL }}images/es/image06.jpg" alt="image description" width="76" height="76" /></a></li> 
-                            <li class="last"><a href="#"><img src="{{ STATIC_URL }}images/es/image07.jpg" alt="image description" width="76" height="76" /></a></li> 
-                </ul> 
-                </div> 
-                <!--End Callout inner  --> 
-            </div> 
-            <!--End Callout  --> 
-        {% endblock xcallout %}
-        
-        
-        
-        
-        {% block bottom_left_panel %}
-        {% endblock bottom_left_panel %}
-
-        {% block bottom_right_panel %}
-        {% endblock %}
-
-
-
-        {% block sub_footer %}
-   
-<!-- START: ADDL INFO -->
-	<div class="container" id="addl-info">
 		<div class="span4">
 			<h3><a href="{{ SITE_ROOT }}about/#about">About the project</a></h3>
 			<p>Treezilla is an exciting new citizen science platform that everyone from school children to university students and the general public can get involved with.  Learn about your local trees, discover which species are growing in your street and the ecosystem services they provide.</p>
@@ -80,8 +37,20 @@
 				<li><strong><a href="{{ SITE_ROOT }}resources/#faqs" class="more">See all FAQs&nbsp;&raquo;</a></strong></li>
 			</ul>
 		</div>
-	</div>
-</div>
+        {% endblock %}
+
+        {% block top_right_panel %}
+        {% endblock %}
+        
+        {% block bottom_left_panel %}
+        {% endblock bottom_left_panel %}
+
+        {% block bottom_right_panel %}
+        {% endblock %}
+
+        {% block sub_footer %}
+   
+<!-- START: ADDL INFO -->
 <!-- END: ADDL INFO -->
 
 {% comment %}    

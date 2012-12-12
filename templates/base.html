@@ -26,9 +26,10 @@
         {% block tophead %}
         {% endblock %}
 
-		<!-- Javascript (include jquery-ui-1.8.22.custom.min.js if the Google-hosted vers. doesn't work -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+		<!-- Javascript (include jquery-ui-1.8.22.custom.min.js if the CDN-hosted vers. doesn't work -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.query-2.1.7.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}jquery/jquery.address-1.4.min.js"></script>
@@ -74,9 +75,9 @@
     
 		{% include "header.html" %}
 		
-	<div class="container">
+	<div class="container"> <!-- start: main site container -->
             {% block content %}
-                main content goes here
+                <!-- main content goes here -->
             {% endblock content %}
 
             {% block callout %}
@@ -91,9 +92,9 @@
             {% block sub_footer %}
             {% endblock %}    
             
-			{% include "footer.html" %}
-            
         </div> <!-- end: main site container -->
+		
+		{% include "footer.html" %}
 
 	</div>
 	<script type="text/javascript">

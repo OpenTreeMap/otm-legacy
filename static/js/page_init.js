@@ -228,8 +228,8 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
 
 
 tm.generateLocationDropdown = function(locations) {
-    var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
-    $("#searchNBList").append(ul).hide();
+    var ul = $("<ul class='dropdown-menu' id='location-list'></ul>");
+    $("#searchNBList").append(ul);
     var states = {}
     for(var i=0; i<locations.length;i++) {
         var feature = locations[i];
@@ -248,7 +248,7 @@ tm.generateLocationDropdown = function(locations) {
             var c = "ac_odd";
             if (i%2 == 0) {c = 'ac-even';}
             var name = entries[i].name;
-            ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
+            ul.append("<a class='search-suggestion-location'><li id='" + name + "' class='" + c + "'>" + name + "</li></a>")
         }
     }
 
@@ -278,13 +278,13 @@ tm.generateLocationDropdown = function(locations) {
 
 tm.generateSpeciesDropdown = function(speciesData) {
     //TODO - use css for striping
-    var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
-    $("#searchSpeciesList").append(ul).hide();
+    var ul = $("<ul class='dropdown-menu' id='species-list'></ul>");
+    $("#searchSpeciesList").append(ul);
     for(var i=0; i<speciesData.length;i++) {
         if (speciesData[i].count == 0) {continue;}
         var c = "ac_odd";
         if (i%2 == 0) {c = 'ac-even';}
-        ul.append("<li id='" + speciesData[i].id + "' class='" + c + "'>" + speciesData[i].cname + " [" + speciesData[i].sname + "]</li>")
+        ul.append("<a class='search-suggestion-species'><li id='" + speciesData[i].id + "' class='" + c + "'>" + speciesData[i].cname + " [<em>" + speciesData[i].sname + "</em>]</li></a>")
     }
     
     $("#s_list > li").hover(function(evt) {
@@ -324,8 +324,15 @@ tm.baseTemplatePageLoad = function() {
         return false;
     });
     
-    $('a.search-suggestion').live('click', function(event) { 
+	// changes the text in the LOCATION search box when you click on an item
+    $('a.search-suggestion-location').live('click', function(event) { 
         $("#location_search_input").val($(this).text()).change();
+        return false;
+    });
+	
+	// changes the text in the SPECIES box when you click on an item
+	$('a.search-suggestion-species').live('click', function(event) { 
+        $("#species_search_input").val($(this).text()).change();
         return false;
     });
 

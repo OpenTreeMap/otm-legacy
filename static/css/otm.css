@@ -54,36 +54,37 @@ row {
 	margin-top: 20px;
 }
 
-#logo-search {
-	padding-top: 65px;
-	position: fixed;
-}
-
-label.search-label {
-	font-size: 11px;
-	padding-top: 3px;
-}
-
-label.search-label a {
-	color: #8BAA3E;
-	font-weight: bold;
-}
-
-label.search-label a:hover {
-	color: #000;
-	text-decoration: none;
-}
 
 #search-btn {
 	margin-top: 40px;
 }
 
+#search-area {
+	margin-top: 80px;
+}
+
+#search-area label {
+	font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+#search-area .help-block {
+	font-size: 11px;
+}
+
+/* Hack to get the right nav back on-screen when screen size is 1024px wide */
+@media screen and (min-device-width: 1024px) {
+	#right-nav {
+		margin-right: 40px;
+	}
+}
 
 /* LANDING PAGE =================================== */
 
 #intro {
-	padding: 10px 0 25px 0;
-	margin-top: 215px;
+	padding-left: 25px;
+	margin-top: 100px;
 	border-bottom: 1px solid #EEE;
 }
 
@@ -165,4 +166,39 @@ label.search-label a:hover {
 #recent-photos {
 	margin-top: 60px;
 	padding-bottom: 50px;
+}
+
+/* SEARCH DROPDOWNS =============================== */
+
+ul#species-list,
+ul#location-list {
+	height: 495px;
+	overflow-y: scroll;
+	width: 307px;
+	font-size: 12px;
+}
+
+ul#species-list li,
+ul#location-list li {
+	padding: 3px 0 3px 10px;
+}
+
+ul#species-list li.header,
+ul#location-list li.header {
+	font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 16px;
+	color: rgb(125, 187, 66);
+}
+
+a.search-suggestion-location,
+a.search-suggestion-species {
+	cursor: pointer;
+	color: #000;
+}
+
+a.search-suggestion-location:hover,
+a.search-suggestion-species:hover {
+	text-decoration: none;
+	color: #000;
 }

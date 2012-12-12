@@ -1,33 +1,74 @@
-<!-- start: navbar -->
-<div class="navbar navbar-fixed-top">
-	<div class="navbar-inner">
-		<div class="container">
-			<div class="nav pull-left">
-				<ul class="nav">
-				{% if user.is_authenticated %}
-					<li><a href="{% url profiles.views.profile_detail user.username %}">Hello, {{user.username|escape}}!</a></li>
-					<li><a href="{{ SITE_ROOT }}accounts/logout/?next={{ SITE_ROOT }}" id="logout">Logout</a></li>
-				{% else %}
-					<li><a href="{{ SITE_ROOT }}accounts/login/">Login</a></li>
-					<li><a href="{{ SITE_ROOT }}accounts/register/">Sign up</a></li>
-				{% endif %}
-				</ul>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="#">Login</a></li>
+              <li><a href="#about">Sign Up</a></li>
+            </ul>
+			<ul class="nav pull-right" id="right-nav">
+              <li><a href="#">About</a></li>
+              <li><a href="#about">Resources</a></li>
+			  <li><a href="#about">Donate</a></li>
+			  <li><a href="#about">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+	
+	<div class="container" id="search-area">
+		<div class="row">
+			<div class="span2">
+				<img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" />
 			</div>
-			<div class="nav pull-right">
-				<ul class="nav">
-					<li><a href="#">About</a></li>
-					<li><a href="#">Resources</a></li>
-					<li><a href="#">Donate</a></li>
-					<li><a href="#">Contact</a></li>
-				</ul>
+			<form>
+			<div class="span4 offset2">
+				<fieldset>
+					<label>Search by Location</label>
+					<div class="input-prepend">
+						<div class="btn-group" id="searchNBList">
+								<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
+						</div>
+						<input type="text" placeholder="Enter a location" name="location" onFocus="this.value=''" id="location_search_input" class="span3">
+					</div>
+					<input type='hidden' name='species_search_id' id="species_search_id" />
+					<input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+					<span class="help-block">
+						<a onclick='$("#location_search_input").val("1 S Broad St"); $("#location_search_input").change(); return false;' href="#">1 S Broad St</a> or
+						<a onclick='$("#location_search_input").val("Center City"); $("#location_search_input").change(); return false;' href="#">Center City</a>
+					</span>
+				</fieldset>
 			</div>
 			
+			<div class="span4">
+				<fieldset>
+					<label>Search by Species</label>
+					<div class="input-prepend">
+						<div class="btn-group" id="searchSpeciesList">
+								<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
+						</div>
+						<input type="text" placeholder="Enter a location" class="span3" id="species_search_input" onFocus='if (this.value == "All trees") { this.value=""; };'>
+					</div>
+					<input type='hidden' name='species_search_id' id="species_search_id" />
+					<input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+					<span class="help-block">
+					<a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> or
+					<a onclick='$("#species_search_input").val("Ulmus procera"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#"><span class="italics">Ulmus procera</span></a>
+					</span>
+				</fieldset>
+			</div>
+			
+			</form>
 		</div>
-	</div>
-</div>
-<!-- end: navbar -->
+    </div> <!-- /container -->
 
-
+	<!--
 <div id="main-header"> </div>
 <div class="container">
 <div id="logo-search">
@@ -50,7 +91,8 @@
 		<div class="span3 pull-left">
 		<h4>Search by Species</h4>
 			<div class="input-prepend">
-				<div id="searchSpeciesBrowse" class="btn btn-inverse">List</div>
+				<div class="btn-group">
+				<div id="searchSpeciesBrowse" class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" href="#">List</div>
 				<input type="text" class="input-medium" id="species_search_input" value="All trees" onFocus='if (this.value == "All trees") { this.value=""; };' />
 				<label class="search-label">
 					Ex: <a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> 
@@ -109,14 +151,14 @@
             </li>
             <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters &raquo;</span></em></a> </li>
         </ul>
+		
     <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
-	<div id="searchNBList" class="ac_results" style=""><h2>Neighbourhoods</h2></div>
+	<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
 
     </div>
 </div>
--->
 
-        
+<!--        
 <div class="filter-box" style="display:none"> 
     <div class="wrap"> 
         <div class="parameter"> 
@@ -382,6 +424,7 @@
                         </li> 
                     </ul>
 					-->
+					<!--
                 </div> 
 				<!--
                 <div class="outstanding"> 
@@ -411,7 +454,7 @@
                         </li> 
                     </ul> 
                 </div> 
-				-->
+				
             </fieldset> 
         </form> 
     </div> 
