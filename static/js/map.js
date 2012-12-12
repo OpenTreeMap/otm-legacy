@@ -80,7 +80,7 @@ tm.init_base_map = function(div_id, controls){
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,
-            attribution: "(c) Your Organization"
+            attribution: "&copy; Your Organization"
         }
     );
     tm.tms.buffer = 0;

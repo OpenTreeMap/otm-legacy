@@ -177,6 +177,21 @@ row {
 	padding-bottom: 50px;
 }
 
+#results_map {
+	border: 1px solid #ddd;
+}
+
+#eco-test h3 {
+	padding: 0;
+	margin: 0;
+	font-weight: normal;
+	font-size: 21px;
+}
+
+#eco-test-content {
+	padding: 15px;
+}
+
 /* SEARCH DROPDOWNS =============================== */
 
 ul#species-list,
@@ -210,4 +225,18 @@ a.search-suggestion-location:hover,
 a.search-suggestion-species:hover {
 	text-decoration: none;
 	color: #000;
+}
+
+/* MAP PAGE ======================================= */
+
+#eco-info-panel {
+	width: 20%;
+	height: 100%;
+	right: 0;
+	background-color: #c2c2c2;
+}
+
+#map-wrap {
+	width: 100%;
+	height: 450px;
 }

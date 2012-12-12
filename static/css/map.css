@@ -32,17 +32,31 @@ height:382px;
 	height:400px;
 }
 #results_map{
-	position:absolute;
+	position: absolute;
 	top: 194px;
 	height: 450px;
 	width:	100%;
 	left: 0;
 }
 
+#eco-test {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 1000;
+	background: rgba(0, 0, 0, 0.85);
+	color: #fff;
+	width: 300px;
+	height: 450px;
+	-webkit-box-shadow: -5px 0px 10px -7px rgba(0, 0, 0, 0.8);
+	-moz-box-shadow:    -5px 0px 10px -7px rgba(0, 0, 0, 0.8);
+	box-shadow:         -5px 0px 10px -7px rgba(0, 0, 0, 0.8);
+}
+
 #favorite_tree_map{
-height:250px;
-width:260px;
-border:10px solid #eef5d8;
+	height:250px;
+	width:260px;
+	border:10px solid #eef5d8;
 }
 #edit_tree_map_wrap{
 	height:220px;
@@ -346,7 +360,7 @@ cursor:pointer;
 .content .buttomSm.mapToggle {
     position:absolute;
     top: 10px;
-    right: 10px;
+    right: 312px;
     z-index: 1000;
 	cursor: pointer;
 }
