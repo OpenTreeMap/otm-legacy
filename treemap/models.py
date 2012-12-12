@@ -20,24 +20,7 @@ import simplejson
 from sorl.thumbnail import ImageField
 from threadedcomments.models import ThreadedComment
 
-
-
-RESOURCE_NAMES = ['Hydro interception',
-                     'AQ Ozone dep',
-                     'AQ NOx dep',
-                     'AQ PM10 dep',
-                     'AQ SOx dep',
-                     'AQ NOx avoided',
-                     'AQ PM10 avoided',
-                     'AQ SOx avoided',
-                     'AQ VOC avoided',
-                     'BVOC',
-                     'CO2 sequestered',
-                     'CO2 avoided',
-                     'Natural Gas',
-                     'Electricity',
-                     'CO2 Storage']
-
+from treemap.eco import set_environmental_summaries
 
 status_choices = (
         ('height','Height (in feet)'),
@@ -190,83 +173,6 @@ class Resource(models.Model):
     #dbh_by_age_class_dbh = models.TextField()
     co2_storage_dbh = models.TextField(null=True, blank=True)
     objects = models.GeoManager()
-    
-    def get_interpolated_location(self, dbh, long_list=False):
-        """
-        return how far along we are along the dbh_list, and interpolated %
-        """
-        dbh_list = [3.81,11.43,22.86,38.10,53.34,68.58,83.82,99.06,114.30]
-        if long_list:
-            dbh_list = [2.54,5.08,7.62,10.16,12.7,15.24,17.78,20.32,22.86,25.4,27.94,30.48,33.02,35.56,38.1,40.64,43.18,45.72,48.26,50.8,53.34,55.88,58.42,60.96,63.5,66.04,68.58,71.12,73.66,76.2,78.74,81.28,83.82,86.36,88.9,91.44,93.98,96.52,99.06,101.6,104.14,106.68,109.22,111.76,114.3]
-        #convert from cm to inches
-        dbh_list = [d * 0.393700787 for d in dbh_list]
-
-        if dbh < dbh_list[0]:
-            return[1,0]
-        if dbh >= dbh_list[-1]:
-            return[len(dbh_list)-1,1]
-        for i, d in enumerate(dbh_list):
-            if dbh < d:
-                interp_between = (float(dbh - dbh_list[i-1]) / float(dbh_list[i] - dbh_list[i-1]))
-                #return length_along + (interp_between * 1.0/(len(dbh_list)-1))
-                return i, interp_between
-                
-    def calc_resource_summaries(self, br):
-        summaries = {}
-        summaries['annual_stormwater_management'] = br['hydro_interception_dbh'] * 264.1
-        summaries['annual_electricity_conserved'] = br['electricity_dbh']
-        # http://sftrees.securemaps.com/ticket/25#comment:7
-        summaries['annual_natural_gas_conserved'] = br['natural_gas_dbh'] * 0.293
-        summaries['annual_air_quality_improvement'] = (
-            br['aq_ozone_dep_dbh'] + 
-            br['aq_nox_dep_dbh'] + 
-            br['aq_pm10_dep_dbh'] +
-            br['aq_sox_dep_dbh'] +
-            br['aq_nox_avoided_dbh'] +
-            br['aq_pm10_avoided_dbh'] +
-            br['aq_sox_avoided_dbh'] +
-            br['aq_voc_avoided_dbh'] +
-            br['bvoc_dbh']) * 2.2
-        summaries['annual_ozone'] = br['aq_ozone_dep_dbh'] * 2.2
-        summaries['annual_nox'] = br['aq_nox_dep_dbh'] + br['aq_nox_avoided_dbh'] * 2.2
-        summaries['annual_pm10'] = br['aq_pm10_dep_dbh'] + br['aq_pm10_avoided_dbh'] * 2.2
-        summaries['annual_sox'] = br['aq_sox_dep_dbh'] + br['aq_sox_avoided_dbh'] * 2.2
-        summaries['annual_voc'] = br['aq_voc_avoided_dbh'] * 2.2
-        summaries['annual_bvoc'] = br['bvoc_dbh'] * 2.2
-        summaries['annual_co2_sequestered'] = br['co2_sequestered_dbh'] * 2.2
-        summaries['annual_co2_avoided'] = br['co2_avoided_dbh'] * 2.2
-        summaries['annual_co2_reduced'] = (br['co2_sequestered_dbh'] + br['co2_avoided_dbh']) * 2.2
-        summaries['total_co2_stored'] = br['co2_storage_dbh'] * 2.2
-        summaries['annual_energy_conserved'] = br['electricity_dbh'] + br['natural_gas_dbh'] * 0.293
-        return summaries
-
-    def calc_base_resources(self, resource_list, dbh):
-        """
-        example: treeobject.species.resource_species.calc_base_resources(['Electricity'], 36.2)
-        """
-        index, interp = self.get_interpolated_location(dbh)
-        index2, interp2 = self.get_interpolated_location(dbh, True)
-        
-        #print 'idx,interp',index, interp
-        results = {}
-        for resource in resource_list:
-            #print 'resrc' , resource
-            fname = "%s_dbh" % resource.lower().replace(' ','_')
-            #get two values of interest - TODO FIX for sketchy eval
-            dbhs= (eval(getattr(self, fname)))
-            if len(dbhs) > 9:
-                #start at same list index as dbh_list, and figure out what interp value is here
-                local_interp = float(dbhs[index2] - dbhs[index2-1]) * interp2
-                #print 'local_interp', local_interp
-                results[fname] = dbhs[index2-1] + local_interp
-                #print "long resource"
-            else:
-                #start at same list index as dbh_list, and figure out what interp value is here
-                local_interp = float(dbhs[index] - dbhs[index-1]) * interp 
-                #print 'local_interp', local_interp
-                results[fname] = dbhs[index-1] + local_interp
-                #print "short resource"
-        return results
         
     def __unicode__(self): return u'%s' % (self.meta_species)
     
@@ -865,43 +771,6 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         pends = self.treepending_set.filter(status='pending')
         return pends
 
-    def set_environmental_summaries(self):
-        if not self.species or not self.dbh:
-            logging.debug('no species or no dbh ..')
-            return None
-        tr =  TreeResource.objects.filter(tree=self)
-        #check see if we have an existing tree resource
-        if not tr:
-            logging.debug('no tree resource for tree id %s' % self.id)
-            if self.species.resource.all():
-                logging.info(' but .. we do have a resource for species id %s; creating tr' % self.species.id)
-                tr = TreeResource(tree=self)
-            else:
-                return None
-        else:
-            tr = tr[0]
-        if not self.species.resource.all():
-            #delete old TR if it exists
-            tr.delete()
-            return None
-        #calc results and set them
-        resource = self.species.resource.all()[0] #todo: and region
-        base_resources = resource.calc_base_resources(RESOURCE_NAMES, self.dbh)
-        results = resource.calc_resource_summaries(base_resources)
-        if not results:
-            logging.warning('Unable to calc results for %s, deleting TreeResource if it exists' % self)
-            if tr.id:
-                tr.delete()
-            return None 
-        #update summaries
-        for k,v in results.items():
-            setattr(tr, k, v)
-            #print k, v
-            #print getattr(tr,k)
-        tr.save()
-        logging.debug( 'tr saved.. tree id is %s' % (tr.tree.id))
-        return True
-
     def is_complete(self):
         if self.species >= 0 and self.dbh:
             return True
@@ -929,7 +798,7 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
         
         super(Tree, self).save(*args,**kwargs) 
         
-        self.set_environmental_summaries()
+        set_environmental_summaries(self)
         #set new species counts
         if hasattr(self,'old_species') and self.old_species:
             self.old_species.save()
@@ -1207,6 +1076,37 @@ class TreeFavorite(FavoriteBase):
 class Stewardship(models.Model):
     performed_by = models.ForeignKey(User)
     performed_date = models.DateTimeField()
+
+    @classmethod
+    def thing_with_activities(clazz, actions, idfld):
+        count = len(actions)
+        actions = ",".join(["'%s'" % z for z in actions])
+
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT %(tree_or_plot)s_id
+            FROM treemap_%(tree_or_plot)sstewardship 
+            WHERE activity in ( %(activities)s )
+            GROUP BY %(tree_or_plot)s_id
+            HAVING COUNT(DISTINCT activity) = %(count)d
+            """ % {
+                "tree_or_plot": idfld,
+                "activities": actions,
+                "count": count
+            })
+
+        return [k[0] for k in cursor.fetchall()]
+
+    @classmethod
+    def trees_with_activities(clazz, actions):
+        return Stewardship.thing_with_activities(actions, "tree")
+
+    @classmethod
+    def plots_with_activities(clazz, actions):
+        return Stewardship.thing_with_activities(actions, "plot")
 
     class Meta:
         ordering = ["performed_date"]

@@ -1,12 +1,25 @@
 import os
 
+# The following settings should be overriden in your
+# local_settings.py or impl_settings.py file if needed
 ADD_INITIAL_DEFAULTS = {}
+ADD_FORM_TARGETS = [
+    ('addsame', 'I want to add another tree using the same tree details'), 
+    ('add', 'I want to add another tree with new details'), 
+    ('edit','Let me continue editing this tree'), 
+    ('view', "I'm done!"),
+]
+ADD_FORM_TARGETS_DEFAULT = 'view'
+API_KEY_GOOGLE_MAP = '' # Can be empty
+API_KEY_GOOGLE_ANALYTICS = 'your-key-here'
+
+POSTAL_CODE_FIELD = "USZipCodeField"
+DBH_TO_INCHES_FACTOR = 1.0
 
 try:
    from impl_settings import *
 except ImportError, e:
    pass
-
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
@@ -92,7 +105,6 @@ INSTALLED_APPS = (
     'badges',
     'pagination',
     'django_sorting',
-    'geopy_extensions',
     'pipeline',
 )
 

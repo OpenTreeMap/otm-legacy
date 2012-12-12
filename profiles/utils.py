@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import SiteProfileNotAvailable
 from django.db.models import get_model
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.localflavor.us.forms import USZipCodeField
 from django_reputation.models import Reputation
+from treemap.localization import PostalCodeField
 
 def get_profile_model():
     """
@@ -36,7 +36,7 @@ def get_profile_form():
     profile_mod = get_profile_model()
     class _ProfileForm(forms.ModelForm):
         email = forms.EmailField(widget=forms.TextInput(),label="Email address",required=False)
-        zip_code = USZipCodeField(required=False)
+        zip_code = PostalCodeField(required=False)
         class Meta:
             model = profile_mod
             # planning to remove volunteer attr..

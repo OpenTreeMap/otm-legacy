@@ -4,7 +4,7 @@
 For updates join the announcement email list here: http://groups.google.com/group/opentreemap-user
 For issues or questions you can try mailing the user list: http://groups.google.com/group/opentreemap-user or connect with us via IRC at #opentreemap on freenode (freenode.net).
 
-This is v1.2 of OpenTreeMap, the most recent production release. Curious what's new? Check out the release notes here: https://gist.github.com/3953787
+This is v1.3 of OpenTreeMap, the in development version.
 
 #Other Repositories
 OpenTreeMap is also available for iOS. The code is available at https://github.com/azavea/OpenTreeMap-iOS <br>
@@ -12,46 +12,56 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
 
 #Installation Instructions#
 ###Required programs:###
-* Webserver - Apache2 is recommended
-* Database - Postgres 8.4 + postgis 1.5 is recommended, Something compatable with Django required
-* Map tile renderer - GeoServer(java) on tomcat is recommended (port 8081)
+* Webserver - Gunicorn is recommended
+* Database - Postgres 8.1 + postgis 1.5 is recommended (postgis 2.0+ is not yet supported)
+* Map tile renderer - GeoServer(java) on tomcat is recommended
 * SMTP service - sendmail is recommended
 * tile caching service - tilecache is recommended (port 8080 through apache)
 * Python 2.7
 
+###Required python libraries (installed via pip)###
+* BeautifulSoup (3.2.0)
+* Django (1.3.4)
+* PIL (1.1.7)
+* South (0.7.5)
+* Unidecode (0.04.9)
+* django-badges (0.1.6)
+* django-debug-toolbar (0.9.1)
+* django-extensions (0.7.1)
+* django-pagination (1.0.7)
+* django-profiles (0.2)
+* django-shapes (0.2.0)
+* django-sorting (0.1)
+* django-tagging (0.3.1)
+* django-threadedcomments
+* django-pipeline (1.1.27)
+* feedparser (5.1)
+* geopy (0.94.1)
+* psycopg2 (2.4.1)
+* python-omgeo (1.4.1)
+* simplejson (2.3.2)
+* sorl-thumbnail (11.12)
+* template-utils (0.4p2)
+* wsgiref (0.1.2)
+* xlrd (0.7.1)
+* yuicompressor (2.4.6.1)
+
+###Optional libraries###
+* gunicorn (0.14.3) (via pip)
+* libapache2-mod-wsgi (if you want to run with apache) (via apt)
+
 ###Required libraries from aptitude###
-* python-django (version 1.3)
-* libapache2-mod-wsgi
-* python-psycopg2 (only for postgres access)
 * binutils
 * libgeos-3.2.0
 * libgeos-c1
 * libgdal1-1.6.0
 * libproj0
-* python-django-tagging
-* python-imaging
-* python-xlrd
-* python-feedparser
-* python-memcache
-* python-beautifulsoup
-* python-django-debug-toolbar
-* python-simplejson
-* python-django-extensions
-* python-gdal
 * gdal-bin
 
 ###Required libraries from the web###
-* wget http://django-template-utils.googlecode.com/files/template_utils-0.4p2.tar.gz
-* wget https://bitbucket.org/ubernostrum/django-profiles/get/tip.tar.gz
-* wget http://pypi.python.org/packages/source/U/Unidecode/Unidecode-0.04.5.tar.gz
-* wget http://geopy.googlecode.com/files/geopy-0.94.tar.gz
-* wget http://django-pagination.googlecode.com/files/django-pagination-1.0.5.tar.gz
-* wget http://thumbnail.sorl.net/sorl-thumbnail-3.2.5.tar.gz
 * wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
-* wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
 * wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
 * git clone git://github.com/miracle2k/webassets.git
-* pip install django-pipeline
 
 ###Patches:###
     Fix to proj to deal with spherical mercator
@@ -95,7 +105,7 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
                 elif expected_delta < MAX_REPUTATION_LOSS_PER_DAY:
                     delta = 0
                 ...
-    Fix Tilecache TMS issue if needed
+    Fix Tilecache TMS issue
 				In tilecache/Services/TMS.py - change >
 						...
 						elif len(parts) < 2:
