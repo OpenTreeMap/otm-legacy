@@ -25,139 +25,332 @@
 	<div class="container" id="search-area">
 		<div class="row">
 			<div class="span2">
-				<img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" />
+				<a href="{{ SITE_ROOT }}"><img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" /></a>
 			</div>
 			<form>
-			<div class="span4 offset2">
+			<div class="span3 offset3">
 				<fieldset>
 					<label>Search by Location</label>
-					<div class="input-prepend">
+					<div class="input-prepend input-append">
 						<div class="btn-group" id="searchNBList">
-								<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
+							<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
 						</div>
-						<input type="text" placeholder="Enter a location" name="location" onFocus="this.value=''" id="location_search_input" class="span3">
+						<input type="text" placeholder="Enter a location" name="location" onFocus="this.value=''" id="location_search_input" class="span2">
+						<button class="btn btn-success" type="button" id="location_go">Go</a>
 					</div>
 					<input type='hidden' name='species_search_id' id="species_search_id" />
 					<input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
 					<span class="help-block">
 						<a onclick='$("#location_search_input").val("1 S Broad St"); $("#location_search_input").change(); return false;' href="#">1 S Broad St</a> or
 						<a onclick='$("#location_search_input").val("Center City"); $("#location_search_input").change(); return false;' href="#">Center City</a>
+						<a class="btn btn-mini pull-right" id="filters-button" href="#">Filters</a>
 					</span>
 				</fieldset>
 			</div>
 			
-			<div class="span4">
-				<fieldset>
+			<div class="span3">
+				<fieldset class="pull-right">
 					<label>Search by Species</label>
-					<div class="input-prepend">
+					<div class="input-prepend input-append">
 						<div class="btn-group" id="searchSpeciesList">
-								<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
+							<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><i class="icon-align-justify icon-white"></i></button>
 						</div>
-						<input type="text" placeholder="Enter a location" class="span3" id="species_search_input" onFocus='if (this.value == "All trees") { this.value=""; };'>
+						<input type="text" placeholder="Enter a location" class="span2" id="species_search_input" onFocus='if (this.value == "All trees") { this.value=""; };'>
+						<button class="btn btn-success" type="button" id="location_go">Go</a>
 					</div>
 					<input type='hidden' name='species_search_id' id="species_search_id" />
 					<input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
 					<span class="help-block">
 					<a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> or
 					<a onclick='$("#species_search_input").val("Ulmus procera"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#"><span class="italics">Ulmus procera</span></a>
+					<a class="btn btn-mini pull-right" href="#filters" role="button" data-toggle="modal">Filters</a>
 					</span>
 				</fieldset>
 			</div>
 			
 			</form>
+			
 		</div>
     </div> <!-- /container -->
 
-	<!--
-<div id="main-header"> </div>
-<div class="container">
-<div id="logo-search">
-	<div class="span2" id="logo">
-		<a href="{{ SITE_ROOT }}"><img src="{{ STATIC_URL }}images/default/otm-logo.png" alt="OpenTreeMap" /></a>
+
+<div class="modal hide fade" id="filters">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3>Search Filters</h3>
 	</div>
-	<div class="span8 pull-right" id="search">
-	<form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
-		<div class="span3 pull-left">
-		<h4>Search by Location</h4>
-			<div class="input-prepend">
-				<div id="searchLocationBrowse" class="btn btn-inverse">List</div>
-                <input type="text" name="location" onFocus="this.value=''" id="location_search_input" value="Philadelphia, PA" class="input-medium" />
-				<label class="search-label">
-					Ex: <a onclick='$("#location_search_input").val("1 S Broad St"); $("#location_search_input").change(); return false;' href="#">1 S Broad St</a>, 
-					<a onclick='$("#location_search_input").val("19102"); $("#location_search_input").change(); return false;' href="#">19102</a>
-				</label>
-			</div>
-		</div>
-		<div class="span3 pull-left">
-		<h4>Search by Species</h4>
-			<div class="input-prepend">
-				<div class="btn-group">
-				<div id="searchSpeciesBrowse" class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" href="#">List</div>
-				<input type="text" class="input-medium" id="species_search_input" value="All trees" onFocus='if (this.value == "All trees") { this.value=""; };' />
-				<label class="search-label">
-					Ex: <a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> 
-					or <a onclick='$("#species_search_input").val("Ulmus procera"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#"><span class="italics">Ulmus procera</span></a>
-				</label>
-			</div>
-		</div>
-		<div class="span1" id="search-btn">
-			<input class="btn btn-success" id="location_go" type="button" value="Search" />
-				<label class="search-label">
-					<a href="#" id="advanced" class="advanced"><span id="close-filters">+ Advanced</span></a>
-				</label>
-		</div>
-	</form>
-	</div>
-	</div>
-</div>
-<!--
-<div id="searchBox">
-    <div id="searchBoxContainer">
-        <ul id="searchTitles">
-            <li id="searchSpecies"><h4>Search for a Species</h4></li>
-            <li id="searchLocation"><h4>Search by Location</h4></li>
-        </ul>
-        <ul id="searchBoxes">
-        <form method="get" action="{% url treemap.views.result_map %}" name="address" class="address" id="search_form">
-            <li id="searchSpeciesBox">
-              <div class="input-prepend">
-				<div id="searchSpeciesBrowse" class="btn btn-inverse">List</div>
-				<input type="text" class="span3" id="species_search_input" value="All trees" onFocus='if (this.value == "All trees") { this.value=""; };' />
-			  </div>
-              <input type='hidden' name='species_search_id' id="species_search_id" />
-              <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
-            </li>
-            <li id="searchLocationBox">
-			  <div class="input-prepend">
-				<div id="searchLocationBrowse" class="btn btn-inverse">List</div>
-                <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Philadelphia, PA" class="span3" />
-			  </div>
-            </li>
-            <li id="searchButton"><input class="btn btn-inverse" id="location_go" type="button" value="Search Great Britain" /></li>
-        </form>
-        </ul>
-        <ul id="searchSuggest">
-            <li id="searchSpeciesSuggest">Examples: 
-            
-                <a onclick='$("#species_search_input").val("European beech"); $("#species_search_id").val("28186"); $("#species_search_id").change();  return false' href="#">European beech</a> 
-                or <a onclick='$("#species_search_input").val("Ulmus procera"); $("#species_search_id").val("10672"); $("#species_search_id").change(); return false' href="#"><span class="italics">Ulmus procera</span></a>
-            
-            </li>
-            
-            <li id="searchLocationSuggest">Examples: 
-            
-                <a onclick='$("#location_search_input").val("6 Davies Street, London"); $("#location_search_input").change(); return false;' href="#">6 Davies Street, London</a>, 
-				<a onclick='$("#location_search_input").val("6 Davies Street, London"); $("#location_search_input").change(); return false;' href="#">W1K 3DN</a>
-            </li>
-            <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters &raquo;</span></em></a> </li>
-        </ul>
+	<div class="modal-body">
 		
-    <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
-	<div id="searchNBList" class="ac_results" style=""><h2>Neighborhoods</h2></div>
-
-    </div>
+		<form id="options_form" action="#" class="options"> 
+            <fieldset> 
+                <div class="characteristics" id="photos-chars"> 
+                    <strong>Characteristics</strong> 
+                    <ul> 
+                        <li> 
+                            <label for="flowering">
+							<input type="checkbox" id="flowering" /> 
+							Flowering
+							</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="color" /> 
+                            <label for="color">Fall color</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="edible" /> 
+                            <label for="edible">Edible (fruits/nuts)</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="native" /> 
+                            <label for="native">Native to region</label> 
+                        </li> 
+                    </ul> 
+                    <strong>Photos</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="photos" /> 
+                            <label for="photos">Present</label> 
+                        </li> 
+                    </ul> 
+                </div> 
+                <div class="characteristics" id="filters-pests">
+                  <strong>Pests and Diseases</strong>
+                  <ul>
+                  <li>
+                    <input type="checkbox" id="pests_1">
+                    <label>Ash dieback <span class="italics">(Chalara fraxiniae)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_2">
+                    <label>Asian longhorn beetle <span class="italics">(Anoplophora glabripennis)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_3">
+                    <label>Bronze birch borer <span class="italics">(Agrilus anxius)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_4">
+                    <label>Emerald ash borer <span class="italics">(Agrilus planipennis)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_5">
+                    <label>Horse chestnut bleeding canker <span class="italics">(Pseudomonas syringae pv aesculi)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_6">
+                    <label>Horse chestnut leaf miner <span class="italics">(Cameraria ohridella)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_7">
+                    <label>Needle blight <span class="italics">(Dothistroma septosporum)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_8">
+                    <label>Oak processionary moth <span class="italics">(Thaumetopoea processionea)</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_9">
+                    <label><span class="italics">Phytophthora alni</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_10">
+                    <label><span class="italics">Phytophthora austrocedrae</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_11">
+                    <label><span class="italics">Phytophthora kernoviae</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_12">
+                    <label><span class="italics">Phytophthora lateralis</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_13">
+                    <label><span class="italics">Phytophthora ramorum</span></label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="pests_14" name="pests_14">
+                    <label>Sweet chestnut blight <span class="italics">(Cryphonectria parasitica)</span></label>
+                  </li>
+</ul>
+                </div>
+                <div class="project_trees" id="thirdcol"> 
+                    <strong>Condition</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="excellent" /> 
+                            <label for="excellent">Excellent</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="very_good" /> 
+                            <label for="very_good">Very good</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="good" /> 
+                            <label for="good">Good</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="fair" /> 
+                            <label for="fair">Fair</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="poor" /> 
+                            <label for="poor">Poor</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="critical" /> 
+                            <label for="critical">Critical</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="dead" /> 
+                            <label for="dead">Dead</label> 
+                        </li> 
+                    </ul> 
+                    <strong>Canopy Condition</strong>
+                  <ul>
+                    <li>
+                      <input type="checkbox" id="canopy_1">
+                      <label for="canopy_1">Full - No Gaps</label>
+                    </li>
+                    <li>
+                      <input type="checkbox" id="canopy_2">
+                      <label for="canopy_2">Small Gaps - Up to 25% Missing</label>
+                    </li>
+                    <li>
+                      <input type="checkbox" id="canopy_3">
+                      <label for="canopy_3">Moderate Gaps - Up to 50% Missing</label>
+                    </li>
+                    <li>
+                      <input type="checkbox" id="canopy_4">
+                      <label for="canopy_4">Large Gaps - Up to 75% Missing</label>
+                    </li>
+                    <li>
+                      <input type="checkbox" id="canopy_5">
+                      <label for="canopy_5">Little or None - Up to 100% Missing</label>
+                    </li>
+                </div>
+                <div class="plot_type"> 
+                    <strong>Pavement Damage</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="minor_or_no_damage" /> 
+                            <label for="less">Minor or no damage</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="raised_more_than_25_mm" /> 
+                            <label for="more">Raised more than 25mm</label> 
+                        </li> 
+                    </ul>
+					<strong>Missing Data</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="missing_species" /> 
+                            <label for="missing">Species</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="missing_diameter" /> 
+                            <label for="diameter">Trunk diameter</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="missing_height" /> 
+                            <label for="missing_height">Tree height</label> 
+                        </li> 
+                            <input type="checkbox" id="missing_condition" /> 
+                            <label for="missing_condition">Tree Condition</label> 
+                        </li>
+                        <li> 
+                            <input type="checkbox" id="missing_canopy_condition" /> 
+                            <label for="missing_condition">Canopy Condition</label> 
+                        </li>
+                        <li> 
+                            <span>Missing data searches take priority </span>
+                        </li> 
+                    </ul> 
+					
+                    <strong>Plot Type</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="residential_yard" /> 
+                            <label for="well_or_pit">Residential Yard</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="park" /> 
+                            <label for="well_or_pit">Park</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="schoolyard" /> 
+                            <label for="well_or_pit">Schoolyard</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="tree_pit_in_a_paved_area" /> 
+                            <label for="well_or_pit">Tree Pit in a Paved Area</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="median" /> 
+                            <label for="median">Median</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="tree_lawn_or_planting_strip" /> 
+                            <label for="tree_lawn">Tree Lawn or Planting Strip</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="island" /> 
+                            <label for="island">Island</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="raised_planter" /> 
+                            <label for="planter">Raised Planter</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="open_or_unrestricted_area" /> 
+                            <label for="open">Open or Unrestricted Area</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="other" /> 
+                            <label for="other">Other</label> 
+                        </li> 
+                    </ul>
+					
+					
+                </div> 
+				
+                <div class="outstanding"> 
+                    <strong>Missing Data</strong> 
+                    <ul> 
+                        <li> 
+                            <input type="checkbox" id="missing_species" /> 
+                            <label for="missing">Species</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="missing_diameter" /> 
+                            <label for="diameter">Trunk diameter</label> 
+                        </li> 
+                        <li> 
+                            <input type="checkbox" id="missing_height" /> 
+                            <label for="missing_height">Tree height</label> 
+                        </li> 
+                            <input type="checkbox" id="missing_condition" /> 
+                            <label for="missing_condition">Tree Condition</label> 
+                        </li>
+                        <li> 
+                            <input type="checkbox" id="missing_canopy_condition" /> 
+                            <label for="missing_condition">Canopy Condition</label> 
+                        </li>
+                        <li> 
+                            <span>Missing data searches take priority </span>
+                        </li> 
+                    </ul> 
+                </div> 
+				
+            </fieldset> 
+        </form>
+		
+	</div>
+	<div class="modal-footer">
+		<a href="#" class="btn btn-success">Apply</a>
+	</div>
 </div>
-
+	
 <!--        
 <div class="filter-box" style="display:none"> 
     <div class="wrap"> 

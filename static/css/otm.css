@@ -73,6 +73,14 @@ row {
 	font-size: 11px;
 }
 
+#filters-button {
+	margin-right: 20px;
+}
+
+#filters ul {
+	list-style-type: none;
+}
+
 /* Hack to get the right nav back on-screen when screen size is 1024px wide */
 @media screen and (min-device-width: 1024px) {
 	#right-nav {
@@ -125,6 +133,7 @@ row {
 	color: #000;
 	text-decoration: none;
 }
+
 
 /* FOOTER ========================================= */
 
