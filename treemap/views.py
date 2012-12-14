@@ -1288,7 +1288,17 @@ def requires_pending_record(plot_or_tree, user):
     created_by_manager = plot_or_tree.was_created_by_a_manager
     user_is_not_a_manager = not user_is_manager(user)
 
-    return settings.PENDING_ON and created_by_manager and user_is_not_a_manager
+    plot_or_tree_created_by_user = plot_or_tree.created_by == user
+
+    if settings.PENDING_ON and not plot_or_tree_created_by_user:
+       if settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES:
+          # trigger for *all* non-manager edits 
+          return user_is_not_a_manager
+       else:
+          # only trigger if the tree was created by a manager
+          return created_by_manager and user_is_not_a_manager
+    else:
+       return False
 
 @login_required
 @csrf_view_exempt

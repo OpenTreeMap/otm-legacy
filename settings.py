@@ -16,6 +16,8 @@ API_KEY_GOOGLE_ANALYTICS = 'your-key-here'
 POSTAL_CODE_FIELD = "USZipCodeField"
 DBH_TO_INCHES_FACTOR = 1.0
 
+PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
+
 try:
    from impl_settings import *
 except ImportError, e:
