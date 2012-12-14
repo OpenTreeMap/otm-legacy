@@ -9,5 +9,5 @@ def PostalCodeField(*args, **kwargs):
         return USZipCodeField(*args, **kwargs)
 
 def convert_dbh_to_inches(dbh):
-    return dbh * settings.DBH_TO_INCHES_FACTOR
+    return float(dbh) * settings.DBH_TO_INCHES_FACTOR
 
