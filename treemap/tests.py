@@ -1,9 +1,16 @@
 import os
-from django import forms
-from django.conf import settings
-from django.test import TestCase
 
+# Note initialization order:
+# We first load settings *before* anything else
+# and override choices and form fields
 from django.conf import settings
+from treemap.test_choices import *
+
+settings.CHOICES = CHOICES
+settings.POSTAL_CODE_FIELD = "USZipCodeField"
+
+from django import forms
+from django.test import TestCase
 
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.contrib.auth.models import User, UserManager, Permission as P
@@ -22,10 +29,6 @@ from datetime import timedelta, datetime, date
 from time import mktime
 
 from test_util import set_auto_now
-from treemap.test_choices import *
-
-settings.CHOICES = CHOICES
-settings.POSTAL_CODE_FIELD = "USZipCodeField"
 
 import django.shortcuts
 import tempfile
