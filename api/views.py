@@ -57,7 +57,6 @@ def route(**kwargs):
     @csrf_exempt
     def routed(request, **kwargs2):
         method = request.method
-        print " ====> %s" % method
         req_method = kwargs[method]
         return req_method(request, **kwargs2)
     return routed
