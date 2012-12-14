@@ -1421,7 +1421,7 @@ class ViewTests(TestCase):
 
         p = Plot.objects.get(pk=p.pk)
 
-        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were not created')
+        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were created')
 
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 100)

@@ -991,107 +991,64 @@ def object_update(request):
             if update:
                 response_dict['update'] = {}
  
-                #check pending feature status and user permisisons
-                #{"model":"Tree","update":{"height":10},"id":6}
-                #{"model":"Tree","update":{"species_id":397},"id":6}
-                #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
-                
-                    # if the tree was added by the public, or the current user is not public, skip pending
-                if settings.PENDING_ON and (post['model'] == "Tree" or post['model'] == "Plot"):
-                    audit_insert_records = instance.history.filter(_audit_change_type='I')
-                    if len(audit_insert_records) > 0:
-                        insert_event_mgmt = audit_insert_records[0].last_updated_by.has_perm('auth.change_user')
-                    else:
-                        insert_event_mgmt = True # If the insert audit record is missing, assume it was created by a manager
+                is_plot_or_tree = post['model'] == "Tree" or post['model'] == "Plot"
 
-                    mgmt_user = request.user.has_perm('auth.change_user')
-                    if insert_event_mgmt and not mgmt_user:
-                        for k,v in update.items():  
-                            fld = instance._meta.get_field(k.replace('_id',''))
-                            try:
-                                cleaned = fld.clean(v,instance)
-                                response_dict['pending'] = 'true'
+                # Short circuit pending updates here
+                if is_plot_or_tree and requires_pending_record(instance, request.user):
+                    for k,v in update.items():  
+                        fld = instance._meta.get_field(k.replace('_id',''))
+                        try:
+                            cleaned = fld.clean(v,instance)
+                            response_dict['pending'] = 'true'
+                            response_dict['update']['old_' + k] = getattr(instance,k).__str__()
+                            response_dict['update'][k] = 'Pending'
 
-                                response_dict['update']['old_' + k] = getattr(instance,k).__str__()
-                                response_dict['update'][k] = 'Pending'
+                            if post['model'] == "Tree":
+                                pend = TreePending(tree=instance)
+                            else: # post['model'] == "Plot":
+                                pend = PlotPending(plot=instance)
+                                if k == 'geometry':
+                                    pend.geometry = cleaned
+                                else:
+                                    # Omit the geometry so that 
+                                    # PlotPending.approve will use 
+                                    # the text value
+                                    pend.geometry = None
 
-                                if post['model'] == "Tree":
-                                    pend = TreePending(tree=instance)
-                                else: # post['model'] == "Plot":
-                                    pend = PlotPending(plot=instance)
-                                    if k == 'geometry':
-                                        pend.geometry = cleaned
-                                    else:
-                                        # Omit the geometry so that PlotPending.approve will use the text value
-                                        pend.geometry = None
+                            pend.field = k
+                            pend.value = cleaned
+                            pend.submitted_by = request.user
+                            pend.status = 'pending'
+                            pend.updated_by = request.user
 
-                                pend.field = k
-                                pend.value = cleaned
-                                pend.submitted_by = request.user
-                                pend.status = 'pending'
-                                pend.updated_by = request.user
+                            if k == 'species_id':
+                                pend.text_value = Species.objects.get(id=v).scientific_name
 
-                                if k == 'species_id':
-                                    pend.text_value = Species.objects.get(id=v).scientific_name
+                            for field in instance._meta.fields:
+                                if str(field.name) == str(fld.name):
+                                    for choice in field.choices:
+                                        if str(choice[0]) == str(cleaned):
+                                            pend.text_value = choice[1]
+                                            break
+                                    break
 
-                                for field in instance._meta.fields:
-                                    if str(field.name) == str(fld.name):
-                                        for choice in field.choices:
-                                            if str(choice[0]) == str(cleaned):
-                                                pend.text_value = choice[1]
-                                                break
-                                        break
+                            pend.save()
 
-                                pend.save()
+                        except ValidationError,e:
+                            response_dict['errors'].append(e.messages[0])
+                        except Exception,e:
+                            response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
+                        if len(response_dict['errors']):
+                            transaction.rollback()
+                        else:
+                            transaction.commit()    
+                            response_dict['success'] = True
 
-                            except ValidationError,e:
-                                response_dict['errors'].append(e.messages[0])
-                            except Exception,e:
-                                response_dict['errors'].append('Error editing %s: %s' % (k,str(e)))
-                            if len(response_dict['errors']):
-                                transaction.rollback()
-                            else:
-                                transaction.commit()    
-                                response_dict['success'] = True
+                    return HttpResponse(
+                            simplejson.dumps(response_dict, sort_keys=True, indent=4),
+                            content_type = 'text/plain'
+                            )
 
-                        return HttpResponse(
-                                simplejson.dumps(response_dict, sort_keys=True, indent=4),
-                                #content_type = 'application/javascript; charset=utf8'
-                                content_type = 'text/plain'
-                                )
-                # attempts to use forms...
-                # not working as nicely as I'd want
-                # will likely circle back to using the approach
-                # once the basics are proven to be working
-                # so that custom clean() methods can added to form
-                # and therefore used here...
-
-                #updates.update({'last_updated_by':request.user.id})
-                #class MyForm(ModelForm):
-                #    class Meta:
-                #        model = model_object
-                #        exclude = [f.name for f in model_object._meta.fields if True in (f.null,f.blank)]       
-                #form = MyForm(updates,instance=instance)
-                #import pdb;pdb.set_trace()
-                #form.instance.last_updated_by = request.user
-                #if not form.is_valid():
-                #    response_dict.update({'success': False })
-                #    response_dict['errors'].update(form.errors)
-                                        
-                # re-implement just the pieces of form validation
-                # we need which is per field cleaning
-                
-                #if hasattr(instance,'key') and hasattr(instance,'value'):
-                #    iterable = update.items()
-                #else:
-                    #iterable = []
-                    #for k,v in update.items():
-                #if update.get('key') == 'circ':
-                #   update['key'] = 'dbh'
-                #   circ = update.get('value')
-                #   if circ:
-                #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']  
                 for k,v in update.items():
                     if hasattr(instance,k):
                         #print k,v
@@ -1324,6 +1281,15 @@ def delete_plot_stewardship(request, plot_id, activity_id):
             simplejson.dumps({'success': True}),
             content_type = 'application/json')
 
+def user_is_manager(user):
+    return user.has_perm('auth.change_user')
+
+def requires_pending_record(plot_or_tree, user):
+    created_by_manager = plot_or_tree.was_created_by_a_manager
+    user_is_not_a_manager = not user_is_manager(user)
+
+    return settings.PENDING_ON and created_by_manager and user_is_not_a_manager
+
 @login_required
 @csrf_view_exempt
 def update_plot(request, plot_id):
@@ -1348,34 +1314,18 @@ def update_plot(request, plot_id):
         else:
             response_dict["errors"].append("Unknown or invalid update field: %s" % k)
 
+    pendingused = False
+
     try:
         plot.validate()
 
+        if requires_pending_record(plot, request.user):
+            pendingused = True
+            # Get a clean plot object
+            plot = get_object_or_404(Plot, pk=plot_id)
 
-        if settings.PENDING_ON :
-            # if the tree was added by the public, or the current user is not public, skip pending
-            audit_insert_records = plot.history.filter(_audit_change_type='I')
-            if len(audit_insert_records) > 0:
-                insert_event_mgmt = audit_insert_records[0].last_updated_by.has_perm('auth.change_user')
-            else:
-                insert_event_mgmt = True # If the insert audit record is missing, assume it was created by a manager
-            mgmt_user = request.user.has_perm('auth.change_user')
-            if insert_event_mgmt and not mgmt_user:
-                # Get a clean plot object
-                plot = get_object_or_404(Plot, pk=plot_id)
-
-                for r in create_pending_records(plot, post, request.user):
-                    r.save()
-
-            else:
-                plot.last_updated_by = request.user
-
-                # finally save the instance...
-                plot._audit_diff = simplejson.dumps(post)
-                plot.save()
-
-                change_reputation_for_user(request.user, 'edit plot', plot)
-
+            for r in create_pending_records(plot, post, request.user):
+                r.save()
         else:
             plot.last_updated_by = request.user
 
@@ -1399,9 +1349,8 @@ def update_plot(request, plot_id):
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
             response_dict['update'][k] = get_attr_or_display(plot,k)
-            if settings.PENDING_ON:
-                if insert_event_mgmt and not mgmt_user:
-                    response_dict['update'][k] = "Pending"  
+            if pendingused:
+                response_dict['update'][k] = "Pending"  
 
     return HttpResponse(
             simplejson.dumps(response_dict),
