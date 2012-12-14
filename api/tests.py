@@ -20,7 +20,7 @@ from simplejson import loads, dumps
 from django.conf import settings
 from urlparse import urlparse
 import urllib
-from test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
+from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPending, TreeResource
 from treemap.forms import TreeAddForm
 
@@ -162,6 +162,10 @@ class Authentication(TestCase):
         self.u.save()
 
         amy = User.objects.get(username="amy")
+        amy.reputation = Reputation(user=amy)
+        amy.reputation.save()
+        amy_profile = UserProfile(user=amy)
+        amy_profile.save()
         amy.set_password("password")
         amy.save()
 
@@ -942,6 +946,8 @@ class UpdatePlotAndTree(TestCase):
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
         self.public_user.save()
+        self.public_user.reputation = Reputation(user=self.public_user)
+        self.public_user.reputation.save()
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
@@ -951,7 +957,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
         self.assertTrue("error" in response_json)
-        print("Received an error message as expected:\n" + response_json['error'])
+        # Received an error message as expected in response_json['error']
 
     def test_update_plot(self):
         test_plot = mkPlot(self.user)
@@ -1412,6 +1418,8 @@ class ChoiceConversion(TestCase):
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
         self.public_user.save()
+        self.public_user.reputation = Reputation(user=self.public_user)
+        self.public_user.reputation.save()
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
