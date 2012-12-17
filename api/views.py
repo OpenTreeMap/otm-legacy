@@ -758,7 +758,6 @@ def pending_edit_to_dict(pending_edit):
         pending_value = point_wkt_to_dict(pending_edit.value) # Pending geometry edits are stored as WKT
     else:
         pending_value = pending_edit.value
-    print 'pending_value=%s' % pending_value
 
     return {
         'id': pending_edit.pk,

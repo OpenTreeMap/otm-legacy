@@ -390,6 +390,7 @@ def species(request, selection='all', format='html'):
             "sql":str(species.query), 
             "srs":'EPSG:4326'
         }]
+
         return ogr_conversion('CSV', sql_object, "", name="species", geo=False)    
 
     #render to html    
@@ -1599,6 +1600,7 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
             command.append('POINT')
 
         done = None
+
         try:
             done = subprocess.call(command)
         except:
