@@ -117,6 +117,19 @@ def setupTreemapEnv():
         amy.reputation = Reputation(user=amy)
         amy.reputation.save()
 
+    olivia_filter_result = User.objects.filter(username="olivia")
+    if not amy_filter_result:
+        olivia = User.objects.create_user("olivia","olivia@test.org","olivia")
+    else:
+        olivia = olivia_filter_result[0]
+        olivia.is_staff = False
+        olivia.is_superuser = False
+        olivia.save()
+        olivia_profile = UserProfile(user=olivia)
+        olivia_profile.save()
+        olivia.reputation = Reputation(user=olivia)
+        olivia.reputation.save()
+
     n1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
     n2geom = MultiPolygon(Polygon(((0,101),(101,101),(101,200),(0,200),(0,101))))
 

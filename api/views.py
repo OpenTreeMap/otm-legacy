@@ -20,7 +20,10 @@ from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
 from treemap.models import BenefitValues
 from treemap.models import TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
-from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
+from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found,\
+    permission_required_or_403_forbidden,\
+    requires_pending_record
+
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point, fromstr
 
@@ -1285,9 +1288,7 @@ def update_plot_and_tree(request, plot_id):
     # keys and model field names
     plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length', 'power_lines': 'powerline_conflict_potential'}
 
-    # The 'auth.change_user' permission is a proxy for 'is the user a manager'
-    user_is_not_a_manager = not request.user.has_perm('auth.change_user')
-    should_create_plot_pends = settings.PENDING_ON and plot.was_created_by_a_manager and user_is_not_a_manager
+    should_create_plot_pends = requires_pending_record(plot, request.user)
 
     plot_was_edited = False
     for plot_field_name in request_dict.keys():
@@ -1339,7 +1340,7 @@ def update_plot_and_tree(request, plot_id):
     if tree is None:
         should_create_tree_pends = False
     else:
-        should_create_tree_pends = settings.PENDING_ON and tree.was_created_by_a_manager and user_is_not_a_manager
+        should_create_tree_pends = requires_pending_record(tree, request.user)
 
     for tree_field in Tree._meta.fields:
         if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
