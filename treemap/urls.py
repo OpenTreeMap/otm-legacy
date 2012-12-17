@@ -53,7 +53,6 @@ urlpatterns = patterns('',
     (r'^plots/(?P<plot_id>\d+)/stewardship/(?P<activity_id>\d+)/delete/$', delete_plot_stewardship),
 
     (r'^trees/$', trees),
-    (r'^trees/batch_edit/$', batch_edit),
     (r'^trees/add/$', tree_add),
     url(r'^trees/(?P<tree_id>\d+)/edit/$', tree_edit, name="treemap_tree_edit"),
     url(r'^trees/(?P<tree_id>\d+)/photos/$', tree_add_edit_photos, name="treemap_add_edit_photos"),
