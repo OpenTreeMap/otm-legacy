@@ -2,7 +2,7 @@ import os
 import time
 import sys
 from time import mktime, strptime
-from datetime import timedelta
+from datetime import timedelta, datetime
 import tempfile
 import zipfile
 from contextlib import closing
@@ -16,15 +16,23 @@ from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponseBadRequest, HttpResponseNotAllowed
+
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point, GEOSGeometry
+
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_view_exempt
 from django.views.decorators.http import require_http_methods
+
+from django.db.models.loading import get_model
 from django.db.models import Count, Sum, Q, Min, Max
+from django.db import transaction
+
 from django.contrib.gis.shortcuts import render_to_kml
 from django.utils.datastructures import SortedDict
 from django.utils.decorators import available_attrs
@@ -57,17 +65,6 @@ def redirect(rel):
         rel = rel[1:]
 
     return HttpResponseRedirect('%s%s' % (settings.SITE_ROOT, rel))
-
-app_models = {'UserProfile':'profiles','User':'auth'}
-
-#TODO: is this used anywhere?
-def average(seq):
-    return float(sum(l))/len(l)
-
-#TODO: is this used anywhere?
-def get_app(name):
-    app = app_models.get(name)
-    return app or 'treemap'
     
 def render_to_json(j):
     response = HttpResponse()
@@ -399,13 +396,6 @@ def species(request, selection='all', format='html'):
         'page' : page #so template can do next page kind of stuff
         }))
         
-
-#TODO: is this used anywhere? Does it even do anything?
-@cache_page(60*5)    
-def top_species(request):
-    Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')        
-    return 
-
 def favorites(request, username):
     faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
@@ -597,11 +587,6 @@ def tree_add_edit_photos(request, tree_id = ''):
          
 
 @login_required
-#TODO: possibly unused
-def batch_edit(request):
-    return render_to_response('treemap/batch_edit.html',RequestContext(request,{ }))
-
-@login_required
 def tree_edit(request, tree_id = ''):
     
     tree = get_object_or_404(Tree, pk=tree_id, present=True)
@@ -791,35 +776,6 @@ def unban_user(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-        
-
-# http://docs.djangoproject.com/en/dev/topics/db/transactions/
-# specific imports needed for the below view, keeping here in case
-# this view gets moved elsewhere...
-from django.db import transaction
-from django.db.models.loading import get_model
-from django.forms import ModelForm
-from datetime import datetime
-from django.core.exceptions import ValidationError
-import sys
-@login_required
-@transaction.commit_manually
-@csrf_view_exempt
-#TODO: is this used?
-def multi_status(request):
-    if request.method == 'POST':
-        if request.META['SERVER_NAME'] == 'testserver':
-            post = request.POST        
-        else:
-            post = simplejson.loads(request.raw_post_data)
-    id = post.get('id')
-    tree = Tree.objects.get(pk=id)
-    key = post.get('key')
-    tree.treestatus_set.filter(key=key).delete()
-    for val in post.get("values"):
-        ts = TreeStatus(key=key, val=val, tree=tree)
-        ts.save()
-    return HttpResponse("OK")    
 
 def get_tree_pend_or_plot_pend_by_id_or_404_not_found(pend_id):
     try:
@@ -949,10 +905,12 @@ def object_update(request):
             post = simplejson.loads(request.raw_post_data)
     else:
         response_dict['errors'].append('Please POST data')
-    
+
+    app_models = {'UserProfile':'profiles','User':'auth'}
+
     if post.get('model'):
         mod_name = post['model']
-        model_object = get_model(get_app(mod_name),mod_name)
+        model_object = get_model(app_models.get(mod_name, 'treemap'),mod_name)
         if not model_object:
             response_dict['errors'].append('Model %s not found' % post['model'])
         else:
