@@ -406,7 +406,6 @@ class PendingMixin(object):
     """
     Methods that relate to pending edit management for either Tree or Plot models
     """
-
     def get_active_pends(self):
         raise Exception('PendingMixin expects subclasses to implement get_active_pends')
 
@@ -973,6 +972,22 @@ class Pending(models.Model):
     updated = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
+    # These properties make 'django sorting' work
+    # they really shouldn't be needed...?
+    @property
+    def species(self):
+        if self.tree:
+            return self.tree.species
+        else:
+            return None
+
+    @property
+    def address_street(self):
+        if self.tree:
+            return self.tree.address_street
+        else:
+            return None
+
     def set_create_attributes(self, user, field_name, field_value):
         self.field = field_name
         self.value = field_value
@@ -1031,6 +1046,10 @@ class PlotPending(Pending):
 
     geometry = models.PointField(srid=4326, blank=True, null=True)
     objects = models.GeoManager()
+
+    @property
+    def tree(self):
+        return self.plot.current_tree()
 
     def _approve(self, updating_user):
         super(PlotPending, self).approve(updating_user)
