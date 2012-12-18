@@ -35,7 +35,7 @@
         <div id="t2_top_left_panel">
             <ul id="userImage">
                 <li>{% if profile.photo %}
-                    {% thumbnail profile.photo "200x100" colorspace="GRAY" crop="center" as image %}
+                    {% thumbnail profile.photo "200x100" crop="center" as image %}
                     <img src="{{image.url}}" />
                     {% endthumbnail %}
                 {% else %}
