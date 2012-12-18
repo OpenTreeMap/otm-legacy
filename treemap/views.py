@@ -83,6 +83,7 @@ def list_neighborhoods(request):
     ns = []
     for hood in n:
         ns.append({
+            'id': hood.pk,
             'name': hood.name,
             'region_id': hood.region_id,
             'city': hood.city,
@@ -828,6 +829,9 @@ def reject_pend(request, pend_id):
 @login_required
 @permission_required('auth.change_user')
 def view_pends(request):
+    npk = None
+    nname = None
+
     tree_pends = TreePending.objects.all()
     plot_pends = PlotPending.objects.all()
     if 'username' in request.GET:
@@ -838,15 +842,26 @@ def view_pends(request):
         tree_pends = tree_pends.filter(tree__plot__address_street__icontains=request.GET['address'])
         plot_pends = plot_pends.filter(address_street__icontains=request.GET['address'])
     if 'nhood' in request.GET:
-        n = Neighborhood.objects.filter(name=request.GET['nhood'])
+        try:
+            n = Neighborhood.objects.get(pk=int(request.GET['nhood']))
+        except ValueError, e:
+            n = Neighborhood.objects.get(name=request.GET['nhood'])
+
+        nname = n.name
+        npk = n.pk
         tree_pends = tree_pends.filter(tree__plot__neighborhood=n)
-        plot_pends = plot_pends.filter(neighborhood=n)
+        plot_pends = plot_pends.filter(plot__neighborhood=n)
     if 'status' in request.GET:
         tree_pends = tree_pends.filter(status=request.GET['status'])
         plot_pends = plot_pends.filter(status=request.GET['status'])
 
     pends = list(chain(tree_pends, plot_pends)) # chain comes from itertools
-    return render_to_response('treemap/admin_pending.html',RequestContext(request,{'pends': pends}))
+    return render_to_response(
+        'treemap/admin_pending.html',
+        RequestContext(request,
+                       {'pends': pends, 
+                        'neighborhood_id': npk,
+                        'neighborhood': nname }))
 
 @login_required
 @permission_required('auth.change_user')
