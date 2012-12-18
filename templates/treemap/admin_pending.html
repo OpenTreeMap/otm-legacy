@@ -3,7 +3,7 @@
 {% load sorting_tags %}
 
 {% block extrahead %}
-    <link rel="stylesheet" type="text/css" href="/static/tablesorter/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
     <script type="text/javascript">
 		$(document).ready(function() {
@@ -14,8 +14,7 @@
 				jQuery("#s_address").val(jQuery.urlParam('address'));
 			}
 			if (jQuery.urlParam('nhood')) {
-				var nhood = decodeURI(jQuery.urlParam('nhood'));
-				jQuery("#s_nhood").prepend(jQuery("<option value='" + nhood + "' selected>" + nhood + "</option>"));
+				jQuery("#s_nhood").prepend(jQuery("<option value='{{ neighborhood_id }}' selected>{{ neighborhood }}</option>"));
 			}
 			if (jQuery.urlParam('status')) {
 				var status = decodeURI(jQuery.urlParam('status'));
@@ -44,11 +43,11 @@
 				}
 				var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
 
-				window.location = "/trees/pending/" + qstr;
+				window.location = "{{ SITE_ROOT }}trees/pending/" + qstr;
 
 			});
 			jQuery("#clear").click(function(evt) {
-				window.location = "/trees/pending/"
+				window.location = "{{ SITE_ROOT }}trees/pending/"
 			});
 
 			//jQuery("#species_list_table").tablesorter({sortList: [[3,1]], headers: {3:{sorter:'usLongDate'}}})
@@ -65,7 +64,7 @@
 {% autopaginate pends 20 %}
 <div class="content admin">
 	<div class="admin-header">
-		<h2>Recent Edits</h2>
+		<h2>Pending Edits</h2>
 		{% if perms.auth.change_user %}
 			{% include "treemap/admin_nav.html" %}
 		{% endif %}
@@ -85,8 +84,8 @@
 		<table id="species_list_table">
 			<thead>
 				<tr>
-					<th>{% anchor tree__species Tree %}</th>
-					<th>{% anchor tree__address_street Address %}</th>
+					<th>{% anchor species Tree %}</th>
+					<th>{% anchor address_street Address %}</th>
 					<th>{% anchor submitted_by 'Submitted By' %}</th>
 					<th>{% anchor submitted Date %}</th>
 					<th>Change</th>
@@ -97,21 +96,21 @@
 				{% for c in pends %}
 				<tr id="{{c.id}}">
                     {% if c.tree  %}
-                        <td><i>{{c.tree.species}}</i><br><a href="/trees/{{c.tree.id}}" target="_blank">View Record ({{c.tree.plot.get_active_pends_with_tree_pends|length}} pending edits)</a></td>
+                        <td><i>{{c.tree.species}}</i><br><a href="{{ SITE_ROOT }}trees/{{c.tree.id}}" target="_blank">View Record ({{c.tree.plot.get_active_pends_with_tree_pends|length}} pending edits)</a></td>
                         <td>{{c.tree.address_street}}</td>
                     {% else  %}
-                        <td><i>{{c.plot.current_tree.species}}</i><br><a href="/trees/{{c.plot.current_tree.id}}" target="_blank">View Record ({{c.plot.get_active_pends_with_tree_pends|length}} pending edits)</a></td>
+                        <td><i>{{c.plot.current_tree.species}}</i><br><a href="{{ SITE_ROOT }}plots/{{c.plot.pk}}" target="_blank">View Record ({{c.plot.get_active_pends_with_tree_pends|length}} pending edits)</a></td>
                         <td>{{c.plot.current_tree.address_street}}</td>
                     {% endif %}
-					<td><a href="/profiles/{{c.submitted_by}}" target="_blank">{{c.submitted_by}}</a></td>
+					<td><a href="{{ SITE_ROOT }}profiles/{{c.submitted_by}}" target="_blank">{{c.submitted_by}}</a></td>
 					<td>{{c.submitted|date:"M d, Y"}}</td>
 				    <td><b>{{c.field}}</b> - {{c.text_value|default:c.value}}
 				    </td>
 					
 					<td>
                     {% if c.status = 'pending' %}
-						<a href="#" onclick="tm.updatePend({{c.id}}, 'reject'); return false;"><img src="/static/images/es/ico-thumbs-down.gif" width="17" height="17" alt="Down"></a> 
-						<a href="#" onclick="tm.updatePend({{c.id}}, 'approve'); return false;"><img src="/static/images/es/ico-thumbs-up.gif" width="17" height="17" alt="Up"></a>
+						<a href="#" onclick="tm.updatePend({{c.id}}, 'reject'); return false;"><img src="{{ STATIC_URL }}images/es/ico-thumbs-down.gif" width="17" height="17" alt="Down"></a> 
+						<a href="#" onclick="tm.updatePend({{c.id}}, 'approve'); return false;"><img src="{{ STATIC_URL }}images/es/ico-thumbs-up.gif" width="17" height="17" alt="Up"></a>
                     {% else %}
                         {{c.status|capfirst}}<br>{{c.updated|date:"M d, Y"}}
 					{% endif %}
