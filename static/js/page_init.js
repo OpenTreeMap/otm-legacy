@@ -284,9 +284,8 @@ tm.generateSpeciesDropdown = function(speciesData) {
         if (speciesData[i].count == 0) {continue;}
         var c = "ac_odd";
         if (i%2 == 0) {c = 'ac-even';}
-        ul.append("<li id='" + speciesData[i].id + "' class='" + c + "'>" + speciesData[i].cname + " [" + speciesData[i].sname + "]</li>")
+        ul.append("<li id='" + speciesData[i].id + "' class='" + c + "'>" + tm.formatTreeName(speciesData[i]) + "</li>")
     }
-    
     $("#s_list > li").hover(function(evt) {
         $(this).addClass("ac_over")
     }, function(evt) {
