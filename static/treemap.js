@@ -403,6 +403,7 @@ tm = {
                     });
                 } else {
                     var value = response['update'][settings.fieldName];
+                    var datum;
                     
                     if (!value) {
                         value = response['update']['value'];
@@ -410,6 +411,7 @@ tm = {
                     if (settings.fieldName == "species_id") {
                         for (var i = 0; i < tm.speciesData.length; i++) {
                             if (tm.speciesData[i].id == value) {
+                                datum = tm.speciesData[i];
                                 value = tm.speciesData[i].sname;
                                 $("#edit_species").html(tm.speciesData[i].cname);
                             }
@@ -425,7 +427,7 @@ tm = {
                     if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}
                     }
-                    settings.obj.innerHTML = value 
+                    settings.obj.innerHTML = tm.formatSpeciesName(datum)
                     tm.trackEvent("Edit", settings.fieldName)
                 }
             }});
@@ -481,6 +483,16 @@ tm = {
             }});
     },
 
+    formatTreeName: function(item) {
+        var cultivar_portion = item.cultivar ? item.cultivar + " " : "";
+        return item.cname + " [ " + item.sname + " " + cultivar_portion + "]";
+    },
+
+    formatSpeciesName: function(item) {
+        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : "";
+        return item.sname + cultivar_portion;
+    },
+
     setupAutoComplete: function(field) {
         return field.autocomplete({
             source:function(request, response){
@@ -489,7 +501,7 @@ tm = {
                         item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1) 
                     {
 					    return {
-						    label: item.cname + " [ " + item.sname + " ]",
+						    label: tm.formatTreeName(item),
 						    value: item.id
 					    }
                     }

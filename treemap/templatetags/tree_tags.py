@@ -44,3 +44,10 @@ def unit_or_zero(value, unit=None):
             return ("%.2f" % float(value)) + " " + unit
         return "%.2f" % float(value)
     return "%.2f" % 0.00
+
+@register.filter
+def single_quote(value):
+    if value:
+        return "'" + value + "'"
+    else:
+        return ""
