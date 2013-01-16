@@ -20,7 +20,7 @@ from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
 from treemap.models import BenefitValues
 from treemap.models import TreeResource, PlotPending, TreePending
 from treemap.forms import TreeAddForm
-from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden
+from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found, permission_required_or_403_forbidden, _build_tree_search_result
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point, fromstr
 
@@ -1469,3 +1469,14 @@ def get_current_tree_from_plot(request, plot_id):
         return plot_dict['tree']
     else:
         raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
+
+
+@require_http_methods(["GET"])
+@api_call()
+def get_cql_query(request):
+    trees, plots, geog_object, agg_object, tile_query = _build_tree_search_result(request)
+    search_results = {
+        'cql_string' : tile_query,
+        }
+    json_data = simplejson.dumps(search_results)
+    return HttpResponse(json_data)
