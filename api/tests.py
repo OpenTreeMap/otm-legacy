@@ -164,6 +164,10 @@ class Authentication(TestCase):
         amy = User.objects.get(username="amy")
         amy.set_password("password")
         amy.save()
+        amy.profile = UserProfile(user=amy)
+        amy.profile.save()
+        amy.reputation = Reputation(user=amy)
+        amy.reputation.save()
 
         self.sign = create_signer_dict(self.u)
 
@@ -942,6 +946,8 @@ class UpdatePlotAndTree(TestCase):
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
         self.public_user.save()
+        self.public_user.reputation = Reputation(user=self.public_user)
+        self.public_user.reputation.save()
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
@@ -1412,6 +1418,8 @@ class ChoiceConversion(TestCase):
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
         self.public_user.save()
+        self.public_user.reputation = Reputation(user=self.public_user)
+        self.public_user.reputation.save()
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
