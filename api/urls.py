@@ -27,4 +27,6 @@ urlpatterns = patterns(
     (r'^user/(?P<user_id>\d+)/edits$', recent_edits),  
 
     (r'^tiles',  get_trees_in_tile),
+
+    (r'^cql-filter$', get_cql_query),
 )
