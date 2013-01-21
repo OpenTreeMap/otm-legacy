@@ -25,7 +25,7 @@ from treemap.models import Species, Plot, Tree, Pending, TreePending, PlotPendin
 from treemap.forms import TreeAddForm
 
 from api.models import APIKey, APILog
-from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion
+from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion, get_cql_query
 
 import os
 import struct
@@ -1874,3 +1874,41 @@ class TreePhoto(TestCase):
         self.assertIsNotNone(tree)
         photo = tree.treephoto_set.all()[0]
         self.assertEqual('plot_%d.png' % plot_id, photo.title)
+
+class CQLFiltering(TestCase):
+    def setUp(self):
+        setupTreemapEnv()
+        self.user = User.objects.get(username="jim")
+        self.user.set_password("password")
+        self.user.save()
+        self.sign = create_signer_dict(self.user)
+
+    def tearDown(self):
+        teardownTreemapEnv()
+
+    def assertParamsProduceResponse(self, params, expected_cql):
+        expected_json = """{"cql_string": "%s"}""" % expected_cql
+        response = self.client.get("%s/cql-filter" % API_PFX, params, **self.sign)
+        self.assertEqual(expected_json, response.content)
+
+    def test_without_params(self):
+        params = {}
+        expected_cql = ""
+        self.assertParamsProduceResponse(params, expected_cql)
+
+    def test_missing_species(self):
+        params = {'missing_species' : 'True',}
+        expected_cql = " species_id IS NULL "
+        self.assertParamsProduceResponse(params, expected_cql)
+
+    def test_missing_height(self):
+        params = {'missing_height' : 'True'}
+        expected_cql = " (height IS NULL OR height = 0) "
+        self.assertParamsProduceResponse(params, expected_cql)
+
+    def test_missing_species_and_height(self):
+        params = {'missing_species' : 'True', 'missing_height' : 'True'}
+        expected_cql =  " species_id IS NULL  AND  (height IS NULL OR height = 0) "
+        self.assertParamsProduceResponse(params, expected_cql)
+
+
