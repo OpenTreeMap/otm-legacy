@@ -155,7 +155,7 @@ def apply_stewardship_filter(request, search):
 
         # Not sure why this goes in under the plot_stewardship
         # if block....
-        search.trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"}).filter(plot__in=search.plots)
+        search.trees = Tree.objects.filter(present=True).filter(plot__in=search.plots)
 
     return search
 
@@ -575,7 +575,7 @@ def search(request, filters):
     trees = Tree.objects.filter(present=True)
     plots = Plot.objects.filter(present=True)
 
-    treees = trees.extra(
+    trees = trees.extra(
         select= { 
             'geometry': 
             """
