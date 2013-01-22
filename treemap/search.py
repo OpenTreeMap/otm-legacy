@@ -61,7 +61,7 @@ def apply_plot_size_filter(request, search):
                                            Q(width__isnull=True))
 
         search.tile_query.append(
-            " (plot_length IS NULL OR plot_width IS NULL) ")
+            "(plot_length IS NULL OR plot_width IS NULL)")
 
     elif 'plot_range' in request:
         sizemin, sizemax = [float(z) for z in request['plot_range'].split("-")]
@@ -155,7 +155,7 @@ def apply_stewardship_filter(request, search):
 
         # Not sure why this goes in under the plot_stewardship
         # if block....
-        search.trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"}).filter(plot__in=search.plots)
+        search.trees = Tree.objects.filter(present=True).filter(plot__in=search.plots)
 
     return search
 
@@ -185,7 +185,7 @@ def apply_missing_filter(fld, istree, search, cqlfld=None, cql=None):
     if cql:
         search.tile_query.append(cql)
     else:
-        search.tile_query.append(" %s IS NULL " % cqlfld)
+        search.tile_query.append("%s IS NULL" % cqlfld)
 
     return search
 
@@ -334,7 +334,7 @@ def apply_dbh_filter(request, search):
         search.trees = search.trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
         search.plots = search.plots.filter(Q(tree__dbh__isnull=True) | Q(tree__dbh=0))
 
-        search.tile_query.append(" (dbh IS NULL OR dbh = 0) ")
+        search.tile_query.append("(dbh IS NULL OR dbh = 0)")
 
     elif 'diameter_range' in request:
         dmin, dmax = [float(d) for d in request['diameter_range'].split('-')]
@@ -364,7 +364,7 @@ def apply_tree_height_filter(request, search):
             Q(tree__height__isnull=True) | 
             Q(tree__height=0))
 
-        search.tile_query.append(" (height IS NULL OR height = 0) ")
+        search.tile_query.append("(height IS NULL OR height = 0)")
 
     elif 'height_range' in request:
         hmin, hmax = [float(z) for z in request['height_range'].split('-')]
@@ -379,7 +379,7 @@ def apply_tree_height_filter(request, search):
             search.plots = search.plots.filter(tree__height__lte=hmax)
 
         search.tile_query.append(
-            " height BETWEEN %d AND %d " % (hmin, hmax))
+            "(height BETWEEN %d AND %d)" % (hmin, hmax))
 
     return search
 
@@ -575,7 +575,7 @@ def search(request, filters):
     trees = Tree.objects.filter(present=True)
     plots = Plot.objects.filter(present=True)
 
-    treees = trees.extra(
+    trees = trees.extra(
         select= { 
             'geometry': 
             """

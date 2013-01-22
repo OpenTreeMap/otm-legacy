@@ -1878,6 +1878,14 @@ class TreePhoto(TestCase):
         self.assertEqual('plot_%d.png' % plot_id, photo.title)
 
 class CQLFiltering(TestCase):
+    """Class for testing the APIs feature to generate CQL strings.
+
+    The testing strategy used here is to:
+    1) Test that an API call with no parameters will return an empty CQL string
+    2) Test two different boolean parameters
+    3) Test that two boolean parameters can be correctly combined
+    4) Test a non boolean (string matching) parameter
+    """
     def setUp(self):
         setupTreemapEnv()
         self.user = User.objects.get(username="jim")
@@ -1898,19 +1906,24 @@ class CQLFiltering(TestCase):
         expected_cql = ""
         self.assertParamsProduceResponse(params, expected_cql)
 
-    def test_missing_species(self):
+    def test_boolean_missing_species(self):
         params = {'missing_species' : 'True',}
         expected_cql = "species_id IS NULL"
         self.assertParamsProduceResponse(params, expected_cql)
 
-    def test_missing_height(self):
+    def test_boolean_missing_height(self):
         params = {'missing_height' : 'True'}
-        expected_cql = " (height IS NULL OR height = 0) "
+        expected_cql = "(height IS NULL OR height = 0)"
         self.assertParamsProduceResponse(params, expected_cql)
 
-    def test_missing_species_and_height(self):
+    def test_boolean_missing_species_and_height(self):
         params = {'missing_species' : 'True', 'missing_height' : 'True'}
-        expected_cql =  "species_id IS NULL AND  (height IS NULL OR height = 0) "
+        expected_cql =  "species_id IS NULL AND (height IS NULL OR height = 0)"
+        self.assertParamsProduceResponse(params, expected_cql)
+
+    def test_matching_tree_owner(self):
+        params = {'tree_owner' : 'John Doe'}
+        expected_cql =  "tree_owner LIKE '%John Doe%'"
         self.assertParamsProduceResponse(params, expected_cql)
 
 
