@@ -456,6 +456,11 @@ def get_trees_in_tile(request):
         filter_values["flower_conspicuous"] = request.GET['filter_flowering']
         force_species_join = True
 
+    if "filter_pests" in request.GET:
+        filters.append("treemap_tree.pests = %(filter_pests)s")
+        print "----> "  + request.GET['filter_pests']
+        filter_values["filter_pests"] = request.GET['filter_pests']
+
     if "filter_native" in request.GET:
         filters.append("treemap_species.native_status = %(native_status)s")
         if request.GET['filter_native'].lower() == "true":
@@ -733,6 +738,7 @@ def plots_closest_to_point(request, lat=None, lon=None):
         dbhmin=request.GET.get("filter_dbh_min",None),
         dbhmax=request.GET.get("filter_dbh_max",None),
         species=request.GET.get("filter_species",None),
+        pests=request.GET.get("filter_pests",None),
         sort_recent=sort_recent, sort_pending=sort_pending,
         has_tree=has_tree, has_species=has_species, has_dbh=has_dbh)
 
