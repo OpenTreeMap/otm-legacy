@@ -403,7 +403,6 @@ tm = {
                     });
                 } else {
                     var value = response['update'][settings.fieldName];
-                    var datum;
                     
                     if (!value) {
                         value = response['update']['value'];
@@ -411,8 +410,7 @@ tm = {
                     if (settings.fieldName == "species_id") {
                         for (var i = 0; i < tm.speciesData.length; i++) {
                             if (tm.speciesData[i].id == value) {
-                                datum = tm.speciesData[i];
-                                value = tm.speciesData[i].sname;
+                                value = tm.formatSpeciesName(tm.speciesData[i]);
                                 $("#edit_species").html(tm.speciesData[i].cname);
                             }
                         }
@@ -423,11 +421,12 @@ tm = {
                         } else {
                             $("#edit_species").append('<br>' + other1 + " " + other2);
                         }
+
                     }
                     if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}
                     }
-                    settings.obj.innerHTML = tm.formatSpeciesName(datum)
+                    settings.obj.innerHTML = value;
                     tm.trackEvent("Edit", settings.fieldName)
                 }
             }});
