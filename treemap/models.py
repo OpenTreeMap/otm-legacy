@@ -256,7 +256,7 @@ class ImportEvent(models.Model):
 class PlotLocateManager(models.GeoManager):
 
     def with_geometry(self, geom, distance=0, max_plots=1, species_preferenece=None,
-                      native=None, flowering=None, fall=None, edible=None,
+                      native=None, flowering=None, fall=None, edible=None, pests=None,
                       dbhmin=None, dbhmax=None, species=None, sort_recent=None,
                       sort_pending=None, has_tree=None, has_species=None, has_dbh=None):
         '''
@@ -302,6 +302,9 @@ class PlotLocateManager(models.GeoManager):
 
         if dbhmax is not None:
             plots = plots.filter(tree__dbh__lte=dbhmax, tree__present=True)
+
+        if pests is not None:
+            plots = plots.filter(tree__pests=pests)            
 
         has_filter_q = None
         def filter_or(f,has):
