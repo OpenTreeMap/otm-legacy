@@ -986,22 +986,26 @@ def tree_resource_to_dict(tr):
                 tr.annual_pm10 * b.pm10 + tr.annual_sox * b.sox + \
                 tr.annual_voc * b.voc + tr.annual_bvoc * b.bvoc
 
+    weight_unit = getattr(settings, 'ECO_WEIGHT_UNIT', 'lbs')
+    elec_unit = getattr(settings, 'ECO_POWER_UNIT', 'kWh')
+    water_unit = getattr(settings, 'ECO_WATER_UNIT', 'gallons')
+
     return {
-        "annual_stormwater_management": with_unit(tr.annual_stormwater_management, b.stormwater, "gallons"),
-        "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, b.electricity, "kWh"),
-        "annual_energy_conserved": with_unit(tr.annual_energy_conserved, b.electricity, "kWh"),
-        "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, b.electricity, "kWh"),
-        "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, None, "lbs", dollar=ac_dollar),
-        "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, b.co2, "lbs"),
-        "annual_co2_avoided": with_unit(tr.annual_co2_avoided, b.co2, "lbs"),
-        "annual_co2_reduced": with_unit(tr.annual_co2_reduced, b.co2, "lbs"),
-        "total_co2_stored": with_unit(tr.total_co2_stored, b.co2, "lbs"),
-        "annual_ozone": with_unit(tr.annual_ozone, b.ozone, "lbs"),
-        "annual_nox": with_unit(tr.annual_nox, b.nox, "lbs"),
-        "annual_pm10": with_unit(tr.annual_pm10, b.pm10,  "lbs"),
-        "annual_sox": with_unit(tr.annual_sox, b.sox, "lbs"),
-        "annual_voc": with_unit(tr.annual_voc, b.voc, "lbs"),
-        "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, "lbs") }
+        "annual_stormwater_management": with_unit(tr.annual_stormwater_management, b.stormwater, water_unit),
+        "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, b.electricity, elec_unit),
+        "annual_energy_conserved": with_unit(tr.annual_energy_conserved, b.electricity, elec_unit),
+        "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, b.electricity, elec_unit),
+        "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, None, weight_unit, dollar=ac_dollar),
+        "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, b.co2, weight_unit),
+        "annual_co2_avoided": with_unit(tr.annual_co2_avoided, b.co2, weight_unit),
+        "annual_co2_reduced": with_unit(tr.annual_co2_reduced, b.co2, weight_unit),
+        "total_co2_stored": with_unit(tr.total_co2_stored, b.co2, weight_unit),
+        "annual_ozone": with_unit(tr.annual_ozone, b.ozone, weight_unit),
+        "annual_nox": with_unit(tr.annual_nox, b.nox, weight_unit),
+        "annual_pm10": with_unit(tr.annual_pm10, b.pm10,  weight_unit),
+        "annual_sox": with_unit(tr.annual_sox, b.sox, weight_unit),
+        "annual_voc": with_unit(tr.annual_voc, b.voc, weight_unit),
+        "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, weight_unit) }
     
 def with_unit(val,dollar_factor,unit,dollar=None):
     if dollar is None:
