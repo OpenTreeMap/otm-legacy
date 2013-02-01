@@ -22,15 +22,15 @@ urlpatterns = patterns('',
     # <script> tag with src="treemap_settings.js" to include this global
     # settings file
     (r'treemap_settings\.js$', treemap_settings_js),
-    
+
     (r'^export/csv$', get_all_csv),
     (r'^export/kmz$', get_all_kmz),
-    
+
     (r'^map/$', result_map),
 
     (r'^geocode/$', get_geocode),
     (r'^geocode/reverse/$', get_reverse_geocode),
-    
+
     (r'^neighborhoods/$', geographies, {'model' : Neighborhood}),
     (r'^neighborhoods/list/$', list_neighborhoods),
     (r'^neighborhoods/(?P<id>\d+)/$', geographies, {'model' : Neighborhood}),
@@ -63,24 +63,24 @@ urlpatterns = patterns('',
     (r'^trees/(?P<tree_id>\d+)/stewardship/$', add_tree_stewardship),
     (r'^trees/(?P<tree_id>\d+)/stewardship/(?P<activity_id>\d+)/delete/$', delete_tree_stewardship),
     url(r'^trees/(?P<tree_id>\d+)/$', trees, name="treemap_tree_detail"),
-    (r'^trees/new/$', added_today_list),   
-    (r'^trees/new/(?P<format>(geojson))/$', added_today_list),   
+    (r'^trees/new/$', added_today_list),
+    (r'^trees/new/(?P<format>(geojson))/$', added_today_list),
     (r'^trees/new/(?P<user_id>\d+)/$', added_today_list),
     (r'^trees/new/(?P<user_id>\d+)/(?P<format>(geojson))/$', added_today_list),
 
     (r'^trees/pending/$', view_pends),
-    (r'^trees/pending/(?P<pend_id>\d+)/approve/$', approve_pend),  
-    (r'^trees/pending/(?P<pend_id>\d+)/reject/$', reject_pend),    
+    (r'^trees/pending/(?P<pend_id>\d+)/approve/?$', approve_pend),
+    (r'^trees/pending/(?P<pend_id>\d+)/reject/?$', reject_pend),
 
     (r'^trees/watch/$', watch_list),
     (r'^watch/validate/$', validate_watch),
-    
-    url(r'^trees/favorites/create/(?P<pk>\d+)/$', create_favorite, name='treeemap_favorite_create'), 
-    url(r'^trees/favorites/delete/(?P<pk>\d+)/$', delete_favorite, name='treeemap_favorite_delete'), 
-    url(r'^trees/favorites/$', user_favorites, name='treeemap_my_favorites'), 
+
+    url(r'^trees/favorites/create/(?P<pk>\d+)/$', create_favorite, name='treeemap_favorite_create'),
+    url(r'^trees/favorites/delete/(?P<pk>\d+)/$', delete_favorite, name='treeemap_favorite_delete'),
+    url(r'^trees/favorites/$', user_favorites, name='treeemap_my_favorites'),
     url(r'^trees/favorites/(?P<username>[a-zA-Z0-9_-]+)/$', user_favorites, name='treeemap_user_favorites'),
     url(r'^trees/favorites/(?P<username>[a-zA-Z0-9_-]+)/geojson/$', favorites),
-    
+
     (r'^species/$', species),
     (r'^species/(?P<format>(json|html|csv))/$', species),
     (r'^species/(?P<selection>(all|in-use|nearby))/$', species),
@@ -90,7 +90,7 @@ urlpatterns = patterns('',
     (r'^search/$', advanced_search),
     (r'^search/geo$', geo_search),
     (r'^search/(?P<format>.*)/$', advanced_search),
-    
+
     (r'^check_username/$', check_username),
     (r'^users/$', edit_users),
     (r'^users/update/$', update_users),
@@ -100,7 +100,7 @@ urlpatterns = patterns('',
     (r'^users/opt-in/$', user_opt_in_list),
     (r'^users/opt-in/(?P<format>.*)/$', user_opt_export),
     (r'^profiles/(?P<username>[a-zA-Z0-9_-]+)/deletephoto/', userphoto_delete),
-    
+
     (r'^comments/flag/(?P<comment_id>[0-9]+)/$', add_flag),
     (r'^comments/moderate/$', view_flagged),
     (r'^comments/all/$', view_comments),
@@ -113,10 +113,9 @@ urlpatterns = patterns('',
 
     url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
     url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),
-    
+
     (r'^stewardship/', view_stewardship),
 
     (r'^images/$', view_images),
-    
+
 )
-    
