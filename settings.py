@@ -4,9 +4,9 @@ import os
 # local_settings.py or impl_settings.py file if needed
 ADD_INITIAL_DEFAULTS = {}
 ADD_FORM_TARGETS = [
-    ('addsame', 'I want to add another tree using the same tree details'), 
-    ('add', 'I want to add another tree with new details'), 
-    ('edit','Let me continue editing this tree'), 
+    ('addsame', 'I want to add another tree using the same tree details'),
+    ('add', 'I want to add another tree with new details'),
+    ('edit','Let me continue editing this tree'),
     ('view', "I'm done!"),
 ]
 ADD_FORM_TARGETS_DEFAULT = 'view'
@@ -17,6 +17,7 @@ POSTAL_CODE_FIELD = "USZipCodeField"
 DBH_TO_INCHES_FACTOR = 1.0
 
 PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
+ADVANCED_USERS_CAN_ACCEPT_PENDING = False
 
 try:
    from impl_settings import *
@@ -72,7 +73,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_reputation.middleware.ReputationMiddleware', 
+    'django_reputation.middleware.ReputationMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django_sorting.middleware.SortingMiddleware',
 
@@ -119,4 +120,3 @@ if SITE_ROOT is not "/":
     LOGIN_URL = "%s/accounts/login" % SITE_ROOT
 else:
     LOGIN_URL = "/accounts/login"
-
