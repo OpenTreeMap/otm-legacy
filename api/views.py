@@ -622,9 +622,19 @@ def get_tree_image(request, plot_id, photo_id):
     treephoto = TreePhoto.objects.get(pk=photo_id)
 
     if treephoto.tree.plot.pk == int(plot_id):
-        img = Image.open(treephoto.photo.path).resize((144,132), Image.ANTIALIAS)
+        img = Image.open(treephoto.photo.path)
+        try:
+           orientation = img._getexif()[0x0112]
+           if orientation == 6: # Right turn
+              img = img.rotate(-90)
+           elif orientation == 5: # Left turn
+              img = img.rotate(90)
+        except:
+           pass
+
+        resized = img.resize((144,132), Image.ANTIALIAS)
         response = HttpResponse(mimetype="image/png")
-        img.save(response, "PNG")
+        resized.save(response, "PNG")
         return response
     else:
         raise HttpBadRequestException('invalid url (missing objects)')
