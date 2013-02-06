@@ -82,7 +82,7 @@ def validate_and_log_api_req(request):
 
     if key is None:
         raise InvalidAPIKeyException("key not found as 'apikey' param or 'X-API-Key' header")
-    
+
     apikeys = APIKey.objects.filter(key=key)
 
     if len(apikeys) > 0:
@@ -105,7 +105,7 @@ def validate_and_log_api_req(request):
     ).save()
 
     return apikey
-    
+
 
 def api_call_raw(content_type="image/jpeg"):
     """ Wrap an API call that writes raw binary data """
@@ -124,11 +124,11 @@ def api_call_raw(content_type="image/jpeg"):
                 response['Content-Type'] = content_type
             except HttpBadRequestException, bad_request:
                 response = HttpResponseBadRequest(bad_request.message)
-            
+
             return response
         return newreq
     return decorate
-      
+
 def api_call(content_type="application/json"):
     """ Wrap an API call that returns an object that
         is convertable from json
@@ -177,8 +177,8 @@ def plot_permissions(plot, user):
 
 def plot_or_tree_permissions(obj, user):
     """ Determine what the given user can do with a tree or plot
-        Returns { 
-           can_delete: <boolean>, 
+        Returns {
+           can_delete: <boolean>,
            can_edit: <boolean>,
         } """
 
@@ -211,7 +211,7 @@ def plot_or_tree_permissions(obj, user):
         else:
             can_delete = False
             can_edit = True
-            
+
     return { "can_delete": can_delete, "can_edit": can_edit }
 
 def can_delete_tree_or_plot(obj, user):
@@ -350,7 +350,7 @@ def recent_edits(request, user_id):
         keys.append(d)
 
     return keys
-    
+
 
 @require_http_methods(["PUT"])
 @api_call()
@@ -406,7 +406,7 @@ def get_trees_in_tile(request):
        Byte N+1 Y offset  Byte (Unsigned)
 
     """
-    
+
     # This method should execute as fast as possible to avoid the django/ORM overhead we are going
     # to execute raw SQL queries
     from django.db import connection, transaction
@@ -419,7 +419,7 @@ def get_trees_in_tile(request):
     bboxFilterStr = "ST_GeomFromText('POLYGON(({xmin} {ymin},{xmin} {ymax},{xmax} {ymax},{xmax} {ymin},{xmin} {ymin}))', 4326)"
     bboxFilter = bboxFilterStr.format(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax)
 
-    (xminM,yminM) = latlng2webm(xmin,ymin) 
+    (xminM,yminM) = latlng2webm(xmin,ymin)
     (xmaxM,ymaxM) = latlng2webm(xmax,ymax)
     pixelsPerMeterX = 255.0/(xmaxM - xminM)
     pixelsPerMeterY = 255.0/(ymaxM - yminM)
@@ -483,7 +483,7 @@ def get_trees_in_tile(request):
     where = "where ST_Contains({bfilter},geometry) AND treemap_plot.present".format(bfilter=bboxFilter)
     subselect = "select ST_Transform(geometry, 900913) as geometry, id from treemap_plot {where}".format(where=where)
     fromq = "FROM ({subselect}) as t LEFT OUTER JOIN treemap_tree ON treemap_tree.plot_id=t.id".format(subselect=subselect)
-    
+
     if force_species_join:
         fromq += " LEFT OUTER JOIN treemap_species ON treemap_species.id=treemap_tree.species_id"
 
@@ -513,13 +513,13 @@ def get_trees_in_tile(request):
             i += 1
 
         rows = rows[:lasti]
-    
+
     # Partition into groups
     groups = {}
     for (x,y,g) in rows:
         if g not in groups:
             groups[g] = []
-        
+
         groups[g].append((x,y))
 
     # After removing duplicates, we can have at most 1 tree per square
@@ -591,7 +591,7 @@ def reset_password(request):
 @api_call()
 def version(request):
     """ API Request
-    
+
     Get version information for OTM and the API. Generally, the API is unstable for
     any API version < 1 and minor changes (i.e. 1.4,1.5,1.6) represent no break in
     existing functionality
@@ -599,9 +599,9 @@ def version(request):
     Verb: GET
     Params: None
     Output:
-      { 
+      {
         otm_version, string -> Open Tree Map Version (i.e. 1.0.2)
-        api_version, string -> API version (i.e. 1.6) 
+        api_version, string -> API version (i.e. 1.6)
       }
 
     """
@@ -646,9 +646,9 @@ def get_plot_list(request):
 
     Get a list of all plots in the database. This is meant to be a lightweight
     listing service. To get more details about a plot use the ^plot/{id}$ service
-    
+
     Verb: GET
-    Params: 
+    Params:
       offset, integer, default = 0  -> offset to start results from
       size, integer, default = 100 -> Maximum 10000, number of results to get
 
@@ -663,7 +663,7 @@ def get_plot_list(request):
              id, integer -> tree id
              species, integer, opt -> Species id
              dbh, real, opt -> Diameter of the tree
-          }             
+          }
        }]
 
       """
@@ -1016,13 +1016,13 @@ def tree_resource_to_dict(tr):
         "annual_sox": with_unit(tr.annual_sox, b.sox, weight_unit),
         "annual_voc": with_unit(tr.annual_voc, b.voc, weight_unit),
         "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, weight_unit) }
-    
+
 def with_unit(val,dollar_factor,unit,dollar=None):
     if dollar is None:
         dollar = dollar_factor * val
 
     return { "value": val, "unit": unit, "dollars": dollar }
-        
+
 
 def species_to_dict(s):
     return {
