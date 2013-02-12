@@ -31,7 +31,7 @@ class Command(BaseCommand):
         print 'Opening input file: %s ' % in_file
 
         self.headers = reader.fieldNames
-        
+
         print 'Converting input file to dictionary'
         rows = []
         for dbf_row in reader:
@@ -40,19 +40,20 @@ class Command(BaseCommand):
                 d[name] = dbf_row[name]
             rows.append(d)
         return rows
-    
+
     def get_csv_rows(self, in_file):
         reader = csv.DictReader(open(in_file, 'r' ), restval=123)
         print 'Opening input file: %s ' % in_file
 
         rows = list(reader)
-                
+
         self.headers = reader.fieldnames
-                
+
         return rows
-    
+
     def handle(self, *args, **options):
-        try:    
+        self.wrote_headers = False
+        try:
             self.file_name = args[0]
             in_file = self.file_name
             err_file = in_file + ".err"
@@ -64,18 +65,18 @@ class Command(BaseCommand):
                 print "Using transformaton object: %s" % self.tf
             else:
                 self.base_srid = 4326
-	    if len(args) > 3:
-		self.readonly = bool(args[3])
+            if len(args) > 3:
+                self.readonly = bool(args[3])
                 print "Setting readonly flag to %s" % self.readonly
-	    else:
-		self.readonly = False
+            else:
+                self.readonly = False
         except:
             print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
             print "Options:    --verbose"
             return
-        
+
         self.err_writer = csv.writer(open(err_file, 'wb'))
-        
+
         if self.file_name.endswith('.csv'):
             rows = self.get_csv_rows(in_file)
         if self.file_name.endswith('.dbf'):
@@ -83,38 +84,35 @@ class Command(BaseCommand):
 
         self.data_owner = User.objects.get(pk=self.user_id)
         self.updater = User.objects.get(pk=1)
-        
+
         self.import_event = ImportEvent(file_name=self.file_name)
         self.import_event.save()
-        
+
         print 'Importing %d records' % len(rows)
         for i, row in enumerate(rows):
-            if i < 420:
-                continue
-
             self.handle_row(row)
-            
+
             j = i + 1
             if j % 50 == 0:
                print 'Loaded %d...' % j
             self.log_verbose("item %d" % i)
-        
+
         print "Finished data load. "
 
         print "Calculating new species tree counts... "
         for s in Species.objects.all():
             s.save()
         print "Done."
-    
+
     def log_verbose(self, msg):
         if self.verbose: print msg
-    
+
     def log_error(self, msg, row):
         print "ERROR: %s" % msg
         columns = [row[s] for s in self.headers]
         self.write_headers_if_needed()
         self.err_writer.writerow(columns)
-    
+
     def check_coords(self, row):
         try:
             x = float(row.get('POINT_X', 0))
@@ -131,7 +129,7 @@ class Command(BaseCommand):
 
     def check_species(self, row):
         # locate the species and instanciate the tree instance
-        if not row.get('SCIENTIFIC') and not row.get('GENUS'):            
+        if not row.get('SCIENTIFIC') and not row.get('GENUS'):
             self.log_verbose("  No species information")
             return (True, None)
 
@@ -156,72 +154,72 @@ class Command(BaseCommand):
                 name = name + " " + gender
             species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar).filter(gender__iexact=gender)
             self.log_verbose("  Looking for species: %s %s %s %s" % (genus, species, cultivar, gender))
-        
+
 
         if species: #species match found
             self.log_verbose("  Found species %r" % species[0])
             return (True, species)
-            
+
         #species data but no match, check it manually
-        self.log_error("ERROR:  Unknown species %r" % name, row) 
+        self.log_error("ERROR:  Unknown species %r" % name, row)
         return (False, None)
 
     def check_tree_info(self, row):
         tree_info = False
-        fields = ['STEWARD', 'SPONSOR', 'DATEPLANTED', 'DIAMETER', 'HEIGHT', 'CANOPYHEIGHT', 
+        fields = ['STEWARD', 'SPONSOR', 'DATEPLANTED', 'DIAMETER', 'HEIGHT', 'CANOPYHEIGHT',
                   'CONDITION', 'CANOPYCONDITION', 'PROJECT_1', 'PROJECT_2', 'PROJECT_3', 'OWNER']
-        
+
         for f in fields:
             # field exists and there's something in it
             if row.get(f) and str(row[f]).strip():
                 tree_info = True
                 self.log_verbose('  Found tree data in field %s, creating a tree' % f)
                 break
-        
+
         return tree_info
 
     def check_proximity(self, plot, tree, species, row):
         # check for nearby plots
         collisions = plot.validate_proximity(True, 0)
-        
+
         # if there are no collisions, then proceed as planned
         if not collisions:
             self.log_verbose("  No collisions found")
             return (True, plot, tree)
         self.log_verbose("  Initial proximity test count: %d" % collisions.count())
-        
+
         # exclude collisions from the same file we're working in
         collisions = collisions.exclude(import_event=self.import_event)
         if not collisions:
             self.log_verbose("  All collisions are from this import file")
-            return (True, plot, tree)                
+            return (True, plot, tree)
         self.log_verbose("  Secondary proximity test count: %d" % collisions.count())
-        
+
         # if we have multiple collitions, check for same species or unknown species
         # and try to associate with one of them otherwise abort
         if collisions.count() > 1:
             # get existing trees for the plots that we collided with
-            tree_ids = []             
+            tree_ids = []
             for c in collisions:
                 if c.current_tree():
                     tree_ids.append(c.current_tree().id)
 
             trees = Tree.objects.filter(id__in=tree_ids)
 
-            # Precedence: single same species, single unknown 
+            # Precedence: single same species, single unknown
             # return false for all others and log
-            if species:                
-                same = trees.filter(species=species[0])            
+            if species:
+                same = trees.filter(species=species[0])
                 if same.count() == 1 and same[0].species == species[0]:
                     self.log_verbose("  Using single nearby plot with tree of same species")
                     return (True, c, same[0])
-            
+
             unk = trees.filter(species=None)
-                
+
             if unk.count() == 1:
                 self.log_verbose("  Using single nearby plot with tree of unknown species")
                 return (True, c,  unk[0])
-            
+
             self.log_error("ERROR:  Proximity test failed (near %d plots)" % collisions.count(), row)
             return (False, None, None)
 
@@ -231,7 +229,7 @@ class Command(BaseCommand):
         self.log_verbose("  Found one tree nearby")
 
         # if the nearby plot doesn't have a tree, don't bother doing species matching
-        if not plot_tree: 
+        if not plot_tree:
             self.log_verbose("  No tree found for plot, using %d as base plot record" % plot.id)
             return (True, plot, tree)
 
@@ -267,8 +265,8 @@ class Command(BaseCommand):
             plot_tree.canopy_height = None
             plot_tree.condition = None
             plot_tree.canopy_condition = None
-        return (True, plot, plot_tree) 
-    
+        return (True, plot, plot_tree)
+
     def handle_row(self, row):
         self.log_verbose(row)
 
@@ -284,7 +282,7 @@ class Command(BaseCommand):
                 geom.transform(self.tf)
                 self.log_verbose(geom)
                 plot.geometry = geom
-            else:        
+            else:
                 plot.geometry = Point(x, y, srid=4326)
         except:
             self.log_error("ERROR: Geometry failed to transform", row)
@@ -293,29 +291,29 @@ class Command(BaseCommand):
         # check the species (if any)
         ok, species = self.check_species(row)
         if not ok: return
-        
+
         # check for tree info, should we create a tree or just a plot
         if species or self.check_tree_info(row):
             tree = Tree(plot=plot)
         else:
             tree = None
-        
-        if tree and species:
-            tree.species = species[0] 
 
-        
+        if tree and species:
+            tree.species = species[0]
+
+
         # check the proximity (try to match up with existing trees)
-        # this may return a different plot/tree than created just above, 
+        # this may return a different plot/tree than created just above,
         # so don't set anything else on either until after this point
         ok, plot, tree = self.check_proximity(plot, tree, species, row)
         if not ok: return
 
-        
+
         if row.get('ADDRESS') and not plot.address_street:
             plot.address_street = str(row['ADDRESS']).title()
             plot.geocoded_address = str(row['ADDRESS']).title()
-        
-        if not plot.geocoded_address: 
+
+        if not plot.geocoded_address:
             plot.geocoded_address = ""
 
         # FIXME: get this from the config?
@@ -331,24 +329,24 @@ class Command(BaseCommand):
                     plot.type = k
                     break;
 
-        if row.get('PLOTLENGTH'): 
+        if row.get('PLOTLENGTH'):
             plot.length = row['PLOTLENGTH']
 
-        if row.get('PLOTWIDTH'): 
-            plot.width = row['PLOTWIDTH']            
+        if row.get('PLOTWIDTH'):
+            plot.width = row['PLOTWIDTH']
 
         if row.get('ID'):
             plot.owner_orig_id = row['ID']
-        
+
         if row.get('ORIGID'):
             plot.owner_additional_properties = "ORIGID=" + str(row['ORIGID'])
 
         if row.get('OWNER_ADDITIONAL_PROPERTIES'):
             plot.owner_additional_properties = str(plot.owner_additional_properties) + " " + str(row['OWNER_ADDITIONAL_PROPERTIES'])
-        
+
         if row.get('OWNER_ADDITIONAL_ID'):
             plot.owner_additional_id = str(row['OWNER_ADDITIONAL_ID'])
-    
+
         if row.get('POWERLINE'):
             for k, v in choices['powerlines']:
                 if v == row['POWERLINE']:
@@ -368,7 +366,7 @@ class Command(BaseCommand):
         pnt = plot.geometry
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
-        
+
         plot.neighborhoods = ""
         plot.neighborhood.clear()
         plot.zipcode = None
@@ -381,17 +379,17 @@ class Command(BaseCommand):
 
         if z: plot.zipcode = z[0]
 
-	plot.quick_save()
+        plot.quick_save()
 
         if tree:
             tree.plot = plot
             tree.readonly = self.readonly
             tree.import_event = self.import_event
             tree.last_updated_by = self.updater
-            
+
             if row.get('OWNER'):
                 tree.tree_owner = str(row["OWNER"])
-    
+
             if row.get('STEWARD'):
                 tree.steward_name = str(row["STEWARD"])
 
@@ -410,7 +408,7 @@ class Command(BaseCommand):
                     pass
                 if not date:
                     raise ValueError("Date strings must be in mm/dd/yyyy or yyyy/mm/dd format")
-                
+
                 tree.date_planted = date.strftime("%Y-%m-%d")
 
             if row.get('DIAMETER'):
@@ -442,13 +440,13 @@ class Command(BaseCommand):
                         local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
                         local.save()
                         break;
-            if row.get('PROJECT_2'):            
+            if row.get('PROJECT_2'):
                 for k, v in Choices().get_field_choices('local'):
                     if v == row['PROJECT_2']:
                         local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
                         local.save()
                         break;
-            if row.get('PROJECT_3'):           
+            if row.get('PROJECT_3'):
                 for k, v in Choices().get_field_choices('local'):
                     if v == row['PROJECT_3']:
                         local = TreeFlags(key=k,tree=tree,reported_by=self.updater)
@@ -457,4 +455,3 @@ class Command(BaseCommand):
 
             # rerun validation tests and store results
             tree.validate_all()
-
