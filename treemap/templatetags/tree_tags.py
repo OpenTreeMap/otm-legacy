@@ -4,7 +4,8 @@ import posixpath
 from django.conf import settings
 from django.template import Library, Node
 from django.db.models import get_model
-     
+from treemap.views import user_is_authorized_to_update_pending_edits
+
 register = Library()
 
 def unit_or_expression(value, unit, failure_expression):
@@ -21,6 +22,10 @@ def unit_or_expression(value, unit, failure_expression):
         return failure_expression
 
 @register.filter
+def can_approve_pending(user):
+    return user_is_authorized_to_update_pending_edits(user)
+
+@register.filter
 def gal2litres(value):
     if value:
         return value * 3.78541
@@ -33,7 +38,7 @@ def lbs2kgs(value):
         return value * 0.453592
     else:
         return value
-     
+
 @register.filter
 def unit_or_missing(value, unit=None):
     return unit_or_expression(value, unit, "Missing")
