@@ -858,6 +858,7 @@ def plot_to_dict(plot,longform=False,user=None):
         "id": plot.pk,
         "plot_width": plot.width,
         "plot_length": plot.length,
+        "owner_orig_id": plot.owner_orig_id,
         "plot_type": plot.type,
         "readonly": plot.readonly,
         "tree": tree_dict,
