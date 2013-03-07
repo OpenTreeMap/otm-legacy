@@ -458,7 +458,6 @@ def get_trees_in_tile(request):
 
     if "filter_pests" in request.GET:
         filters.append("treemap_tree.pests = %(filter_pests)s")
-        print "----> "  + request.GET['filter_pests']
         filter_values["filter_pests"] = request.GET['filter_pests']
 
     if "filter_native" in request.GET:
@@ -829,6 +828,7 @@ def plot_to_dict(plot,longform=False,user=None):
             tree_dict['last_updated_by'] = current_tree.last_updated_by.username
             tree_dict['condition'] = current_tree.condition
             tree_dict['canopy_condition'] = current_tree.canopy_condition
+            tree_dict['pests'] = current_tree.pests
             tree_dict['readonly'] = current_tree.readonly
 
             if settings.PENDING_ON:
@@ -1354,7 +1354,7 @@ def update_plot_and_tree(request, plot_id):
     tree_was_edited = False
     tree_was_added = False
     tree = plot.current_tree()
-    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition', 'condition']
+    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition', 'condition','pests']
 
     if tree is None:
         should_create_tree_pends = False
