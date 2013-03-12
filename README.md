@@ -62,6 +62,7 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
 * wget http://sourceforge.net/projects/dbfpy/files/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
 * wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
 * git clone git://github.com/miracle2k/webassets.git
+* pip install django-pipeline==1.1.27
 
 ###Patches:###
     Fix to proj to deal with spherical mercator
@@ -72,10 +73,10 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
                                 sudo cp null /usr/share/proj
     Get django-sorting and fix bug
         git clone git://github.com/directeur/django-sorting.git
-				Apply patch to django-sorting:
+                Apply patch to django-sorting:
             https://github.com/directeur/django-sorting/issues#issue/8
-						-including comment by Alsaihn
-				sudo cp django_sorting -R /usr/local/lib/python2.6/dist-packages/django_sorting
+                        -including comment by Alsaihn
+                sudo cp django_sorting -R /usr/local/lib/python2.6/dist-packages/django_sorting
     Get django-shapes and remove HttpResponse call
         wget https://bitbucket.org/springmeyer/django-shapes/get/tip.tar.gz
         In shapes/views/export.py - zip-response method - change >
@@ -86,14 +87,14 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
             #response['Content-Type'] = mimetype
             #response.write(zip_stream)
             return zip_stream
-            
+
     Get django-reputation and fix default config and user bug
         svn checkout http://django-reputation.googlecode.com/svn/trunk/ django-reputation
-				cd django-reputation
-				sudo cp django_reputation -R /usr/local/lib/python2.6/dist-packages/django_reputation
-				Change default config and user bug: (b/c it doesn't seem to accept values in settings.py)
-						cd /usr/local/lib/python2.6/dist-packages/django_reputation
-						In config.py - <change values as needed>
+                cd django-reputation
+                sudo cp django_reputation -R /usr/local/lib/python2.6/dist-packages/django_reputation
+                Change default config and user bug: (b/c it doesn't seem to accept values in settings.py)
+                        cd /usr/local/lib/python2.6/dist-packages/django_reputation
+                        In config.py - <change values as needed>
             In model.py - change >
                 ....
                 relevant_reputation_actions = UserReputationAction.objects.filter(user=user).filter........
@@ -106,13 +107,13 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
                     delta = 0
                 ...
     Fix Tilecache TMS issue
-				In tilecache/Services/TMS.py - change >
-						...
-						elif len(parts) < 2:
-								return self.serviceCapabilities(host, self.service.layers)
-						else:
-					+ parts = parts[-5:]
-								layer = self.getLayer(parts[1])
-								if len(parts) < 3:
-								return self.layerCapabilities(host, layer)
-						...
+                In tilecache/Services/TMS.py - change >
+                        ...
+                        elif len(parts) < 2:
+                                return self.serviceCapabilities(host, self.service.layers)
+                        else:
+                    + parts = parts[-5:]
+                                layer = self.getLayer(parts[1])
+                                if len(parts) < 3:
+                                return self.layerCapabilities(host, layer)
+                        ...
