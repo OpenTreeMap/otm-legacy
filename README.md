@@ -51,7 +51,7 @@ Default graphics and config files for the OpenTreeMap iOS are available at https
 * wget https://bitbucket.org/jiaaro/django-badges/get/tip.tar.gz
 * wget https://bitbucket.org/ubernostrum/django-registration/downloads/django-registration-0.8-alpha-1.tar.gz
 * git clone git://github.com/miracle2k/webassets.git
-* pip install django-pipeline
+* pip install django-pipeline==1.1.27
 
 ###Patches:###
     Fix to proj to deal with spherical mercator
