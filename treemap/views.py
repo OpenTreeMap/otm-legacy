@@ -1738,8 +1738,11 @@ def contact(request):
             message += form.cleaned_data['message']
             cc_myself = form.cleaned_data['cc_myself']
 
+            if settings.FORCE_MAIL_TO_BE_FROM:
+                sender = settings.FORCE_MAIL_TO_BE_FROM:
+
             recipients = settings.CONTACT_EMAILS
-            if cc_myself:
+            if cc_myself or settings.FORCE_MAIL_TO_BE_FROM::
                 recipients.append(sender)
 
             from django.core.mail import send_mail

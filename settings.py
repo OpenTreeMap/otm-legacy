@@ -19,6 +19,20 @@ DBH_TO_INCHES_FACTOR = 1.0
 PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
 ADVANCED_USERS_CAN_ACCEPT_PENDING = False
 
+# Certain email servers (most, all?) prohibit traffic
+# that appears to be routed from someone on the network
+#
+# For instance, if all mail from an OTM site is going to
+# jane@company.com and jim ("jim@company.com") sends feedback
+# the message structure will look like:
+# From: jim@company.com
+# To: jane@company.com
+# ....
+# But mail.company.com will *reject* the email since it is
+# actually originating from otm's servers and masquerading
+# as company.com
+FORCE_MAIL_TO_BE_FROM = None
+
 try:
    from impl_settings import *
 except ImportError, e:
