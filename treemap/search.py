@@ -38,7 +38,10 @@ def apply_location_filter(request, search):
                 pnt = Point(float(request['lon']), float(request['lat']))
                 ns = ns.filter(geometry__contains=pnt)
 
-            hood = ns[0]
+            try:
+                hood = ns[0]
+            except IndexError, e: # In case our location isn't on the map
+                return search
 
             search.trees = search.trees.filter(plot__neighborhood = hood)
             search.plots = search.plots.filter(neighborhood = hood)
@@ -80,7 +83,7 @@ def apply_plot_size_filter(request, search):
 
             search.plots = search.plots.filter(
                 Q(length__lte=sizemax) | Q(width__lte=sizemax))
-            
+
         search.tile_query.append(
             "( (plot_length BETWEEN %(min)d AND %(max)d ) OR "
             "  (plot_width  BETWEEN %(min)d AND %(max)d ) )" \
@@ -109,7 +112,7 @@ def apply_stewardship_filter(request, search):
                     tq.append(
                         "%(tree)s_stewardship_%(action)s AFTER %(start)sZ AND "
                         "%(tree)s_stewardship_%(action)s BEFORE %(end)sZ" %
-                        { "action": a, 
+                        { "action": a,
                           "start": start_date.isoformat(),
                           "end": end_date.isoformat(),
                           "tree": tree_or_plot })
@@ -121,9 +124,9 @@ def apply_stewardship_filter(request, search):
 
         steward_ids = Stewardship.trees_with_activities(actions)
         search.tile_query += tile_query_for_stewardship_actions(actions, "tree")
-            
+
         if stewardship_reverse:
-            search.trees = search.trees.filter(id__in=steward_ids)  
+            search.trees = search.trees.filter(id__in=steward_ids)
         else:
             search.trees = search.trees.exclude(id__in=steward_ids)
 
@@ -135,7 +138,7 @@ def apply_stewardship_filter(request, search):
         # Also not clear why this goes here...
         # reset plots search?
         search.plots = Plot.objects.filter(present=True).filter(tree__in=search.trees)
-        
+
     if 'plot_stewardship' in request:
         plot_stewardship = request["plot_stewardship"]
         actions = plot_stewardship.split(',')
@@ -216,7 +219,7 @@ def apply_sidewalk_damage_filter(request, search):
     if request.get("missing_sidewalk", False):
         search = apply_missing_plot_filter(
             "sidewalk_damage", search, cql="sidewalk_damage")
-    else: 
+    else:
         ids = [k for (k,v) in extract_choices(request, 'sidewalks')]
         cqltypes = ["sidewalk_damage = %s" % t for t in ids]
 
@@ -232,7 +235,7 @@ def apply_pests_filter(request, search):
     pests = [k.split("_")[1] for (k,v) in request.items() if "pests_" in k and v]
     if pests:
         pests_cql = ["pests = %s" % k for k in pests]
-        
+
         search.trees = search.trees.filter(pests__in=pests)
         search.plots = search.plots.filter(tree__pests__in=pests)
 
@@ -269,9 +272,9 @@ def apply_owner_filter(request, search):
 
         search.trees = search.trees.filter(plot__data_owner__in=users)
         search.plots = search.plots.filter(data_owner__in=users)
-        
+
         cql_users = ['data_owner_id = %s' % u.id for u in users]
-        
+
         search.tile_query.append(
             "( %s )" % " OR ".join(cql_users))
 
@@ -286,7 +289,7 @@ def apply_updated_by_filter(request, search):
         search.plots = search.plots.filter(last_updated_by__in=users)
 
         cql_users = ['last_updated_by_id = %d' % u.id for u in users]
-        
+
         search.tile_query.append(
             "( %s )" % " OR ".join(cql_users))
 
@@ -297,12 +300,12 @@ def apply_updated_range_filter(request, search):
         mindate, maxdate = [datetime.utcfromtimestamp(float(z))
                             for z in request['updated_range'].split("-")]
 
-        search.trees = search.trees.filter(last_updated__gte=mindate, 
+        search.trees = search.trees.filter(last_updated__gte=mindate,
                              last_updated__lte=maxdate)
 
-        search.plots = search.plots.filter(last_updated__gte=mindate, 
+        search.plots = search.plots.filter(last_updated__gte=mindate,
                              last_updated__lte=maxdate)
-        
+
         search.tile_query.append(
             "last_updated AFTER %sZ AND "
             "last_updated BEFORE %sZ" %
@@ -345,7 +348,7 @@ def apply_dbh_filter(request, search):
         # ^^^^ previous comment, not too sure what this
         # means and why it is different than
         # the tile_query thing below (should it be < 50?)
-        if dmax != 50: 
+        if dmax != 50:
             search.trees = search.trees.filter(dbh__lte=dmax)
             search.plots = search.plots.filter(tree__dbh__lte=dmax)
 
@@ -361,7 +364,7 @@ def apply_tree_height_filter(request, search):
             Q(height=0))
 
         search.plots = search.plots.filter(
-            Q(tree__height__isnull=True) | 
+            Q(tree__height__isnull=True) |
             Q(tree__height=0))
 
         search.tile_query.append("(height IS NULL OR height = 0)")
@@ -374,7 +377,7 @@ def apply_tree_height_filter(request, search):
 
         # TODO: Hardcoded in UI, may need to change
         # Same old same old....
-        if max != 200: 
+        if max != 200:
             search.trees = search.trees.filter(height__lte=hmax)
             search.plots = search.plots.filter(tree__height__lte=hmax)
 
@@ -387,7 +390,7 @@ def apply_tree_height_filter(request, search):
 def apply_tree_condition_filter(request, search):
     if request.get("missing_condition", False):
         search = apply_missing_tree_filter('condition', search)
-    else:   
+    else:
         ids = [k for (k,v) in extract_choices(request, 'conditions')]
         cqls = ["condition = %s" % i for i in ids]
 
@@ -403,7 +406,7 @@ def apply_tree_condition_filter(request, search):
 def apply_canopy_condition_filter(request, search):
     if request.get("missing_canopy_condition", False):
         search = apply_missing_tree_filter("canopy_condition", search)
-    else:   
+    else:
         ids = []
         # This is the new (preferred?) style of using
         # a_n where {a} is a choices key and {n} is the id
@@ -414,7 +417,7 @@ def apply_canopy_condition_filter(request, search):
 
 
         cqls = ["canopy_condition = '%s'" % d for d in ids]
-        
+
         if ids:
             search.trees = search.trees.filter(canopy_condition__in=ids)
             search.plots = search.plots.filter(tree__canopy_condition__in=ids)
@@ -458,11 +461,11 @@ def apply_steward_filter(request, search):
         users = User.objects.filter(username__icontains=steward)
 
         search.trees = search.trees.filter(
-            Q(steward_user__in=users) | 
+            Q(steward_user__in=users) |
             Q(steward_name__icontains=steward))
 
         search.plots = search.plots.filter(
-            Q(tree__steward_user__in=users) | 
+            Q(tree__steward_user__in=users) |
             Q(tree__steward_name__icontains=steward))
 
         cqls = ["steward_user_id = %d" % u.id for u in users]
@@ -498,11 +501,11 @@ def apply_planted_range_filter(request, search):
         maxd = "%d-12-31" % maxd
 
         search.trees = search.trees.filter(
-            date_planted__gte=mind, 
+            date_planted__gte=mind,
             date_planted__lte=maxd)
 
         search.plots = search.plots.filter(
-            tree__date_planted__gte=mind, 
+            tree__date_planted__gte=mind,
             tree__date_planted__lte=maxd)
 
         search.tile_query.append(
@@ -527,7 +530,7 @@ def apply_species_filters(request, search):
     # These handle the boolean fields
     for (requestparam, dbname) in species_criteria.items():
         if requestparam in request:
-            found_species = True  
+            found_species = True
             filterparam = { dbname: True }
 
             species = species.filter(**filterparam)
@@ -576,8 +579,8 @@ def search(request, filters):
     plots = Plot.objects.filter(present=True)
 
     trees = trees.extra(
-        select= { 
-            'geometry': 
+        select= {
+            'geometry':
             """
             SELECT treemap_plot.geometry
             FROM treemap_plot
