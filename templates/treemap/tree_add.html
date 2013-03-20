@@ -3,12 +3,12 @@
 {% block body_load %}class="contact"{% endblock %}
 
 {% block tophead %}
-	<script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
+        <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
+        <script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
     <script type="text/javascript" src="treemap_settings.js"></script>
 {% endblock %}
 
@@ -23,39 +23,39 @@
         //jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
         //jQuery("#opt_field_group").hide();
-        jQuery.getJSON(tm_static + '/species/json/', function(species){
+        jQuery.getJSON(tm_static + 'species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
                 $("#id_species_id").val(item.symbol).change();
             });
         });
         jQuery("#addTree").submit(function(evt) {
-        	tm.trackEvent("Add", "Add Tree");
+                tm.trackEvent("Add", "Add Tree");
         });
         jQuery("#id_edit_address_street").focus(function() {
-        	if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
-        		jQuery("#id_edit_address_street")[0].value = "";
-        	}
+                if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
+                        jQuery("#id_edit_address_street")[0].value = "";
+                }
         });
         jQuery("#id_edit_address_city").focus(function() {
-        	if(jQuery("#id_edit_address_city")[0].value == "Enter a City") {
-        		jQuery("#id_edit_address_city")[0].value = "";
-        	}
+                if(jQuery("#id_edit_address_city")[0].value == "Enter a City") {
+                        jQuery("#id_edit_address_city")[0].value = "";
+                }
         });
         jQuery("#id_species_name").focus(function() {
-        	if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
-        		jQuery("#id_species_name")[0].value = "";
-        	}
+                if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
+                        jQuery("#id_species_name")[0].value = "";
+                }
         });
         jQuery("#opt_field_group input").focus(function() {
-        	if(this.value == "inches" || this.value == "feet") {
-        		this.value = "";
-        	}
+                if(this.value == "inches" || this.value == "feet") {
+                        this.value = "";
+                }
         });
 
         if ('{{form.edit_address_street.value}}' != "") {
             jQuery("#update_map").click();
-        }   
+        }
         jQuery("#id_dbh_type_0").attr('checked', 'checked');
 
         jQuery("#opt_field_toggle").click(function() {
@@ -93,40 +93,40 @@
 
     <form id="addTree" action="." method="POST">
     <fieldset>
-	<div id="step1">
-	<label class="required steps" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
+        <div id="step1">
+        <label class="required steps" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
     </label>
     {{ form.edit_address_street }}
     </div>
     <div id="step1">
     {{ form.edit_address_city }}
-	<a href="javascript:void(0)" id="update_map" class="buttonMed">Show on Map</a>
-	</div>
+        <a href="javascript:void(0)" id="update_map" class="buttonMed">Show on Map</a>
+        </div>
 
 
 
-	<div id="mapHolder">
+        <div id="mapHolder">
 
-	    <div class="clearLeft" id="step2">
-		    <label class="required steps">Step 2</label>
-		    <span class="value">Specify Placement</span>
-		    <div class="clearLeft"></div>
-	    </div>
+            <div class="clearLeft" id="step2">
+                    <label class="required steps">Step 2</label>
+                    <span class="value">Specify Placement</span>
+                    <div class="clearLeft"></div>
+            </div>
 
             <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
         <div id="add_tree_map_wrap"><div id="add_tree_map" class="addMap"></div>
-		    <div id="geocode_address"></div>
-		    <div class="shadowLeft"></div>
-		    <div class="shadowTop"></div>
-	    </div>
-	    <div id="add_tree_nearby">
-		    <h1 class="title-edit">Nearby Trees</h1>
-		    <div id="nearby_trees"></div>
-	    </div>
+                    <div id="geocode_address"></div>
+                    <div class="shadowLeft"></div>
+                    <div class="shadowTop"></div>
+            </div>
+            <div id="add_tree_nearby">
+                    <h1 class="title-edit">Nearby Trees</h1>
+                    <div id="nearby_trees"></div>
+            </div>
 
-	    <div class="clearLeft" id="step3">
+            <div class="clearLeft" id="step3">
             <label class="required steps">Step 3 </label>
-	        <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields</a></span>
+                <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Optional Fields</a></span>
             <div id="opt_field_group">
                 <span class="small"><a id="treekey" href="/treekey/" target="_blank">Not sure what kind of tree it is? Find out in the Tree Key</a></span>
                 <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
@@ -155,20 +155,20 @@
                 <div class="clearLeft"></div>
             </div>
             <div class="clearLeft"></div>
-			<div class="clearLeft" id="step4">
-		    <label class="required steps">Step 4</label>
+                        <div class="clearLeft" id="step4">
+                    <label class="required steps">Step 4</label>
             <span class="value">After I add this tree... </span>
-		    <div class="clearLeft">
-                {{ form.target }} 
+                    <div class="clearLeft">
+                {{ form.target }}
             </div>
             <div class="clearLeft"></div>
             <button type="submit" class="buttonMed">Add this Tree!</button>
-	    </div>
+            </div>
 
-	</div>
+        </div>
 
 
-	<!-- Hidden fields -->
+        <!-- Hidden fields -->
 
     {{ form.species_id }}
     {{ form.lat }}
@@ -186,4 +186,3 @@
     {% block right_panel %}
 
     {% endblock right_panel %}
-

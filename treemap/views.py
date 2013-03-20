@@ -52,7 +52,6 @@ from shortcuts import render_to_geojson, get_pt_or_bbox, validate_form
 
 from registration.signals import user_activated
 from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
-from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
 
 try:
     from cStringIO import StringIO
@@ -181,6 +180,7 @@ def get_geocode(request):
     geocoder_name = request.GET.get("geocoder_name")
     js = {}
     if geocoder_name == "CitizenAtlas":
+        from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
         g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
     else:
         js["success"] = False
@@ -208,6 +208,7 @@ def get_reverse_geocode(request):
     geocoder_name = request.GET.get("geocoder_name")
     js = {}
     if geocoder_name == "CitizenAtlas":
+        from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
         g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
     else:
         js["success"] = False
@@ -1742,7 +1743,7 @@ def contact(request):
                 sender = settings.FORCE_MAIL_TO_BE_FROM
 
             recipients = settings.CONTACT_EMAILS
-            if cc_myself or settings.FORCE_MAIL_TO_BE_FROM
+            if cc_myself or settings.FORCE_MAIL_TO_BE_FROM:
                 recipients.append(sender)
 
             from django.core.mail import send_mail

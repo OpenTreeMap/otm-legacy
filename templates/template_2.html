@@ -4,15 +4,15 @@
 
 {% block tophead %}
     <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG900913.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-	<script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG900913.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
+        <script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
     <script type="text/javascript" src="treemap_settings.js"></script>
 {% endblock %}
 {% block extrahead %}
-        <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/map.js"></script>
 {% endblock %}
 {% block content %}
     <div class="content">
@@ -20,29 +20,29 @@
 
 
 
-                        
-                        
+
+
                         {% block content_body_top %}
-                      
+
                         {% endblock %}
-                                
+
                                     <div id="t2_middle_panel">
                                         {% block middle_panel %}
                                         {% endblock middle_panel %}
                                     </div>
-                                    
+
                                      <div id="t2_right_panel">
                                         {% block right_panel %}
                                         {% endblock right_panel %}
                                     </div>
-                                    
+
                         {% block content_body_bottom %}
                                         </div>      <!-- end wrap -->
                                     </div>
                                 </div>
                                 <!-- end contentbody -->
-                        {% endblock %}                        
-                        
+                        {% endblock %}
+
                     <div id="">
                         {% block left_panel %}
                         {% endblock left_panel %}
@@ -51,10 +51,8 @@
 
 
     <!-- end content -->
-                                
-    {% endblock t2_content %}    
+
+    {% endblock t2_content %}
     </div>
-    
+
 {% endblock %}
-
-

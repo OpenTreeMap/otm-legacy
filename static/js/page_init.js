@@ -12,7 +12,7 @@ tm.buildSpeciesList = function() {
         if (spec) {
             tm.updateSpeciesFields("species_search",spec, '');
         }
-    });        
+    });
 };
 
 tm.buildLocationList = function() {
@@ -34,41 +34,41 @@ tm.getHomeFeeds = function(callback) {
     });
 }
 
-tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
+tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {
     tm.init_map('results_map');
 
     $.address.externalChange(tm.pageLoadSearch);
 
-    $(".characteristics input").change(function(evt) { 
-        tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+    $(".characteristics input").change(function(evt) {
+        tm.searchParams[this.id] = this.checked ? 'true' : undefined;
     });
-    $(".project_trees input").change(function(evt) { 
-        tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+    $(".project_trees input").change(function(evt) {
+        tm.searchParams[this.id] = this.checked ? 'true' : undefined;
     });
-    $(".outstanding input").change(function(evt) { 
-        tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+    $(".outstanding input").change(function(evt) {
+        tm.searchParams[this.id] = this.checked ? 'true' : undefined;
     });
-    $(".plot_type input").change(function(evt) { 
-        tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+    $(".plot_type input").change(function(evt) {
+        tm.searchParams[this.id] = this.checked ? 'true' : undefined;
     });
-    
-    $(".input-box input").change(function(evt) { 
+
+    $(".input-box input").change(function(evt) {
         if (this.value != "") {
-            tm.searchParams[this.id] = this.value; 
+            tm.searchParams[this.id] = this.value;
         } else {
             delete tm.searchParams[this.id];
         }
-        
+
     });
     var curmin = 0;
     var curmax = 50;
     $("#diameter_slider").slider({'range': true, max: 75, min: 0, values: [0, 75],
-                                  slide: function() { 
+                                  slide: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
                                       $('#min_diam').html(min);
                                       $('#max_diam').html(max);
-                                  },    
+                                  },
                                   change: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
@@ -78,12 +78,12 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
                                   }
                                  });
     $("#height_slider").slider({'range': true, max: 200, min: 0, values: [0, 200],
-                                slide: function() { 
+                                slide: function() {
                                     var min = $(this).slider('values', 0)
                                     var max = $(this).slider('values', 1)
                                     $('#min_height').html(min);
                                     $('#max_height').html(max);
-                                },    
+                                },
                                 change: function() {
                                     var min = $(this).slider('values', 0)
                                     var max = $(this).slider('values', 1)
@@ -101,7 +101,7 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
         }
         $("#planted_slider").slider({'range': true, min: min_year, max: current_year,
                                      values: [min_year, current_year],
-                                     slide: function() { 
+                                     slide: function() {
                                          $("#planted_slider")[0].updateDisplay();
                                      },
                                      change: function() {
@@ -113,7 +113,7 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
                                     });
         $("#planted_slider")[0].updateDisplay();
     }
-    
+
     if ($("#updated_slider").length) {
         $("#updated_slider")[0].updateDisplay = function() {
             var min = $("#updated_slider").slider('values', 0)
@@ -122,51 +122,51 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
             var max_d = new Date(parseInt(max) * 1000);
             $('#min_updated').html(tm.dateString(min_d));
             $('#max_updated').html(tm.dateString(max_d));
-        }        
+        }
 
         $("#updated_slider").slider({'range': true, min: min_updated, max: max_updated,
                                      values: [min_updated, max_updated],
                                      slide: function() {
                                          $("#updated_slider")[0].updateDisplay();
-                                     },    
+                                     },
                                      change: function() {
                                          $("#updated_slider")[0].updateDisplay();
                                          var min = $("#updated_slider").slider('values', 0)
                                          var max = $("#updated_slider").slider('values', 1)
                                          tm.searchParams['updated_range'] = min+'-'+max;
                                      }
-                                    });    
+                                    });
         $("#updated_slider")[0].updateDisplay();
     }
     if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
         max_p = parseInt(max_plot.split('+')[0]) + 1;
         m_text = max_p - 1 + "+"
         $("#plot_slider").slider({'range': true, max: max_p, min: min_plot, values: [min_plot, max_p],
-                                  slide: function() { 
+                                  slide: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
                                       $('#min_plot').html(min);
                                       if (max == max_p) {max = m_text;}
                                       else {$('#max_plot').html(max);}
-                                  },    
+                                  },
                                   change: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
                                       $('#min_plot').html(min);
                                       if (max == max_p) {$('#max_plot').html(m_text);tm.searchParams['plot_range'] = min+'-100';}
                                       else {$('#max_plot').html(max);tm.searchParams['plot_range'] = min+'-'+max;}
-                                      
+
                                   }
                                  });
     }
     else {
         $("#plot_slider").slider({'range': true, max: max_plot, min: min_plot, values: [min_plot, max_plot],
-                                  slide: function() { 
+                                  slide: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
                                       $('#min_plot').html(min);
                                       $('#max_plot').html(max);
-                                  },    
+                                  },
                                   change: function() {
                                       var min = $(this).slider('values', 0)
                                       var max = $(this).slider('values', 1)
@@ -176,14 +176,14 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
                                   }
                                  });
     }
-    
-    
+
+
     $("#species_search_input").change(function(evt) {
         if (this.value === "") {
             $("#species_search_id").val("");
             $(this).val(tm.initial_species_string);
             delete tm.searchParams['species'];
-        }    
+        }
     });
 
     $("#close-filters").click(function(evt) {
@@ -213,17 +213,17 @@ tm.resultsTemplatePageLoad = function(min_year, current_year, min_updated, max_u
             $('#min_plot').html(min_plot);
             $('#max_plot').html(max_plot);
         }
-        
+
         $("#steward").val('');
         $("#owner").val('');
         $("#updated_by").val('');
         $("#funding").val('');
         tm.searchParams = {}
 
-        $("#options_form input:checked").attr('checked', false)  
+        $("#options_form input:checked").attr('checked', false)
         tm.trackEvent('Search', 'Reset Advanced');
-    });        
-    
+    });
+
 };
 
 
@@ -261,7 +261,7 @@ tm.generateLocationDropdown = function(locations) {
         $('#location_search_input').val(this.innerHTML);
         $("#searchNBList").toggle();
     });
-    
+
     if ($("#s_nhood")) {
         select_nh = $("#s_nhood");
         for(var state in states) {
@@ -273,7 +273,7 @@ tm.generateLocationDropdown = function(locations) {
                 select_nh.append("<option value='" + id + "' >" + name + "</li>")
             }
         }
-    }    
+    }
 };
 
 tm.generateSpeciesDropdown = function(speciesData) {
@@ -307,23 +307,23 @@ tm.baseTemplatePageLoad = function() {
         if (!adv_active) {
             if ($('#results').length > 0) {
                 $('.filter-box').slideDown('slow');
-                if (tm.open_advanced_label) { $("#close-filters").html(tm.open_advanced_label); }  
+                if (tm.open_advanced_label) { $("#close-filters").html(tm.open_advanced_label); }
                 $('#arrow').attr('src',tm_static + 'static/images/v2/arrow2.gif');
             }
-            adv_active = true; 
-        }    
+            adv_active = true;
+        }
         else {
             if ($('#results').length > 0) {
                 $('.filter-box').slideUp('slow');
-                if (tm.closed_advanced_label) { $("#close-filters").html(tm.closed_advanced_label); }   
-                $('#arrow').attr('src',tm_static + 'static/images/v2/arrow1.gif');  
+                if (tm.closed_advanced_label) { $("#close-filters").html(tm.closed_advanced_label); }
+                $('#arrow').attr('src',tm_static + 'static/images/v2/arrow1.gif');
             }
-            adv_active = false;       
+            adv_active = false;
         }
         return false;
     });
-    
-    $('a.search-suggestion').live('click', function(event) { 
+
+    $('a.search-suggestion').live('click', function(event) {
         $("#location_search_input").val($(this).text()).change();
         return false;
     });
@@ -332,18 +332,18 @@ tm.baseTemplatePageLoad = function() {
         if (!this.value) {
             $("#location_search_input").val("");
             $(this).val(tm.initial_location_string);
-        }    
+        }
     }).keydown(function(evt) {
         if (evt.keyCode == 13) {
             $("#location_go").click();
         }
     });
-    
+
     $("#species_search_input").blur(function(evt) {
         if (!this.value) {
             $("#species_search_id").val("");
             $(this).val(tm.initial_species_string);
-        }    
+        }
     }).keydown(function(evt) {
         if (evt.keyCode == 13) {
             $("#species_go").click();
@@ -372,12 +372,12 @@ tm.baseTemplatePageLoad = function() {
                         , tm.start_zoom);
                 }
                 tm.updateSearch();
-            } 
+            }
         } else {
             triggerSearch();
         }
     });
-    
+
     $("#species_go").click(function(evt) {
         $("#location_go").click();
     });
@@ -402,7 +402,7 @@ tm.baseTemplatePageLoad = function() {
     }
     function triggerSearch() {
         var q = $.query.empty();
-        if ($("#location_search_input").val() != tm.initial_location_string) { 
+        if ($("#location_search_input").val() != tm.initial_location_string) {
             q = q.set("location", $("#location_search_input").val());
         }
         if ($("#species_search_id").val()) {
@@ -410,20 +410,18 @@ tm.baseTemplatePageLoad = function() {
         }
         if (tm.advancedClick) {
             q = q.set('advanced', 'open');
-        }    
+        }
         if (tm.handleStewardship) {
             q = tm.handleStewardship(q);
         }
         window.location.href = tm_static + "map/#" + decodeURIComponent(q.toString());
         return false;
-    }  
+    }
     $("#advanced").click(function() {
         tm.advancedClick = true;
         if ($("#results").length == 0) {triggerSearch();}
-    });   
-    
-    
+    });
+
+
     //tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
-};    
-
-
+};

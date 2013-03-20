@@ -4,16 +4,15 @@
 
 {% block tophead %}
     <script type="text/javascript" src="{{ STATIC_URL }}openlayers/proj4js-compressed.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
-    <script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>	
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG102100.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/defs/EPSG4326.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}openlayers/OpenLayers.js"></script>
+    <script src="http://maps.googleapis.com/maps/api/js?key={{ API_KEY_GOOGLE_MAP }}&sensor=false"></script>
     <script type="text/javascript" src="treemap_settings.js"></script>
 {% endblock %}
 {% block extrahead %}
 <script type="text/javascript">
     jQuery().ready(function() {
-        tm_urls.tc_url = '{{ TC_URL }}'
         {% block extra_onready %}
         {% endblock %}
      });
@@ -21,46 +20,44 @@
 {% endblock %}
 
 {% block content %}
-    
+
         <div class="content">
-         <div id="displayResults" style="display:none;"><img src="{{ STATIC_URL }}images/v2/indicator_lg2.gif" width="80" height="80" /><p>Loading...</p></div>
-        	<div id="t1_top_content">
-	            {% block top_content %}
+         <div id="displayResults" style="display:none;"><p>Loading...</p></div>
+                <div id="t1_top_content">
+                    {% block top_content %}
                     {% block heading %}
                     {% endblock heading %}
-	                <div id="t1_top_left_panel">
-	                    {% block top_left_panel %}
-	                    {% endblock top_left_panel %}
-	                </div>
-	                
-	                <div id="t1_top_right_panel">
-	                    {% block top_right_panel %}
-	                    {% endblock top_right_panel %}
-	                </div>
-	            {% endblock top_content %}
-			</div>
-		</div>
-		
+                        <div id="t1_top_left_panel">
+                            {% block top_left_panel %}
+                            {% endblock top_left_panel %}
+                        </div>
+
+                        <div id="t1_top_right_panel">
+                            {% block top_right_panel %}
+                            {% endblock top_right_panel %}
+                        </div>
+                    {% endblock top_content %}
+                        </div>
+                </div>
+
         <div id="content" class="content">
             <div id="t1_bottom_content">
                 {% block bottom_content %}
-                    <div class="twocolumns"> 
+                    <div class="twocolumns">
                         <div id="t1_bottom_left_panel">
                             {% block bottom_left_panel %}
                             {% endblock bottom_left_panel %}
                         </div>
-                        
+
                         <div id="t1_bottom_right_panel">
                             {% block bottom_right_panel %}
                             {% endblock bottom_right_panel %}
                         </div>
                     </div>
 
-                {% endblock bottom_content %}    
+                {% endblock bottom_content %}
             </div>
         </div>
-    
-    
+
+
 {% endblock %}
-
-

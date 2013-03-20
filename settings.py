@@ -106,6 +106,7 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'django.contrib.flatpages',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'threadedcomments',
     'treemap',
     'api',
