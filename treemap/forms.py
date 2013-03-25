@@ -3,7 +3,7 @@ from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighb
 from shortcuts import get_add_initial
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.localflavor.us.forms import USZipCodeField
+from treemap.localization import PostalCodeField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from datetime import datetime
@@ -33,7 +33,7 @@ class TreeAddForm(forms.Form):
     edit_address_street = forms.CharField(max_length=200, required=True, initial=get_add_initial('address'))
     geocode_address = forms.CharField(widget=forms.HiddenInput, max_length=255, required=True)
     edit_address_city = forms.CharField(max_length=200, required=False, initial=get_add_initial('city'))
-    edit_address_zip = forms.CharField(max_length=50, required=False)
+    edit_address_zip = PostalCodeField(required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     initial_map_location = forms.CharField(max_length=200, required=False, widget=forms.HiddenInput)
@@ -49,6 +49,7 @@ class TreeAddForm(forms.Form):
     plot_length = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),('99','15+')])
     plot_width_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
     plot_length_in = forms.ChoiceField(required=False, choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),('11','11')])
+    pests = forms.ChoiceField(choices=settings.CHOICES['pests'], required=False)
     plot_type = forms.TypedChoiceField(choices=settings.CHOICES["plot_types"], required=False)
     power_lines = forms.TypedChoiceField(choices=settings.CHOICES["powerlines"], required=False)
     sidewalk_damage = forms.ChoiceField(choices=settings.CHOICES["sidewalks"], required=False)
@@ -60,6 +61,7 @@ class TreeAddForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
         if not self.fields['plot_type'].choices[0][0] == '':        
+            self.fields['pests'].choices.insert(0, ('','Select One...' ) )
             self.fields['plot_type'].choices.insert(0, ('','Select One...' ) )
             self.fields['power_lines'].choices.insert(0, ('','Select One...' ) )
             self.fields['sidewalk_damage'].choices.insert(0, ('','Select One...' ) )
@@ -82,7 +84,7 @@ class TreeAddForm(forms.Form):
             raise forms.ValidationError("This tree is missing a location. Enter an address in Step 1 and update the map to add a location for this tree.") 
         
         if nbhood.count() < 1:
-            raise forms.ValidationError("The selected location is outside our area. Please specify a location within the " + settings.REGION_NAME + " region.")
+            raise forms.ValidationError("The selected location is outside our area. Please specify a location within " + settings.REGION_NAME)
         
         if height > 300:
             raise forms.ValidationError("Height is too large.")
@@ -165,7 +167,9 @@ class TreeAddForm(forms.Form):
         canopy_condition = self.cleaned_data.get('canopy_condition')
 
         #TODO: fix this
-        if species or height or canopy_height or dbh or condition or canopy_condition:
+        pests = self.cleaned_data.get('pests')
+        if species or height or canopy_height or dbh or \
+           condition or canopy_condition or pests:
            # print species, height, canopy_height, dbh, condition, canopy_condition
             if species:
                 spp = Species.objects.filter(id=species)
@@ -175,6 +179,8 @@ class TreeAddForm(forms.Form):
                     new_tree = Tree()
             else:
                 new_tree = Tree()
+
+            new_tree.pests = pests
 
             if species_other1:
                 new_tree.species_other1 = species_other1

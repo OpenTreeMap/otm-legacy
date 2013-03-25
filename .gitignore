@@ -11,3 +11,4 @@ impl_settings.py
 choices.py
 fabfile.*
 .coverage
+.vagrant

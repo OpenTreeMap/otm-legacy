@@ -1,9 +1,17 @@
 import os
-from django import forms
-from django.conf import settings
-from django.test import TestCase
 
+# Note that test_utils forces some settings to reasonable values
+# and should be imported before any other django based things
+from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkTree, mkPlot
+from treemap.test_choices import *
 from django.conf import settings
+
+settings.CHOICES = CHOICES
+settings.POSTAL_CODE_FIELD = "USZipCodeField"
+
+from django import forms
+from django.test import TestCase, TransactionTestCase
+from django.db import connection
 
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.contrib.auth.models import User, UserManager, Permission as P
@@ -22,247 +30,37 @@ from datetime import timedelta, datetime, date
 from time import mktime
 
 from test_util import set_auto_now
-from treemap.test_choices import *
-
-settings.CHOICES = CHOICES
 
 import django.shortcuts
 import tempfile
 import zipfile
 import shutil
 
-class ModelTests(TestCase):
+# Needs to be a TransactionTestCase because
+# we use ogr2ogr externally for csv generation
+class SpeciesViewTests(TransactionTestCase):
 
-    def test_plot_validate(self):
-        pass
-
-class ViewTests(TestCase):
-
+    #TODO: Remove what we don't need here...
     def setUp(self):
-        ######
-        # Request/Render mock
-        ######
-        def local_render_to_response(*args, **kwargs):
-            from django.template import loader, RequestContext
-            from django.http import HttpResponse
+        setupTreemapEnv()
 
-            httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
-            hr = HttpResponse(
-                loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
+        self.z1 = ZipCode.objects.get(zip="19107")
+        self.n1 = Neighborhood.objects.get(name="n1")
 
-            if hasattr(args[1], 'dicts'):
-                hr.request_context = args[1].dicts
+        self.u = User.objects.get(username="jim")
 
-            return hr
+        p1_no_tree = mkPlot(self.u,)
+        p2_tree = mkPlot(self.u)
+        p3_tree_species1 = mkPlot(self.u)
+        p4_tree_species2 = mkPlot(self.u)
 
-        django.shortcuts.render_to_response = local_render_to_response
-    
-        ######
-        # Content types
-        ######
-        r1 = ReputationAction(name="edit verified", description="blah")
-        r2 = ReputationAction(name="edit tree", description="blah")
-        r3 = ReputationAction(name="Administrative Action", description="blah")
-        r4 = ReputationAction(name="add tree", description="blah")
-        r5 = ReputationAction(name="edit plot", description="blah")
-        r6 = ReputationAction(name="add plot", description="blah")
-        r7 = ReputationAction(name="add stewardship", description="blah")
-        r8 = ReputationAction(name="remove stewardship", description="blah")
+        self.s1 = Species.objects.get(symbol="s1")
+        self.s2 = Species.objects.get(symbol="s2")
+        self.s3 = Species.objects.get(symbol="s3")
 
-        self.ra = [r1,r2,r3,r4,r5,r6,r7,r8]
-
-        for r in self.ra:
-            r.save()
-
-        ######
-        # Set up benefit values
-        ######
-        bv = BenefitValues(co2=0.02, pm10=9.41, area="InlandValleys",
-                           electricity=0.1166,voc=4.69,ozone=5.0032,natural_gas=1.25278,
-                           nox=12.79,stormwater=0.0078,sox=3.72,bvoc=4.96)
-
-        bv.save()
-        self.bv = bv
-
-
-        dbh = "[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]"
-        dbh2 = "[2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]"
-
-        rsrc1 = Resource(meta_species="BDM_OTHER", electricity_dbh=dbh, co2_avoided_dbh=dbh,
-                        aq_pm10_dep_dbh=dbh, region="Sim City", aq_voc_avoided_dbh=dbh,
-                        aq_pm10_avoided_dbh=dbh, aq_ozone_dep_dbh=dbh, aq_nox_avoided_dbh=dbh,
-                        co2_storage_dbh=dbh,aq_sox_avoided_dbh=dbh, aq_sox_dep_dbh=dbh,
-                        bvoc_dbh=dbh, co2_sequestered_dbh=dbh, aq_nox_dep_dbh=dbh,
-                        hydro_interception_dbh=dbh, natural_gas_dbh=dbh)
-        rsrc2 = Resource(meta_species="BDL_OTHER", electricity_dbh=dbh2, co2_avoided_dbh=dbh2,
-                        aq_pm10_dep_dbh=dbh2, region="Sim City", aq_voc_avoided_dbh=dbh2,
-                        aq_pm10_avoided_dbh=dbh2, aq_ozone_dep_dbh=dbh2, aq_nox_avoided_dbh=dbh2,
-                        co2_storage_dbh=dbh2,aq_sox_avoided_dbh=dbh2, aq_sox_dep_dbh=dbh2,
-                        bvoc_dbh=dbh2, co2_sequestered_dbh=dbh2, aq_nox_dep_dbh=dbh2,
-                        hydro_interception_dbh=dbh2, natural_gas_dbh=dbh2)
-        rsrc1.save()
-        rsrc2.save()
-        self.rsrc1 = rsrc1
-        self.rsrc2 = rsrc2
-
-        
-        ######
-        # Users
-        ######
-        u = User.objects.filter(username="jim")
-            
-        if u:
-            u = u[0]
-        else:
-            u = User.objects.create_user("jim","jim@test.org","jim")
-            u.is_staff = True
-            u.is_superuser = True
-            u.save()
-            up = UserProfile(user=u)
-            u.reputation = Reputation(user=u)
-            u.reputation.save()
-
-        self.u = u
-
-        # Amy is a bare-bones registered user with no permissions
-        amy_filter_results = User.objects.filter(username="amy")
-        if amy_filter_results:
-            self.amy = amy_filter_results[0]
-        else:
-            self.amy = User.objects.create_user("amy","amy@test.org","amy")
-            self.amy.is_staff = False
-            self.amy.is_superuser = False
-            self.amy.save()
-            up = UserProfile(user=self.amy)
-            self.amy.reputation = Reputation(user=self.amy)
-            self.amy.reputation.save()
-
-        #######
-        # Setup geometries -> Two stacked 100x100 squares
-        #######
-        n1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
-        n2geom = MultiPolygon(Polygon(((0,101),(101,101),(101,200),(0,200),(0,101))))
-
-        n1 = Neighborhood(name="n1", region_id=2, city="c1", state="PA", county="PAC", geometry=n1geom)
-        n2 = Neighborhood(name="n2", region_id=2, city="c2", state="NY", county="NYC", geometry=n2geom)
-
-        n1.save()
-        n2.save()
-
-        z1geom = MultiPolygon(Polygon(((0,0),(100,0),(100,100),(0,100),(0,0))))
-        z2geom = MultiPolygon(Polygon(((0,100),(100,100),(100,200),(0,200),(0,100))))
-
-        z1 = ZipCode(zip="19107",geometry=z1geom)
-        z2 = ZipCode(zip="10001",geometry=z2geom)
-
-        z1.save()
-        z2.save()
-
-        exgeom1 = MultiPolygon(Polygon(((0,0),(25,0),(25,25),(0,25),(0,0))))
-        ex1 = ExclusionMask(geometry=exgeom1, type="building")
-
-        ex1.save()
-
-        agn1 = AggregateNeighborhood(
-            annual_stormwater_management=0.0,
-            annual_electricity_conserved=0.0,
-            annual_energy_conserved=0.0,
-            annual_natural_gas_conserved=0.0,
-            annual_air_quality_improvement=0.0,
-            annual_co2_sequestered=0.0,
-            annual_co2_avoided=0.0,
-            annual_co2_reduced=0.0,
-            total_co2_stored=0.0,
-            annual_ozone=0.0,
-            annual_nox=0.0,
-            annual_pm10=0.0,
-            annual_sox=0.0,
-            annual_voc=0.0,
-            annual_bvoc=0.0,
-            total_trees=0,
-            total_plots=0,
-            location = n1)
-
-        agn2 = AggregateNeighborhood(
-            annual_stormwater_management=0.0,
-            annual_electricity_conserved=0.0,
-            annual_energy_conserved=0.0,
-            annual_natural_gas_conserved=0.0,
-            annual_air_quality_improvement=0.0,
-            annual_co2_sequestered=0.0,
-            annual_co2_avoided=0.0,
-            annual_co2_reduced=0.0,
-            total_co2_stored=0.0,
-            annual_ozone=0.0,
-            annual_nox=0.0,
-            annual_pm10=0.0,
-            annual_sox=0.0,
-            annual_voc=0.0,
-            annual_bvoc=0.0,
-            total_trees=0,
-            total_plots=0,
-            location = n2)
-
-        agn1.save()
-        agn2.save()
-
-        self.agn1 = agn1
-        self.agn2 = agn2
-
-        self.z1 = z1
-        self.z2 = z2
-        self.n1 = n1
-        self.n2 = n2
-
-        ######
-        # And we could use a few species...
-        ######
-        s1 = Species(symbol="s1",genus="testus1",species="specieius1",native_status='True',fall_conspicuous=True,flower_conspicuous=True,palatable_human=True)
-        s2 = Species(symbol="s2",genus="testus2",species="specieius2",native_status='True',fall_conspicuous=False,flower_conspicuous=True,palatable_human=False,wildlife_value=True)
-        s3 = Species(symbol="s3",genus="testus3",species="specieius3")
-        
-        s1.save()
-        s2.save()
-        s3.save()
-        s1.resource.add(rsrc1)
-        s2.resource.add(rsrc2)
-        s3.resource.add(rsrc2)
-
-        self.s1 = s1
-        self.s2 = s2
-        self.s3 = s3
-
-        #######
-        # Create some basic plots
-        #######
-        ie = ImportEvent(file_name='site_add')
-        ie.save()
-
-        self.ie = ie
-
-        p1_no_tree = Plot(geometry=Point(50,50), last_updated_by=u, import_event=ie,present=True, data_owner=u)
-        p1_no_tree.save()
-
-        p2_tree = Plot(geometry=Point(51,51), last_updated_by=u, import_event=ie,present=True, data_owner=u)
-        p2_tree.save()
-
-        p3_tree_species1 = Plot(geometry=Point(50,100), last_updated_by=u, import_event=ie,present=True, data_owner=u)
-        p3_tree_species1.save()
-
-        p4_tree_species2 = Plot(geometry=Point(50,150), last_updated_by=u, import_event=ie,present=True, data_owner=u)
-        p4_tree_species2.save()
-
-        t1 = Tree(plot=p2_tree, species=None, last_updated_by=u, import_event=ie)
-        t1.present = True
-        t1.save()
-        
-        t2 = Tree(plot=p3_tree_species1, species=s1, last_updated_by=u, import_event=ie, dbh=5)
-        t2.present = True
-        t2.save()
-
-        t3 = Tree(plot=p4_tree_species2, species=s2, last_updated_by=u, import_event=ie, dbh=10)
-        t3.present = True
-        t3.save()
+        t1 = mkTree(self.u, p2_tree, species=None)
+        t2 = mkTree(self.u, p3_tree_species1, self.s1)
+        t3 = mkTree(self.u, p4_tree_species2, self.s2)
 
         self.p1_no_tree = p1_no_tree
         self.p2_tree = p2_tree
@@ -274,32 +72,261 @@ class ViewTests(TestCase):
         self.t1 = t1
         self.t2 = t2
         self.t3 = t3
+
+        self.ie = ImportEvent.objects.get(file_name='site_add')
+
+    def test_full_species_list(self):
+        """
+        different ways to get the full list: 
+        - no args 
+        - all
+
+        With and without 'json'
+        """
+
+        # With no additional params, we expect to render an
+        # html page. That page should get a context object
+        # of species
+        response = self.client.get("/species/")
+        self.assertTemplateUsed(response, 'treemap/species.html') 
+
+        context_ids = set([s.pk for s in response.context["species"]])
+        db_ids = set([s.pk for s in Species.objects.all()])
+
+        self.assertEquals(context_ids, db_ids)
+
+        # I guess this just returns the same thing?
+        response = self.client.get("/species/all/")
+        self.assertTemplateUsed(response, 'treemap/species.html') 
         
-       
-    def tearDown(self):
-        self.agn1.delete()
-        self.agn2.delete()
+        context_ids = set([s.pk for s in response.context["species"]])
+        self.assertEquals(context_ids, db_ids)
 
-        self.bv.delete()
-        self.rsrc1.delete()
-        self.rsrc2.delete()
+        # With 'json' in the query, do the same thing but return
+        # JSON
+        response = self.client.get("/species/all/json/")
+        json_species = loads(response.content)
 
-        self.n1.delete()
-        self.n2.delete()
+        json_ids = set([j['id'] for j in json_species])
+        self.assertEqual(json_ids, db_ids)
 
-        self.p1_no_tree.delete()
+        response = self.client.get("/species/json/")
+        json_species = loads(response.content)
+    
+        json_ids = set([j['id'] for j in json_species])
+        self.assertEqual(json_ids, db_ids)
 
-        self.t1.delete()
-        self.p2_tree.delete()
 
-        self.t2.delete()
-        self.p3_tree_species1.delete()
+    def test_inuse_species(self):
+        # Start from a clean slate
+        # Note- is it a bug that calling 'delete' on trees
+        # doesn't update the species count?
+        for t in Tree.objects.all():
+            t.present = False
+            t.save()
+        for p in Plot.objects.all():
+            p.present = False
+            p.save()
 
-        self.t3.delete()
-        self.p4_tree_species2.delete()
+        self.assertEqual(self.make_request("/species/in-use/"),
+                         set([]))
 
-        for r in self.ra:
-            r.delete();
+        mkTree(self.u, species=self.s1)
+        mkTree(self.u, species=self.s1)
+        mkTree(self.u, species=self.s1)
+
+        self.assertEqual(self.make_request("/species/in-use/"),
+                         set([(self.s1.pk,3)]))
+
+        mkTree(self.u, species=self.s1)
+        mkTree(self.u, species=self.s2)
+        mkTree(self.u, species=self.s3)
+        mkTree(self.u, species=self.s3)
+
+        self.assertEqual(self.make_request("/species/in-use/"),
+                         set([(self.s1.pk,4),
+                              (self.s2.pk,1),
+                              (self.s3.pk,2)]))
+
+    def make_request(self, url, body=None):
+        # Force a commit for ogr2ogr conversions
+        transaction.commit()
+
+        if body is None:
+            body = {}
+
+        response_html = self.client.get(url, body)
+
+        html_ids = set([(s.pk,s.tree_count) \
+                        for s in response_html.context["species"]])
+        response_json = self.client.get("%sjson/" % url, body)
+
+        json_species = loads(response_json.content)
+        json_ids = set([(s['id'],s['count']) for s in json_species])
+
+        response_csv = self.client.get("%scsv/" % url, body)
+
+        self.assertEqual(response_csv.status_code, 200)
+        self.assertEqual(response_csv['content-type'], 'application/zip')
+        self.assertEqual(response_csv['content-disposition'], 
+                         'attachment; filename=species.zip')
+
+        from zipfile import ZipFile
+        from StringIO import StringIO
+        from csv import DictReader
+
+        zipdata = ZipFile(StringIO(response_csv.content))
+        csv_ids = []
+        for row in DictReader(zipdata.open('species./species..csv')):
+            csv_ids.append((int(row['id']), int(row['tree_count'])))
+
+        csv_ids = set(csv_ids)
+
+        self.assertEqual(html_ids, json_ids)
+        self.assertEqual(html_ids, csv_ids)
+        return html_ids
+
+
+    def test_nearby_species(self):
+        # Start from a clean slate
+        for t in Tree.objects.all():
+            t.present = False
+            t.save()
+        for p in Plot.objects.all():
+            p.present = False
+            p.save()
+
+
+        # If you don't specify a 'location' param you
+        # get a 404....
+        response = self.client.get("/species/nearby/")
+        self.assertEqual(response.status_code, 404)
+
+        def loc_request(x,y):
+            url = "/species/nearby/"
+            location = {'location': '%s,%s' % (x,y)}
+
+            return self.make_request(url, location)            
+
+        def makeIt(x,y,s):
+            mkTree(self.u, 
+                   plot=mkPlot(self.u,geom=Point(x,y)),
+                   species=s)
+
+        makeIt(35.00001,5.0,self.s1)
+        makeIt(35.00002,5.0,self.s1)
+        makeIt(35.00102,5.0,self.s1)
+        makeIt(35.00102,5.0,self.s2)
+        makeIt(45.00000,5.0,self.s2)
+        makeIt(45.00000,5.0,self.s3)
+
+        s1 = self.s1.pk
+        s2 = self.s2.pk
+        s3 = self.s3.pk
+
+        self.assertEqual(loc_request(6,6),
+                         set([]))
+
+        # It appears that 'tree_count' is the entire
+        # species count, even when doing a nearby query... not sure
+        # if this is intentional but this encodes that specific logic
+        self.assertEqual(loc_request(35.0,5.0),
+                         set([(s1, 3)]))
+
+        self.assertEqual(loc_request(35.0005,5.0),
+                         set([(s1, 3),
+                              (s2, 2)]))
+
+        # Just FYI, There is a hardcoded constant of 0.001 for distance
+        # so this test encodes that logic as well
+        self.assertEqual(loc_request(35.000019,5.0),
+                         set([(s1, 3)]))
+
+
+class ViewTests(TestCase):
+
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.z1 = ZipCode.objects.get(zip="19107")
+        self.n1 = Neighborhood.objects.get(name="n1")
+
+        self.u = User.objects.get(username="jim")
+
+        p1_no_tree = mkPlot(self.u, geom=Point(50,50))
+        p2_tree = mkPlot(self.u, geom=Point(51,51))
+        p3_tree_species1 = mkPlot(self.u, geom=Point(50,100))
+        p4_tree_species2 = mkPlot(self.u, geom=Point(50,150))
+
+        self.s1 = Species.objects.get(symbol="s1")
+        self.s2 = Species.objects.get(symbol="s2")
+        self.s3 = Species.objects.get(symbol="s3")
+
+        t1 = mkTree(self.u, p2_tree, species=None)
+        t2 = mkTree(self.u, p3_tree_species1, self.s1)
+        t3 = mkTree(self.u, p4_tree_species2, self.s2)
+
+        self.p1_no_tree = p1_no_tree
+        self.p2_tree = p2_tree
+        self.p3_tree_species1 = p3_tree_species1;
+        self.p4_tree_species2 = p4_tree_species2;
+
+        self.plots = [p1_no_tree, p2_tree, p3_tree_species1, p4_tree_species2]
+
+        self.t1 = t1
+        self.t2 = t2
+        self.t3 = t3
+
+        self.ie = ImportEvent.objects.get(file_name='site_add')
+        
+
+
+##############################################
+#  Stewardship raw sql tests
+
+    def test_stewardship(self):
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        # Two actions at different times
+        TreeStewardship.objects.create(activity="test",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set())
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t1,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        TreeStewardship.objects.create(activity="test2",
+                               tree=self.t2,
+                               performed_by=self.u,
+                               performed_date=datetime.now())
+
+        trees = Stewardship.trees_with_activities(["test2"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk, self.t2.pk]))
+
+        trees = Stewardship.trees_with_activities(["test"])
+
+        self.assertEqual(
+            set(trees),
+            set([self.t1.pk]))
+            
+        
 
 ##############################################
 #  Assertion helpers
@@ -366,89 +393,7 @@ class ViewTests(TestCase):
         response = self.client.get("/choices/")
         choices = loads(response.content)
         self.assertNotEqual(len(choices['plot_types']), 0)
-        
-#############################################
-#  Species Lists Tests
-
-    def test_species(self):
-        #############################################
-        #  different ways to get the full list: no args, no args/json, all, all/json
-        response = self.client.get("/species/")
-        self.assertTemplateUsed(response, 'treemap/species.html') 
-        all_species_count = len(response.context['species'])
-        self.assertNotEqual(all_species_count, 0)
-        self.assertIsInstance(response.context["species"][0], Species)
-
-        response = self.client.get("/species/all/")
-        self.assertNotEqual(len(response.context['species']), 0)
-        self.assertEqual(all_species_count, len(response.context['species']))
-        self.assertIsInstance(response.context["species"][0], Species)
-
-        response = self.client.get("/species/all/json/")
-        json_species = loads(response.content)
-        self.assertNotEqual(len(json_species), 0)
-        self.assertEqual(all_species_count, len(json_species))
-
-        response = self.client.get("/species/json/")
-        json_species = loads(response.content)
-        self.assertNotEqual(len(json_species), 0)
-        self.assertEqual(all_species_count, len(json_species))
-
-        #############################################
-        #  nearby and in-use selections, as json and html
-
-        response = self.client.get("/species/in-use/")
-        self.assertTemplateUsed(response, 'treemap/species.html') 
-        in_use_species_count = len(response.context['species'])
-        self.assertNotEqual(in_use_species_count, 0)
-        self.assertIsInstance(response.context["species"][0], Species)
-
-        response = self.client.get("/species/in-use/json/")
-        json_species = loads(response.content)
-        self.assertNotEqual(len(json_species), 0)
-        self.assertEqual(in_use_species_count, len(json_species))
-
-        response = self.client.get("/species/nearby/")
-        self.assertEqual(response.status_code, 404)
-
-        location = {'location': '50,100'}
-        response = self.client.get("/species/nearby/", location)
-        self.assertNotEqual(len(response.context['species']), 0)
-        self.assertNotEqual(all_species_count, len(response.context['species']))
-        self.assertIsInstance(response.context["species"][0], Species)
-        
-        response = self.client.get("/species/nearby/json/", location)
-        json_species = loads(response.content)
-        self.assertNotEqual(len(json_species), 0)
-        self.assertNotEqual(all_species_count, len(json_species))
-
-        #############################################
-        #  csv exports
-
-        response = self.client.get("/species/csv/", location)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['content-type'], 'application/zip')
-        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
-        self.assertNotEqual(len(response.content), 0)
-        
-        response = self.client.get("/species/all/csv/", location)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['content-type'], 'application/zip')
-        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
-        self.assertNotEqual(len(response.content), 0)
-
-        response = self.client.get("/species/in-use/csv/", location)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['content-type'], 'application/zip')
-        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
-        self.assertNotEqual(len(response.content), 0)
-
-        response = self.client.get("/species/nearby/csv/", location)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['content-type'], 'application/zip')
-        self.assertEqual(response['content-disposition'], 'attachment; filename=species.zip')
-        self.assertNotEqual(len(response.content), 0)
-        
+                
 
 #############################################
 #  Geocoder Tests
@@ -669,7 +614,6 @@ class ViewTests(TestCase):
         # 'min_updated': min_updated,
         # 'max_updated': max_updated,
         
-
     def test_search_results(self):
         ##################################################################
         # Test search result view
@@ -708,20 +652,22 @@ class ViewTests(TestCase):
         p3 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie, width=10, length=15, data_owner=self.u)
         p4 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, sidewalk_damage=sidewalk_choices[0][0], data_owner=self.u)
         p5 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, powerline_conflict_potential=powerline_choices[1][0], data_owner=self.u)
+        p6 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie, data_owner=self.u)
 
-        save_this = [p1,p2,p3,p4,p5]
+        save_this = [p1,p2,p3,p4,p5,p6]
         for obj in save_this: obj.save()
 
         t1 = Tree(plot=p1, last_updated_by=self.u, import_event=self.ie, dbh=4, condition=condition_choices[0][0], date_planted=datetime.utcnow()-oneYear)
         t2 = Tree(plot=p2, last_updated_by=self.u, import_event=self.ie, dbh=10, species=self.s1, condition=condition_choices[1][0])
         t3 = Tree(plot=p3, last_updated_by=self.u, import_event=self.ie, dbh=40, species=self.s1, height=150, sponsor=self.u.username, date_planted=date_min)
         t4 = Tree(plot=p4, last_updated_by=self.u, import_event=self.ie, height=30, species=self.s3, condition=condition_choices[3][0], steward_user=self.u)
+        t5 = Tree(plot=p6, last_updated_by=self.u, import_event=self.ie, dbh=30, species=self.s3)
 
         ps1 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p1, activity=psteward_choices[0][0])
         ps2 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p2, activity=psteward_choices[1][0])
         ps3 = PlotStewardship(performed_by=self.u, performed_date=datetime.now(), plot=p2, activity=psteward_choices[2][0])
 
-        save_this = [ps1,ps2,ps3, t1,t2,t3,t4]
+        save_this = [ps1,ps2,ps3, t1,t2,t3,t4,t5]
         for obj in save_this: obj.save()
 
         tf1 = TreeFlags(reported_by=self.u, tree=t1, key=flag_choices[0][0])
@@ -801,8 +747,8 @@ class ViewTests(TestCase):
         plot_range = [3, 11]      
         response = self.client.get("/search/?plot_range=%s-%s" % (plot_range[0], plot_range[1]) )
         req = loads(response.content)
-        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__length__lte=plot_range[1]))
-        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(length__lte=plot_range[1]))
+        trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__width__lte=plot_range[1]))
+        plots = present_plots.filter(Q(length__gte=plot_range[0]) | Q(width__gte=plot_range[0])).filter(Q(length__lte=plot_range[1]) | Q(width__lte=plot_range[1]))
 
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
@@ -1299,8 +1245,7 @@ class ViewTests(TestCase):
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
 
-        # no species match        
-        form['species_id'] = 9999
+        form['species_id'] = self.s1.pk
 
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
@@ -1476,7 +1421,7 @@ class ViewTests(TestCase):
 
         p = Plot.objects.get(pk=p.pk)
 
-        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were not created')
+        self.assertTrue(len(p.get_active_pends()) > 0, 'Pends were created')
 
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 100)

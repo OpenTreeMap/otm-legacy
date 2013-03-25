@@ -34,6 +34,8 @@ tm = {
 
     searchParams: {},
 
+    benefitUnitTransformer: function(k,v) { return v; },
+
     //initializes the map where a user places a new tree    
     get_icon: function(type, size) {
         var size = new OpenLayers.Size(size, size);
@@ -87,8 +89,8 @@ tm = {
         {
             $("#no_results").show();
         }   
-    },
-        
+    },         
+
     display_summaries : function(summaries){
         $(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
         $(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
@@ -100,11 +102,11 @@ tm = {
             $(".moretrees").html("");
             $(".notrees").html("");
         }
-        
         $.each(summaries, function(k,v){
             var span = $('#' + k);
             if (span.length > 0){
-                span.html(tm.addCommas(parseInt(v)));
+                span.html(tm.addCommas(
+                    tm.benefitUnitTransformer(k,parseInt(v))));
             }
         });
 
@@ -408,7 +410,7 @@ tm = {
                     if (settings.fieldName == "species_id") {
                         for (var i = 0; i < tm.speciesData.length; i++) {
                             if (tm.speciesData[i].id == value) {
-                                value = tm.speciesData[i].sname;
+                                value = tm.formatSpeciesName(tm.speciesData[i]);
                                 $("#edit_species").html(tm.speciesData[i].cname);
                             }
                         }
@@ -419,11 +421,12 @@ tm = {
                         } else {
                             $("#edit_species").append('<br>' + other1 + " " + other2);
                         }
+
                     }
                     if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}
                     }
-                    settings.obj.innerHTML = value 
+                    settings.obj.innerHTML = value;
                     tm.trackEvent("Edit", settings.fieldName)
                 }
             }});
@@ -479,6 +482,16 @@ tm = {
             }});
     },
 
+    formatTreeName: function(item) {
+        var cultivar_portion = item.cultivar ? item.cultivar + " " : "";
+        return item.cname + " [ " + item.sname + " " + cultivar_portion + "]";
+    },
+
+    formatSpeciesName: function(item) {
+        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : "";
+        return item.sname + cultivar_portion;
+    },
+
     setupAutoComplete: function(field) {
         return field.autocomplete({
             source:function(request, response){
@@ -487,7 +500,7 @@ tm = {
                         item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1) 
                     {
 					    return {
-						    label: item.cname + " [ " + item.sname + " ]",
+						    label: tm.formatTreeName(item),
 						    value: item.id
 					    }
                     }

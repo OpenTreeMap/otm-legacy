@@ -1,12 +1,42 @@
 import os
 
+# The following settings should be overriden in your
+# local_settings.py or impl_settings.py file if needed
 ADD_INITIAL_DEFAULTS = {}
+ADD_FORM_TARGETS = [
+    ('addsame', 'I want to add another tree using the same tree details'),
+    ('add', 'I want to add another tree with new details'),
+    ('edit','Let me continue editing this tree'),
+    ('view', "I'm done!"),
+]
+ADD_FORM_TARGETS_DEFAULT = 'view'
+API_KEY_GOOGLE_MAP = '' # Can be empty
+API_KEY_GOOGLE_ANALYTICS = 'your-key-here'
+
+POSTAL_CODE_FIELD = "USZipCodeField"
+DBH_TO_INCHES_FACTOR = 1.0
+
+PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
+ADVANCED_USERS_CAN_ACCEPT_PENDING = False
+
+# Certain email servers (most, all?) prohibit traffic
+# that appears to be routed from someone on the network
+#
+# For instance, if all mail from an OTM site is going to
+# jane@company.com and jim ("jim@company.com") sends feedback
+# the message structure will look like:
+# From: jim@company.com
+# To: jane@company.com
+# ....
+# But mail.company.com will *reject* the email since it is
+# actually originating from otm's servers and masquerading
+# as company.com
+FORCE_MAIL_TO_BE_FROM = None
 
 try:
    from impl_settings import *
 except ImportError, e:
    pass
-
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
@@ -57,7 +87,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_reputation.middleware.ReputationMiddleware', 
+    'django_reputation.middleware.ReputationMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django_sorting.middleware.SortingMiddleware',
 
@@ -76,6 +106,7 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'django.contrib.flatpages',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'threadedcomments',
     'treemap',
     'api',
@@ -92,7 +123,6 @@ INSTALLED_APPS = (
     'badges',
     'pagination',
     'django_sorting',
-    'geopy_extensions',
     'pipeline',
 )
 
@@ -105,4 +135,3 @@ if SITE_ROOT is not "/":
     LOGIN_URL = "%s/accounts/login" % SITE_ROOT
 else:
     LOGIN_URL = "/accounts/login"
-

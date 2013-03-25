@@ -2,8 +2,8 @@
 {% load dynamic_attribute thumbnail %}
 
 {%block body_class%}inner{%endblock %}
+{% block body_id %}id="results"{% endblock %}
 
-    
             {% block heading %}
                 <div class="heading">
                     <div class="holder">
@@ -11,7 +11,7 @@
                             <li id="totals">
                                 <ul>
                                     <li id="title">Results:</li>
-                                    <li id="first"><span class="tree_count">0</span> trees selected <span class="notrees"></span></li> 
+                                    <li id="first"><span class="tree_count">0</span> trees selected <span class="notrees"></span></li>
                                     <!-- <li>XX trees need more info to be included</li> -->
                                     <li><a href="{% url treemap.views.tree_add %}">Add a tree!</a></li>
                                 </ul>
@@ -20,9 +20,9 @@
                                 <ul>
                                     <li id="title">Export options:</li>
                                     <li id="firstOption">
-                                    <a id="kml_link">KML</a></li> 
+                                    <a id="kml_link">KML</a></li>
                                     <li><a id="csv_link">CSV</a></li>
-                                    <li><a id="shp_link">Shapefile</a></li> 
+                                    <li><a id="shp_link">Shapefile</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -31,15 +31,15 @@
             {% endblock heading %}
 
 
-    
+
 
         {% block top_left_panel %}
-        
+
             <div id="results_aside" class="aside">
             <h2>Yearly Eco Impact</h2>
             <div id="summary_subset">Selected trees in <span id="summary_subset_val">..</span></div>
               <!-- <strong class="sub-title">Based on select data. <a href="{% url treemap.views.tree_add %}">Add a tree &raquo;</a></strong> -->
-            
+
             <div id="results_wrapper" style="display:none;">
                 <ul id="messageStats">
                     <li class="impact" id="cost">Total Benefits</li>
@@ -67,29 +67,29 @@
                 </ul>
             </div>
             </div>
-        
+
         {% endblock %}
 
         {% block top_right_panel %}
             <div class="wrap">
                 <div id="results_map">
-					<div class="mapToggle buttomSm">View Satellite</div>
+                                        <div class="mapToggle buttomSm">View Satellite</div>
                 </div>
             </div>
-        {% endblock %}        
-        
-        
+        {% endblock %}
+
+
 {% block bottom_left_panel %}
-        <div class="box-1"> 
-        <h2>Recent updates</h2> 
+        <div class="box-1">
+        <h2>Recent updates</h2>
         <p>Our database of trees comes from public records and citizen foresters like you.
             Your help will make it better. <!--<a href="#">Find out how to add and edit trees near you!</a>-->
-        </p> 
-        <table width="100%"> 
+        </p>
+        <table width="100%">
         {% for tree in latest_trees %}
-            <tr> 
+            <tr>
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
-                
+
                 {% if tree.last_updated_by.get_profile.photo %}
                     {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
                     <img src="{{ image.url }}" alt="image description" width="33" height="32" />
@@ -97,38 +97,38 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}images/v2/defaultuser.gif" alt="image description" width="33" height="32" />
                 {% endif %}
-                </td> 
-                <td> 
+                </td>
+                <td>
                     <span>Neighborhood</span>  <br />
 
-                    {{tree.neighborhood.all.0}} 
-                </td> 
-                <td> 
+                    {{tree.neighborhood.all.0}}
+                </td>
+                <td>
                     <span>Tree species</span>  <br />
 
-                    <em>{{tree.species.common_name}}</em> 
-                </td> 
-                <td> 
+                    <em>{{tree.species.common_name}}</em>
+                </td>
+                <td>
                     <span>Updated by</span>  <br />
 
-                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a> 
-                </td> 
+                    <a href="{% url profiles.views.profile_detail tree.last_updated_by.username %}">{{ tree.last_updated_by.username }}</a>
+                </td>
             </tr>
        {% endfor %}
-        </table> 
-    </div> 
-        
+        </table>
+    </div>
+
 {% endblock bottom_left_panel %}
 
 {% block bottom_right_panel %}
 
-        <div class="box-2"> 
-            <div class="title"> 
-                <h2>Recent photos from users</h2> 
+        <div class="box-2">
+            <div class="title">
+                <h2>Recent photos from users</h2>
 <!--                             <a href="#">Upload your own</a>  -->
-            </div> 
+            </div>
             <ul class="photos">
-            
+
             {% for pic in latest_photos %}
                 <li>
                     <a href="{{ pic.tree.get_absolute_url }}">
@@ -138,16 +138,15 @@
                     </a>
                 </li>
             {% endfor %}
-            
-            </ul> 
-            
-        </div> 
+
+            </ul>
+
+        </div>
         {% endblock bottom_right_panel %}
 {% block endpage %}
-	<script type="text/javascript">
-		//jQuery().ready(function() {
-			tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}}, 0, '15+');
-		//});
-	</script>
+        <script type="text/javascript">
+                //jQuery().ready(function() {
+                        tm.resultsTemplatePageLoad({{min_year}}, {{current_year}}, {{min_updated}}, {{max_updated}}, 0, '15+');
+                //});
+        </script>
 {% endblock endpage %}
-

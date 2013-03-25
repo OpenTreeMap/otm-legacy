@@ -47,7 +47,7 @@
 		<ul>
 		{% for image in user_images %}
 			<li>
-            {% thumbnail image.photo "100x100" colorspace="GRAY" crop="center" as image  %}
+            {% thumbnail image.photo "100x100" crop="center" as image  %}
                 <img src="{{ image.url }}" />
             {% endthumbnail %}
 			<a class="view" href="{% url profiles.views.profile_detail image.user.username %}" >View</a>
