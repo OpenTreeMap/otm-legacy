@@ -7,9 +7,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.auth.models import User
-from OpenTreeMap.treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, ImportEvent
+from treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, ImportEvent
 
-from OpenTreeMap.choices import CHOICES as choices
+# Load CHOICES from your implementation-specific file (e.g. "from choices_SanDiego import *")
+from choices import CHOICES as choices
 
 class Command(BaseCommand):
     args = '<input_file_name, data_owner_id, base_srid, read_only>'
