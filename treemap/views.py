@@ -1622,8 +1622,11 @@ def advanced_search(request, format='json'):
     plot_count = plots.count()
     if tree_count == 0:
         tree_query = "SELECT * FROM treemap_tree LIMIT 0";
+        eco_query = "SELECT * FROM treemap_treeresource LIMIT 0";
     else:
         tree_query = str(trees.query)
+        eco_query = str(TreeResource.objects.filter(tree__in=trees).query)
+
     if plot_count == 0:
         plot_query = "SELECT * FROM treemap_plot LIMIT 0";
     else:
@@ -1634,13 +1637,14 @@ def advanced_search(request, format='json'):
     trees   = { 'name': 'trees', 'sql': tree_query }
     plots   = { 'name': 'plots', 'sql': plot_query }
     species = { 'name': 'species', 'sql': species_query }
+    eco     = { 'name': 'eco', 'sql': eco_query }
 
     if format == "shp":
-        return ogr_conversion('ESRI Shapefile', [trees, plots])
+        return ogr_conversion('ESRI Shapefile', [trees, plots, eco])
     elif format == "kml":
-        return ogr_conversion('KML', [trees, plots], 'kml')
+        return ogr_conversion('KML', [trees, plots, eco], 'kml')
     elif format == "csv":
-        return ogr_conversion('CSV', [trees, plots, species])
+        return ogr_conversion('CSV', [trees, plots, species, eco])
 
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
