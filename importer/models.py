@@ -66,6 +66,17 @@ class TreeImportRow(models.Model):
     # The main import event
     import_event = models.ForeignKey(TreeImportEvent)
 
+    def __init__(self, *args, **kwargs):
+        super(TreeImportRow, self).__init__(*args,**kwargs)
+        self.jsondata = None
+
+    @property
+    def datadict(self):
+        if self.jsondata is None:
+            self.jsondata = json.loads(self.data)
+
+        return self.jsondata
+
     def append_error(self, err, data=None):
         code, msg, fatal = err
 

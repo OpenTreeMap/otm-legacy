@@ -1,7 +1,11 @@
 import csv
 import json
 
+from treemap.models import Species, Neighborhood, Plot
+
 from importer.models import TreeImportEvent, TreeImportRow
+from django.contrib.gis.geos import Point
+
 
 class Fields:
     # X/Y are required
@@ -65,6 +69,21 @@ class Errors:
     UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset"\
                         "didn't match the template", False)
 
+    INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and'\
+                    'latitude must be betwen -90 and 90', True)
+
+    GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be in a neighborhood', True)
+
+    INVALID_SPECIES = (20, 'Could not find matching species', True)
+
+    INVALID_OTM_ID = (30, 'The given Open Tree Map ID does not exist '\
+                      'in the system. This ID is automatically generated '\
+                      'by Open Tree Map and should only be used for '\
+                      'updating existing records', True)
+
+    FLOAT_ERROR = (40, 'Not formatted as a number', True)
+    INT_ERROR = (41, 'Not formatted as an integer', True)
+
 def lowerkeys(h):
     h2 = {}
     for (k,v) in h.iteritems():
@@ -116,3 +135,109 @@ def validate_main_file(importevent):
         importevent.save()
 
     return not errors
+
+def get_species_for_row(importrow):
+    """
+    Validate and return a species for a given input row
+
+    if no species was specifed at all this method returns:
+       None
+    if a species was specified and found this method returns that species
+    if a species was specified and *not* found this method:
+       Adds an error to the importrow
+       returns False
+    """
+    genus = importrow.datadict.get(Fields.GENUS,'')
+    species = importrow.datadict.get(Fields.SPECIES,'')
+    cultivar = importrow.datadict.get(Fields.CULTIVAR,'')
+
+    if genus == '' and species == '' and cultivar == '':
+        return None # Don't create a species at all
+    else:
+        matching_species = Species.objects\
+                                  .filter(genus__iexact=genus)\
+                                  .filter(species__iexact=species)\
+                                  .filter(cultivar_name__iexact=cultivar)
+
+        if matching_species:
+            return matching_species[0]
+        else:
+            importrow.append_error(Errors.INVALID_SPECIES,
+                                   ' '.join([genus,species,cultivar]))
+            return False
+
+def safe_float(importrow, fld):
+    try:
+        return float(importrow.datadict[fld])
+    except:
+        importrow.append_error(Errors.FLOAT_ERROR, importrow.datadict[fld])
+        return False
+
+def safe_int(importrow, fld):
+    try:
+        return int(importrow.datadict[fld])
+    except:
+        importrow.append_error(Errors.INT_ERROR, importrow.datadict[fld])
+        return False
+
+def validate_geom(importrow):
+    x = safe_float(importrow, Fields.POINT_X)
+    y = safe_float(importrow, Fields.POINT_Y)
+
+    # Check if number was malformed
+    if x is False or y is False:
+        return False
+
+    # Simple validation
+    # longitude must be between -180 and 180
+    # latitude must be betwen -90 and 90
+    if abs(x) > 180 or abs(y) > 90:
+        importrow.append_error(Errors.INVALID_GEOM)
+        return False
+
+    p = Point(x,y)
+
+    if Neighborhood.objects.filter(geometry__contains=p).exists():
+        return p
+    else:
+        importrow.append_error(Errors.GEOM_OUT_OF_BOUNDS)
+        return False
+
+def validate_otm_id(importrow):
+    if Fields.OPENTREEMAP_ID_NUMBER in importrow.datadict:
+        oid = safe_int(importrow, Fields.OPENTREEMAP_ID_NUMBER)
+
+        # Check for invalid number
+        if oid is False:
+            return False
+
+        has_plot = Plot.objects.filter(
+            pk=oid).exists()
+
+        if has_plot:
+            return oid
+        else:
+            importrow.append_error(Errors.INVALID_OTM_ID, oid)
+            return False
+    else:
+        return True
+
+def get_plot_from_row(importrow):
+    """ Returns a Plot object if things are looking good,
+    otherwise returns 'False'
+
+    This method mutates the errors on the import row
+    """
+
+    # Validations append errors directly to importrow
+    oid = validate_otm_id(importrow)
+    pt = validate_geom(importrow)
+    species = get_species_for_row(importrow)
+
+    # If any errors were added that are marked as fatal,
+    # save and abort here
+    if importrow.errors:
+        for err in json.loads(importrow.errors):
+            if err['fatal']:
+                importrow.save()
+                return False
