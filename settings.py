@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'pagination',
     'django_sorting',
     'pipeline',
+    'importer'
 )
 
 try:
