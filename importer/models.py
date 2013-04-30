@@ -30,6 +30,11 @@ class TreeImportEvent(models.Model):
     created = models.DateTimeField(auto_now=True)
     completed = models.DateTimeField(null=True,blank=True)
 
+    # When false, this dataset is in 'preview' mode
+    # When true this dataset has been written to the
+    # database
+    commited = models.BooleanField(default=False)
+
     def append_error(self, err, data=None):
         code, msg, fatal = err
 
@@ -54,6 +59,9 @@ class TreeImportRow(models.Model):
 
     # JSON dictionary from header <-> rows
     data = models.TextField()
+
+    # Row index from original file
+    idx = models.IntegerField()
 
     finished = models.BooleanField(default=False)
 

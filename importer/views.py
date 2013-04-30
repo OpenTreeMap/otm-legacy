@@ -1,15 +1,17 @@
 import csv
 import json
+from datetime import datetime
+
+from django.http import HttpResponse
+from django.conf import settings
+
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+from django.contrib.auth.models import User
 
 from treemap.models import Species, Neighborhood, Plot
 
 from importer.models import TreeImportEvent, TreeImportRow
-
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
-from django.conf import settings
-
-from datetime import datetime
 
 class Fields:
     # X/Y are required
@@ -85,7 +87,7 @@ class Fields:
             CANOPY_HEIGHT, DATE_PLANTED, TREE_CONDITION,
             CANOPY_CONDITION, ACTIONS, PESTS,
             LOCAL_PROJECTS, URL, NOTES, OWNER,
-            SPONSOR, STEWARD, DATA_SOURCE }
+            SPONSOR, STEWARD, DATA_SOURCE, TREE_HEIGHT }
 
 class Errors:
     """ 3 tuples (error id, error descr, fatal) """
@@ -93,10 +95,10 @@ class Errors:
     MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %\
                       (Fields.POINT_X, Fields.POINT_Y), True)
 
-    UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset"\
+    UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset "\
                         "didn't match the template", False)
 
-    INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and'\
+    INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '\
                     'latitude must be betwen -90 and 90', True)
 
     GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be in a neighborhood', True)
@@ -114,6 +116,7 @@ class Errors:
     POS_INT_ERROR = (43, 'Not formatted as a positive integer', True)
     BOOL_ERROR = (44, 'Not formatted as a boolean', True)
     STRING_TOO_LONG = (45, 'Strings must be less than 255 characters', True)
+    INVALID_DATE = (46, 'Invalid date (must by YYYY-MM-DD', True)
 
     INVALID_CHOICE = (50, 'These fields must contain a choice value', True)
 
@@ -134,16 +137,61 @@ def lowerkeys(h):
 
     return h2
 
-def create_rows_for_event(importevent, tmp_path):
-    rows = []
-    with open(tmp_path, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
 
-        for row in reader:
-            rows.append(
-                TreeImportRow.objects.create(
-                    data=json.dumps(lowerkeys(row)),
-                    import_event=importevent))
+def process_csv(request):
+    owner = User.objects.all()[0]
+    ie = TreeImportEvent(file_name=request.REQUEST['name'],
+                         owner=owner)
+    ie.save()
+
+    rows = create_rows_for_event(ie, request.FILES.values()[0])
+    filevalid = validate_main_file(ie)
+
+    if filevalid:
+        for row in rows:
+            validate_row(row)
+
+    return HttpResponse(
+        json.dumps({'id': ie.pk}),
+        content_type = 'application/json')
+
+def process_status(request, import_id):
+    ie = TreeImportEvent.objects.get(pk=import_id)
+
+    resp = None
+    if ie.errors:
+        resp = {'status': 'file_error',
+                'errors': json.loads(ie.errors)}
+    else:
+        errors = []
+        for row in ie.treeimportrow_set.all():
+            if row.errors:
+                errors.append((row.idx, json.loads(row.errors)))
+
+        if len(errors) > 0:
+            resp = {'status': 'row_error',
+                    'errors': dict(errors)}
+
+    if resp is None:
+        resp = {'status': 'success',
+                'rows': ie.treeimportrow_set.count()}
+
+    return HttpResponse(
+        json.dumps(resp),
+        content_type = 'application/json')
+
+def create_rows_for_event(importevent, csvfile):
+    rows = []
+    reader = csv.DictReader(csvfile)
+
+    idx = 0
+    for row in reader:
+        rows.append(
+            TreeImportRow.objects.create(
+                data=json.dumps(lowerkeys(row)),
+                import_event=importevent, idx=idx))
+
+        idx += 1
 
     return rows
 
@@ -194,7 +242,7 @@ def validate_species(importrow):
             importrow.cleaned[Fields.SPECIES_OBJECT] = matching_species[0]
         else:
             importrow.append_error(Errors.INVALID_SPECIES,
-                                   ' '.join([genus,species,cultivar]))
+                                   ' '.join([genus,species,cultivar]).strip())
             return False
 
     return True
@@ -323,7 +371,7 @@ def validate_numeric_fields(importrow):
     def cleanup(fields, fn):
         errors = False
         for f in fields:
-            if f in importrow.datadict:
+            if f in importrow.datadict and importrow.datadict[f]:
                 maybe_num = fn(importrow, f)
 
                 if maybe_num is False:
@@ -366,7 +414,7 @@ def validate_choice_fields(importrow):
                        settings.CHOICES[choice_key] }
 
             if value in choices:
-                importrow.cleaned[f] = value
+                importrow.cleaned[field] = value
             else:
                 errors = True
                 importrow.append_error(Errors.INVALID_CHOICE, choice_key)
@@ -396,7 +444,7 @@ def validate_date_fields(importrow):
 
         if datestr:
             try:
-                datep = datetime.strptime(datestr, 'YYYY-MM-DD')
+                datep = datetime.strptime(datestr, '%Y-%m-%d')
                 importrow.cleaned[Fields.DATE_PLANTED] = datep
             except ValueError, e:
                 importrow.append_error(Errors.INVALID_DATE,
