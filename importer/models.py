@@ -69,6 +69,7 @@ class TreeImportRow(models.Model):
     def __init__(self, *args, **kwargs):
         super(TreeImportRow, self).__init__(*args,**kwargs)
         self.jsondata = None
+        self.cleaned = {}
 
     @property
     def datadict(self):

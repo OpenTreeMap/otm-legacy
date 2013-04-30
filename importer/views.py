@@ -7,6 +7,9 @@ from importer.models import TreeImportEvent, TreeImportRow
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.conf import settings
+
+from datetime import datetime
 
 class Fields:
     # X/Y are required
@@ -52,6 +55,17 @@ class Fields:
     PESTS = 'pests and diseases'
     LOCAL_PROJECTS = 'local projects'
 
+    CHOICE_MAP = {
+        PLOT_TYPE: 'plot_types',
+        POWERLINE_CONFLICT: 'powerlines',
+        SIDEWALK: 'sidewalks',
+        TREE_CONDITION: 'conditions',
+        CANOPY_CONDITION: 'tree_conditions',
+        ACTIONS: 'actions',
+        PESTS: 'pests',
+        LOCAL_PROJECTS: 'projects'
+    }
+
     ALL = { POINT_X, POINT_Y, ADDRESS, PLOT_WIDTH,
             PLOT_LENGTH, READ_ONLY, OPENTREEMAP_ID_NUMBER,
             TREE_PRESENT, PLOT_TYPE, POWERLINE_CONFLICT,
@@ -87,6 +101,10 @@ class Errors:
     POS_FLOAT_ERROR = (41, 'Not formatted as a positive number', True)
     INT_ERROR = (42, 'Not formatted as an integer', True)
     POS_INT_ERROR = (43, 'Not formatted as a positive integer', True)
+    BOOL_ERROR = (44, 'Not formatted as a boolean', True)
+    STRING_TOO_LONG = (45, 'Strings must be less than 255 characters', True)
+
+    INVALID_CHOICE = (50, 'These fields must contain a choice value', True)
 
     NEARBY_TREES = (1050, 'There are already trees very close to this one', False)
 
@@ -187,6 +205,19 @@ def safe_float(importrow, fld):
         importrow.append_error(Errors.FLOAT_ERROR, fld)
         return False
 
+def safe_bool(importrow, fld):
+    """ Returns a tuple of (success, bool value) """
+    v = importrow.datadict.get(fld, '').lower()
+
+    if v == 'true':
+        return (True,True)
+    elif v == 'false':
+        return (True,False)
+    else:
+        importrow.append_error(Errors.BOOL_ERROR, fld)
+        return (False,None)
+
+
 def safe_int(importrow, fld):
     try:
         return int(importrow.datadict[fld])
@@ -217,11 +248,13 @@ def safe_pos_float(importrow, fld):
         return i
 
 def validate_geom(importrow):
-    x = safe_float(importrow, Fields.POINT_X)
-    y = safe_float(importrow, Fields.POINT_Y)
+    x = importrow.cleaned.get(Fields.POINT_X, None)
+    y = importrow.cleaned.get(Fields.POINT_Y, None)
 
-    # Check if number was malformed
-    if x is False or y is False:
+    # Note, this shouldn't really happen since main
+    # file validation will fail, but butter safe than sorry
+    if x is None or y is None:
+        importrow.append_error(Errors.MISSING_POINTS)
         return False
 
     # Simple validation
@@ -240,13 +273,8 @@ def validate_geom(importrow):
         return False
 
 def validate_otm_id(importrow):
-    if Fields.OPENTREEMAP_ID_NUMBER in importrow.datadict:
-        oid = safe_pos_int(importrow, Fields.OPENTREEMAP_ID_NUMBER)
-
-        # Check for invalid number
-        if oid is False:
-            return False
-
+    oid = importrow.cleaned.get(Fields.OPENTREEMAP_ID_NUMBER, None)
+    if oid:
         has_plot = Plot.objects.filter(
             pk=oid).exists()
 
@@ -272,10 +300,8 @@ def validate_proximity(importrow, point):
         return True
 
 def validate_species_max(importrow, field, max_val, err):
-    if (field in importrow.datadict and
-        importrow.datadict[field]):
-        inputval = safe_pos_float(importrow, field)
-
+    inputval = importrow.cleaned.get(field, None)
+    if inputval:
         if max_val and inputval > max_val:
             importrow.append_error(err, max_val)
             return False
@@ -293,6 +319,100 @@ def validate_species_height_max(importrow, species):
         importrow, Fields.TREE_HEIGHT,
         species.v_max_height, Errors.SPECIES_HEIGHT_TOO_HIGH)
 
+def validate_numeric_fields(importrow):
+    def cleanup(fields, fn):
+        errors = False
+        for f in fields:
+            if f in importrow.datadict:
+                maybe_num = fn(importrow, f)
+
+                if maybe_num is False:
+                    errors = True
+                else:
+                    importrow.cleaned[f] = maybe_num
+
+        return errors
+
+    pfloat_ok = cleanup([Fields.PLOT_WIDTH, Fields.PLOT_LENGTH,
+                             Fields.DIAMETER, Fields.TREE_HEIGHT,
+                             Fields.CANOPY_HEIGHT], safe_pos_float)
+
+    float_ok = cleanup([Fields.POINT_X, Fields.POINT_Y],
+                           safe_float)
+
+    int_ok = cleanup([Fields.OPENTREEMAP_ID_NUMBER],
+                         safe_pos_int)
+
+    return pfloat_ok and float_ok and int_ok
+
+def validate_boolean_fields(importrow):
+    errors = False
+    for f in [Fields.READ_ONLY, Fields.TREE_PRESENT]:
+        if f in importrow.datadict:
+            success, v = safe_bool(importrow, f)
+            if success:
+                importrow.cleaned[f] = v
+            else:
+                errors = True
+
+    return errors
+
+def validate_choice_fields(importrow):
+    errors = False
+    for field,choice_key in Fields.CHOICE_MAP.iteritems():
+        if field in importrow.datadict:
+            value = importrow.datadict[field]
+            choices = { value for (id,value) in
+                       settings.CHOICES[choice_key] }
+
+            if value in choices:
+                importrow.cleaned[f] = value
+            else:
+                errors = True
+                importrow.append_error(Errors.INVALID_CHOICE, choice_key)
+
+    return errors
+
+def validate_string_fields(importrow):
+    errors = False
+    for field in [Fields.ADDRESS, Fields.GENUS, Fields.SPECIES,
+                  Fields.CULTIVAR, Fields.SCI_NAME, Fields.URL,
+                  Fields.NOTES, Fields.OWNER, Fields.SPONSOR,
+                  Fields.STEWARD, Fields.DATA_SOURCE]:
+        if field in importrow.datadict:
+            value = importrow.datadict[field]
+
+            if len(value) > 255:
+                importrow.append_error(Errors.STRING_TOO_LONG, field)
+                errors = True
+            else:
+                importrow.cleaned[field] = value
+
+    return errors
+
+def validate_date_fields(importrow):
+    if Fields.DATE_PLANTED in importrow.datadict:
+        datestr = importrow.datadict[Fields.DATE_PLANTED]
+
+        if datestr:
+            try:
+                datep = datetime.strptime(datestr, 'YYYY-MM-DD')
+                importrow.cleaned[Fields.DATE_PLANTED] = datep
+            except ValueError, e:
+                importrow.append_error(Errors.INVALID_DATE,
+                                       Fields.DATE_PLANTED)
+                return False
+
+    return True
+
+
+def validate_and_convert_datatypes(importrow):
+    validate_numeric_fields(importrow)
+    validate_boolean_fields(importrow)
+    validate_choice_fields(importrow)
+    validate_string_fields(importrow)
+    validate_date_fields(importrow)
+
 def get_plot_from_row(importrow,scan=False):
     """
     If scan is False:
@@ -309,7 +429,12 @@ def get_plot_from_row(importrow,scan=False):
     TODO: How to handle proximity in main load?
     """
 
-    # Validations append errors directly to importrow
+    # NOTE: Validations append errors directly to importrow
+
+    # Convert all fields to correct datatypes
+    validate_and_convert_datatypes(importrow)
+
+    # We can work on the 'cleaned' data from here on out
     oid = validate_otm_id(importrow)
     pt = validate_geom(importrow)
     species = get_species_for_row(importrow)
