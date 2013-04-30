@@ -29,14 +29,18 @@ class ValidationTest(TestCase):
         return TreeImportRow.objects.create(
             data=json.dumps(data), import_event=self.ie)
 
-    def assertHasError(self, thing, err, data=None):
+    def assertHasError(self, thing, err, data=None, df=None):
+        errors = ''
+        errn,msg,fatal = err
         if thing.errors:
-            errn,msg,fatal = err
             errors = json.loads(thing.errors)
             for e in errors:
                 if e['code'] == errn:
                     if data is not None:
-                        self.assertEqual(e['data'], data)
+                        edata = e['data']
+                        if df:
+                            edata = df(edata)
+                        self.assertEqual(edata, data)
                     return
 
         raise AssertionError('Error code %s not found in %s' % (errn,errors))
@@ -48,6 +52,81 @@ class ValidationTest(TestCase):
             for e in errors:
                 if e['code'] == errn:
                     raise AssertionError('Error code %s found in %s' % (errn,errors))
+
+    def test_species_dbh_and_height(self):
+        s1_gsc = Species(symbol='S1G__', scientific_name='',
+                         genus='g1', species='s1', cultivar_name='c1',
+                         v_max_height=30, v_max_dbh=19)
+        s1_gs = Species(symbol='S1GS_', scientific_name='',
+                        genus='g1', species='s1', cultivar_name='',
+                        v_max_height=22, v_max_dbh=12)
+        s1_gsc.save()
+        s1_gs.save()
+
+        row = {'point x': '16',
+               'point y': '20',
+               'genus': 'g1',
+               'species': 's1',
+               'diameter': '15',
+               'tree height': '18'}
+
+        i = self.mkrow(row)
+        r = get_plot_from_row(i)
+
+        self.assertHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
+        self.assertNotHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
+
+        row['tree height'] = 25
+        i = self.mkrow(row)
+        r = get_plot_from_row(i)
+
+        self.assertHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
+        self.assertHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
+
+        row['cultivar'] = 'c1'
+        i = self.mkrow(row)
+        r = get_plot_from_row(i)
+
+        self.assertNotHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
+        self.assertNotHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
+
+    def test_proximity(self):
+        setupTreemapEnv()
+
+        user = User.objects.get(username="jim")
+        p1 = mkPlot(user, geom=Point(25.0000001,25.0000001))
+        p1.save()
+
+        p2 = mkPlot(user, geom=Point(25.0000002,25.0000002))
+        p2.save()
+
+        p3 = mkPlot(user, geom=Point(25.0000003,25.0000003))
+        p3.save()
+
+        p4 = mkPlot(user, geom=Point(27.0000001,27.0000001))
+        p4.save()
+
+        n1 = { p.pk for p in [p1,p2,p3] }
+        n2 = { p4.pk }
+
+        i = self.mkrow({'point x': '25.00000025',
+                        'point y': '25.00000025'})
+        r = get_plot_from_row(i)
+
+        self.assertHasError(i, Errors.NEARBY_TREES, n1, set)
+
+        i = self.mkrow({'point x': '27.00000015',
+                        'point y': '27.00000015'})
+        r = get_plot_from_row(i)
+
+        self.assertHasError(i, Errors.NEARBY_TREES, n2, set)
+
+        i = self.mkrow({'point x': '30.00000015',
+                        'point y': '30.00000015'})
+        r = get_plot_from_row(i)
+
+        self.assertNotHasError(i, Errors.NEARBY_TREES)
+
 
     def test_species_id(self):
         s1_gsc = Species(symbol='S1G__', scientific_name='',
@@ -123,7 +202,15 @@ class ValidationTest(TestCase):
         r = get_plot_from_row(i)
 
         self.assertFalse(r)
-        self.assertHasError(i, Errors.INT_ERROR, '44b')
+        self.assertHasError(i, Errors.INT_ERROR, 'opentreemap id number')
+
+        i = self.mkrow({'point x': '16',
+                        'point y': '20',
+                        'opentreemap id number': '-22'})
+        r = get_plot_from_row(i)
+
+        self.assertFalse(r)
+        self.assertHasError(i, Errors.POS_INT_ERROR, 'opentreemap id number')
 
         # With no plots in the system, all ids should fail
         i = self.mkrow({'point x': '16',

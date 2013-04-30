@@ -4,8 +4,9 @@ import json
 from treemap.models import Species, Neighborhood, Plot
 
 from importer.models import TreeImportEvent, TreeImportRow
-from django.contrib.gis.geos import Point
 
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 
 class Fields:
     # X/Y are required
@@ -34,6 +35,7 @@ class Fields:
     CULTIVAR = 'cultivar'
     SCI_NAME = 'other part of scientific name'
     DIAMETER = 'diameter'
+    TREE_HEIGHT = 'tree height'
     CANOPY_HEIGHT = 'canopy height'
     DATE_PLANTED = 'date planted'
     DATA_SOURCE = 'data source'
@@ -82,7 +84,19 @@ class Errors:
                       'updating existing records', True)
 
     FLOAT_ERROR = (40, 'Not formatted as a number', True)
-    INT_ERROR = (41, 'Not formatted as an integer', True)
+    POS_FLOAT_ERROR = (41, 'Not formatted as a positive number', True)
+    INT_ERROR = (42, 'Not formatted as an integer', True)
+    POS_INT_ERROR = (43, 'Not formatted as a positive integer', True)
+
+    NEARBY_TREES = (1050, 'There are already trees very close to this one', False)
+
+    SPECIES_DBH_TOO_HIGH = (1060,
+                            'The diameter is too large for this species',
+                            False)
+
+    SPECIES_HEIGHT_TOO_HIGH = (1061,
+                               'The height is too large for this species',
+                               False)
 
 def lowerkeys(h):
     h2 = {}
@@ -170,15 +184,37 @@ def safe_float(importrow, fld):
     try:
         return float(importrow.datadict[fld])
     except:
-        importrow.append_error(Errors.FLOAT_ERROR, importrow.datadict[fld])
+        importrow.append_error(Errors.FLOAT_ERROR, fld)
         return False
 
 def safe_int(importrow, fld):
     try:
         return int(importrow.datadict[fld])
     except:
-        importrow.append_error(Errors.INT_ERROR, importrow.datadict[fld])
+        importrow.append_error(Errors.INT_ERROR, fld)
         return False
+
+def safe_pos_int(importrow, fld):
+    i = safe_int(importrow, fld)
+
+    if i is False:
+        return False
+    elif i < 0:
+        importrow.append_error(Errors.POS_INT_ERROR, fld)
+        return False
+    else:
+        return i
+
+def safe_pos_float(importrow, fld):
+    i = safe_float(importrow, fld)
+
+    if i is False:
+        return False
+    elif i < 0:
+        importrow.append_error(Errors.POS_FLOAT_ERROR, fld)
+        return False
+    else:
+        return i
 
 def validate_geom(importrow):
     x = safe_float(importrow, Fields.POINT_X)
@@ -205,7 +241,7 @@ def validate_geom(importrow):
 
 def validate_otm_id(importrow):
     if Fields.OPENTREEMAP_ID_NUMBER in importrow.datadict:
-        oid = safe_int(importrow, Fields.OPENTREEMAP_ID_NUMBER)
+        oid = safe_pos_int(importrow, Fields.OPENTREEMAP_ID_NUMBER)
 
         # Check for invalid number
         if oid is False:
@@ -222,11 +258,55 @@ def validate_otm_id(importrow):
     else:
         return True
 
-def get_plot_from_row(importrow):
-    """ Returns a Plot object if things are looking good,
-    otherwise returns 'False'
+def validate_proximity(importrow, point):
+    nearby = Plot.objects\
+                 .filter(present=True,
+                         geometry__distance_lte=(point, D(ft=10.0)))\
+                 .distance(point)\
+                 .order_by('distance')[:5]
 
-    This method mutates the errors on the import row
+    if len(nearby) > 0:
+        importrow.append_error(Errors.NEARBY_TREES, [p.pk for p in nearby])
+        return False
+    else:
+        return True
+
+def validate_species_max(importrow, field, max_val, err):
+    if (field in importrow.datadict and
+        importrow.datadict[field]):
+        inputval = safe_pos_float(importrow, field)
+
+        if max_val and inputval > max_val:
+            importrow.append_error(err, max_val)
+            return False
+
+    return True
+
+
+def validate_species_dbh_max(importrow, species):
+    return validate_species_max(
+        importrow, Fields.DIAMETER,
+        species.v_max_dbh, Errors.SPECIES_DBH_TOO_HIGH)
+
+def validate_species_height_max(importrow, species):
+    return validate_species_max(
+        importrow, Fields.TREE_HEIGHT,
+        species.v_max_height, Errors.SPECIES_HEIGHT_TOO_HIGH)
+
+def get_plot_from_row(importrow,scan=False):
+    """
+    If scan is False:
+      Returns a Plot object if things are looking good,
+      otherwise returns 'False'
+
+    If scan is True:
+      Returns True if no errors at all were found on this
+      object (fatal or otherwise), False otherwise
+
+    Note 1:
+       This method mutates the errors on the import row
+
+    TODO: How to handle proximity in main load?
     """
 
     # Validations append errors directly to importrow
@@ -234,10 +314,17 @@ def get_plot_from_row(importrow):
     pt = validate_geom(importrow)
     species = get_species_for_row(importrow)
 
+    # These validations are non-fatal
+    if species:
+        validate_species_dbh_max(importrow, species)
+        validate_species_height_max(importrow, species)
+
+    if pt:
+        validate_proximity(importrow, pt)
+
+    importrow.save()
+
     # If any errors were added that are marked as fatal,
     # save and abort here
-    if importrow.errors:
-        for err in json.loads(importrow.errors):
-            if err['fatal']:
-                importrow.save()
-                return False
+    if importrow.has_fatal_error():
+        return False

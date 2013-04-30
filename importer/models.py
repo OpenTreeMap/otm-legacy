@@ -77,6 +77,15 @@ class TreeImportRow(models.Model):
 
         return self.jsondata
 
+    def has_fatal_error(self):
+        if self.errors:
+            for err in json.loads(self.errors):
+                if err['fatal']:
+                    return True
+
+        return False
+
+
     def append_error(self, err, data=None):
         code, msg, fatal = err
 
