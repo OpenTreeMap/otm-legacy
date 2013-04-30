@@ -16,6 +16,17 @@ class Fields:
     POINT_X = 'point x'
     POINT_Y = 'point y'
 
+    # This is a pseudo field which is filled in
+    # when data is cleaned and contains a GEOS
+    # point object
+    POINT = 'calc__point'
+
+    # This is a pseudo field which is filled in
+    # when data is cleaned and may contain a
+    # OTM Species object, if the species was
+    # matched
+    SPECIES_OBJECT = 'calc__species_object'
+
     # Plot Fields
     ADDRESS = 'address'
     PLOT_WIDTH = 'plot width'
@@ -168,35 +179,25 @@ def validate_main_file(importevent):
 
     return not errors
 
-def get_species_for_row(importrow):
-    """
-    Validate and return a species for a given input row
-
-    if no species was specifed at all this method returns:
-       None
-    if a species was specified and found this method returns that species
-    if a species was specified and *not* found this method:
-       Adds an error to the importrow
-       returns False
-    """
+def validate_species(importrow):
     genus = importrow.datadict.get(Fields.GENUS,'')
     species = importrow.datadict.get(Fields.SPECIES,'')
     cultivar = importrow.datadict.get(Fields.CULTIVAR,'')
 
-    if genus == '' and species == '' and cultivar == '':
-        return None # Don't create a species at all
-    else:
+    if genus != '' or species != '' or cultivar != '':
         matching_species = Species.objects\
                                   .filter(genus__iexact=genus)\
                                   .filter(species__iexact=species)\
                                   .filter(cultivar_name__iexact=cultivar)
 
-        if matching_species:
-            return matching_species[0]
+        if len(matching_species) == 1:
+            importrow.cleaned[Fields.SPECIES_OBJECT] = matching_species[0]
         else:
             importrow.append_error(Errors.INVALID_SPECIES,
                                    ' '.join([genus,species,cultivar]))
             return False
+
+    return True
 
 def safe_float(importrow, fld):
     try:
@@ -267,7 +268,8 @@ def validate_geom(importrow):
     p = Point(x,y)
 
     if Neighborhood.objects.filter(geometry__contains=p).exists():
-        return p
+        importrow.cleaned[Fields.POINT] = p
+        return True
     else:
         importrow.append_error(Errors.GEOM_OUT_OF_BOUNDS)
         return False
@@ -278,13 +280,11 @@ def validate_otm_id(importrow):
         has_plot = Plot.objects.filter(
             pk=oid).exists()
 
-        if has_plot:
-            return oid
-        else:
+        if not has_plot:
             importrow.append_error(Errors.INVALID_OTM_ID, oid)
             return False
-    else:
-        return True
+
+    return True
 
 def validate_proximity(importrow, point):
     nearby = Plot.objects\
@@ -430,14 +430,27 @@ def get_plot_from_row(importrow,scan=False):
     """
 
     # NOTE: Validations append errors directly to importrow
+    # and move data over to the 'cleaned' hash as it is
+    # validated
 
     # Convert all fields to correct datatypes
     validate_and_convert_datatypes(importrow)
 
     # We can work on the 'cleaned' data from here on out
-    oid = validate_otm_id(importrow)
-    pt = validate_geom(importrow)
-    species = get_species_for_row(importrow)
+    validate_otm_id(importrow)
+
+    # Attaches a GEOS point to Fields.POINT
+    validate_geom(importrow)
+
+    # This could be None or not set if there
+    # was an earlier error
+    pt = importrow.cleaned.get(Fields.POINT, None)
+
+    validate_species(importrow)
+
+    # This could be None or unset if species data were
+    # not given
+    species = importrow.cleaned.get(Fields.SPECIES_OBJECT, None)
 
     # These validations are non-fatal
     if species:
