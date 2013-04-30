@@ -413,20 +413,16 @@ def validate_and_convert_datatypes(importrow):
     validate_string_fields(importrow)
     validate_date_fields(importrow)
 
-def get_plot_from_row(importrow,scan=False):
+def validate_row(importrow):
     """
-    If scan is False:
-      Returns a Plot object if things are looking good,
-      otherwise returns 'False'
+    Validate a row. Returns True if there were no fatal errors,
+    False otherwise
 
-    If scan is True:
-      Returns True if no errors at all were found on this
-      object (fatal or otherwise), False otherwise
-
-    Note 1:
-       This method mutates the errors on the import row
-
-    TODO: How to handle proximity in main load?
+    The method mutates importrow in two ways:
+    - The 'errors' field on importrow will be appended to
+      whenever an error is found
+    - The 'cleaned' field on importrow will be set as fields
+      get validated
     """
 
     # NOTE: Validations append errors directly to importrow
@@ -462,7 +458,4 @@ def get_plot_from_row(importrow,scan=False):
 
     importrow.save()
 
-    # If any errors were added that are marked as fatal,
-    # save and abort here
-    if importrow.has_fatal_error():
-        return False
+    return not importrow.has_fatal_error()

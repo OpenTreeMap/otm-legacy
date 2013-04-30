@@ -11,7 +11,7 @@ import json
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from importer.views import create_rows_for_event, validate_main_file, \
-    Errors, get_plot_from_row
+    Errors, validate_row
 
 from importer.models import TreeImportEvent, TreeImportRow
 from treemap.models import Species, Neighborhood, Plot
@@ -71,21 +71,21 @@ class ValidationTest(TestCase):
                'tree height': '18'}
 
         i = self.mkrow(row)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
         self.assertNotHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
 
         row['tree height'] = 25
         i = self.mkrow(row)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
         self.assertHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
 
         row['cultivar'] = 'c1'
         i = self.mkrow(row)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.SPECIES_DBH_TOO_HIGH)
         self.assertNotHasError(i, Errors.SPECIES_HEIGHT_TOO_HIGH)
@@ -111,19 +111,19 @@ class ValidationTest(TestCase):
 
         i = self.mkrow({'point x': '25.00000025',
                         'point y': '25.00000025'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.NEARBY_TREES, n1, set)
 
         i = self.mkrow({'point x': '27.00000015',
                         'point y': '27.00000015'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.NEARBY_TREES, n2, set)
 
         i = self.mkrow({'point x': '30.00000015',
                         'point y': '30.00000015'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.NEARBY_TREES)
 
@@ -148,7 +148,7 @@ class ValidationTest(TestCase):
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'genus': 'g1'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.INVALID_SPECIES)
 
@@ -156,7 +156,7 @@ class ValidationTest(TestCase):
                         'point y': '20',
                         'genus': 'g1',
                         'species': 's1'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.INVALID_SPECIES)
 
@@ -165,14 +165,14 @@ class ValidationTest(TestCase):
                         'genus': 'g1',
                         'species': 's1',
                         'cultivar': 'c1'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.INVALID_SPECIES)
 
         # Test no species info at all
         i = self.mkrow({'point x': '16',
                         'point y': '20'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.INVALID_SPECIES)
 
@@ -182,14 +182,14 @@ class ValidationTest(TestCase):
                         'genus': 'g1',
                         'species': 's2',
                         'cultivar': 'c1'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.INVALID_SPECIES)
 
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'genus': 'g2'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertHasError(i, Errors.INVALID_SPECIES)
 
@@ -199,7 +199,7 @@ class ValidationTest(TestCase):
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'opentreemap id number': '44b'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.INT_ERROR, 'opentreemap id number')
@@ -207,7 +207,7 @@ class ValidationTest(TestCase):
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'opentreemap id number': '-22'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.POS_INT_ERROR, 'opentreemap id number')
@@ -216,7 +216,7 @@ class ValidationTest(TestCase):
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'opentreemap id number': '44'})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.INVALID_OTM_ID, 44)
@@ -235,7 +235,7 @@ class ValidationTest(TestCase):
         i = self.mkrow({'point x': '16',
                         'point y': '20',
                         'opentreemap id number': p.pk})
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertNotHasError(i, Errors.INVALID_OTM_ID)
         self.assertNotHasError(i, Errors.INT_ERROR)
@@ -246,20 +246,20 @@ class ValidationTest(TestCase):
 
         # Invalid numbers
         i = mkpt('300a','20b')
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.FLOAT_ERROR)
 
         # Crazy lat/lngs
         i = mkpt(300,20)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.INVALID_GEOM)
 
         i = mkpt(50,93)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.INVALID_GEOM)
@@ -278,20 +278,20 @@ class ValidationTest(TestCase):
         neighborhood.save()
 
         i = mkpt(55,55)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.GEOM_OUT_OF_BOUNDS)
 
         i = mkpt(-5,-5)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         self.assertFalse(r)
         self.assertHasError(i, Errors.GEOM_OUT_OF_BOUNDS)
 
         # This should work...
         i = mkpt(25,25)
-        r = get_plot_from_row(i)
+        r = validate_row(i)
 
         # Can't assert that r is true because other validation
         # logic may have tripped it
