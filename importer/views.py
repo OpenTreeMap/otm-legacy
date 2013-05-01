@@ -9,7 +9,8 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User
 
-from treemap.models import Species, Neighborhood, Plot
+from treemap.models import Species, Neighborhood, Plot,\
+    Tree, ExclusionMask
 
 from importer.models import TreeImportEvent, TreeImportRow
 
@@ -68,12 +69,21 @@ class Fields:
     PESTS = 'pests and diseases'
     LOCAL_PROJECTS = 'local projects'
 
+    # Some plot choice fields aren't automatically
+    # converting to choice values. This set determine
+    # which are pre-converted
+    PLOT_CHOICES = {
+        PLOT_TYPE,
+        SIDEWALK,
+        POWERLINE_CONFLICT
+    }
+
     CHOICE_MAP = {
         PLOT_TYPE: 'plot_types',
         POWERLINE_CONFLICT: 'powerlines',
         SIDEWALK: 'sidewalks',
         TREE_CONDITION: 'conditions',
-        CANOPY_CONDITION: 'tree_conditions',
+        CANOPY_CONDITION: 'canopy_conditions',
         ACTIONS: 'actions',
         PESTS: 'pests',
         LOCAL_PROJECTS: 'projects'
@@ -102,6 +112,8 @@ class Errors:
                     'latitude must be betwen -90 and 90', True)
 
     GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be in a neighborhood', True)
+
+    EXCL_ZONE = (12, 'Geometry may not be in an exclusion zone', True)
 
     INVALID_SPECIES = (20, 'Could not find matching species', True)
 
@@ -144,16 +156,40 @@ def process_csv(request):
                          owner=owner)
     ie.save()
 
-    rows = create_rows_for_event(ie, request.FILES.values()[0])
-    filevalid = validate_main_file(ie)
+    create_rows_for_event(ie, request.FILES.values()[0])
 
-    if filevalid:
-        for row in rows:
-            validate_row(row)
+    #TODO: Celery
+    run_import_event_validation(ie)
 
     return HttpResponse(
         json.dumps({'id': ie.pk}),
         content_type = 'application/json')
+
+def run_import_event_validation(ie):
+    filevalid = validate_main_file(ie)
+
+    rows = ie.treeimportrow_set.all()
+    if filevalid:
+        for row in rows:
+            validate_row(row)
+
+def commit_import_event(ie):
+    filevalid = validate_main_file(ie)
+
+    rows = ie.treeimportrow_set.all()
+    success = []
+    failed = []
+
+    if filevalid:
+        for row in rows:
+            if commit_row(row):
+                success.append(row)
+            else:
+                failed.append(row)
+
+        return (success, failed)
+    else:
+        return False
 
 def process_status(request, import_id):
     ie = TreeImportEvent.objects.get(pk=import_id)
@@ -178,6 +214,16 @@ def process_status(request, import_id):
 
     return HttpResponse(
         json.dumps(resp),
+        content_type = 'application/json')
+
+def process_commit(request, import_id):
+    ie = TreeImportEvent.objects.get(pk=import_id)
+
+    rslt = commit_import_event(ie)
+
+    # TODO: What to return here?
+    return HttpResponse(
+        json.dumps({'status': 'success'}),
         content_type = 'application/json')
 
 def create_rows_for_event(importevent, csvfile):
@@ -315,12 +361,16 @@ def validate_geom(importrow):
 
     p = Point(x,y)
 
-    if Neighborhood.objects.filter(geometry__contains=p).exists():
+    if ExclusionMask.objects.filter(geometry__contains=p).exists():
+        importrow.append_error(Errors.EXCL_ZONE)
+        return False
+    elif Neighborhood.objects.filter(geometry__contains=p).exists():
         importrow.cleaned[Fields.POINT] = p
-        return True
     else:
         importrow.append_error(Errors.GEOM_OUT_OF_BOUNDS)
         return False
+
+    return True
 
 def validate_otm_id(importrow):
     oid = importrow.cleaned.get(Fields.OPENTREEMAP_ID_NUMBER, None)
@@ -388,7 +438,8 @@ def validate_numeric_fields(importrow):
     float_ok = cleanup([Fields.POINT_X, Fields.POINT_Y],
                            safe_float)
 
-    int_ok = cleanup([Fields.OPENTREEMAP_ID_NUMBER],
+    int_ok = cleanup([Fields.OPENTREEMAP_ID_NUMBER,
+                      Fields.ORIG_ID_NUMBER],
                          safe_pos_int)
 
     return pfloat_ok and float_ok and int_ok
@@ -410,11 +461,19 @@ def validate_choice_fields(importrow):
     for field,choice_key in Fields.CHOICE_MAP.iteritems():
         if field in importrow.datadict:
             value = importrow.datadict[field]
-            choices = { value for (id,value) in
-                       settings.CHOICES[choice_key] }
+            all_choices = settings.CHOICES[choice_key]
+            choices = { value for (id,value) in all_choices }
 
             if value in choices:
-                importrow.cleaned[field] = value
+                # Some plot choice fields aren't automatically
+                # converting to choice values so we do it forcibly
+                # here
+                if field in Fields.PLOT_CHOICES:
+                    importrow.cleaned[field] = [id for (id,v)
+                                                in all_choices
+                                                if v == value][0]
+                else:
+                    importrow.cleaned[field] = value
             else:
                 errors = True
                 importrow.append_error(Errors.INVALID_CHOICE, choice_key)
@@ -426,7 +485,9 @@ def validate_string_fields(importrow):
     for field in [Fields.ADDRESS, Fields.GENUS, Fields.SPECIES,
                   Fields.CULTIVAR, Fields.SCI_NAME, Fields.URL,
                   Fields.NOTES, Fields.OWNER, Fields.SPONSOR,
-                  Fields.STEWARD, Fields.DATA_SOURCE]:
+                  Fields.STEWARD, Fields.DATA_SOURCE,
+                  Fields.LOCAL_PROJECTS]:
+
         if field in importrow.datadict:
             value = importrow.datadict[field]
 
@@ -507,3 +568,114 @@ def validate_row(importrow):
     importrow.save()
 
     return not importrow.has_fatal_error()
+
+def commit_row(importrow):
+    # First validate
+    if not validate_row(importrow):
+        return False
+
+
+    #TODO: This is a kludge to get it to work with the
+    #      old system. Once everything works we can drop
+    #      this code
+    from treemap.models import ImportEvent
+
+    objs = ImportEvent.objects.filter(file_name=importrow.import_event.file_name)
+    if len(objs) == 0:
+        import_event = ImportEvent(file_name=importrow)
+        import_event.save()
+    else:
+        import_event = objs[0]
+    #
+    # END OF KLUDGE
+    #
+
+    # Get our data
+    data = importrow.cleaned
+
+    plot_edited = False
+    tree_edited = False
+
+    # Check for an existing tree:
+    if Fields.OPENTREEMAP_ID_NUMBER in data:
+        plot = Plot.objects.get(
+            pk=data[Fields.OPENTREEMAP_ID_NUMBER])
+        tree = plot.current_tree()
+    else:
+        plot = Plot(present=True)
+
+        if data.get(Fields.TREE_PRESENT, False):
+            tree_edited = True
+            tree = Tree(present=True)
+        else:
+            # Event if TREE_PRESENT is None, a tree
+            # can still be spawned here if there is
+            # any tree data later
+            tree = None
+
+    data_owner = importrow.import_event.owner
+
+    plot_map = {
+        'geometry': Fields.POINT,
+        'width': Fields.PLOT_WIDTH,
+        'length': Fields.PLOT_LENGTH,
+        'type': Fields.PLOT_TYPE,
+        'readonly': Fields.READ_ONLY,
+        'sidewalk_damage': Fields.SIDEWALK,
+        'powerline_conflict_potential': Fields.POWERLINE_CONFLICT,
+        'owner_orig_id': Fields.ORIG_ID_NUMBER,
+        'owner_additional_id': Fields.DATA_SOURCE,
+        'owner_additional_properties': Fields.NOTES
+    }
+
+    tree_map = {
+        'tree_owner': Fields.OWNER,
+        'steward_name': Fields.STEWARD,
+        'dbh': Fields.DIAMETER,
+        'height': Fields.TREE_HEIGHT,
+        'canopy_height': Fields.CANOPY_HEIGHT,
+        'species': Fields.SPECIES_OBJECT,
+        'sponsor': Fields.SPONSOR,
+        'date_planted': Fields.DATE_PLANTED,
+        'readonly': Fields.READ_ONLY,
+        'projects': Fields.LOCAL_PROJECTS,
+        'condition': Fields.TREE_CONDITION,
+        'canopy_condition': Fields.CANOPY_CONDITION,
+        'url': Fields.URL,
+        'pests': Fields.PESTS
+    }
+
+    for modelkey, importdatakey in plot_map.iteritems():
+        importdata = data.get(importdatakey, None)
+
+        if importdata:
+            plot_edited = True
+            setattr(plot, modelkey, importdata)
+
+    if plot_edited:
+        plot.last_updated_by = data_owner
+        plot.import_event = import_event
+        plot.save()
+
+    for modelkey, importdatakey in tree_map.iteritems():
+        importdata = data.get(importdatakey, None)
+
+        if importdata:
+            tree_edited = True
+            if tree is None:
+                tree = Tree(present=True)
+            setattr(tree, modelkey, importdata)
+
+    if tree_edited:
+        tree.last_updated_by = data_owner
+        tree.import_event = import_event
+        tree.plot = plot
+        tree.save()
+
+    importrow.plot = plot
+    importrow.save()
+
+    return True
+
+    #TODO: Ok to ignore address?
+    #TODO: Tree actions (csv field?)
