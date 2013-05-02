@@ -1,0 +1,48 @@
+{% extends "template_2.html" %}
+
+{% load url from future %}
+
+{% block extrahead %}
+  {% load compressed %}
+  {% compressed_js 'map' %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/importer.css" type="text/css"></link>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+  <script src="{{ STATIC_URL }}js/importer.js"></script>
+{% endblock %}
+
+{% block content_body_top %}
+{% endblock %}
+
+
+{% block middle_panel %}
+
+{% if event.has_errors %}
+  {% include 'importer/partials/file_level_error.html' with event=event %}
+{% else %}
+  <div class="importcontainer">
+    <div id="tabs"></div>
+  </div>
+
+  <button id="createtrees">Create Trees</button>
+{% endif %}
+
+{% endblock %}
+
+{% block right_panel %}
+{% endblock right_panel %}
+
+
+{% block content_body_bottom %}
+{% endblock %}
+
+
+
+{% block left_panel %}
+{% endblock left_panel %}
+
+
+
+
+{% block endpage %}
+{% endblock endpage %}
