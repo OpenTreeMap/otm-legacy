@@ -153,7 +153,7 @@ class Command(BaseCommand):
             if row.get('GENDER'):
                 gender = str(row['GENDER']).strip()
                 name = name + " " + gender
-            species = Species.objects.filter(genus__iexact=genus).filter(species__iexact=species).filter(cultivar_name__iexact=cultivar).filter(gender__iexact=gender)
+            species = Species.objects.filter(scientific_name__iexact=name)
             self.log_verbose("  Looking for species: %s %s %s %s" % (genus, species, cultivar, gender))
 
 
