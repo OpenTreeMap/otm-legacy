@@ -7,10 +7,13 @@ urlpatterns = patterns('importer.views',
     (r'^start$', 'start'),
     (r'^list$', 'list_imports'),
     (r'^create$', 'create'),
-    (r'^status/(?P<import_event_id>\d+)$', 'show_import_status'),
+    (r'^status/tree/(?P<import_event_id>\d+)$', 'show_tree_import_status'),
+    (r'^status/species/(?P<import_event_id>\d+)$', 'show_species_import_status'),
     (r'^update/(?P<import_event_row_id>\d+)$', 'update_row'),
 
     # API
-    (r'^api/(?P<import_event_id>\d+)/results/(?P<subtype>[a-zA-Z]+)$', 'results'),
-    (r'^api/(?P<import_event_id>\d+)/commit$', 'commit'),
+    (r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/results/(?P<subtype>[a-zA-Z]+)$',
+     'results'),
+    (r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/commit$', 'commit'),
+    (r'^api/species/(?P<import_event_id>\d+)/(?P<import_row_idx>\d+)/solve$', 'solve'),
 )

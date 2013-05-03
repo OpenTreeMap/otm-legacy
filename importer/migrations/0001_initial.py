@@ -8,22 +8,47 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'TreeImportEvent'
-        db.create_table('importer_treeimportevent', (
+        # Adding model 'SpeciesImportEvent'
+        db.create_table('importer_speciesimportevent', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('file_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('plot_length_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
-            ('plot_width_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
-            ('diameter_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
-            ('tree_height_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
-            ('canopy_height_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
             ('errors', self.gf('django.db.models.fields.TextField')(default='')),
             ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('completed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('commited', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
+        db.send_create_signal('importer', ['SpeciesImportEvent'])
+
+        # Adding model 'TreeImportEvent'
+        db.create_table('importer_treeimportevent', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('file_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('errors', self.gf('django.db.models.fields.TextField')(default='')),
+            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('completed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('commited', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('plot_length_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
+            ('plot_width_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
+            ('diameter_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
+            ('tree_height_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
+            ('canopy_height_conversion_factor', self.gf('django.db.models.fields.FloatField')(default=1.0)),
+        ))
         db.send_create_signal('importer', ['TreeImportEvent'])
+
+        # Adding model 'SpeciesImportRow'
+        db.create_table('importer_speciesimportrow', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('data', self.gf('django.db.models.fields.TextField')()),
+            ('idx', self.gf('django.db.models.fields.IntegerField')()),
+            ('finished', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('errors', self.gf('django.db.models.fields.TextField')(default='')),
+            ('status', self.gf('django.db.models.fields.IntegerField')(default=3)),
+            ('species', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Species'], null=True, blank=True)),
+            ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['importer.SpeciesImportEvent'])),
+        ))
+        db.send_create_signal('importer', ['SpeciesImportRow'])
 
         # Adding model 'TreeImportRow'
         db.create_table('importer_treeimportrow', (
@@ -32,6 +57,7 @@ class Migration(SchemaMigration):
             ('idx', self.gf('django.db.models.fields.IntegerField')()),
             ('finished', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('errors', self.gf('django.db.models.fields.TextField')(default='')),
+            ('status', self.gf('django.db.models.fields.IntegerField')(default=3)),
             ('plot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Plot'], null=True, blank=True)),
             ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['importer.TreeImportEvent'])),
         ))
@@ -39,8 +65,14 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting model 'SpeciesImportEvent'
+        db.delete_table('importer_speciesimportevent')
+
         # Deleting model 'TreeImportEvent'
         db.delete_table('importer_treeimportevent')
+
+        # Deleting model 'SpeciesImportRow'
+        db.delete_table('importer_speciesimportrow')
 
         # Deleting model 'TreeImportRow'
         db.delete_table('importer_treeimportrow')
@@ -83,6 +115,27 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        'importer.speciesimportevent': {
+            'Meta': {'object_name': 'SpeciesImportEvent'},
+            'commited': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'errors': ('django.db.models.fields.TextField', [], {'default': "''"}),
+            'file_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
+        'importer.speciesimportrow': {
+            'Meta': {'object_name': 'SpeciesImportRow'},
+            'data': ('django.db.models.fields.TextField', [], {}),
+            'errors': ('django.db.models.fields.TextField', [], {'default': "''"}),
+            'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'idx': ('django.db.models.fields.IntegerField', [], {}),
+            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['importer.SpeciesImportEvent']"}),
+            'species': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['treemap.Species']", 'null': 'True', 'blank': 'True'}),
+            'status': ('django.db.models.fields.IntegerField', [], {'default': '3'})
+        },
         'importer.treeimportevent': {
             'Meta': {'object_name': 'TreeImportEvent'},
             'canopy_height_conversion_factor': ('django.db.models.fields.FloatField', [], {'default': '1.0'}),
@@ -106,7 +159,8 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'idx': ('django.db.models.fields.IntegerField', [], {}),
             'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['importer.TreeImportEvent']"}),
-            'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['treemap.Plot']", 'null': 'True', 'blank': 'True'})
+            'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['treemap.Plot']", 'null': 'True', 'blank': 'True'}),
+            'status': ('django.db.models.fields.IntegerField', [], {'default': '3'})
         },
         'treemap.importevent': {
             'Meta': {'object_name': 'ImportEvent'},
@@ -152,6 +206,54 @@ class Migration(SchemaMigration):
             'type': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'width': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'zipcode': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['treemap.ZipCode']", 'null': 'True', 'blank': 'True'})
+        },
+        'treemap.resource': {
+            'Meta': {'object_name': 'Resource'},
+            'aq_nox_avoided_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_nox_dep_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_ozone_dep_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_pm10_avoided_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_pm10_dep_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_sox_avoided_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_sox_dep_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'aq_voc_avoided_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'bvoc_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'co2_avoided_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'co2_sequestered_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'co2_storage_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'electricity_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'hydro_interception_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'meta_species': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'}),
+            'natural_gas_dbh': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'region': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'})
+        },
+        'treemap.species': {
+            'Meta': {'object_name': 'Species'},
+            'alternate_symbol': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'bloom_period': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'common_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'cultivar_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'fact_sheet': ('django.db.models.fields.URLField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'fall_conspicuous': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'flower_conspicuous': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'fruit_period': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'gender': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'genus': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'itree_code': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'native_status': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'palatable_human': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'plant_guide': ('django.db.models.fields.URLField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'resource': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['treemap.Resource']", 'null': 'True', 'symmetrical': 'False'}),
+            'scientific_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'species': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'symbol': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'tree_count': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'v_max_dbh': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'v_max_height': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'v_multiple_trunks': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'wildlife_value': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
         },
         'treemap.zipcode': {
             'Meta': {'object_name': 'ZipCode'},

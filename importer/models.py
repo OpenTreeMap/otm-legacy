@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.models import Plot
+from treemap.models import Plot, Resource
 from importer import fields
 from importer import errors
 
@@ -15,22 +15,13 @@ from treemap.models import Species, Neighborhood, Plot,\
 
 import json
 
-class TreeImportEvent(models.Model):
-    """
-    A TreeImportEvent represents an attempt to upload a csv containing
-    tree/plot information
-    """
+class GenericImportEvent(models.Model):
+
+    class Meta:
+        abstract = True
 
     # Original Name of the file
     file_name = models.CharField(max_length=255)
-
-    # We can do some numeric conversions
-    # TODO: Support numeric conversions
-    plot_length_conversion_factor = models.FloatField(default=1.0)
-    plot_width_conversion_factor = models.FloatField(default=1.0)
-    diameter_conversion_factor = models.FloatField(default=1.0)
-    tree_height_conversion_factor = models.FloatField(default=1.0)
-    canopy_height_conversion_factor = models.FloatField(default=1.0)
 
     # Global errors and notices (json)
     errors = models.TextField(default='')
@@ -70,6 +61,72 @@ class TreeImportEvent(models.Model):
         return len(self.errors_as_array()) > 0
 
     def rows(self):
+        raise Exception('Abstract Method')
+
+    def validate_main_file(self):
+        raise Exception('Abstract Method')
+
+class SpeciesImportEvent(GenericImportEvent):
+    """
+    A TreeImportEvent represents an attempt to upload a csv containing
+    species information
+    """
+    def rows(self):
+        return self.speciesimportrow_set.order_by('idx').all()
+
+    def validate_main_file(self):
+        """
+        Make sure the imported file has rows and valid columns
+        """
+        if self.rows().count() == 0:
+            self.append_error(errors.EMPTY_FILE)
+
+            # This is a fatal error. We need to have at least
+            # one row to get header info
+            self.save()
+            return False
+
+        has_errors = False
+        datastr = self.rows()[0].data
+        input_fields = set(json.loads(datastr).keys())
+
+        #TODO: Species is no longer a required field
+        req = { fields.species.GENUS, fields.species.SPECIES,
+                fields.species.COMMON_NAME, fields.species.ITREE_CODE }
+
+        req -= input_fields
+        if req:
+            has_errors = True
+            self.append_error(errors.MISSING_SPECIES_FIELDS)
+
+        # It is a warning if there are extra input fields
+        rem = input_fields - fields.species.ALL
+        if len(rem) > 0:
+            has_errors = True
+            self.append_error(errors.UNMATCHED_FIELDS, list(rem))
+
+        if errors:
+            self.save()
+
+        return not has_errors
+
+
+
+class TreeImportEvent(GenericImportEvent):
+    """
+    A TreeImportEvent represents an attempt to upload a csv containing
+    tree/plot information
+    """
+
+    # We can do some numeric conversions
+    # TODO: Support numeric conversions
+    plot_length_conversion_factor = models.FloatField(default=1.0)
+    plot_width_conversion_factor = models.FloatField(default=1.0)
+    diameter_conversion_factor = models.FloatField(default=1.0)
+    tree_height_conversion_factor = models.FloatField(default=1.0)
+    canopy_height_conversion_factor = models.FloatField(default=1.0)
+
+    def rows(self):
         return self.treeimportrow_set.order_by('idx').all()
 
     def validate_main_file(self):
@@ -89,13 +146,13 @@ class TreeImportEvent(models.Model):
         input_fields = set(json.loads(datastr).keys())
 
         # Point x/y fields are required
-        if (fields.POINT_X not in input_fields or
-            fields.POINT_Y not in input_fields):
+        if (fields.trees.POINT_X not in input_fields or
+            fields.trees.POINT_Y not in input_fields):
             has_errors = True
             self.append_error(errors.MISSING_POINTS)
 
         # It is a warning if there are extra input fields
-        rem = input_fields - fields.ALL
+        rem = input_fields - fields.trees.ALL
         if len(rem) > 0:
             has_errors = True
             self.append_error(errors.UNMATCHED_FIELDS, list(rem))
@@ -108,10 +165,14 @@ class TreeImportEvent(models.Model):
 
 
 
-class TreeImportRow(models.Model):
+class GenericImportRow(models.Model):
     """
     A row of data and import status
+    Subclassed by 'Tree Import Row' and 'Species Import Row'
     """
+
+    class Meta:
+        abstract = True
 
     # JSON dictionary from header <-> rows
     data = models.TextField()
@@ -124,25 +185,18 @@ class TreeImportRow(models.Model):
     # JSON field containing error information
     errors = models.TextField(default='')
 
-    # plot that was created from this row
-    plot = models.ForeignKey(Plot, null=True, blank=True)
-
-    # The main import event
-    import_event = models.ForeignKey(TreeImportEvent)
-
     # Status
-    SUCCESS=0
-    ERROR=1
-    WATCH=2
     WAITING=3
-    VERIFIED=4
-
     status = models.IntegerField(default=WAITING)
 
     def __init__(self, *args, **kwargs):
-        super(TreeImportRow, self).__init__(*args,**kwargs)
+        super(GenericImportRow, self).__init__(*args,**kwargs)
         self.jsondata = None
         self.cleaned = {}
+
+    @property
+    def model_fields(self):
+        raise Exception('Abstract Method')
 
     @property
     def datadict(self):
@@ -205,28 +259,6 @@ class TreeImportRow(models.Model):
 
         return self
 
-
-    def validate_species(self):
-        genus = self.datadict.get(fields.GENUS,'')
-        species = self.datadict.get(fields.SPECIES,'')
-        cultivar = self.datadict.get(fields.CULTIVAR,'')
-
-        if genus != '' or species != '' or cultivar != '':
-            matching_species = Species.objects\
-                                      .filter(genus__iexact=genus)\
-                                      .filter(species__iexact=species)\
-                                      .filter(cultivar_name__iexact=cultivar)
-
-            if len(matching_species) == 1:
-                self.cleaned[fields.SPECIES_OBJECT] = matching_species[0]
-            else:
-                self.append_error(errors.INVALID_SPECIES,
-                                  (fields.GENUS, fields.SPECIES, fields.CULTIVAR),
-                                  ' '.join([genus,species,cultivar]).strip())
-                return False
-
-        return True
-
     def safe_float(self, fld):
         try:
             return float(self.datadict[fld])
@@ -238,9 +270,11 @@ class TreeImportRow(models.Model):
         """ Returns a tuple of (success, bool value) """
         v = self.datadict.get(fld, '').lower()
 
-        if v == 'true':
+        if v == '':
+            return (True, None)
+        if v == 'true' or v == 't' or v == 'yes':
             return (True,True)
-        elif v == 'false':
+        elif v == 'false' or v == 'f' or v == 'no':
             return (True,False)
         else:
             self.append_error(errors.BOOL_ERROR, fld)
@@ -276,88 +310,6 @@ class TreeImportRow(models.Model):
         else:
             return i
 
-    def validate_geom(self):
-        x = self.cleaned.get(fields.POINT_X, None)
-        y = self.cleaned.get(fields.POINT_Y, None)
-
-        # Note, this shouldn't really happen since main
-        # file validation will fail, but butter safe than sorry
-        if x is None or y is None:
-            self.append_error(errors.MISSING_POINTS,
-                              (fields.POINT_X, fields.POINT_Y))
-            return False
-
-        # Simple validation
-        # longitude must be between -180 and 180
-        # latitude must be betwen -90 and 90
-        if abs(x) > 180 or abs(y) > 90:
-            self.append_error(errors.INVALID_GEOM,
-                              (fields.POINT_X, fields.POINT_Y))
-            return False
-
-        p = Point(x,y)
-
-        if ExclusionMask.objects.filter(geometry__contains=p).exists():
-            self.append_error(errors.EXCL_ZONE,
-                              (fields.POINT_X, fields.POINT_Y))
-            return False
-        elif Neighborhood.objects.filter(geometry__contains=p).exists():
-            self.cleaned[fields.POINT] = p
-        else:
-            self.append_error(errors.GEOM_OUT_OF_BOUNDS,
-                              (fields.POINT_X, fields.POINT_Y))
-            return False
-
-        return True
-
-    def validate_otm_id(self):
-        oid = self.cleaned.get(fields.OPENTREEMAP_ID_NUMBER, None)
-        if oid:
-            has_plot = Plot.objects.filter(
-                pk=oid).exists()
-
-            if not has_plot:
-                self.append_error(errors.INVALID_OTM_ID,
-                                  fields.OPENTREEMAP_ID_NUMBER)
-                return False
-
-        return True
-
-    def validate_proximity(self, point):
-        nearby = Plot.objects\
-                     .filter(present=True,
-                             geometry__distance_lte=(point, D(ft=10.0)))\
-                     .distance(point)\
-                     .order_by('distance')[:5]
-
-        if len(nearby) > 0:
-            self.append_error(errors.NEARBY_TREES,
-                              (fields.POINT_X, fields.POINT_Y),
-                              [p.pk for p in nearby])
-            return False
-        else:
-            return True
-
-    def validate_species_max(self, field, max_val, err):
-        inputval = self.cleaned.get(field, None)
-        if inputval:
-            if max_val and inputval > max_val:
-                self.append_error(err, field, max_val)
-                return False
-
-        return True
-
-
-    def validate_species_dbh_max(self, species):
-        return self.validate_species_max(
-            fields.DIAMETER,
-            species.v_max_dbh, errors.SPECIES_DBH_TOO_HIGH)
-
-    def validate_species_height_max(self, species):
-        return self.validate_species_max(
-            fields.TREE_HEIGHT,
-            species.v_max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
-
     def validate_numeric_fields(self):
         def cleanup(fields, fn):
             has_errors = False
@@ -372,25 +324,23 @@ class TreeImportRow(models.Model):
 
             return has_errors
 
-        pfloat_ok = cleanup([fields.PLOT_WIDTH, fields.PLOT_LENGTH,
-                             fields.DIAMETER, fields.TREE_HEIGHT,
-                             fields.CANOPY_HEIGHT], self.safe_pos_float)
+        pfloat_ok = cleanup(self.model_fields.POS_FLOAT_FIELDS,
+                            self.safe_pos_float)
 
-        float_ok = cleanup([fields.POINT_X, fields.POINT_Y],
+        float_ok = cleanup(self.model_fields.FLOAT_FIELDS,
                            self.safe_float)
 
-        int_ok = cleanup([fields.OPENTREEMAP_ID_NUMBER,
-                          fields.ORIG_ID_NUMBER],
+        int_ok = cleanup(self.model_fields.POS_INT_FIELDS,
                          self.safe_pos_int)
 
         return pfloat_ok and float_ok and int_ok
 
     def validate_boolean_fields(self):
         has_errors = False
-        for f in [fields.READ_ONLY, fields.TREE_PRESENT]:
+        for f in self.model_fields.BOOLEAN_FIELDS:
             if f in self.datadict:
                 success, v = self.safe_bool(f)
-                if success:
+                if success and v is not None:
                     self.cleaned[f] = v
                 else:
                     has_errors = True
@@ -399,7 +349,7 @@ class TreeImportRow(models.Model):
 
     def validate_choice_fields(self):
         has_errors = False
-        for field,choice_key in fields.CHOICE_MAP.iteritems():
+        for field,choice_key in self.model_fields.CHOICE_MAP.iteritems():
             value = self.datadict.get(field, None)
             if value:
                 all_choices = settings.CHOICES[choice_key]
@@ -409,7 +359,7 @@ class TreeImportRow(models.Model):
                     # Some plot choice fields aren't automatically
                     # converting to choice values so we do it forcibly
                     # here
-                    if field in fields.PLOT_CHOICES:
+                    if field in self.model_fields.PLOT_CHOICES:
                         self.cleaned[field] = [id for (id,v)
                                                     in all_choices
                                                     if v == value][0]
@@ -424,15 +374,10 @@ class TreeImportRow(models.Model):
 
     def validate_string_fields(self):
         has_errors = False
-        for field in [fields.ADDRESS, fields.GENUS, fields.SPECIES,
-                      fields.CULTIVAR, fields.SCI_NAME, fields.URL,
-                      fields.NOTES, fields.OWNER, fields.SPONSOR,
-                      fields.STEWARD, fields.DATA_SOURCE,
-                      fields.LOCAL_PROJECTS, fields.NOTES]:
+        for field in self.model_fields.STRING_FIELDS:
 
-            if field in self.datadict:
-                value = self.datadict[field]
-
+            value = self.datadict.get(field, None)
+            if value:
                 if len(value) > 255:
                     self.append_error(errors.STRING_TOO_LONG, field)
                     has_errors = True
@@ -442,19 +387,19 @@ class TreeImportRow(models.Model):
         return has_errors
 
     def validate_date_fields(self):
-        if fields.DATE_PLANTED in self.datadict:
-            datestr = self.datadict[fields.DATE_PLANTED]
-
-            if datestr:
+        has_errors = False
+        for field in self.model_fields.DATE_FIELDS:
+            value = self.datadict.get(field, None)
+            if value:
                 try:
-                    datep = datetime.strptime(datestr, '%Y-%m-%d')
-                    self.cleaned[fields.DATE_PLANTED] = datep
+                    datep = datetime.strptime(value, '%Y-%m-%d')
+                    self.cleaned[self.model_fields.DATE_PLANTED] = datep
                 except ValueError, e:
                     self.append_error(errors.INVALID_DATE,
-                                      fields.DATE_PLANTED)
-                    return False
+                                      self.model_fields.DATE_PLANTED)
+                    has_errors = True
 
-        return True
+        return has_errors
 
 
     def validate_and_convert_datatypes(self):
@@ -463,6 +408,176 @@ class TreeImportRow(models.Model):
         self.validate_choice_fields()
         self.validate_string_fields()
         self.validate_date_fields()
+
+    def validate_row(self):
+        """
+        Validate a row. Returns True if there were no fatal errors,
+        False otherwise
+
+        The method mutates self in two ways:
+        - The 'errors' field on self will be appended to
+          whenever an error is found
+        - The 'cleaned' field on self will be set as fields
+          get validated
+        """
+        raise Exception('Abstract Method')
+
+
+#TODO: Ok to ignore address?
+#TODO: Tree actions (csv field?)
+
+class SpeciesImportRow(GenericImportRow):
+
+    SUCCESS=0
+    ERROR=1
+    VERIFIED=4
+
+    SPECIES_MAP = {
+            'symbol': fields.species.USDA_SYMBOL,
+            'alternate_symbol': fields.species.ALT_SYMBOL,
+            'itree_code': fields.species.ITREE_CODE,
+            'genus': fields.species.GENUS,
+            'species': fields.species.SPECIES,
+            'cultivar_name': fields.species.CULTIVAR,
+            'common_name': fields.species.COMMON_NAME,
+            'native_status': fields.species.NATIVE_STATUS,
+            'fall_conspicuous': fields.species.FALL_COLORS,
+            'palatable_human': fields.species.EDIBLE,
+            'flower_conspicuous': fields.species.FLOWERING,
+            'bloom_period': fields.species.FLOWERING_PERIOD,
+            'fruit_period': fields.species.FRUIT_PERIOD,
+            'wildlife_value': fields.species.WILDLIFE,
+            'v_max_dbh': fields.species.MAX_DIAMETER,
+            'v_max_height': fields.species.MAX_HEIGHT,
+            'fact_sheet': fields.species.FACT_SHEET
+        }
+
+    # Species reference
+    species = models.ForeignKey(Species, null=True, blank=True)
+    merged = models.BooleanField(default=False)
+
+    import_event = models.ForeignKey(SpeciesImportEvent)
+
+    def diff_from_species(self, species):
+        """ Compute how this row is different from
+        the given species
+
+        The result is a json dict with field names:
+        { '<field name>': ['<species value>', '<row value>'] }
+
+        Note that you can't *remove* data with species import
+
+        If the returned dictionary is empty, importing this
+        row will (essentially) be a nop
+
+        This should only be called after a verify because I
+        uses cleaned data
+        """
+        #TODO: Test me
+        if species is None:
+            return {}
+
+        data = self.cleaned
+        rslt = {}
+        for (modelkey, rowkey) in SpeciesImportRow.SPECIES_MAP.iteritems():
+            rowdata = data.get(rowkey, None)
+            modeldata = getattr(species,modelkey)
+
+            if rowdata and rowdata != modeldata:
+                    rslt[rowkey] = (modeldata, rowdata)
+
+        # Always include the ID
+        rslt['id'] = (species.pk, None)
+
+        return rslt
+
+    @property
+    def model_fields(self):
+        return fields.species
+
+    def validate_species(self):
+        genus = self.datadict.get(fields.species.GENUS,'')
+        species = self.datadict.get(fields.species.SPECIES,'')
+        cultivar = self.datadict.get(fields.species.CULTIVAR,'')
+
+        if genus != '' or species != '' or cultivar != '':
+            matching_species = Species.objects\
+                                      .filter(genus__iexact=genus)\
+                                      .filter(species__iexact=species)\
+                                      .filter(cultivar_name__iexact=cultivar)
+
+            self.cleaned[fields.species.ORIG_SPECIES]\
+                |= { s.pk for s in matching_species }
+
+
+        return True
+
+    def validate_code(self, fld, species_fld, addl_filters=None):
+        value = self.datadict.get(fld, None)
+
+        if value:
+            self.cleaned[fld] = value
+
+            matching_species = Species.objects\
+                                      .filter(**{species_fld: value})
+
+            if addl_filters:
+                matching_species = matching_species\
+                    .filter(**addl_filters)
+
+            self.cleaned[fields.species.ORIG_SPECIES]\
+                |= { s.pk for s in matching_species }
+
+        return True
+
+    def validate_usda_code(self):
+        # USDA codes don't cover cultivars, so assert that
+        # a 'matching' species *must* have the same cultivar
+        # and same USDA code
+        addl_filter =  {'cultivar_name':
+                        self.cleaned.get(fields.species.CULTIVAR,
+                                         '')}
+
+        return self.validate_code(fields.species.USDA_SYMBOL,
+                                  'symbol', addl_filter)
+
+    def validate_alt_code(self):
+        return self.validate_code(fields.species.ALT_SYMBOL,
+                                  'alternate_symbol')
+
+
+    def validate_required_fields(self):
+        req = { fields.species.GENUS, fields.species.SPECIES,
+                fields.species.COMMON_NAME, fields.species.ITREE_CODE }
+
+        has_errors = False
+
+        for field in req:
+            value = self.cleaned.get(field, None)
+            if not value:
+                has_errors = True
+                self.append_error(errors.MISSING_FIELD, field)
+
+        return not has_errors
+
+    def validate_itree_code(self):
+        has_error = False
+        itreecode = self.datadict.get(fields.species.ITREE_CODE)
+        if itreecode:
+            rsrc = Resource.objects.filter(meta_species=itreecode)
+            if len(rsrc) == 0:
+                has_error = True
+                self.append_error(errors.INVALID_ITREE_CODE,
+                                  (fields.species.ITREE_CODE,))
+            else:
+                self.cleaned[fields.species.RESOURCE] = rsrc[0]
+        else:
+            has_error = True
+            self.append_error(errors.MISSING_ITREE_CODE,
+                              (fields.species.ITREE_CODE,))
+
+        return not has_error
+
 
     def validate_row(self):
         """
@@ -485,41 +600,123 @@ class TreeImportRow(models.Model):
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()
 
-        # We can work on the 'cleaned' data from here on out
-        self.validate_otm_id()
-
-        # Attaches a GEOS point to fields.POINT
-        self.validate_geom()
-
-        # This could be None or not set if there
-        # was an earlier error
-        pt = self.cleaned.get(fields.POINT, None)
+        # Check to see if this species matches any existing ones
+        # they'll be stored as a set of ORIG_SPECIES
+        self.cleaned[fields.species.ORIG_SPECIES] = set()
 
         self.validate_species()
+        self.validate_usda_code()
+        self.validate_alt_code()
 
-        # This could be None or unset if species data were
-        # not given
-        species = self.cleaned.get(fields.SPECIES_OBJECT, None)
+        self.validate_itree_code()
+        self.validate_required_fields()
 
-        # These validations are non-fatal
-        if species:
-            self.validate_species_dbh_max(species)
-            self.validate_species_height_max(species)
+        # Native status is a horrible field that pretends to
+        # be a boolean value but is actually a string so we
+        # change it here
+        self.cleaned[fields.species.NATIVE_STATUS] = str(
+            self.cleaned[fields.species.NATIVE_STATUS])
 
-        if pt:
-            self.validate_proximity(pt)
+
+        # If same is set to true this is essentially a no-op
+        same = False
+
+        possible_matches = self.cleaned[fields.species.ORIG_SPECIES]
+        if not self.merged:
+            if len(possible_matches) > 1:
+                species = [Species.objects.get(pk=pk) for pk in possible_matches]
+                diffs = [self.diff_from_species(s) for s in species];
+                self.append_error(errors.TOO_MANY_SPECIES, None, tuple(diffs))
+            elif len(possible_matches) == 1:
+                pk = list(possible_matches)[0]
+                self.species = Species.objects.get(pk=pk)
+
+                diff = self.diff_from_species(self.species)
+
+                # There's always a single diff, which is the 'id' of
+                # the existing species
+                if len(diff) <= 1 or self.merged:
+                    self.merged = True
+                    same = True
+                else:
+                    self.append_error(errors.MERGE_REQ, None, diff)
+            else:
+                self.merged = True
 
         fatal = False
         if self.has_fatal_error():
-            self.status = TreeImportRow.ERROR
+            self.status = SpeciesImportRow.ERROR
             fatal = True
-        elif self.has_errors(): # Has 'warning'/tree watch errors
-            self.status = TreeImportRow.WATCH
+        elif same: # Nothing changed, this has been effectively added
+            self.status = SpeciesImportRow.SUCCESS
         else:
-            self.status = TreeImportRow.VERIFIED
+            self.status = SpeciesImportRow.VERIFIED
 
         self.save()
         return not fatal
+
+    def commit_row(self):
+        # First validate
+        if not self.validate_row():
+            return False
+
+        # Get our data
+        data = self.cleaned
+
+        species_edited = False
+
+        # Initially grab species from row if it exists
+        # and edit it
+        species = self.species
+
+        # If not specified create a new one
+        if species is None:
+            species = Species()
+
+        #TODO: Support family field
+        #TODO: What to do about gender
+        #TODO: The whole 'other part of sci name' thing for both species and trees
+        #TODO: Update tree count nonsense
+
+        for modelkey, importdatakey in SpeciesImportRow.SPECIES_MAP.iteritems():
+            importdata = data.get(importdatakey, None)
+
+            if importdata:
+                species_edited = True
+                setattr(species, modelkey, importdata)
+
+        if species_edited:
+            species.save()
+
+        resource = data[fields.species.RESOURCE]
+
+        species.resource.clear()
+        species.resource.add(resource)
+
+        species.save()
+        resource.save()
+
+        self.species = species
+        self.status = TreeImportRow.SUCCESS
+        self.save()
+
+        return True
+
+class TreeImportRow(GenericImportRow):
+    SUCCESS=0
+    ERROR=1
+    WATCH=2
+    VERIFIED=4
+
+    # plot that was created from this row
+    plot = models.ForeignKey(Plot, null=True, blank=True)
+
+    # The main import event
+    import_event = models.ForeignKey(TreeImportEvent)
+
+    @property
+    def model_fields(self):
+        return fields.trees
 
     def commit_row(self):
         # First validate
@@ -558,12 +755,12 @@ class TreeImportRow(models.Model):
         tree = plot.current_tree()
 
         # Check for an existing tree:
-        if fields.OPENTREEMAP_ID_NUMBER in data:
+        if self.model_fields.OPENTREEMAP_ID_NUMBER in data:
             plot = Plot.objects.get(
-                pk=data[fields.OPENTREEMAP_ID_NUMBER])
+                pk=data[self.model_fields.OPENTREEMAP_ID_NUMBER])
             tree = plot.current_tree()
         else:
-            if data.get(fields.TREE_PRESENT, False):
+            if data.get(self.model_fields.TREE_PRESENT, False):
                 tree_edited = True
                 if tree is None:
                     tree = Tree(present=True)
@@ -571,33 +768,33 @@ class TreeImportRow(models.Model):
         data_owner = self.import_event.owner
 
         plot_map = {
-            'geometry': fields.POINT,
-            'width': fields.PLOT_WIDTH,
-            'length': fields.PLOT_LENGTH,
-            'type': fields.PLOT_TYPE,
-            'readonly': fields.READ_ONLY,
-            'sidewalk_damage': fields.SIDEWALK,
-            'powerline_conflict_potential': fields.POWERLINE_CONFLICT,
-            'owner_orig_id': fields.ORIG_ID_NUMBER,
-            'owner_additional_id': fields.DATA_SOURCE,
-            'owner_additional_properties': fields.NOTES
+            'geometry': fields.trees.POINT,
+            'width': fields.trees.PLOT_WIDTH,
+            'length': fields.trees.PLOT_LENGTH,
+            'type': fields.trees.PLOT_TYPE,
+            'readonly': fields.trees.READ_ONLY,
+            'sidewalk_damage': fields.trees.SIDEWALK,
+            'powerline_conflict_potential': fields.trees.POWERLINE_CONFLICT,
+            'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+            'owner_additional_id': fields.trees.DATA_SOURCE,
+            'owner_additional_properties': fields.trees.NOTES
         }
 
         tree_map = {
-            'tree_owner': fields.OWNER,
-            'steward_name': fields.STEWARD,
-            'dbh': fields.DIAMETER,
-            'height': fields.TREE_HEIGHT,
-            'canopy_height': fields.CANOPY_HEIGHT,
-            'species': fields.SPECIES_OBJECT,
-            'sponsor': fields.SPONSOR,
-            'date_planted': fields.DATE_PLANTED,
-            'readonly': fields.READ_ONLY,
-            'projects': fields.LOCAL_PROJECTS,
-            'condition': fields.TREE_CONDITION,
-            'canopy_condition': fields.CANOPY_CONDITION,
-            'url': fields.URL,
-            'pests': fields.PESTS
+            'tree_owner': fields.trees.OWNER,
+            'steward_name': fields.trees.STEWARD,
+            'dbh': fields.trees.DIAMETER,
+            'height': fields.trees.TREE_HEIGHT,
+            'canopy_height': fields.trees.CANOPY_HEIGHT,
+            'species': fields.trees.SPECIES_OBJECT,
+            'sponsor': fields.trees.SPONSOR,
+            'date_planted': fields.trees.DATE_PLANTED,
+            'readonly': fields.trees.READ_ONLY,
+            'projects': fields.trees.LOCAL_PROJECTS,
+            'condition': fields.trees.TREE_CONDITION,
+            'canopy_condition': fields.trees.CANOPY_CONDITION,
+            'url': fields.trees.URL,
+            'pests': fields.trees.PESTS
         }
 
         for modelkey, importdatakey in plot_map.iteritems():
@@ -633,5 +830,162 @@ class TreeImportRow(models.Model):
 
         return True
 
-    #TODO: Ok to ignore address?
-    #TODO: Tree actions (csv field?)
+    def validate_geom(self):
+        x = self.cleaned.get(fields.trees.POINT_X, None)
+        y = self.cleaned.get(fields.trees.POINT_Y, None)
+
+        # Note, this shouldn't really happen since main
+        # file validation will fail, but butter safe than sorry
+        if x is None or y is None:
+            self.append_error(errors.MISSING_POINTS,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            return False
+
+        # Simple validation
+        # longitude must be between -180 and 180
+        # latitude must be betwen -90 and 90
+        if abs(x) > 180 or abs(y) > 90:
+            self.append_error(errors.INVALID_GEOM,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            return False
+
+        p = Point(x,y)
+
+        if ExclusionMask.objects.filter(geometry__contains=p).exists():
+            self.append_error(errors.EXCL_ZONE,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            return False
+        elif Neighborhood.objects.filter(geometry__contains=p).exists():
+            self.cleaned[fields.trees.POINT] = p
+        else:
+            self.append_error(errors.GEOM_OUT_OF_BOUNDS,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            return False
+
+        return True
+
+    def validate_otm_id(self):
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        if oid:
+            has_plot = Plot.objects.filter(
+                pk=oid).exists()
+
+            if not has_plot:
+                self.append_error(errors.INVALID_OTM_ID,
+                                  fields.trees.OPENTREEMAP_ID_NUMBER)
+                return False
+
+        return True
+
+    def validate_proximity(self, point):
+        nearby = Plot.objects\
+                     .filter(present=True,
+                             geometry__distance_lte=(point, D(ft=10.0)))\
+                     .distance(point)\
+                     .order_by('distance')[:5]
+
+        if len(nearby) > 0:
+            self.append_error(errors.NEARBY_TREES,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y),
+                              [p.pk for p in nearby])
+            return False
+        else:
+            return True
+
+    def validate_species_max(self, field, max_val, err):
+        inputval = self.cleaned.get(field, None)
+        if inputval:
+            if max_val and inputval > max_val:
+                self.append_error(err, field, max_val)
+                return False
+
+        return True
+
+
+    def validate_species_dbh_max(self, species):
+        return self.validate_species_max(
+            fields.trees.DIAMETER,
+            species.v_max_dbh, errors.SPECIES_DBH_TOO_HIGH)
+
+    def validate_species_height_max(self, species):
+        return self.validate_species_max(
+            fields.trees.TREE_HEIGHT,
+            species.v_max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
+
+    def validate_species(self):
+        genus = self.datadict.get(fields.trees.GENUS,'')
+        species = self.datadict.get(fields.trees.SPECIES,'')
+        cultivar = self.datadict.get(fields.trees.CULTIVAR,'')
+
+        if genus != '' or species != '' or cultivar != '':
+            matching_species = Species.objects\
+                                      .filter(genus__iexact=genus)\
+                                      .filter(species__iexact=species)\
+                                      .filter(cultivar_name__iexact=cultivar)
+
+            if len(matching_species) == 1:
+                self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
+            else:
+                self.append_error(errors.INVALID_SPECIES,
+                                  (fields.trees.GENUS, fields.trees.SPECIES, fields.trees.CULTIVAR),
+                                  ' '.join([genus,species,cultivar]).strip())
+                return False
+
+        return True
+
+    def validate_row(self):
+        """
+        Validate a row. Returns True if there were no fatal errors,
+        False otherwise
+
+        The method mutates self in two ways:
+        - The 'errors' field on self will be appended to
+          whenever an error is found
+        - The 'cleaned' field on self will be set as fields
+          get validated
+        """
+        # Clear errrors
+        self.errors = ''
+
+        # NOTE: Validations append errors directly to importrow
+        # and move data over to the 'cleaned' hash as it is
+        # validated
+
+        # Convert all fields to correct datatypes
+        self.validate_and_convert_datatypes()
+
+        # We can work on the 'cleaned' data from here on out
+        self.validate_otm_id()
+
+        # Attaches a GEOS point to fields.trees.POINT
+        self.validate_geom()
+
+        # This could be None or not set if there
+        # was an earlier error
+        pt = self.cleaned.get(fields.trees.POINT, None)
+
+        self.validate_species()
+
+        # This could be None or unset if species data were
+        # not given
+        species = self.cleaned.get(fields.trees.SPECIES_OBJECT, None)
+
+        # These validations are non-fatal
+        if species:
+            self.validate_species_dbh_max(species)
+            self.validate_species_height_max(species)
+
+        if pt:
+            self.validate_proximity(pt)
+
+        fatal = False
+        if self.has_fatal_error():
+            self.status = TreeImportRow.ERROR
+            fatal = True
+        elif self.has_errors(): # Has 'warning'/tree watch errors
+            self.status = TreeImportRow.WATCH
+        else:
+            self.status = TreeImportRow.VERIFIED
+
+        self.save()
+        return not fatal

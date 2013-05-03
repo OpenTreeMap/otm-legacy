@@ -15,12 +15,17 @@ from django.contrib.auth.models import User
 from treemap.models import Species, Neighborhood, Plot,\
     Tree, ExclusionMask
 
-from importer.models import TreeImportEvent, TreeImportRow
+from importer.models import TreeImportEvent, TreeImportRow,\
+    SpeciesImportEvent, SpeciesImportRow
+
+from importer import errors
 
 def lowerkeys(h):
     h2 = {}
     for (k,v) in h.iteritems():
-        h2[k.lower().strip()] = v.strip()
+        k = k.lower().strip()
+        if k != 'ignore':
+            h2[k] = v.strip()
 
     return h2
 
@@ -28,7 +33,18 @@ def start(request):
     return render_to_response('importer/index.html', RequestContext(request,{}))
 
 def create(request):
-    process_csv(request)
+    if request.REQUEST['type'] == 'tree':
+        processors = {
+            'rowconstructor': TreeImportRow,
+            'fileconstructor': TreeImportEvent
+        }
+    elif request.REQUEST['type'] == 'species':
+        processors = {
+            'rowconstructor': SpeciesImportRow,
+            'fileconstructor': SpeciesImportEvent
+        }
+
+    process_csv(request,**processors)
 
     return HttpResponseRedirect(reverse('importer.views.list_imports'))
 
@@ -37,14 +53,21 @@ def list_imports(request):
         'importer/list.html',
         RequestContext(
             request,
-            {'events': TreeImportEvent.objects.all()}))
+            {'treeevents': TreeImportEvent.objects.order_by('id').all(),
+             'speciesevents': SpeciesImportEvent.objects.order_by('id').all()}))
 
-def show_import_status(request, import_event_id):
+def show_species_import_status(request, import_event_id):
+    return show_import_status(request, import_event_id, SpeciesImportEvent)
+
+def show_tree_import_status(request, import_event_id):
+    return show_import_status(request, import_event_id, TreeImportEvent)
+
+def show_import_status(request, import_event_id, Model):
     return render_to_response(
         'importer/status.html',
         RequestContext(
             request,
-            {'event': TreeImportEvent.objects.get(pk=import_event_id)}))
+            {'event': Model.objects.get(pk=import_event_id)}))
 
 def update_row(request, import_event_row_id):
     update_keys = { key.split('update__')[1]
@@ -66,30 +89,50 @@ def update_row(request, import_event_row_id):
     return HttpResponseRedirect(reverse('importer.views.show_import_status',
                                         args=(row.import_event.pk,)))
 
-def results(request, import_event_id, subtype):
+def results(request, import_event_id, import_type, subtype):
     """ Return a json array for each row of a given subtype
     where subtype is a valid status for a TreeImportRow
     """
-    status_map = {
-        'success': TreeImportRow.SUCCESS,
-        'error': TreeImportRow.ERROR,
-        'waiting': TreeImportRow.WAITING,
-        'watch': TreeImportRow.WATCH,
-        'verified': TreeImportRow.VERIFIED
-    }
+    if import_type == 'tree':
+        status_map = {
+            'success': TreeImportRow.SUCCESS,
+            'error': TreeImportRow.ERROR,
+            'waiting': TreeImportRow.WAITING,
+            'watch': TreeImportRow.WATCH,
+            'verified': TreeImportRow.VERIFIED
+        }
 
-    page_size = 50
+        Model = TreeImportEvent
+    else:
+        status_map = {
+            'success': SpeciesImportRow.SUCCESS,
+            'error': SpeciesImportRow.ERROR,
+            'verified': SpeciesImportRow.VERIFIED,
+        }
+        Model = SpeciesImportEvent
+
+    page_size = 10
     page = int(request.REQUEST.get('page', 0))
     page_start = page_size * page
     page_end = page_size * (page + 1)
 
-    ie = TreeImportEvent.objects.get(pk=import_event_id)
+    ie = Model.objects.get(pk=import_event_id)
 
     header = None
     output = {}
-    query = ie.treeimportrow_set\
-              .filter(status=status_map[subtype])\
-              .order_by('idx')
+
+    if subtype == 'mergereq':
+        query = ie.rows()\
+                  .filter(merged=False)\
+                  .exclude(status=SpeciesImportRow.ERROR)\
+                  .order_by('idx')
+    else:
+        query = ie.rows()\
+                  .filter(status=status_map[subtype])\
+                  .order_by('idx')
+
+    if import_type == 'species' and subtype == 'verified':
+        query = query.filter(merged=True)
 
     count = query.count()
     total_pages = int(float(count) / page_size + 1)
@@ -99,56 +142,135 @@ def results(request, import_event_id, subtype):
     output['rows'] = []
 
     header_keys = None
-    for row in query:
+    for row in query[page_start:page_end]:
         if header is None:
             header_keys = row.datadict.keys()
 
-        plot_pk = None
-
-        if row.plot:
-            plot_pk = row.plot.pk
-
-        output['rows'].append({
-            'plot_id': plot_pk,
+        data = {
             'row': row.idx,
             'errors': row.errors_as_array(),
             'data': [row.datadict[k] for k in header_keys]
-        })
+        }
+
+
+        # Generate diffs for merge requests
+        if subtype == 'mergereq':
+            # If errors.TOO_MANY_SPECIES we need to mine species
+            # otherwise we can just do simple diff
+            ecodes = dict([(e['code'],e['data']) for e in row.errors_as_array()])
+            if errors.TOO_MANY_SPECIES[0] in ecodes:
+                data['diffs'] = ecodes[errors.TOO_MANY_SPECIES[0]]
+            elif errors.MERGE_REQ[0] in ecodes:
+                data['diffs'] = [ecodes[errors.MERGE_REQ[0]]]
+
+        if hasattr(row,'plot') and row.plot:
+            data['plot_id'] = row.plot.pk
+
+        if hasattr(row,'species') and row.species:
+            data['species_id'] = row.species.pk
+
+        output['rows'].append(data)
 
     output['fields'] = header_keys or \
-                       ie.treeimportrow_set.all()[0].datadict.keys()
+                       ie.rows()[0].datadict.keys()
 
     return HttpResponse(
         json.dumps(output),
         content_type = 'application/json')
 
+def process_status(request, import_id, TheImportEvent):
+    ie = TheImportEvent.objects.get(pk=import_id)
 
-def commit(request, import_event_id):
+    resp = None
+    if ie.errors:
+        resp = {'status': 'file_error',
+                'errors': json.loads(ie.errors)}
+    else:
+        errors = []
+        for row in ie.rows():
+            if row.errors:
+                errors.append((row.idx, json.loads(row.errors)))
+
+        if len(errors) > 0:
+            resp = {'status': 'row_error',
+                    'errors': dict(errors)}
+
+    if resp is None:
+        resp = {'status': 'success',
+                'rows': ie.rows().count()}
+
+    return HttpResponse(
+        json.dumps(resp),
+        content_type = 'application/json')
+
+def solve(request, import_event_id, import_row_idx):
+    ie = SpeciesImportEvent.objects.get(pk=import_event_id)
+    row = ie.rows().get(idx=import_row_idx)
+
+    data = dict(json.loads(request.REQUEST['data']))
+    tgtspecies = request.REQUEST['species'];
+
+    # Strip off merge errors
+    merge_errors = { errors.TOO_MANY_SPECIES[0],
+                     errors.MERGE_REQ[0] }
+
+
+    ierrors = [e for e in row.errors_as_array()
+               if e['code'] not in merge_errors];
+
+    #TODO: Json handling is terrible.
+    row.errors = json.dumps(ierrors)
+    row.datadict = data
+
+    if tgtspecies != 'new':
+        row.species = Species.objects.get(pk=tgtspecies)
+
+    row.merged = True
+    row.save()
+
+    rslt = row.validate_row()
+
+    return HttpResponse(
+        json.dumps({'status': 'ok',
+                    'validates': rslt}),
+        content_type = 'application/json')
+
+
+def commit(request, import_event_id, import_type=None):
     #TODO:!!! NEED TO ADD TREES TO WATCH LIST
     #TODO:!!! Trees in the same import event should not cause
     #         proximity issues
     #TODO:!!! NEED TO INDICATE TREES TO BE ADDED TO WATCH LIST
     #TODO:!!! NEED TO CLEAR TILE CACHE
     #TODO:!!! If 'Plot' already exists on row *update* when changed
-    ie = TreeImportEvent.objects.get(pk=import_event_id)
+    if import_type == 'species':
+        model = SpeciesImportEvent
+    elif import_type == 'trees':
+        model = TreeImportEvent
+    else:
+        raise Exception('invalid import type')
+
+    ie = model.objects.get(pk=import_event_id)
 
     commit_import_event(ie)
+    #TODO: Update tree counts for species
 
     return HttpResponse(
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
-def process_csv(request):
+def process_csv(request, rowconstructor, fileconstructor):
     files = request.FILES
     filename = files.keys()[0]
     fileobj = files[filename]
 
     owner = User.objects.all()[0]
-    ie = TreeImportEvent(file_name=filename,
+    ie = fileconstructor(file_name=filename,
                          owner=owner)
     ie.save()
 
-    rows = create_rows_for_event(ie, fileobj)
+    rows = create_rows_for_event(ie, fileobj,
+                                 constructor=rowconstructor)
 
     #TODO: Celery
     if rows:
@@ -171,7 +293,7 @@ def process_commit(request, import_id):
 def run_import_event_validation(ie):
     filevalid = ie.validate_main_file()
 
-    rows = ie.treeimportrow_set.all()
+    rows = ie.rows()
     if filevalid:
         for row in rows:
             row.validate_row()
@@ -179,13 +301,18 @@ def run_import_event_validation(ie):
 def commit_import_event(ie):
     filevalid = ie.validate_main_file()
 
-    rows = ie.treeimportrow_set.all()
+    rows = ie.rows()
     success = []
     failed = []
 
+    #TODO: When using OTM ID field, don't include
+    #      that tree in proximity check (duh)
     if filevalid:
         for row in rows:
-            if row.plot is None or row.status != TreeImportRow.SUCCESS:
+            #TODO: Refactor out [Tree]ImportRow.SUCCESS
+            # this works right now because they are the same
+            # value (0) but that's not really great
+            if row.status != TreeImportRow.SUCCESS:
                 if row.commit_row():
                     success.append(row)
                 else:
@@ -197,14 +324,14 @@ def commit_import_event(ie):
     else:
         return False
 
-def create_rows_for_event(importevent, csvfile):
+def create_rows_for_event(importevent, csvfile, constructor):
     rows = []
     reader = csv.DictReader(csvfile)
 
     idx = 0
     for row in reader:
         rows.append(
-            TreeImportRow.objects.create(
+            constructor.objects.create(
                 data=json.dumps(lowerkeys(row)),
                 import_event=importevent, idx=idx))
 
