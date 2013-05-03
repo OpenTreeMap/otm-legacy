@@ -1790,10 +1790,10 @@ from django.core import serializers
 def verify_edits(request, audit_type='tree'):
 
     changes = []
-    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)[0:50]
-    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)[0:50]
-    plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)[0:50]
-    newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)[0:50]
+    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     treeactions = []
     n = None
 
@@ -1817,7 +1817,7 @@ def verify_edits(request, audit_type='tree'):
         newtrees = newtrees.filter(id__in=ids)
         newplots = newplots.filter(geometry__within=n.geometry)
 
-    for plot in plots:
+    for plot in plots[0:50]:
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
         if actual_plot.current_tree():
@@ -1834,7 +1834,7 @@ def verify_edits(request, audit_type='tree'):
             'change_id': plot._audit_id,
             'type': 'plot'
         })
-    for plot in newplots:
+    for plot in newplots[0:50]:
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
         if actual_plot.current_tree():
@@ -1851,7 +1851,7 @@ def verify_edits(request, audit_type='tree'):
             'change_id': plot._audit_id,
             'type': 'plot'
         })
-    for tree in trees:
+    for tree in trees[0:50]:
         species = 'no species name'
         actual_tree = Tree.objects.get(pk=tree.id)
         if actual_tree.species:
@@ -1866,7 +1866,7 @@ def verify_edits(request, audit_type='tree'):
             'change_id': tree._audit_id,
             'type': 'tree'
         })
-    for tree in newtrees:
+    for tree in newtrees[0:50]:
         species = 'no species name'
         actual_tree = Tree.objects.get(pk=tree.id)
         if actual_tree.species:
