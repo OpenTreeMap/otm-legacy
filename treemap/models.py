@@ -447,6 +447,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
     present = models.BooleanField(default=True)
     width = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
     length = models.FloatField(null=True, blank=True, error_messages={'invalid': "Error: This value must be a number."})
+
     type = models.CharField(max_length=256, null=True, blank=True, choices=settings.CHOICES["plot_types"])
     powerline_conflict_potential = models.CharField(max_length=256, choices=settings.CHOICES["powerlines"],
         help_text = "Are there overhead powerlines present?",null=True, blank=True)
