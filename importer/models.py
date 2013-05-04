@@ -25,6 +25,7 @@ class TreeImportEvent(models.Model):
     file_name = models.CharField(max_length=255)
 
     # We can do some numeric conversions
+    # TODO: Support numeric conversions
     plot_length_conversion_factor = models.FloatField(default=1.0)
     plot_width_conversion_factor = models.FloatField(default=1.0)
     diameter_conversion_factor = models.FloatField(default=1.0)
@@ -51,13 +52,25 @@ class TreeImportEvent(models.Model):
             self.errors = '[]'
 
         self.errors = json.dumps(
-            json.loads(self.errors) + [
+            self.errors_as_array()+ [
                 {'code': code,
                  'msg': msg,
                  'data': data,
                  'fatal': fatal}])
 
         return self
+
+    def errors_as_array(self):
+        if self.errors is None or self.errors == '':
+            return []
+        else:
+            return json.loads(self.errors)
+
+    def has_errors(self):
+        return len(self.errors_as_array()) > 0
+
+    def rows(self):
+        return self.treeimportrow_set.order_by('idx').all()
 
     def validate_main_file(self):
         """
@@ -117,6 +130,15 @@ class TreeImportRow(models.Model):
     # The main import event
     import_event = models.ForeignKey(TreeImportEvent)
 
+    # Status
+    SUCCESS=0
+    ERROR=1
+    WATCH=2
+    WAITING=3
+    VERIFIED=4
+
+    status = models.IntegerField(default=WAITING)
+
     def __init__(self, *args, **kwargs):
         super(TreeImportRow, self).__init__(*args,**kwargs)
         self.jsondata = None
@@ -129,6 +151,30 @@ class TreeImportRow(models.Model):
 
         return self.jsondata
 
+    @datadict.setter
+    def datadict(self, v):
+        self.jsondata = v
+        self.data = json.dumps(self.jsondata)
+
+    def errors_as_array(self):
+        if self.errors is None or self.errors == '':
+            return []
+        else:
+            return json.loads(self.errors)
+
+    def has_errors(self):
+        return len(self.errors_as_array()) > 0
+
+    def get_fields_with_error(self):
+        data = {}
+        datadict = self.datadict
+
+        for e in self.errors_as_array():
+            for field in e['fields']:
+                data[field] = datadict[field]
+
+        return data
+
     def has_fatal_error(self):
         if self.errors:
             for err in json.loads(self.errors):
@@ -138,15 +184,21 @@ class TreeImportRow(models.Model):
         return False
 
 
-    def append_error(self, err, data=None):
+    def append_error(self, err, fields, data=None):
         code, msg, fatal = err
 
         if self.errors is None or self.errors == '':
             self.errors = '[]'
 
+        # If you give append_error a single field
+        # there is no need to get angry
+        if isinstance(fields, basestring):
+            fields = (fields,) # make into tuple
+
         self.errors = json.dumps(
             json.loads(self.errors) + [
                 {'code': code,
+                 'fields': fields,
                  'msg': msg,
                  'data': data,
                  'fatal': fatal}])
@@ -169,7 +221,8 @@ class TreeImportRow(models.Model):
                 self.cleaned[fields.SPECIES_OBJECT] = matching_species[0]
             else:
                 self.append_error(errors.INVALID_SPECIES,
-                                       ' '.join([genus,species,cultivar]).strip())
+                                  (fields.GENUS, fields.SPECIES, fields.CULTIVAR),
+                                  ' '.join([genus,species,cultivar]).strip())
                 return False
 
         return True
@@ -230,25 +283,29 @@ class TreeImportRow(models.Model):
         # Note, this shouldn't really happen since main
         # file validation will fail, but butter safe than sorry
         if x is None or y is None:
-            self.append_error(errors.MISSING_POINTS)
+            self.append_error(errors.MISSING_POINTS,
+                              (fields.POINT_X, fields.POINT_Y))
             return False
 
         # Simple validation
         # longitude must be between -180 and 180
         # latitude must be betwen -90 and 90
         if abs(x) > 180 or abs(y) > 90:
-            self.append_error(errors.INVALID_GEOM)
+            self.append_error(errors.INVALID_GEOM,
+                              (fields.POINT_X, fields.POINT_Y))
             return False
 
         p = Point(x,y)
 
         if ExclusionMask.objects.filter(geometry__contains=p).exists():
-            self.append_error(errors.EXCL_ZONE)
+            self.append_error(errors.EXCL_ZONE,
+                              (fields.POINT_X, fields.POINT_Y))
             return False
         elif Neighborhood.objects.filter(geometry__contains=p).exists():
             self.cleaned[fields.POINT] = p
         else:
-            self.append_error(errors.GEOM_OUT_OF_BOUNDS)
+            self.append_error(errors.GEOM_OUT_OF_BOUNDS,
+                              (fields.POINT_X, fields.POINT_Y))
             return False
 
         return True
@@ -260,7 +317,8 @@ class TreeImportRow(models.Model):
                 pk=oid).exists()
 
             if not has_plot:
-                self.append_error(errors.INVALID_OTM_ID, oid)
+                self.append_error(errors.INVALID_OTM_ID,
+                                  fields.OPENTREEMAP_ID_NUMBER)
                 return False
 
         return True
@@ -273,7 +331,9 @@ class TreeImportRow(models.Model):
                      .order_by('distance')[:5]
 
         if len(nearby) > 0:
-            self.append_error(errors.NEARBY_TREES, [p.pk for p in nearby])
+            self.append_error(errors.NEARBY_TREES,
+                              (fields.POINT_X, fields.POINT_Y),
+                              [p.pk for p in nearby])
             return False
         else:
             return True
@@ -282,7 +342,7 @@ class TreeImportRow(models.Model):
         inputval = self.cleaned.get(field, None)
         if inputval:
             if max_val and inputval > max_val:
-                self.append_error(err, max_val)
+                self.append_error(err, field, max_val)
                 return False
 
         return True
@@ -340,8 +400,8 @@ class TreeImportRow(models.Model):
     def validate_choice_fields(self):
         has_errors = False
         for field,choice_key in fields.CHOICE_MAP.iteritems():
-            if field in self.datadict:
-                value = self.datadict[field]
+            value = self.datadict.get(field, None)
+            if value:
                 all_choices = settings.CHOICES[choice_key]
                 choices = { value for (id,value) in all_choices }
 
@@ -357,7 +417,8 @@ class TreeImportRow(models.Model):
                         self.cleaned[field] = value
                 else:
                     has_errors = True
-                    self.append_error(errors.INVALID_CHOICE, choice_key)
+                    self.append_error(errors.INVALID_CHOICE,
+                                      field, choice_key)
 
         return has_errors
 
@@ -367,7 +428,7 @@ class TreeImportRow(models.Model):
                       fields.CULTIVAR, fields.SCI_NAME, fields.URL,
                       fields.NOTES, fields.OWNER, fields.SPONSOR,
                       fields.STEWARD, fields.DATA_SOURCE,
-                      fields.LOCAL_PROJECTS]:
+                      fields.LOCAL_PROJECTS, fields.NOTES]:
 
             if field in self.datadict:
                 value = self.datadict[field]
@@ -414,6 +475,8 @@ class TreeImportRow(models.Model):
         - The 'cleaned' field on self will be set as fields
           get validated
         """
+        # Clear errrors
+        self.errors = ''
 
         # NOTE: Validations append errors directly to importrow
         # and move data over to the 'cleaned' hash as it is
@@ -446,15 +509,22 @@ class TreeImportRow(models.Model):
         if pt:
             self.validate_proximity(pt)
 
-        self.save()
+        fatal = False
+        if self.has_fatal_error():
+            self.status = TreeImportRow.ERROR
+            fatal = True
+        elif self.has_errors(): # Has 'warning'/tree watch errors
+            self.status = TreeImportRow.WATCH
+        else:
+            self.status = TreeImportRow.VERIFIED
 
-        return not self.has_fatal_error()
+        self.save()
+        return not fatal
 
     def commit_row(self):
         # First validate
         if not self.validate_row():
             return False
-
 
         #TODO: This is a kludge to get it to work with the
         #      old system. Once everything works we can drop
@@ -477,22 +547,26 @@ class TreeImportRow(models.Model):
         plot_edited = False
         tree_edited = False
 
+        # Initially grab plot from row if it exists
+        plot = self.plot
+        if plot is None:
+            plot = Plot(present=True)
+
+        # Event if TREE_PRESENT is None, a tree
+        # can still be spawned here if there is
+        # any tree data later
+        tree = plot.current_tree()
+
         # Check for an existing tree:
         if fields.OPENTREEMAP_ID_NUMBER in data:
             plot = Plot.objects.get(
                 pk=data[fields.OPENTREEMAP_ID_NUMBER])
             tree = plot.current_tree()
         else:
-            plot = Plot(present=True)
-
             if data.get(fields.TREE_PRESENT, False):
                 tree_edited = True
-                tree = Tree(present=True)
-            else:
-                # Event if TREE_PRESENT is None, a tree
-                # can still be spawned here if there is
-                # any tree data later
-                tree = None
+                if tree is None:
+                    tree = Tree(present=True)
 
         data_owner = self.import_event.owner
 
@@ -554,6 +628,7 @@ class TreeImportRow(models.Model):
             tree.save()
 
         self.plot = plot
+        self.status = TreeImportRow.SUCCESS
         self.save()
 
         return True

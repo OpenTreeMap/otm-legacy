@@ -1,0 +1,19 @@
+<h1> There were errors reading the file structure: </h1>
+
+{% for error in event.errors_as_array %}
+  {% if error.code == 2 %}
+    <div>The uploaded file must contain a 'point x' and 'point y' field</div>
+  {% else %}
+    {% if error.code == 3 %}
+      <div>There were some fields in the file that didn't match the template:
+        <ul>
+          {% for item in error.data %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <div>{{ error }}</div>
+    {% endif %}
+  {% endif %}
+{% endfor %}
