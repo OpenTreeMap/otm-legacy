@@ -12,7 +12,7 @@ from registration.views import register
 urlpatterns = patterns('',
     (r'^_admin_/', include(admin.site.urls)),
     (r'^databrowse/(.*)', databrowse.site.root),
-    
+
     (r'^static/css/images/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA + "/images/" + settings.SITE_LOCATION}),
 
@@ -25,17 +25,18 @@ urlpatterns = patterns('',
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA}),
-    (r'^Species/(?P<path>.*)$', 'django.views.static.serve', 
+    (r'^Species/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT + "/Species"}),
-    (r'^Nodes/(?P<path>.*)$', 'django.views.static.serve', 
+    (r'^Nodes/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT + "/Nodes"}),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.MEDIA_ROOT}),   
+        {'document_root': settings.MEDIA_ROOT}),
     (r'^admin_media/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.ADMIN_MEDIA_ROOT}), 
-    (r'^comments/', include('threadedcomments.urls')), 
+        {'document_root': settings.ADMIN_MEDIA_ROOT}),
+    (r'^comments/', include('threadedcomments.urls')),
 
     (r'^', include('treemap.urls')),
+    (r'^importer/', include('importer.urls')),
     #(r'^', include('qs_tiles.urls')),
 
     # using new 0.8 beta with "backends" support

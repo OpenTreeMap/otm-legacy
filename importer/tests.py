@@ -208,7 +208,7 @@ class ValidationTest(TestCase):
         r = i.validate_row()
 
         self.assertFalse(r)
-        self.assertHasError(i, errors.INT_ERROR, 'opentreemap id number')
+        self.assertHasError(i, errors.INT_ERROR, None)
 
         i = self.mkrow({'point x': '16',
                         'point y': '20',
@@ -216,7 +216,7 @@ class ValidationTest(TestCase):
         r = i.validate_row()
 
         self.assertFalse(r)
-        self.assertHasError(i, errors.POS_INT_ERROR, 'opentreemap id number')
+        self.assertHasError(i, errors.POS_INT_ERROR)
 
         # With no plots in the system, all ids should fail
         i = self.mkrow({'point x': '16',
@@ -225,7 +225,7 @@ class ValidationTest(TestCase):
         r = i.validate_row()
 
         self.assertFalse(r)
-        self.assertHasError(i, errors.INVALID_OTM_ID, 44)
+        self.assertHasError(i, errors.INVALID_OTM_ID)
 
         # Add in plot
         setupTreemapEnv() # We need the whole darn thing
@@ -465,7 +465,7 @@ class IntegrationTests(TestCase):
                 if isinstance(d,list):
                     d = tuple(d) # Freeze
 
-                errors[k].add((e['code'], d))
+                errors[k].add((e['code'], tuple(e['fields']), d))
 
         return errors
 
@@ -531,28 +531,38 @@ class IntegrationTests(TestCase):
         | 11.1    | 12.1    |          | false     | Dead      |       |         |
         """
 
+        gflds = (fields.POINT_X, fields.POINT_Y)
+        sflds = (fields.GENUS, fields.SPECIES, fields.CULTIVAR)
+
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
         self.assertEqual(ierrors['0'],
-                         {(errors.GEOM_OUT_OF_BOUNDS[0], None),
-                          (errors.FLOAT_ERROR[0], 'diameter')})
+                         {(errors.GEOM_OUT_OF_BOUNDS[0], gflds, None),
+                          (errors.FLOAT_ERROR[0],
+                           (fields.DIAMETER,), None)})
         self.assertEqual(ierrors['1'],
-                         {(errors.INVALID_GEOM[0], None),
-                          (errors.BOOL_ERROR[0], 'read only')})
+                         {(errors.INVALID_GEOM[0], gflds, None),
+                          (errors.BOOL_ERROR[0],
+                           (fields.READ_ONLY,), None)})
         self.assertNotIn('2', ierrors)
         self.assertEqual(ierrors['3'],
-                         {(errors.INVALID_CHOICE[0], 'conditions')})
+                         {(errors.INVALID_CHOICE[0],
+                           (fields.TREE_CONDITION,), 'conditions')})
         self.assertEqual(ierrors['4'],
-                         {(errors.INVALID_SPECIES[0], 'gfail'),
-                          (errors.FLOAT_ERROR[0], 'point y'),
-                          (errors.POS_FLOAT_ERROR[0], 'diameter'),
-                          (errors.MISSING_POINTS[0], None)})
+                         {(errors.INVALID_SPECIES[0], sflds, 'gfail'),
+                          (errors.FLOAT_ERROR[0],
+                           (fields.POINT_Y,), None),
+                          (errors.POS_FLOAT_ERROR[0],
+                           (fields.DIAMETER,), None),
+                          (errors.MISSING_POINTS[0], gflds, None)})
         self.assertEqual(ierrors['5'],
-                         {(errors.SPECIES_HEIGHT_TOO_HIGH[0], 100.0)})
+                         {(errors.SPECIES_HEIGHT_TOO_HIGH[0],
+                           (fields.TREE_HEIGHT,), 100.0)})
         self.assertEqual(ierrors['6'],
-                         {(errors.SPECIES_DBH_TOO_HIGH[0], 50.0)})
+                         {(errors.SPECIES_DBH_TOO_HIGH[0],
+                           (fields.DIAMETER,), 50.0)})
         self.assertEqual(ierrors['7'],
-                         {(errors.EXCL_ZONE[0], None)})
+                         {(errors.EXCL_ZONE[0], gflds, None)})
 
     def test_faulty_data2(self):
         p1 = mkPlot(self.user, geom=Point(25.0000001,25.0000001))
@@ -569,21 +579,32 @@ class IntegrationTests(TestCase):
         | 25.1000002 | 25.1000002 | %s       | %s           |            |
         """ % (p1.pk, string_too_long)
 
+        gflds = (fields.POINT_X, fields.POINT_Y)
 
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
         self.assertEqual(ierrors['0'],
-                         {(errors.NEARBY_TREES[0], (p1.pk,))})
+                         {(errors.NEARBY_TREES[0],
+                           gflds,
+                           (p1.pk,))})
         self.assertEqual(ierrors['1'],
-                         {(errors.INVALID_OTM_ID[0], 133)})
+                         {(errors.INVALID_OTM_ID[0],
+                           (fields.OPENTREEMAP_ID_NUMBER,),
+                           None)})
         self.assertEqual(ierrors['2'],
-                         {(errors.POS_INT_ERROR[0], 'opentreemap id number'),
-                          (errors.INVALID_DATE[0], 'date planted')})
+                         {(errors.POS_INT_ERROR[0],
+                           (fields.OPENTREEMAP_ID_NUMBER,),
+                           None),
+                          (errors.INVALID_DATE[0],
+                           (fields.DATE_PLANTED,), None)})
         self.assertEqual(ierrors['3'],
-                         {(errors.INT_ERROR[0], 'opentreemap id number'),
-                          (errors.INVALID_DATE[0], 'date planted')})
+                         {(errors.INT_ERROR[0],
+                           (fields.OPENTREEMAP_ID_NUMBER,), None),
+                          (errors.INVALID_DATE[0],
+                           (fields.DATE_PLANTED,), None)})
         self.assertEqual(ierrors['4'],
-                         {(errors.STRING_TOO_LONG[0], 'tree steward')})
+                         {(errors.STRING_TOO_LONG[0],
+                           (fields.STEWARD,), None)})
 
     def test_all_tree_data(self):
         s1_gsc = Species(symbol='S1G__', scientific_name='',
