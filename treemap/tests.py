@@ -1551,7 +1551,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv'])       
+        self.assert_zip_response_contains_files(response, ["eco.csv", "trees.csv", "plots.csv", 'species.csv'])
 
     def test_ogr_search_kml(self):
         response = self.client.get("/search/kml/")
@@ -1559,7 +1559,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["trees.kml", "plots.kml"])   
+        self.assert_zip_response_contains_files(response, ["eco.kml", "trees.kml", "plots.kml"])   
     
     def test_ogr_search_shp(self):
         response = self.client.get("/search/shp/")
@@ -1567,8 +1567,11 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["plots.dbf", "plots.prj", "plots.shp", 
-            "plots.shx", "trees.dbf", "trees.prj"])        
+        self.assert_zip_response_contains_files(response, [
+                "eco.dbf", "eco.prj", "eco.shp", "eco.shx",
+                "plots.dbf", "plots.prj", "plots.shp", 
+                "plots.shx", "trees.dbf", "trees.prj",
+                ])
 
     def test_ogr_comments_all_csv(self):
         # Test the admin-only exports
