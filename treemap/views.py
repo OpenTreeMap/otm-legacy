@@ -44,6 +44,7 @@ from django.forms.models import inlineformset_factory, modelformset_factory
 from threadedcomments.models import ThreadedComment
 
 from search import search, DEFAULT_FILTERS
+from export import sanitize_raw_sql
 from models import *
 from forms import *
 from profiles.models import UserProfile
@@ -1624,13 +1625,13 @@ def advanced_search(request, format='json'):
         tree_query = "SELECT * FROM treemap_tree LIMIT 0";
         eco_query = "SELECT * FROM treemap_treeresource LIMIT 0";
     else:
-        tree_query = str(trees.query)
-        eco_query = str(TreeResource.objects.filter(tree__in=trees).query)
+        tree_query = sanitize_raw_sql(str(trees.query))
+        eco_query = sanitize_raw_sql(str(TreeResource.objects.filter(tree__in=trees).query))
 
     if plot_count == 0:
         plot_query = "SELECT * FROM treemap_plot LIMIT 0";
     else:
-        plot_query = str(plots.query)
+        plot_query = sanitize_raw_sql(str(plots.query))
 
     species_query = "SELECT * FROM treemap_species order by id asc"
 

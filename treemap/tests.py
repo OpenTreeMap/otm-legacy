@@ -31,6 +31,8 @@ from time import mktime
 
 from test_util import set_auto_now
 
+from export import _sanitize_native_status_field, _sanitize_membership_test_field, sanitize_raw_sql
+
 import django.shortcuts
 import tempfile
 import zipfile
@@ -1551,7 +1553,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["trees.csv", "plots.csv", 'species.csv'])       
+        self.assert_zip_response_contains_files(response, ["eco.csv", "trees.csv", "plots.csv", 'species.csv'])
 
     def test_ogr_search_kml(self):
         response = self.client.get("/search/kml/")
@@ -1559,7 +1561,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["trees.kml", "plots.kml"])   
+        self.assert_zip_response_contains_files(response, ["eco.kml", "trees.kml", "plots.kml"])   
     
     def test_ogr_search_shp(self):
         response = self.client.get("/search/shp/")
@@ -1567,8 +1569,11 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["plots.dbf", "plots.prj", "plots.shp", 
-            "plots.shx", "trees.dbf", "trees.prj"])        
+        self.assert_zip_response_contains_files(response, [
+                "eco.dbf", "eco.prj", "eco.shp", "eco.shx",
+                "plots.dbf", "plots.prj", "plots.shp", 
+                "plots.shx", "trees.dbf", "trees.prj",
+                ])
 
     def test_ogr_comments_all_csv(self):
         # Test the admin-only exports
@@ -1776,5 +1781,41 @@ class ViewTests(TestCase):
         response = c.get('/images/')
         self.assertTemplateUsed(response, 'treemap/images.html')
 
+class ExportModuleTests(TestCase):
+    def setUp(self):
+        self.raw_condition_query = \
+            'SELECT * FROM "treemap_treeresource" '\
+            'WHERE "treemap_treeresource"."tree_id" IN '\
+            '(SELECT U0."id" FROM "treemap_tree" U0 '\
+            'WHERE  AND U0."condition" IN (3, 5, 7))'
+
+        self.correct_condition_query = \
+            'SELECT * FROM "treemap_treeresource" '\
+            'WHERE "treemap_treeresource"."tree_id" IN '\
+            '(SELECT U0."id" FROM "treemap_tree" U0 '\
+            'WHERE  AND U0."condition" IN (\'3\', \'5\', \'7\'))'
+
+        self.raw_condition_characteristic_query = \
+            'SELECT * FROM "treemap_tree" '\
+            'WHERE ("treemap_tree"."condition" IN (2, 3, 4, 5, 6, 7) AND '\
+           '"treemap_tree"."species_id" IN '\
+            '(SELECT U0."id" FROM "treemap_species" U0 WHERE U0."native_status" = True ))'
+
+        self.correct_condition_characteristic_query = \
+            'SELECT * FROM "treemap_tree" '\
+            'WHERE ("treemap_tree"."condition" IN (\'2\', \'3\', \'4\', \'5\', \'6\', \'7\') AND '\
+           '"treemap_tree"."species_id" IN '\
+            '(SELECT U0."id" FROM "treemap_species" U0 WHERE U0."native_status" = \'True\' ))'
 
 
+    def test_multiple_fields_query(self):
+
+        condition_characteristic_query = sanitize_raw_sql(self.raw_condition_characteristic_query)
+
+        self.assertEqual(condition_characteristic_query, 
+                         self.correct_condition_characteristic_query)
+
+    def test_condition_query(self):
+        condition_query = sanitize_raw_sql(self.raw_condition_query)
+
+        self.assertEqual(condition_query, self.correct_condition_query)
