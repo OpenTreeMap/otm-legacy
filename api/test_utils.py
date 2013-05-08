@@ -42,7 +42,7 @@ def setupTreemapEnv():
     def local_render_to_response(*args, **kwargs):
         from django.template import loader, RequestContext
         from django.http import HttpResponse
-        
+
         httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
         hr = HttpResponse(
             loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
@@ -196,9 +196,15 @@ def setupTreemapEnv():
     agn1.save()
     agn2.save()
 
-    s1 = Species(symbol="s1",genus="testus1",species="specieius1")
-    s2 = Species(symbol="s2",genus="testus2",species="specieius2")
-    s3 = Species(symbol="s3",genus="testus2",species="specieius3")
+    s1 = Species(symbol="s1",genus="testus1",species="specieius1",
+                 cultivar_name='',
+                 alternate_symbol='a1')
+    s2 = Species(symbol="s2",genus="testus2",species="specieius2",
+                 cultivar_name='',
+                 alternate_symbol='a2')
+    s3 = Species(symbol="s3",genus="testus2",species="specieius3",
+                 cultivar_name='',
+                 alternate_symbol='a3')
 
     s1.native_status = 'True'
     s1.fall_conspicuous = True

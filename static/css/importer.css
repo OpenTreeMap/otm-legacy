@@ -1,12 +1,26 @@
 /** Hack **/
-/* .tabpane { */
-/*     width: 800px; */
-/*     overflow: scroll; */
-/* } */
+.tablepanel {
+    /*width: 800px;*/
+    overflow: auto;
+}
 
 /**
  * Styles
  */
+
+.pages {
+    text-align: center;
+    margin: 10px;
+}
+
+.pages a {
+    padding: 3px;
+    font-size: 1.3em;
+}
+
+.pages a.currentpage {
+    font-weight: bold;
+}
 
 .invisible-pane {
     display: none;
@@ -16,13 +30,24 @@
    text-align: center;
 }
 
+#merge-dialog {
+    background: #ffffff;
+}
+
+.mergespecies {
+    width: 50px;
+}
+
+/**
+ * TODO: Really we should just grab this from a CDN
+ */
 /** Modified from Twitter Bootstrap */
 .table tbody tr td.success {
   background-color: #dff0d8;
 }
 
 .table tbody tr td.error {
-  background-color: #f2dede;
+  background-color: #f2dede !important;
 }
 
 .table tbody tr td.warning {

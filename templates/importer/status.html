@@ -9,6 +9,48 @@
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
   <script src="{{ STATIC_URL }}js/importer.js"></script>
+
+  <script type="text/template" id="merge-template">
+    <h1>Merge Species</h1>
+    <div class="mergespecies">
+    <table data-row="<%= fields.rowidx %>"
+           class="table table-condensed table-striped">
+      <tr>
+        <th>Field</th>
+        <% _.each(fields.header, function(f) { %><th><%= f %></th><% }) %>
+      </tr>
+      <% _.each(fields.data, function(f) { %>
+      <tr data-field="<%= f.field %>">
+        <td>
+          <%= f.field %></td>
+        <% _.each(f.data, function(d) { %>
+        <td>
+          <% if (f.needsMerge) { %><input type="checkbox"><% } %>
+          <%= d %>
+        </td>
+        <% }); %>
+      </tr>
+      <% }) %>
+      <tr><td></td>
+        <td><button data-matches="new">Create New</button></td>
+      <% _.each(fields.keys, function(k) { %>
+        <td><button data-matches="<%= k %>">Select Species</button></td>
+      <% }); %>
+    </table>
+    </div>
+  </script>
+
+  <script type="text/template" id="pager-template">
+    <div class="pages">
+      <a href="#">&lt;</a>
+      <a href="#">&lt;&lt;</a>
+      <% _.each(_.range(0,total_pages), function(i) { %>
+        <a href="#"><%= i + 1 %></a>
+      <% }); %>
+      <a href="#">&gt;&gt;</a>
+      <a href="#">&gt;</a>
+    </div>
+  </script>
 {% endblock %}
 
 {% block content_body_top %}
@@ -24,7 +66,7 @@
     <div id="tabs"></div>
   </div>
 
-  <button id="createtrees">Create Trees</button>
+  <button id="createtrees">Create Objects</button>
 {% endif %}
 
 {% endblock %}
