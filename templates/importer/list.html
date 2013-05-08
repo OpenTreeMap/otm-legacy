@@ -14,20 +14,36 @@
 
 {% block middle_panel %}
 
-Imports:
+<h1>Tree Imports</h1>
 
 <table>
-{% for ie in events %}
+{% for ie in treeevents %}
   <tr>
     <td>{{ ie.pk }}</td>
     <td class="col1Wide">{{ ie.file_name }}</td>
     <td>{{ ie.created }}</td>
-    <td><a href="{% url 'importer.views.show_import_status' ie.pk %}">
+    <td><a href="{% url 'importer.views.show_tree_import_status' ie.pk %}">
         More Information
       </a></td>
   </tr>
 {% endfor %}
 </table>
+
+<h1>Species Imports</h1>
+
+<table>
+{% for ie in speciesevents %}
+  <tr>
+    <td>{{ ie.pk }}</td>
+    <td class="col1Wide">{{ ie.file_name }}</td>
+    <td>{{ ie.created }}</td>
+    <td><a href="{% url 'importer.views.show_species_import_status' ie.pk %}">
+        More Information
+      </a></td>
+  </tr>
+{% endfor %}
+</table>
+
 
 {% endblock %}
 

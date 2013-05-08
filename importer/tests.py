@@ -15,12 +15,13 @@ from StringIO import StringIO
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from importer.views import create_rows_for_event, \
-    process_csv, process_status, process_commit
+    process_csv, process_status, commit
 
 from importer import errors,fields
 
-from importer.models import TreeImportEvent, TreeImportRow
-from treemap.models import Species, Neighborhood, Plot, ExclusionMask
+from importer.models import TreeImportEvent, TreeImportRow, \
+    SpeciesImportEvent, SpeciesImportRow
+from treemap.models import Species, Neighborhood, Plot, ExclusionMask, Resource
 
 class ValidationTest(TestCase):
     def setUp(self):
@@ -346,7 +347,7 @@ class FileLevelValidationTest(TestCase):
 
         c = self.write_csv([['header_field1','header_fields2','header_field3']])
 
-        create_rows_for_event(ie, c)
+        create_rows_for_event(ie, c, constructor=TreeImportRow)
         rslt = ie.validate_main_file()
 
         # No rows added and validation failed
@@ -373,7 +374,7 @@ class FileLevelValidationTest(TestCase):
                             ['123 Beach St','5','5'],
                             ['222 Main St','8','8']])
 
-        create_rows_for_event(ie, c)
+        create_rows_for_event(ie, c, constructor=TreeImportRow)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
@@ -397,7 +398,7 @@ class FileLevelValidationTest(TestCase):
                             ['123 Beach St','a','b','5','5'],
                             ['222 Main St','a','b','8','8']])
 
-        create_rows_for_event(ie, c)
+        create_rows_for_event(ie, c, constructor=TreeImportRow)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
@@ -438,26 +439,35 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        resp = process_csv(r)
+        resp = process_csv(r,
+                           rowconstructor=self.rowconstructor(),
+                           fileconstructor=self.constructor())
         j = json.loads(resp.content)
 
         pk = j['id']
 
-        resp = process_status(None, pk)
-        return json.loads(resp.content)
+        resp = process_status(None, pk, self.constructor())
+        content = json.loads(resp.content)
+        content['pk'] = pk
+        return content
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        resp = process_csv(r)
+        resp = process_csv(r,
+                           rowconstructor=self.rowconstructor(),
+                           fileconstructor=self.constructor())
         j = json.loads(resp.content)
 
         pk = j['id']
 
-        process_commit(None, pk)
+        commit(None, pk, self.constructor())
         return pk
 
     def extract_errors(self, json):
         errors = {}
+        if 'errors' not in json:
+            return errors
+
         for k,v in json['errors'].iteritems():
             errors[k] = set()
             for e in v:
@@ -468,6 +478,206 @@ class IntegrationTests(TestCase):
                 errors[k].add((e['code'], tuple(e['fields']), d))
 
         return errors
+
+class SpeciesIntegrationTests(IntegrationTests):
+
+    def rowconstructor(self):
+        return SpeciesImportRow
+
+    def constructor(self):
+        return SpeciesImportEvent
+
+    def test_bad_structure(self):
+        csv = """
+        | family | native status | diameter |
+        | f1     | ns11          | 12       |
+        | f2     | ns12          | 14       |
+        """
+
+        j = self.run_through_process_views(csv)
+        self.assertEqual(len(j['errors']), 2)
+        self.assertEqual({e['code'] for e in j['errors']},
+                         {errors.MISSING_SPECIES_FIELDS[0],
+                          errors.UNMATCHED_FIELDS[0]})
+
+    def test_noerror_load(self):
+        csv = """
+        | genus   | species    | common name | i-tree code  |
+        | g1      | s1         | g1 s2 wowza | BDM_OTHER    |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |
+        """
+
+        j = self.run_through_process_views(csv)
+
+        self.assertEqual(j['status'], 'success')
+        self.assertEqual(j['rows'], 2)
+
+    def test_invalid_itree(self):
+        csv = """
+        | genus   | species    | common name | i-tree code  |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |
+        | genus   |            | common name | failure      |
+        | testus1 | specieius1 | g1 s2 wowza |              |
+        """
+
+        j = self.run_through_process_views(csv)
+        ierrors = self.extract_errors(j)
+        self.assertNotIn('0', ierrors)
+        self.assertEqual(ierrors['1'],
+                         {(errors.INVALID_ITREE_CODE[0],
+                           (fields.species.ITREE_CODE,), None),
+                          (errors.MISSING_FIELD[0],
+                           (fields.species.SPECIES,), None)})
+        self.assertEqual(ierrors['2'],
+                         {(errors.MISSING_ITREE_CODE[0],
+                           ('i-tree code',), None),
+                          (errors.MISSING_FIELD[0],
+                           ('i-tree code',), None)})
+
+    def test_species_matching(self):
+        csv = """
+        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |
+        | genus   | blah       | common name | BDL_OTHER    | s1          |     |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    | s2          |     |
+        | testus2 | specieius2 | g1 s2 wowza | BDL_OTHER    | s1          | a3  |
+        """
+
+        j = self.run_through_process_views(csv)
+        ierrors = self.extract_errors(j)
+
+        # Errors for multiple species matches
+        self.assertEqual(len(ierrors), 2)
+
+        ie = SpeciesImportEvent.objects.get(pk=j['pk'])
+        s1,s2,s3 = [s.pk for s in Species.objects.all()]
+
+        rows = ie.rows()
+        matches = []
+        for row in rows:
+            row.validate_row()
+            matches.append(row.cleaned[fields.species.ORIG_SPECIES])
+
+        m1,m2,m3,m4 = matches
+
+        self.assertEqual(m1, {s1})
+        self.assertEqual(m2, {s1})
+        self.assertEqual(m3, {s1,s2})
+        self.assertEqual(m4, {s1,s2,s3})
+
+    def test_all_species_data(self):
+        csv = """
+        | genus     | species     | common name | i-tree code  | usda symbol | alternative symbol |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | sym1        | a1    |
+        """
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual(s.genus, 'newgenus1')
+        self.assertEqual(s.species, 'newspecies1')
+        self.assertEqual(s.common_name, 'g1 s2 wowza')
+        self.assertEqual(s.symbol, 'sym1')
+        self.assertEqual(s.alternate_symbol, 'a1')
+        self.assertEqual(s.itree_code, 'BDL_OTHER')
+
+        tgtrsrc = Resource.objects.get(meta_species='BDL_OTHER')
+        self.assertEqual({ r.pk for r in s.resource.all() }, { tgtrsrc.pk })
+
+        csv = """
+        | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | cvar     | sci | fam |
+        """ % ('other part of scientific name', 'family')
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual(s.cultivar_name, 'cvar')
+
+        #TODO: Support family field
+        #TODO: Support 'other' field
+
+        csv = """
+        | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | true  | true |
+        """ % ('native status', 'fall colors', 'palatable human')
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual(s.native_status, 'True')
+        self.assertEqual(s.fall_conspicuous, True)
+        self.assertEqual(s.palatable_human, True)
+
+        csv = """
+        | genus     | species     | common name | i-tree code  | %s   | %s      | %s   |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | summer  | fall |
+        """ % ('flowering', 'flowering period', 'fruit or nut period')
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual(s.flower_conspicuous, True)
+        self.assertEqual(s.bloom_period, 'summer')
+        self.assertEqual(s.fruit_period, 'fall')
+
+        csv = """
+        | genus     | species     | common name | i-tree code  | %s   | %s | %s | %s |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | 10 | 91 | fs |
+        """ % ('wildlife', 'max diameter at breast height', 'max height', 'fact sheet')
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual(s.wildlife_value, True)
+        self.assertEqual(s.fact_sheet, 'fs')
+        self.assertEqual(s.v_max_dbh, 10)
+        self.assertEqual(s.v_max_height, 91)
+
+
+    def test_overrides_species(self):
+        csv = """
+        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |
+        | genus   | blah       | common name | BDM_OTHER    | s2          |     |
+        """
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+
+        # Test to make sure things were updated
+        s1 = Species.objects.get(symbol='s1')
+        self.assertEqual(s1.genus, 'testus1')
+        self.assertEqual(s1.species, 'specieius1')
+        self.assertEqual(s1.common_name, 'g1 s2 wowza')
+
+        tgtrsrc = Resource.objects.get(meta_species='BDL_OTHER')
+        self.assertEqual({ r.pk for r in s1.resource.all() }, { tgtrsrc.pk })
+
+        s2 = Species.objects.get(symbol='s2')
+        self.assertEqual(s2.genus, 'genus')
+        self.assertEqual(s2.species, 'blah')
+        self.assertEqual(s2.common_name, 'common name')
+
+        tgtrsrc = Resource.objects.get(meta_species='BDM_OTHER')
+        self.assertEqual({ r.pk for r in s2.resource.all() }, { tgtrsrc.pk })
+
+
+
+
+
+class TreeIntegrationTests(IntegrationTests):
+
+    def rowconstructor(self):
+        return TreeImportRow
+
+    def constructor(self):
+        return TreeImportEvent
 
     def test_noerror_load(self):
         csv = """
@@ -531,36 +741,36 @@ class IntegrationTests(TestCase):
         | 11.1    | 12.1    |          | false     | Dead      |       |         |
         """
 
-        gflds = (fields.POINT_X, fields.POINT_Y)
-        sflds = (fields.GENUS, fields.SPECIES, fields.CULTIVAR)
+        gflds = (fields.trees.POINT_X, fields.trees.POINT_Y)
+        sflds = (fields.trees.GENUS, fields.trees.SPECIES, fields.trees.CULTIVAR)
 
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
         self.assertEqual(ierrors['0'],
                          {(errors.GEOM_OUT_OF_BOUNDS[0], gflds, None),
                           (errors.FLOAT_ERROR[0],
-                           (fields.DIAMETER,), None)})
+                           (fields.trees.DIAMETER,), None)})
         self.assertEqual(ierrors['1'],
                          {(errors.INVALID_GEOM[0], gflds, None),
                           (errors.BOOL_ERROR[0],
-                           (fields.READ_ONLY,), None)})
+                           (fields.trees.READ_ONLY,), None)})
         self.assertNotIn('2', ierrors)
         self.assertEqual(ierrors['3'],
                          {(errors.INVALID_CHOICE[0],
-                           (fields.TREE_CONDITION,), 'conditions')})
+                           (fields.trees.TREE_CONDITION,), 'conditions')})
         self.assertEqual(ierrors['4'],
                          {(errors.INVALID_SPECIES[0], sflds, 'gfail'),
                           (errors.FLOAT_ERROR[0],
-                           (fields.POINT_Y,), None),
+                           (fields.trees.POINT_Y,), None),
                           (errors.POS_FLOAT_ERROR[0],
-                           (fields.DIAMETER,), None),
+                           (fields.trees.DIAMETER,), None),
                           (errors.MISSING_POINTS[0], gflds, None)})
         self.assertEqual(ierrors['5'],
                          {(errors.SPECIES_HEIGHT_TOO_HIGH[0],
-                           (fields.TREE_HEIGHT,), 100.0)})
+                           (fields.trees.TREE_HEIGHT,), 100.0)})
         self.assertEqual(ierrors['6'],
                          {(errors.SPECIES_DBH_TOO_HIGH[0],
-                           (fields.DIAMETER,), 50.0)})
+                           (fields.trees.DIAMETER,), 50.0)})
         self.assertEqual(ierrors['7'],
                          {(errors.EXCL_ZONE[0], gflds, None)})
 
@@ -579,7 +789,7 @@ class IntegrationTests(TestCase):
         | 25.1000002 | 25.1000002 | %s       | %s           |            |
         """ % (p1.pk, string_too_long)
 
-        gflds = (fields.POINT_X, fields.POINT_Y)
+        gflds = (fields.trees.POINT_X, fields.trees.POINT_Y)
 
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
@@ -589,22 +799,22 @@ class IntegrationTests(TestCase):
                            (p1.pk,))})
         self.assertEqual(ierrors['1'],
                          {(errors.INVALID_OTM_ID[0],
-                           (fields.OPENTREEMAP_ID_NUMBER,),
+                           (fields.trees.OPENTREEMAP_ID_NUMBER,),
                            None)})
         self.assertEqual(ierrors['2'],
                          {(errors.POS_INT_ERROR[0],
-                           (fields.OPENTREEMAP_ID_NUMBER,),
+                           (fields.trees.OPENTREEMAP_ID_NUMBER,),
                            None),
                           (errors.INVALID_DATE[0],
-                           (fields.DATE_PLANTED,), None)})
+                           (fields.trees.DATE_PLANTED,), None)})
         self.assertEqual(ierrors['3'],
                          {(errors.INT_ERROR[0],
-                           (fields.OPENTREEMAP_ID_NUMBER,), None),
+                           (fields.trees.OPENTREEMAP_ID_NUMBER,), None),
                           (errors.INVALID_DATE[0],
-                           (fields.DATE_PLANTED,), None)})
+                           (fields.trees.DATE_PLANTED,), None)})
         self.assertEqual(ierrors['4'],
                          {(errors.STRING_TOO_LONG[0],
-                           (fields.STEWARD,), None)})
+                           (fields.trees.STEWARD,), None)})
 
     def test_all_tree_data(self):
         s1_gsc = Species(symbol='S1G__', scientific_name='',
