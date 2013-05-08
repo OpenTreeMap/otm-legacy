@@ -14,6 +14,12 @@ def sanitize_raw_sql(query):
 
     new_query = _sanitize_native_status_field(new_query)
 
+    for field in ('U0."username"',
+                  'U0."tree_owner"',
+                  '"treemap_tree"."tree_owner"',
+                  '"treemap_tree"."sponsor"'):
+        new_query = _sanitize_string_like_upper_field(field, new_query)
+
     for field in ("sidewalk_damage",
                   "condition",
                   "canopy_condition",
@@ -41,3 +47,8 @@ def _sanitize_native_status_field(query):
 def _sanitize_membership_test_field(field_name, query):
     pattern = '"%s" IN \([0-9, ]+\)' % field_name
     return _quote_integers_in_pattern(pattern, query)
+
+def _sanitize_string_like_upper_field(qualified_field_name, query):
+    pattern = 'UPPER\({}::text\) LIKE UPPER\(%([\w.@+-]+)%\)'.format(qualified_field_name)
+    replacement = r"""UPPER({}::text) LIKE UPPER('%\1%')""".format(qualified_field_name)
+    return re.sub(pattern, replacement, query)
