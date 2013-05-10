@@ -1,4 +1,7 @@
 import os
+import djcelery
+
+djcelery.setup_loader()
 
 # The following settings should be overriden in your
 # local_settings.py or impl_settings.py file if needed
@@ -59,6 +62,11 @@ LANGUAGE_CODE = 'en-us'
 USE_I18N = False
 
 ROOT_URLCONF = 'urls'
+
+# celery config
+BROKER_URL = 'redis://localhost:6379/0'
+
+TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -124,7 +132,8 @@ INSTALLED_APPS = (
     'pagination',
     'django_sorting',
     'pipeline',
-    'importer'
+    'importer',
+    'djcelery'
 )
 
 try:

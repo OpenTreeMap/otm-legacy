@@ -1,10 +1,12 @@
 http://downloads.sourceforge.net/project/dbfpy/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
 BeautifulSoup==3.2.0
+celery-with-redis==3.0
 Django==1.3.4
 PIL==1.1.7
 South==0.7.5
 Unidecode==0.04.9
 django-badges==0.1.6
+django-celery==3.0.17
 django-debug-toolbar==0.9.1
 django-extensions==0.7.1
 django-pagination==1.0.7
@@ -25,4 +27,3 @@ template-utils==0.4p2
 wsgiref==0.1.2
 xlrd==0.7.1
 yuicompressor==2.4.6.1
-
