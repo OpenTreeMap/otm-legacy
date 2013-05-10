@@ -245,7 +245,7 @@ def commit(request, import_event_id, import_type=None):
     #TODO:!!! If 'Plot' already exists on row *update* when changed
     if import_type == 'species':
         model = SpeciesImportEvent
-    elif import_type == 'trees':
+    elif import_type == 'tree':
         model = TreeImportEvent
     else:
         raise Exception('invalid import type')
