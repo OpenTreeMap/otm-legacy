@@ -413,7 +413,7 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
             } else if (txt == '>>') {
                 panel.page = total_pages - 1;
             } else {
-                panel.page = parseInt(txt);
+                panel.page = parseInt(txt) - 1;
             }
 
             // Only update if something changed
