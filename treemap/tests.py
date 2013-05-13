@@ -880,7 +880,9 @@ class ViewTests(TestCase):
         plots = present_plots.filter(tree__date_planted__gte=planted_range_list[0], tree__date_planted__lte=planted_range_list[1])
 
         assert_counts(trees.count(), plots.count(), req)
-        assert_benefits(req)
+        # This test is broken. A tree without a species cannot
+        # have an ecobenefit, so this assertion is broken:
+        # assert_benefits(req)
         self.assertTrue('date_planted' in req['tile_query'])
 
         local_list = [1, 2]
