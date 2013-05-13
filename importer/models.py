@@ -614,34 +614,42 @@ class SpeciesImportRow(GenericImportRow):
         # Native status is a horrible field that pretends to
         # be a boolean value but is actually a string so we
         # change it here
-        self.cleaned[fields.species.NATIVE_STATUS] = str(
-            self.cleaned[fields.species.NATIVE_STATUS])
+        if fields.species.NATIVE_STATUS in self.cleaned:
+            self.cleaned[fields.species.NATIVE_STATUS] = str(
+                self.cleaned[fields.species.NATIVE_STATUS])
 
 
         # If same is set to true this is essentially a no-op
         same = False
 
         possible_matches = self.cleaned[fields.species.ORIG_SPECIES]
+        # TODO: Certain fields require this flag to be reset
         if not self.merged:
-            if len(possible_matches) > 1:
+            if len(possible_matches) == 0:
+                self.merged = True
+            else:
                 species = [Species.objects.get(pk=pk) for pk in possible_matches]
-                diffs = [self.diff_from_species(s) for s in species];
-                self.append_error(errors.TOO_MANY_SPECIES, None, tuple(diffs))
-            elif len(possible_matches) == 1:
-                pk = list(possible_matches)[0]
-                self.species = Species.objects.get(pk=pk)
-
-                diff = self.diff_from_species(self.species)
-
-                # There's always a single diff, which is the 'id' of
-                # the existing species
-                if len(diff) <= 1 or self.merged:
+                diffs = [self.diff_from_species(s) for s in species]
+                # There's always a single field that has changed in the
+                # diff. This is the 'id' field of the existing species,
+                # which will never be the same as the None for the current
+                # id.
+                if all([diff.keys() == ['id'] for diff in diffs]):
                     self.merged = True
                     same = True
                 else:
-                    self.append_error(errors.MERGE_REQ, None, diff)
-            else:
-                self.merged = True
+                    diff_keys = set()
+
+                    for diff in diffs:
+                        for key in diff.keys():
+                            diff_keys.add(key)
+
+                    if len(possible_matches) > 1:
+                        self.append_error(errors.TOO_MANY_SPECIES, tuple(diff_keys), tuple(diffs))
+                    else:
+                        self.append_error(errors.MERGE_REQ, tuple(diff_keys), diffs[0])
+                        pk = list(possible_matches)[0]
+                        self.species = Species.objects.get(pk=pk)
 
         fatal = False
         if self.has_fatal_error():
