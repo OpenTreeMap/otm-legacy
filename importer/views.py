@@ -12,6 +12,9 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User
 
+from importer.tasks import run_import_event_validation,\
+    commit_import_event
+
 from treemap.models import Species, Neighborhood, Plot,\
     Tree, ExclusionMask
 
@@ -245,14 +248,14 @@ def commit(request, import_event_id, import_type=None):
     #TODO:!!! If 'Plot' already exists on row *update* when changed
     if import_type == 'species':
         model = SpeciesImportEvent
-    elif import_type == 'trees':
+    elif import_type == 'tree':
         model = TreeImportEvent
     else:
         raise Exception('invalid import type')
 
     ie = model.objects.get(pk=import_event_id)
 
-    commit_import_event(ie)
+    commit_import_event.delay(ie)
     #TODO: Update tree counts for species
 
     return HttpResponse(
@@ -272,9 +275,8 @@ def process_csv(request, rowconstructor, fileconstructor):
     rows = create_rows_for_event(ie, fileobj,
                                  constructor=rowconstructor)
 
-    #TODO: Celery
     if rows:
-        run_import_event_validation(ie)
+        run_import_event_validation.delay(ie)
 
     return HttpResponse(
         json.dumps({'id': ie.pk}),
@@ -290,39 +292,6 @@ def process_commit(request, import_id):
         json.dumps({'status': 'success'}),
         content_type = 'application/json')
 
-def run_import_event_validation(ie):
-    filevalid = ie.validate_main_file()
-
-    rows = ie.rows()
-    if filevalid:
-        for row in rows:
-            row.validate_row()
-
-def commit_import_event(ie):
-    filevalid = ie.validate_main_file()
-
-    rows = ie.rows()
-    success = []
-    failed = []
-
-    #TODO: When using OTM ID field, don't include
-    #      that tree in proximity check (duh)
-    if filevalid:
-        for row in rows:
-            #TODO: Refactor out [Tree]ImportRow.SUCCESS
-            # this works right now because they are the same
-            # value (0) but that's not really great
-            if row.status != TreeImportRow.SUCCESS:
-                if row.commit_row():
-                    success.append(row)
-                else:
-                    failed.append(row)
-            else:
-                success.append(row)
-
-        return (success, failed)
-    else:
-        return False
 
 def create_rows_for_event(importevent, csvfile, constructor):
     rows = []
