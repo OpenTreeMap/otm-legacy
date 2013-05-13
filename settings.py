@@ -33,6 +33,8 @@ ADVANCED_USERS_CAN_ACCEPT_PENDING = False
 # as company.com
 FORCE_MAIL_TO_BE_FROM = None
 
+DEBUG = True
+
 try:
    from impl_settings import *
 except ImportError, e:
@@ -41,7 +43,6 @@ except ImportError, e:
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
 
-DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 # sorl thumbnail settings
