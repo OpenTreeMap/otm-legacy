@@ -44,8 +44,10 @@
     <div class="pages">
       <a href="#">&lt;</a>
       <a href="#">&lt;&lt;</a>
-      <% _.each(_.range(0,total_pages), function(i) { %>
+      <% _.each(_.range(start_page, end_page), function(i) { %>
+        <% if (i == page) { %><strong> <% } %>
         <a href="#"><%= i + 1 %></a>
+        <% if (i == page) { %></strong> <% } %>
       <% }); %>
       <a href="#">&gt;&gt;</a>
       <a href="#">&gt;</a>

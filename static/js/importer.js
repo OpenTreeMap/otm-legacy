@@ -394,9 +394,12 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
 
     I.views.createPager = function (panel) {
         var total_pages = panel.data.total_pages;
+        var start_page = _.max([panel.page - 5, 0]);
 
         var $pager = $(_.template($('#pager-template').html(), {
-            total_pages: total_pages
+            page: panel.page,
+            start_page: start_page,
+            end_page: _.min([total_pages,start_page + 10])
         }));
 
         $pager.find('a').click(function() {
