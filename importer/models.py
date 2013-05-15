@@ -90,8 +90,7 @@ class SpeciesImportEvent(GenericImportEvent):
         datastr = self.rows()[0].data
         input_fields = set(json.loads(datastr).keys())
 
-        #TODO: Species is no longer a required field
-        req = { fields.species.GENUS, fields.species.SPECIES,
+        req = { fields.species.GENUS,
                 fields.species.COMMON_NAME, fields.species.ITREE_CODE }
 
         req -= input_fields
@@ -500,6 +499,11 @@ class SpeciesImportRow(GenericImportRow):
         species = self.datadict.get(fields.species.SPECIES,'')
         cultivar = self.datadict.get(fields.species.CULTIVAR,'')
 
+        # Save these as "empty" strings
+        self.cleaned[fields.species.GENUS] = genus
+        self.cleaned[fields.species.SPECIES] = species
+        self.cleaned[fields.species.CULTIVAR] = cultivar
+
         if genus != '' or species != '' or cultivar != '':
             matching_species = Species.objects\
                                       .filter(genus__iexact=genus)\
@@ -547,7 +551,7 @@ class SpeciesImportRow(GenericImportRow):
 
 
     def validate_required_fields(self):
-        req = { fields.species.GENUS, fields.species.SPECIES,
+        req = { fields.species.GENUS,
                 fields.species.COMMON_NAME, fields.species.ITREE_CODE }
 
         has_errors = False
@@ -689,7 +693,7 @@ class SpeciesImportRow(GenericImportRow):
         for modelkey, importdatakey in SpeciesImportRow.SPECIES_MAP.iteritems():
             importdata = data.get(importdatakey, None)
 
-            if importdata:
+            if importdata is not None:
                 species_edited = True
                 setattr(species, modelkey, importdata)
 
