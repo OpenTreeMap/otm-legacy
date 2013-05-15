@@ -2,6 +2,7 @@ import csv
 import json
 from datetime import datetime
 
+from django.db import transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -37,19 +38,22 @@ def start(request):
 
 def create(request):
     if request.REQUEST['type'] == 'tree':
+        typ = 'tree'
         processors = {
             'rowconstructor': TreeImportRow,
             'fileconstructor': TreeImportEvent
         }
     elif request.REQUEST['type'] == 'species':
+        typ = 'species'
         processors = {
             'rowconstructor': SpeciesImportRow,
             'fileconstructor': SpeciesImportEvent
         }
 
-    process_csv(request,**processors)
+    pk = process_csv(request,**processors)
 
-    return HttpResponseRedirect(reverse('importer.views.list_imports'))
+    return HttpResponseRedirect(reverse('importer.views.show_%s_import_status' % typ,
+                                        args=(pk,)))
 
 def list_imports(request):
     return render_to_response(
@@ -262,6 +266,7 @@ def commit(request, import_event_id, import_type=None):
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
+@transaction.commit_manually
 def process_csv(request, rowconstructor, fileconstructor):
     files = request.FILES
     filename = files.keys()[0]
@@ -275,12 +280,12 @@ def process_csv(request, rowconstructor, fileconstructor):
     rows = create_rows_for_event(ie, fileobj,
                                  constructor=rowconstructor)
 
+    transaction.commit()
+
     if rows:
         run_import_event_validation.delay(ie)
 
-    return HttpResponse(
-        json.dumps({'id': ie.pk}),
-        content_type = 'application/json')
+    return ie.pk
 
 def process_commit(request, import_id):
     ie = TreeImportEvent.objects.get(pk=import_id)
