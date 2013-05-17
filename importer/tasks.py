@@ -1,29 +1,49 @@
 from celery import task
 
-from importer.models import TreeImportRow
+from importer.models import TreeImportRow, GenericImportEvent, \
+    GenericImportRow
+
+BLOCK_SIZE = 250
+
+def has_waiting_rows(ie):
+    return ie.rows()\
+             .filter(status=GenericImportRow.WAITING)\
+             .exists()
+
 
 @task()
-def validate_rows(rows):
-    for row in rows:
+def validate_rows(ie, i):
+    for row in ie.rows()[i:(i+BLOCK_SIZE)]:
         row.validate_row()
+
+    if not has_waiting_rows(ie):
+        ie.status = GenericImportEvent.FINISHED_VERIFICATION
+        ie.save()
 
 @task()
 def run_import_event_validation(ie):
-    block_size = 250
     filevalid = ie.validate_main_file()
+
+    ie.status = GenericImportEvent.VERIFIYING
+    ie.save()
 
     rows = ie.rows()
     if filevalid:
-        for i in xrange(0,rows.count(), block_size):
-            validate_rows.delay(rows[i:(i+block_size)])
+        for i in xrange(0,rows.count(), BLOCK_SIZE):
+            validate_rows.delay(ie, i)
 
 @task()
-def commit_rows(rows):
+def commit_rows(ie, i):
     #TODO: Refactor out [Tree]ImportRow.SUCCESS
     # this works right now because they are the same
     # value (0) but that's not really great
-    if row.status != TreeImportRow.SUCCESS:
-        row.commit_row()
+    for row in ie.rows()[i:(i + BLOCK_SIZE)]:
+        if row.status != TreeImportRow.SUCCESS:
+            row.commit_row()
+
+    if not has_waiting_rows(ie):
+        ie.status = GenericImportEvent.FINISHED_CREATING
+        ie.save()
 
 @task()
 def commit_import_event(ie):
@@ -36,5 +56,5 @@ def commit_import_event(ie):
     #TODO: When using OTM ID field, don't include
     #      that tree in proximity check (duh)
     if filevalid:
-        for i in xrange(0,rows.count(), block_size):
-            commit_rows.delay(rows[i:(i+block_size)])
+        for i in xrange(0,rows.count(), BLOCK_SIZE):
+            commit_rows.delay(ie, i)
