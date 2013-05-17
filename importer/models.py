@@ -1,4 +1,6 @@
+from django.db.models import Count
 from django.conf import settings
+
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
@@ -20,6 +22,12 @@ class GenericImportEvent(models.Model):
     class Meta:
         abstract = True
 
+    PENDING_VERIFICATION = 1
+    VERIFIYING = 2
+    FINISHED_VERIFICATION = 3
+    CREATING = 4
+    FINISHED_CREATING = 5
+
     # Original Name of the file
     file_name = models.CharField(max_length=255)
 
@@ -31,10 +39,39 @@ class GenericImportEvent(models.Model):
     created = models.DateTimeField(auto_now=True)
     completed = models.DateTimeField(null=True,blank=True)
 
+    status = models.IntegerField(default=PENDING_VERIFICATION)
+
     # When false, this dataset is in 'preview' mode
     # When true this dataset has been written to the
     # database
     commited = models.BooleanField(default=False)
+
+    def status_summary(self):
+        if self.status == GenericImportEvent.PENDING_VERIFICATION:
+            return "Not Yet Started"
+        elif self.status == GenericImportEvent.VERIFIYING:
+            return "Verifying"
+        elif self.status == GenericImportEvent.FINISHED_VERIFICATION:
+            return "Verification Complete"
+        elif self.status == GenericImportEvent.CREATING:
+            return "Creating Trees"
+        else:
+            return "Finished"
+
+    def active(self):
+        return self.status != GenericImportEvent.FINISHED_CREATING
+
+    def row_type_counts(self):
+        q = self.row_set()\
+                .values('status')\
+                .order_by()\
+                .annotate(Count('status'))
+
+        return { r['status']: r['status__count'] for r in q }
+
+    def update_status(self):
+        """ Update the status field based on current row statuses """
+        pass
 
     def append_error(self, err, data=None):
         code, msg, fatal = err
@@ -60,8 +97,11 @@ class GenericImportEvent(models.Model):
     def has_errors(self):
         return len(self.errors_as_array()) > 0
 
-    def rows(self):
+    def row_set(self):
         raise Exception('Abstract Method')
+
+    def rows(self):
+        return self.row_set().order_by('idx').all()
 
     def validate_main_file(self):
         raise Exception('Abstract Method')
@@ -71,8 +111,11 @@ class SpeciesImportEvent(GenericImportEvent):
     A TreeImportEvent represents an attempt to upload a csv containing
     species information
     """
-    def rows(self):
-        return self.speciesimportrow_set.order_by('idx').all()
+    def row_set(self):
+        return self.speciesimportrow_set
+
+    def __unicode__(self):
+        return u"Species Import #%s" % self.pk
 
     def validate_main_file(self):
         """
@@ -125,8 +168,11 @@ class TreeImportEvent(GenericImportEvent):
     tree_height_conversion_factor = models.FloatField(default=1.0)
     canopy_height_conversion_factor = models.FloatField(default=1.0)
 
-    def rows(self):
-        return self.treeimportrow_set.order_by('idx').all()
+    def row_set(self):
+        return self.treeimportrow_set
+
+    def __unicode__(self):
+        return u"Tree Import #%s" % self.pk
 
     def validate_main_file(self):
         """
