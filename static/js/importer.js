@@ -1,4 +1,3 @@
-
 /** Importer namespace **/
 var I = {
     importevent: window.location.pathname.match('/([a-z]+)/([0-9]+)')[2],
@@ -394,9 +393,12 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
 
     I.views.createPager = function (panel) {
         var total_pages = panel.data.total_pages;
+        var start_page = _.max([panel.page - 5, 0]);
 
         var $pager = $(_.template($('#pager-template').html(), {
-            total_pages: total_pages
+            page: panel.page,
+            start_page: start_page,
+            end_page: _.min([total_pages,start_page + 10])
         }));
 
         $pager.find('a').click(function() {
@@ -468,6 +470,25 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         };
     };
 
+    I.updateIfPendingOrVerified = function (pane) {
+        var pname = '';
+        // this isn't great but works
+        // shouldn't reference runtime variables here
+        if (I.rt.mode === 'create') {
+            pname = 'verified';
+        } else {
+            pname = 'pending';
+        }
+
+        if (pane.name === pname && pane.data.count > 0) {
+            setTimeout(function() {
+                _.map(I.rt.panels, I.updatePane);
+            }, 10000);
+        }
+
+        return pane;
+    };
+
     /**
      * Update a given panel
      */
@@ -475,6 +496,7 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         I.api.fetchPanel(pane)
             .done(I.views.rowCountUpdater(pane))
             .pipe(setter(pane, 'data'))
+            .pipe(I.updateIfPendingOrVerified)
             .pipe(I.views.renderTable)
             .pipe(replacePaneView(pane))
             .fail(I.signalError);
@@ -624,8 +646,12 @@ $(function() {
 
     // Wire up 'create' button
     $("#createtrees").click(function() {
+        I.rt.mode = 'create';
         I.api.commitEdit(I.importevent)
             .done(function () { _.map(I.rt.panels, I.updatePane); });
+
+        // Start the update engine
+        _.map(I.rt.panels, I.updatePane);
     });
 
     // Initially show first panel

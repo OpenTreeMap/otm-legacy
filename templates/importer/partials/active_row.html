@@ -1,0 +1,27 @@
+{% load url from future %}
+{% load tree_tags %}
+
+{% with counts=ie.row_type_counts count=ie.rows.count %}
+<tr><td>{{ ie }}</td><td>{{ ie.status_str }}</td>
+{% if ie.status == 2 or ie.status == 4 %}
+  <td>
+    {% if counts.3 %}
+      {{ count|subtract:counts.3 }} /
+    {% endif %}
+
+    {{ count }}
+  </td><td></td>
+{% else %}
+  {% if ie.status == 3 or ie.status == 5 %}
+    <td>{{ ie.rows.count }}</td>
+    <td>
+      <a href="{% url 'importer.views.show_tree_import_status' ie.pk %}">
+        View
+      </a>
+    </td>
+  {% else %}
+    <td></td><td></td>
+  {% endif %}
+{% endif %}
+</tr>
+{% endwith %}

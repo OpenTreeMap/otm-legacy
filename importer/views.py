@@ -2,6 +2,7 @@ import csv
 import json
 from datetime import datetime
 
+from django.db import transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -19,7 +20,8 @@ from treemap.models import Species, Neighborhood, Plot,\
     Tree, ExclusionMask
 
 from importer.models import TreeImportEvent, TreeImportRow,\
-    SpeciesImportEvent, SpeciesImportRow
+    SpeciesImportEvent, SpeciesImportRow, \
+    GenericImportEvent, GenericImportRow
 
 from importer import errors
 
@@ -37,27 +39,49 @@ def start(request):
 
 def create(request):
     if request.REQUEST['type'] == 'tree':
+        typ = 'tree'
         processors = {
             'rowconstructor': TreeImportRow,
             'fileconstructor': TreeImportEvent
         }
     elif request.REQUEST['type'] == 'species':
+        typ = 'species'
         processors = {
             'rowconstructor': SpeciesImportRow,
             'fileconstructor': SpeciesImportEvent
         }
 
-    process_csv(request,**processors)
+    pk = process_csv(request,**processors)
 
     return HttpResponseRedirect(reverse('importer.views.list_imports'))
 
 def list_imports(request):
+    trees = TreeImportEvent.objects\
+                           .order_by('id')
+
+    active_trees = trees.exclude(
+        status=GenericImportEvent.FINISHED_CREATING)
+
+    finished_trees = trees.filter(
+        status=GenericImportEvent.FINISHED_CREATING)
+
+    species = SpeciesImportEvent.objects\
+                                .order_by('id')
+
+    active_species = species.exclude(
+        status=GenericImportEvent.FINISHED_CREATING)
+
+    finished_species = species.filter(
+        status=GenericImportEvent.FINISHED_CREATING)
+
     return render_to_response(
         'importer/list.html',
         RequestContext(
             request,
-            {'treeevents': TreeImportEvent.objects.order_by('id').all(),
-             'speciesevents': SpeciesImportEvent.objects.order_by('id').all()}))
+            {'trees_active': active_trees,
+             'trees_finished': finished_trees,
+             'species_active': active_species,
+             'species_finished': finished_species }))
 
 def show_species_import_status(request, import_event_id):
     return show_import_status(request, import_event_id, SpeciesImportEvent)
@@ -238,7 +262,7 @@ def solve(request, import_event_id, import_row_idx):
                     'validates': rslt}),
         content_type = 'application/json')
 
-
+@transaction.commit_manually
 def commit(request, import_event_id, import_type=None):
     #TODO:!!! NEED TO ADD TREES TO WATCH LIST
     #TODO:!!! Trees in the same import event should not cause
@@ -254,6 +278,12 @@ def commit(request, import_event_id, import_type=None):
         raise Exception('invalid import type')
 
     ie = model.objects.get(pk=import_event_id)
+    ie.status = GenericImportEvent.CREATING
+
+    ie.save()
+    ie.rows().update(status=GenericImportRow.WAITING)
+
+    transaction.commit()
 
     commit_import_event.delay(ie)
     #TODO: Update tree counts for species
@@ -262,6 +292,7 @@ def commit(request, import_event_id, import_type=None):
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
+@transaction.commit_manually
 def process_csv(request, rowconstructor, fileconstructor):
     files = request.FILES
     filename = files.keys()[0]
@@ -274,13 +305,12 @@ def process_csv(request, rowconstructor, fileconstructor):
 
     rows = create_rows_for_event(ie, fileobj,
                                  constructor=rowconstructor)
+    transaction.commit()
 
     if rows:
         run_import_event_validation.delay(ie)
 
-    return HttpResponse(
-        json.dumps({'id': ie.pk}),
-        content_type = 'application/json')
+    return ie.pk
 
 def process_commit(request, import_id):
     ie = TreeImportEvent.objects.get(pk=import_id)
