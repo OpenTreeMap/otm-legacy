@@ -439,12 +439,9 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        resp = process_csv(r,
-                           rowconstructor=self.rowconstructor(),
-                           fileconstructor=self.constructor())
-        j = json.loads(resp.content)
-
-        pk = j['id']
+        pk = process_csv(r,
+                         rowconstructor=self.rowconstructor(),
+                         fileconstructor=self.constructor())
 
         resp = process_status(None, pk, self.constructor())
         content = json.loads(resp.content)
@@ -453,12 +450,9 @@ class IntegrationTests(TestCase):
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        resp = process_csv(r,
-                           rowconstructor=self.rowconstructor(),
-                           fileconstructor=self.constructor())
-        j = json.loads(resp.content)
-
-        pk = j['id']
+        pk = process_csv(r,
+                         rowconstructor=self.rowconstructor(),
+                         fileconstructor=self.constructor())
 
         commit(None, pk, self.import_type())
         return pk
@@ -527,9 +521,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertNotIn('0', ierrors)
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_ITREE_CODE[0],
-                           [fields.species.ITREE_CODE], None),
-                          (errors.MISSING_FIELD[0],
-                           [fields.species.SPECIES], None)])
+                           [fields.species.ITREE_CODE], None)])
         self.assertEqual(ierrors['2'],
                          [(errors.MISSING_ITREE_CODE[0],
                            ['i-tree code'], None),
@@ -550,7 +542,7 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         # Errors for multiple species matches
         self.assertEqual(len(ierrors), 4)
-        
+
         ie = SpeciesImportEvent.objects.get(pk=j['pk'])
         s1,s2,s3 = [s.pk for s in Species.objects.all()]
 
@@ -591,7 +583,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
         | newgenus2 | newspecies1 | g1 s2 wowza | BDL_OTHER    | cvar     | sci | fam |
         """ % ('other part of scientific name', 'family')
-        
+
         seid = self.run_through_commit_views(csv)
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
@@ -692,7 +684,7 @@ class TreeIntegrationTests(IntegrationTests):
         """
 
         j = self.run_through_process_views(csv)
-        
+
         # manually adding pk into the test case
         self.assertEqual({'status': 'success', 'rows': 2, 'pk': j['pk']}, j)
 
@@ -754,7 +746,7 @@ class TreeIntegrationTests(IntegrationTests):
         ierrors = self.extract_errors(j)
         self.assertEqual(ierrors['0'],
                          [(errors.FLOAT_ERROR[0],
-                           [fields.trees.DIAMETER], None), 
+                           [fields.trees.DIAMETER], None),
                           (errors.GEOM_OUT_OF_BOUNDS[0], gflds, None)])
 
         self.assertEqual(ierrors['1'],
@@ -769,7 +761,7 @@ class TreeIntegrationTests(IntegrationTests):
                          [(errors.POS_FLOAT_ERROR[0],
                            [fields.trees.DIAMETER], None),
                           (errors.FLOAT_ERROR[0],
-                           [fields.trees.POINT_Y], None),                          
+                           [fields.trees.POINT_Y], None),
                           (errors.MISSING_POINTS[0], gflds, None),
                           (errors.INVALID_SPECIES[0], sflds, 'gfail')])
         self.assertEqual(ierrors['5'],

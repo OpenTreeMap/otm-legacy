@@ -14,36 +14,40 @@
 
 {% block middle_panel %}
 
-<h1>Tree Imports</h1>
+<h1>Bulk Uploader</h1>
 
-<table>
-{% for ie in treeevents %}
-  <tr>
-    <td>{{ ie.pk }}</td>
-    <td class="col1Wide">{{ ie.file_name }}</td>
-    <td>{{ ie.created }}</td>
-    <td><a href="{% url 'importer.views.show_tree_import_status' ie.pk %}">
-        More Information
-      </a></td>
-  </tr>
-{% endfor %}
-</table>
+<div>
+  <h1>Tree Import</h1>
+  <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="tree"></input>
+    File to Upload: <input type="file" name="file"></input>
+    <input type="submit" name="go"></input>
+  </form>
 
-<h1>Species Imports</h1>
+  <h1>Species Import</h1>
+  <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="species"></input>
+    File to Upload: <input type="file" name="file"></input>
+    <input type="submit" name="go"></input>
+  </form>
+</div>
 
-<table>
-{% for ie in speciesevents %}
-  <tr>
-    <td>{{ ie.pk }}</td>
-    <td class="col1Wide">{{ ie.file_name }}</td>
-    <td>{{ ie.created }}</td>
-    <td><a href="{% url 'importer.views.show_species_import_status' ie.pk %}">
-        More Information
-      </a></td>
-  </tr>
-{% endfor %}
-</table>
-
+<div>
+  <h1>Active Tree Imports</h1>
+  {% include 'importer/partials/import_table.html' with things=trees_active %}
+</div>
+<div>
+  <h1>Finished Tree Imports</h1>
+  {% include 'importer/partials/import_table.html' with things=trees_finished %}
+</div>
+<div>
+  <h1>Active Species Imports</h1>
+  {% include 'importer/partials/import_table.html' with things=species_active %}
+</div>
+<div>
+  <h1>Finished Species Imports</h1>
+  {% include 'importer/partials/import_table.html' with things=species_finished %}
+</div>
 
 {% endblock %}
 

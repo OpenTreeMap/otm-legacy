@@ -1,0 +1,11 @@
+<table class="table">
+  <tr>
+    <th>Import Event</th>
+    <th>Status</th>
+    <th>Rows</th>
+    <th>View</th>
+  </tr>
+  {% for ie in things %}
+    {% include 'importer/partials/active_row.html' with ie=ie %}
+  {% endfor %}
+</table>

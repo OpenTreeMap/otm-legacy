@@ -22,6 +22,10 @@ def unit_or_expression(value, unit, failure_expression):
         return failure_expression
 
 @register.filter
+def subtract(value, arg):
+    return value - arg
+
+@register.filter
 def can_approve_pending(user):
     return user_is_authorized_to_update_pending_edits(user)
 
