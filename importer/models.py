@@ -64,7 +64,6 @@ class GenericImportEvent(models.Model):
     def row_type_counts(self):
         q = self.row_set()\
                 .values('status')\
-                .order_by()\
                 .annotate(Count('status'))
 
         return { r['status']: r['status__count'] for r in q }
