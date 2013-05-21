@@ -493,7 +493,9 @@ class SpeciesImportRow(GenericImportRow):
             'wildlife_value': fields.species.WILDLIFE,
             'v_max_dbh': fields.species.MAX_DIAMETER,
             'v_max_height': fields.species.MAX_HEIGHT,
-            'fact_sheet': fields.species.FACT_SHEET
+            'fact_sheet': fields.species.FACT_SHEET,
+            'family': fields.species.FAMILY,
+            'other_part_of_name': fields.species.OTHER_PART_OF_NAME
         }
 
     # Species reference
@@ -543,17 +545,20 @@ class SpeciesImportRow(GenericImportRow):
         genus = self.datadict.get(fields.species.GENUS,'')
         species = self.datadict.get(fields.species.SPECIES,'')
         cultivar = self.datadict.get(fields.species.CULTIVAR,'')
+        other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME,'')
 
         # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
+        self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
 
-        if genus != '' or species != '' or cultivar != '':
+        if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects\
                                       .filter(genus__iexact=genus)\
                                       .filter(species__iexact=species)\
-                                      .filter(cultivar_name__iexact=cultivar)
+                                      .filter(cultivar_name__iexact=cultivar)\
+                                      .filter(other_part_of_name__iexact=other_part)
 
             self.cleaned[fields.species.ORIG_SPECIES]\
                 |= { s.pk for s in matching_species }
@@ -730,9 +735,7 @@ class SpeciesImportRow(GenericImportRow):
         if species is None:
             species = Species()
 
-        #TODO: Support family field
         #TODO: What to do about gender
-        #TODO: The whole 'other part of sci name' thing for both species and trees
         #TODO: Update tree count nonsense
 
         for modelkey, importdatakey in SpeciesImportRow.SPECIES_MAP.iteritems():

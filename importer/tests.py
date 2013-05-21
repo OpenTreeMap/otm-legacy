@@ -530,11 +530,12 @@ class SpeciesIntegrationTests(IntegrationTests):
 
     def test_species_matching(self):
         csv = """
-        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
-        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |
-        | genus   | blah       | common name | BDL_OTHER    | s1          |     |
-        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    | s2          |     |
-        | testus2 | specieius2 | g1 s2 wowza | BDL_OTHER    | s1          | a3  |
+        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |      |
+        | genus   | blah       | common name | BDL_OTHER    | s1          |     |      |
+        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    | s2          |     |      |
+        | testus2 | specieius2 | g1 s2 wowza | BDL_OTHER    | s1          | a3  |      |
+        | genusN  | speciesN   | gN sN wowza | BDL_OTHER    |             |     | var3 |
         """
 
         j = self.run_through_process_views(csv)
@@ -546,18 +547,25 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=j['pk'])
         s1,s2,s3 = [s.pk for s in Species.objects.all()]
 
+        s4s = Species(symbol='gnsn', scientific_name='',
+                      genus='genusN', species='speciesN', cultivar_name='',
+                      other_part_of_name='var3', v_max_dbh=50.0, v_max_height=100.0)
+        s4s.save()
+        s4 = s4s.pk
+
         rows = ie.rows()
         matches = []
         for row in rows:
             row.validate_row()
             matches.append(row.cleaned[fields.species.ORIG_SPECIES])
 
-        m1,m2,m3,m4 = matches
+        m1,m2,m3,m4,m5 = matches
 
         self.assertEqual(m1, {s1})
         self.assertEqual(m2, {s1})
         self.assertEqual(m3, {s1,s2})
         self.assertEqual(m4, {s1,s2,s3})
+        self.assertEqual(m5, {s4})
 
     def test_all_species_data(self):
         csv = """
@@ -589,9 +597,8 @@ class SpeciesIntegrationTests(IntegrationTests):
         s = ie.rows().all()[0].species
 
         self.assertEqual(s.cultivar_name, 'cvar')
-
-        #TODO: Support family field
-        #TODO: Support 'other' field
+        self.assertEqual(s.family, 'fam')
+        self.assertEqual(s.other_part_of_name, 'sci')
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |

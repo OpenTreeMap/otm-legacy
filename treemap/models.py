@@ -200,6 +200,9 @@ class Species(models.Model):
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
     gender = models.CharField(max_length=50, null=True, blank=True)
     common_name = models.CharField(max_length=255, null=True, blank=True)
+    family = models.CharField(max_length=255,null=True,blank=True)
+    other_part_of_name = models.CharField(max_length=255,null=True,
+                                          blank=True,default='')
 
     native_status = models.CharField(max_length=255, null=True, blank=True)
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
