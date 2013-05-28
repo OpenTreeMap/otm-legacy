@@ -395,10 +395,10 @@ def species(request, selection='all', format='html'):
         species = Species.objects.all().order_by('common_name')
 
     if format == 'json':
-        res = [{"symbol":str(x.symbol or ''),
-                 "cname":str(x.common_name or ''),
-                 "cultivar":str(x.cultivar_name or ''),
-                 "sname":str(x.scientific_name or x.genus),
+        res = [{"symbol":unicode(x.symbol or ''),
+                 "cname":unicode(x.common_name or ''),
+                 "cultivar":unicode(x.cultivar_name or ''),
+                 "sname":unicode(x.scientific_name or x.genus),
                  "id": int(x.id),
                  "count": int(x.tree_count)} for x in species]
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
