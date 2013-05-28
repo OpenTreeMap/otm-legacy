@@ -5,7 +5,9 @@
 {% block extrahead %}
     {% load compressed %}
     {% compressed_js 'map' %}
-<!-- <script> importer js </script> -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+  <script src="{{ STATIC_URL }}js/importer.js"></script>
+
 {% endblock %}
 
 {% block content_body_top %}
@@ -34,19 +36,19 @@
 
 <div>
   <h1>Active Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_active %}
+  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" %}
 </div>
 <div>
   <h1>Finished Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_finished %}
+  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" %}
 </div>
 <div>
   <h1>Active Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_active %}
+  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" %}
 </div>
 <div>
   <h1>Finished Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_finished %}
+  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" %}
 </div>
 
 {% endblock %}
