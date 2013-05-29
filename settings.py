@@ -134,7 +134,8 @@ INSTALLED_APPS = (
     'django_sorting',
     'pipeline',
     'importer',
-    'djcelery'
+    'djcelery',
+    'polygons'
 )
 
 try:
