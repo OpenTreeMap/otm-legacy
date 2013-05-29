@@ -1,7 +1,7 @@
 /** Importer namespace **/
 var I = {};
 
-(function($,I) {
+(function($,I,TM) {
 
     I.views = {};
     I.api = {};
@@ -496,6 +496,56 @@ var I = {};
         };
     };
 
+    I.errors.getContentForMoreSpeciesOptions = function(flds, row) {
+        var source = _.map(TM.speciesData, function(d) {
+            return d.cname + " [" + d.sname + "]";
+        });
+
+        var $content = $(loadTemplate("species-error-more-content")({
+            species: source
+        }));
+
+        function updateDropDown(event, ui) {
+            $content.find(".specieslist")
+                .val($content
+                     .find(".speciesbyname")
+                     .val());
+        }
+
+        $content.find(".speciesbyname")
+            .autocomplete({
+                source: source,
+                change: updateDropDown
+            });
+
+        $content.find(".cancel").click(function(e) {
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+
+        $content.find(".select").click(function(e) {
+            var i =_.indexOf(source, $content.find(".specieslist").val());
+            var d = TM.speciesData[i];
+
+            var sln = {};
+            sln.transform = function(row) {
+                row.genus = d.genus;
+                row.species = d.species;
+                row.cultivar = d.cultivar;
+                row['other part of scientific name'] = d.other_part;
+
+                return row;
+            };
+
+            I.errors.commitRowWithSolution(flds, row, sln);
+
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+
+        return $content;
+    };
+
     I.errors.getContentForSpeciesError = function(flds, row, fld, val, error) {
         return I.errors.getSolutionsForSpeciesError(fld, val, error)
             .pipe(function (slns) {
@@ -504,9 +554,16 @@ var I = {};
                     possible: best['new_val']
                 }));
 
+                var $more = I.errors.getContentForMoreSpeciesOptions(flds, row);
+
                 // Wire up events
                 $error.find(".cancel").click(function(e) {
                     I.errors.closePopups();
+                    e.stopPropagation(); // Seems like a hack?
+                });
+                $error.find(".moreoptions").click(function(e) {
+                    $error.empty()
+                        .append($more);
                     e.stopPropagation(); // Seems like a hack?
                 });
                 $error.find(".yes").click(function(e) {
@@ -759,7 +816,7 @@ var I = {};
         return _.reduce(panels, createTabPanel, createTabContainer());
     };
 
-}($,I));
+}($,I,tm));
 
 I.init = {};
 I.init.status = function() {

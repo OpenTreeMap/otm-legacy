@@ -4,9 +4,17 @@
     overflow: auto;
 }
 
+
 /**
  * Styles
  */
+.speciesbyname {
+    width: 100%;
+}
+
+.specieslist {
+    width: 100%;
+}
 
 .pages {
     text-align: center;

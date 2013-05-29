@@ -396,11 +396,15 @@ def species(request, selection='all', format='html'):
 
     if format == 'json':
         res = [{"symbol":unicode(x.symbol or ''),
-                 "cname":unicode(x.common_name or ''),
-                 "cultivar":unicode(x.cultivar_name or ''),
-                 "sname":unicode(x.scientific_name or x.genus),
-                 "id": int(x.id),
-                 "count": int(x.tree_count)} for x in species]
+                "cname":unicode(x.common_name or ''),
+                "cultivar":unicode(x.cultivar_name or ''),
+                "sname":unicode(x.scientific_name or x.genus),
+                "species": x.species,
+                "genus": x.genus,
+                "cultivar": x.cultivar_name,
+                "other_part": x.other_part_of_name,
+                "id": int(x.id),
+                "count": int(x.tree_count)} for x in species]
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
 
     if format == 'csv':
