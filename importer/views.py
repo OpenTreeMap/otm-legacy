@@ -13,6 +13,8 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User
 
+import fields
+
 from importer.tasks import run_import_event_validation,\
     commit_import_event
 
@@ -36,6 +38,47 @@ def lowerkeys(h):
 
 def start(request):
     return render_to_response('importer/index.html', RequestContext(request,{}))
+
+def find_similar_species(request):
+    target = request.REQUEST['target']
+
+    species = Species.objects\
+                     .extra(
+                         select={
+                             'l': "levenshtein(genus || ' ' || species || ' ' || cultivar_name || ' ' || other_part_of_name, %s)"
+                         },
+                         select_params=(target,))\
+                     .order_by('l')[0:2] # Take top 2
+
+    output = [{fields.trees.GENUS: s.genus,
+               fields.trees.SPECIES: s.species,
+               fields.trees.CULTIVAR: s.cultivar_name,
+               fields.trees.OTHER_PART_OF_NAME: s.other_part_of_name,
+               'pk': s.pk} for s in species]
+
+    return HttpResponse(
+        json.dumps(output),
+        content_type = 'application/json')
+
+def counts(request):
+    active_trees = TreeImportEvent\
+        .objects\
+        .order_by('id')\
+        .exclude(status=GenericImportEvent.FINISHED_CREATING)
+
+    active_species = SpeciesImportEvent\
+        .objects\
+        .order_by('id')\
+        .exclude(status=GenericImportEvent.FINISHED_CREATING)
+
+    output = {}
+    output['trees'] = {t.pk: t.row_type_counts() for t in active_trees}
+    output['species'] = {s.pk: s.row_type_counts() for s in active_species }
+
+    return HttpResponse(
+        json.dumps(output),
+        content_type = 'application/json')
+
 
 def create(request):
     if request.REQUEST['type'] == 'tree':
@@ -96,6 +139,30 @@ def show_import_status(request, import_event_id, Model):
             request,
             {'event': Model.objects.get(pk=import_event_id)}))
 
+def update(request, import_type, import_event_id):
+    if import_type == 'tree':
+        Model = TreeImportEvent
+    else:
+        Model = SpeciesImportEvent
+
+    rowdata = json.loads(request.REQUEST['row'])
+    idx = rowdata['id']
+
+    row = Model.objects.get(pk=import_event_id).rows().get(idx=idx)
+    basedata = row.datadict
+
+    for k,v in rowdata.iteritems():
+        if k in basedata:
+            basedata[k] = v
+
+    row.datadict = basedata
+    row.save()
+    row.validate_row()
+
+    return HttpResponse()
+
+
+# TODO: Remove this method
 def update_row(request, import_event_row_id):
     update_keys = { key.split('update__')[1]
                     for key

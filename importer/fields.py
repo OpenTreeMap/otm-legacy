@@ -2,7 +2,7 @@ class species(object):
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
-    SCINAME = 'other part of scientific name'
+    OTHER_PART_OF_NAME = 'other part of scientific name'
     COMMON_NAME = 'common name'
     USDA_SYMBOL = 'usda symbol'
     ALT_SYMBOL = 'alternative symbol'
@@ -18,7 +18,6 @@ class species(object):
     # when a matching itree code is found
     RESOURCE = 'calc__resource'
 
-    #TODO: Support family field
     FAMILY = 'family'
     NATIVE_STATUS = 'native status'
     FALL_COLORS = 'fall colors'
@@ -39,7 +38,7 @@ class species(object):
 
     DATE_FIELDS = set()
 
-    STRING_FIELDS = { GENUS, SPECIES, CULTIVAR, SCINAME, COMMON_NAME,
+    STRING_FIELDS = { GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
                       USDA_SYMBOL, ALT_SYMBOL, ITREE_CODE, FAMILY,
                       FACT_SHEET}
 
@@ -94,7 +93,7 @@ class trees(object):
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
-    SCI_NAME = 'other part of scientific name'
+    OTHER_PART_OF_NAME = 'other part of scientific name'
     DIAMETER = 'diameter'
     TREE_HEIGHT = 'tree height'
     CANOPY_HEIGHT = 'canopy height'
@@ -136,7 +135,7 @@ class trees(object):
     DATE_FIELDS = { DATE_PLANTED }
 
     STRING_FIELDS = { ADDRESS, GENUS, SPECIES,
-                      CULTIVAR, SCI_NAME, URL,
+                      CULTIVAR, OTHER_PART_OF_NAME, URL,
                       NOTES, OWNER, SPONSOR,
                       STEWARD, DATA_SOURCE,
                       LOCAL_PROJECTS, NOTES }
@@ -156,7 +155,7 @@ class trees(object):
             PLOT_LENGTH, READ_ONLY, OPENTREEMAP_ID_NUMBER,
             TREE_PRESENT, PLOT_TYPE, POWERLINE_CONFLICT,
             SIDEWALK, GENUS, SPECIES, CULTIVAR,
-            SCI_NAME, DIAMETER, ORIG_ID_NUMBER,
+            OTHER_PART_OF_NAME, DIAMETER, ORIG_ID_NUMBER,
             CANOPY_HEIGHT, DATE_PLANTED, TREE_CONDITION,
             CANOPY_CONDITION, ACTIONS, PESTS,
             LOCAL_PROJECTS, URL, NOTES, OWNER,

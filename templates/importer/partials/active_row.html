@@ -2,9 +2,11 @@
 {% load tree_tags %}
 
 {% with counts=ie.row_type_counts count=ie.rows.count %}
-<tr><td>{{ ie }}</td><td>{{ ie.status_str }}</td>
+<tr data-id="{{ ie.pk }}"
+    data-running="{% if ie.status == 2 or ie.status == 4 %}true{% else %}false{% endif %}" >
+  <td>{{ ie }}</td><td>{{ ie.status_summary }}</td>
 {% if ie.status == 2 or ie.status == 4 %}
-  <td>
+  <td data-count="{{ count }}">
     {% if counts.3 %}
       {{ count|subtract:counts.3 }} /
     {% endif %}

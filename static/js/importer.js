@@ -1,15 +1,25 @@
 /** Importer namespace **/
-var I = {
-    importevent: window.location.pathname.match('/([a-z]+)/([0-9]+)')[2],
-    import_type: window.location.pathname.match('/([a-z]+)/([0-9]+)')[1]
-};
+var I = {};
 
-I.api_prefix = '/importer/api/' + I.import_type + '/';
-
-(function($,I) {
+(function($,I,TM) {
 
     I.views = {};
     I.api = {};
+    I.errors = {};
+    I.constants = {};
+
+    I.constants.species_fields = ['genus', 'species', 'cultivar',
+                                  'other part of scientific name'];
+
+    var loadTemplateCache = {};
+    function loadTemplate(t) {
+        if (loadTemplateCache[t]) {
+            return loadTemplateCache[t];
+        } else {
+            loadTemplateCache[t] = _.template($("#" + t).html());
+            return loadTemplateCache[t];
+        }
+    };
 
     /** Dummy function (for now) **/
     I.signalError = function(error) {};
@@ -230,6 +240,37 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         };
     };
 
+    I.views.updateListTableWithNewData = function(table, data) {
+        /** TODO: Need to update when an item is finished */
+        _.map(data, function(counts, id) {
+            var $tr = $(table).find("tr[data-id=" + id + "]");
+            var $td = $(table).find("td[data-count]");
+
+            var total = $td.data('count');
+
+            var pct = parseInt((1.0 - counts["3"] / total) * 1000.0) / 10.0;
+            $td.text((total - counts["3"]) + "/" + total + " (" + pct + "%)");
+        });
+    };
+
+    /**
+     * Get possible species matches
+     */
+    I.api.getSpeciesMatches = function(tgt) {
+        return $.ajax(I.api_base + 'species/similar?target=' + tgt)
+            .fail(I.signalError);
+    };
+
+
+    /**
+     * Getting update counts
+     *
+     * Returns deferred obj
+     */
+    I.api.getUpdatedCounts = function () {
+        return $.ajax(I.api_prefix + 'counts')
+            .fail(I.signalError);
+    };
 
     /**
      * Basic tree editing and shared code
@@ -293,24 +334,44 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         return I.api.fetchResults(panel.request_key, I.importevent, panel.page);
     };
 
+    /**
+     * Update a row and rerun verification
+     *
+     * @param row the row data to update
+     */
+    I.api.updateRow = function(row) {
+        return $.ajax({
+            url: I.api_prefix + I.importevent + '/update',
+            data: {
+                'row': JSON.stringify(row)
+            }
+        });
+    };
+
     function concat(a,b) {
         return a.concat(b);
     }
 
     function extract_error_fields(row) {
-        return _(row.errors)
+        return _.chain(row.errors)
             .filter(function(r) { return r['fatal']; })
-            .map(function(r) { return r['fields']; })
-            .reduce(concat, [])
-            .reduce(function(h,f) { h[f] = 1; return h; }, {});
+            .reduce(function(h,f) {
+                return _.reduce(f.fields, function(hh, fld) {
+                    hh[fld] = f; return hh;
+                }, h);
+            }, {})
+            .value();
     }
 
     function extract_warning_fields(row) {
-        return _(row.errors)
+        return _.chain(row.errors)
             .filter(function(r) { return !r['fatal']; })
-            .map(function(r) { return r['fields']; })
-            .reduce(concat, [])
-            .reduce(function(h,f) { h[f] = 1; return h; }, {});
+            .reduce(function(h,f) {
+                return _.reduce(f.fields, function(hh, fld) {
+                    hh[fld] = f; return hh;
+                }, h);
+            }, {})
+            .value();
     }
 
     /**
@@ -337,9 +398,10 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
             header += '<th>Plot</th>';
         }
 
-        header = _(rows.fields)
+        header = _.chain(rows.fields)
             .map(function(f) { return '<th>' + f + '</th>'; })
-            .reduce(concat, header);
+            .reduce(concat, header)
+            .value();
 
         var table = $('<table class="table table-condensed table-bordered">\n<tr>' + header + '</tr>\n');
 
@@ -369,8 +431,13 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
                         var $td = $('<td></td>');
                         if (errors[key]) {
                             $td.addClass('error');
+                            $td.click(I.createErrorClickHandler(
+                                $td, rows.fields, row, errors[key], key, fld));
+
                         } else if (warnings[key]) {
                             $td.addClass('warning');
+                            $td.click(I.createWarningClickHandler(
+                                $td, row, warnings[key], fld));
                         }
                         $td.html('' + fld);
                         $tr.append($td);
@@ -389,6 +456,200 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         return $html
             .append($('<div class="tablepanel"></div>').append(table))
             .append(I.views.createPager(panel));
+    };
+
+    // Modifies page state
+    I.errors.closePopups = function() {
+        // Remove old error popups
+        $(".error-popup").remove();
+    };
+
+
+    I.createErrorClickHandler = function($td, flds, row, errors, fld, val) {
+        return function() {
+            // Remove old error popups
+            I.errors.closePopups();
+
+            var popover = _.template($('#error-template').html(), {
+                height: 200,
+                header: errors['msg'],
+                content: ''});
+
+            var $popover = $(popover);
+            if (_.contains(I.constants.species_fields, fld)) {
+                var content = 'Looking for similar species...';
+                $popover.find('.popover-content').html(content);
+
+                I.errors.getContentForSpeciesError(flds, row, fld, val, errors)
+                    .done(function(content) {
+                        $popover.find('.popover-content')
+                                      .empty()
+                                      .append(content);
+                        // Don't trigger td click handlers
+                        $popover.click(function(e) { e.stopPropagation(); });
+                    });
+            } else {
+                $popover.find('.popover-content').html('');
+            }
+
+            $(this).append($popover);
+        };
+    };
+
+    I.errors.getContentForMoreSpeciesOptions = function(flds, row) {
+        var source = _.map(TM.speciesData, function(d) {
+            return d.cname + " [" + d.sname + "]";
+        });
+
+        var $content = $(loadTemplate("species-error-more-content")({
+            species: source
+        }));
+
+        function updateDropDown(event, ui) {
+            $content.find(".specieslist")
+                .val($content
+                     .find(".speciesbyname")
+                     .val());
+        }
+
+        $content.find(".speciesbyname")
+            .autocomplete({
+                source: source,
+                change: updateDropDown
+            });
+
+        $content.find(".cancel").click(function(e) {
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+
+        $content.find(".select").click(function(e) {
+            var i =_.indexOf(source, $content.find(".specieslist").val());
+            var d = TM.speciesData[i];
+
+            var sln = {};
+            sln.transform = function(row) {
+                row.genus = d.genus;
+                row.species = d.species;
+                row.cultivar = d.cultivar;
+                row['other part of scientific name'] = d.other_part;
+
+                return row;
+            };
+
+            I.errors.commitRowWithSolution(flds, row, sln);
+
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+
+        return $content;
+    };
+
+    I.errors.getContentForSpeciesError = function(flds, row, fld, val, error) {
+        return I.errors.getSolutionsForSpeciesError(fld, val, error)
+            .pipe(function (slns) {
+                var best = slns[0];
+                var $error = $(loadTemplate("species-error-content")({
+                    possible: best['new_val']
+                }));
+
+                var $more = I.errors.getContentForMoreSpeciesOptions(flds, row);
+
+                // Wire up events
+                $error.find(".cancel").click(function(e) {
+                    I.errors.closePopups();
+                    e.stopPropagation(); // Seems like a hack?
+                });
+                $error.find(".moreoptions").click(function(e) {
+                    $error.empty()
+                        .append($more);
+                    e.stopPropagation(); // Seems like a hack?
+                });
+                $error.find(".yes").click(function(e) {
+                    I.errors.commitRowWithSolution(flds, row, best);
+                    I.errors.closePopups();
+
+                    e.stopPropagation(); // Seems like a hack?
+                });
+                return $error;
+            });
+    };
+
+    /**
+     * Update the given row with a particular solution
+     */
+    I.errors.commitRowWithSolution = function(flds, row, sln) {
+        var r = sln['transform'](_.object(flds, row));
+        r.id = row.row;
+        I.api.updateRow(r).done(function() {
+            _.map(I.rt.panels, I.updatePane);
+        });
+    };
+
+    /**
+     * Get a list of solutions for a species error. A single solution
+     * is a dict of: 'old_val', 'new_val', 'transformer'.
+     *
+     * [old|new]_val is a string of the [old|new] value
+     * transformer is a function that takes in the row data
+     * and returns a new row data
+     *
+     * This method may make calls to the server and this returns
+     * a deffered object
+     */
+    I.errors.getSolutionsForSpeciesError = function(fld, val, error) {
+        // No need to make a bunch of extra round trips for
+        // no reason
+        I.errors.species_memo = I.errors.species_memo || {};
+
+        if (I.errors.species_memo[error.data]) {
+            return $.when(I.errors.species_memo[error.data]);
+        }
+
+        function createRowTransformer(keys, d) {
+            return function(row) {
+                var rslt = {};
+                _.each(keys, function(key) {
+                    rslt[key] = d[key];
+                });
+                return rslt;
+            };
+        }
+
+        // Need to talk to the server to grab species
+        // types
+        return I.api.getSpeciesMatches(error.data)
+            .pipe(function(data) { // Build solutions here
+                return _.map(data, function(match) {
+                    var newval = _.reduce(I.constants.species_fields,
+                                          function(s,k) { return s + match[k] + ' '; },
+                                          '');
+
+                    return { 'old_val': val,
+                             'new_val': newval,
+                             'transform': createRowTransformer(
+                                 I.constants.species_fields, match)
+                           };
+                });
+            })
+            .done(function(rslt) { // Memoize for future use
+                I.errors.species_memo[error.data] = rslt;
+            });
+    };
+
+    I.createWarningClickHandler = function($td, row, warnings, fld) {
+        return function() {
+            // Remove old error popups
+            $(".error-popup").remove();
+
+            var popover = _.template($('#error-template').html(), {
+                height: 200,
+                header: 'Warning',
+                content: warnings['msg']});
+
+            $(this).append(popover);
+        };
     };
 
     I.views.createPager = function (panel) {
@@ -555,10 +816,16 @@ I.api_prefix = '/importer/api/' + I.import_type + '/';
         return _.reduce(panels, createTabPanel, createTabContainer());
     };
 
-}($,I));
+}($,I,tm));
 
+I.init = {};
+I.init.status = function() {
 
-$(function() {
+    I.importevent = window.location.pathname.match('/([a-z]+)/([0-9]+)')[2];
+    I.import_type = window.location.pathname.match('/([a-z]+)/([0-9]+)')[1];
+    I.api_base = '/importer/api/';
+    I.api_prefix = '/importer/api/' + I.import_type + '/';
+
     /**
      * Runtime layout and information
      */
@@ -667,4 +934,25 @@ $(function() {
     // Update each pane to grab initial data
     _.map(I.rt.panels, I.updatePane);
 
-});
+};
+
+I.init.list = function() {
+    I.api_prefix = '/importer/api/';
+
+    function update_counts() {
+        if ($("tr[data-running=true]").length > 0) {
+            I.api.getUpdatedCounts()
+                .done(function(c) {
+                    I.views.updateListTableWithNewData($("#activetree"), c['trees']);
+                    I.views.updateListTableWithNewData($("#activespecies"), c['species']);
+
+                    setTimeout(update_counts, 5000);
+                });
+        }
+    }
+
+    update_counts();
+
+};
+
+$(function() { I.init[window.location.pathname.match('/importer/([a-z]+)')[1]](); });
