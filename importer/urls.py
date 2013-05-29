@@ -15,5 +15,8 @@ urlpatterns = patterns('importer.views',
     (r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/results/(?P<subtype>[a-zA-Z]+)$',
      'results'),
     (r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/commit$', 'commit'),
+    (r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/update$', 'update'),
     (r'^api/species/(?P<import_event_id>\d+)/(?P<import_row_idx>\d+)/solve$', 'solve'),
+    (r'^api/counts', 'counts'),
+    (r'^api/species/similar', 'find_similar_species'),
 )
