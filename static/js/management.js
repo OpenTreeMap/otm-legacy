@@ -150,7 +150,7 @@ tm.updateGroup_Admin = function(user_id, group_id) {
     });
 };
 
-tm.banUser = function(user_id) {
+tm._banOrActivate = function(user_id, url, show_selector, hide_selector, status_text) {
     var data = {
         'user_id': user_id
     };
@@ -158,39 +158,28 @@ tm.banUser = function(user_id) {
     var jsonString = JSON.stringify(data);
 
     $.ajax({
-        url: tm_static + 'users/ban/',
+        url: url,
         dataType: 'json',
         data: jsonString,
         type: 'POST',
         success: function(response) {
-            $('#' + response.user_id).children("#rep").children("#ban").toggle();
-            $('#' + response.user_id).children("#rep").children("#activate").toggle();
-            $('#' + response.user_id).children("#active").html('Inactive');
+            var $userEditRow = $('.user_edit_row[data-id=' + user_id + ']');
+
+            $userEditRow.children("#rep").children(hide_selector).hide();
+            $userEditRow.children("#rep").children(show_selector).show();
+            $userEditRow.children("#active").html(status_text);
         },
         error: tm.genericErrorAlert
     });
-};
+}
 
-tm.activateUser = function(user_id) {
-    var data = {
-        'user_id': user_id
-    };
+tm.banUser = function (user_id) {
+    tm._banOrActivate(user_id, tm_static + 'users/ban/', "#activate", "#ban", "Inactive");
+}
 
-    var jsonString = JSON.stringify(data);
-
-    $.ajax({
-        url: tm_static + 'users/activate/',
-        dataType: 'json',
-        data: jsonString,
-        type: 'POST',
-        success: function(response) {
-            $('#' + response.user_id).children("#rep").children("#ban").toggle();
-            $('#' + response.user_id).children("#rep").children("#activate").toggle();
-            $('#' + response.user_id).children("#active").html('Active');
-        },
-        error: tm.genericErrorAlert
-    });
-};
+tm.activateUser = function (user_id) {
+    tm._banOrActivate(user_id, tm_static + 'users/activate/', "#ban", "#activate", "Active");
+}
 
 tm.updatePend = function(pend_id, pend_dir) {
     $.ajax({

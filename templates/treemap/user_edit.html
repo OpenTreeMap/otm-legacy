@@ -97,7 +97,7 @@
 			</thead>
 			<tbody>
 				{% for u in users %}
-					<tr id="{{u.id}}">
+					<tr class="user_edit_row" data-id="{{u.id}}">
 						<td><a href="{% url profiles.views.profile_detail u.username %}">{{u.username}}</a></td>
 						<td>{{u.get_full_name}} </td>
 						<td>{{u.email}}</td>
