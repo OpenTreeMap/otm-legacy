@@ -97,7 +97,7 @@
 			</thead>
 			<tbody>
 				{% for u in users %}
-					<tr id="{{u.id}}">
+					<tr class="user_edit_row" data-id="{{u.id}}">
 						<td><a href="{% url profiles.views.profile_detail u.username %}">{{u.username}}</a></td>
 						<td>{{u.get_full_name}} </td>
 						<td>{{u.email}}</td>
@@ -117,8 +117,8 @@
 								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
 								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
 							{% else %}
-								<a id="ban" href="javascript:void(0);" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
-								<a id="activate" href="javascript:void(0);" style="display:none;" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
+								<a id="ban" href="javascript:void(0);" style="display:none;" onclick="tm.banUser({{u.id}});return false;">Ban?</a>
+								<a id="activate" href="javascript:void(0);" onclick="tm.activateUser({{u.id}});return false;">Activate?</a>
 							{% endif %}
 						</td>
 					</tr>
