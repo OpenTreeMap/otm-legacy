@@ -2,8 +2,12 @@
 .tablepanel {
     /*width: 800px;*/
     overflow: auto;
+    padding-top: 50px; /* Remove me later. Hack for showing top of popup */
 }
 
+.popover-content input {
+    width: 95%;
+}
 
 /**
  * Styles

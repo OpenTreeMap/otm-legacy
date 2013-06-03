@@ -248,7 +248,13 @@ var I = {};
 
             var total = $td.data('count');
 
+            // 3 => Number of pending records
             var pct = parseInt((1.0 - counts["3"] / total) * 1000.0) / 10.0;
+
+            // Django can do the work
+            if (counts["3"] == 0) {
+                window.location.reload();
+            }
             $td.text((total - counts["3"]) + "/" + total + " (" + pct + "%)");
         });
     };
@@ -492,12 +498,46 @@ var I = {};
                         $popover.click(function(e) { e.stopPropagation(); });
                     });
             } else {
-                $popover.find('.popover-content').html('');
+                var $content = I.errors.getContentForGenericError(
+                    flds, row, fld, val);
+
+                $popover.find('.popover-content')
+                    .empty()
+                    .append($content);
+
+                $popover.click(function(e) { e.stopPropagation(); });
             }
 
             $(this).append($popover);
             resizePopovers();
         };
+    };
+
+    I.errors.getContentForGenericError = function(flds, row, fld, val) {
+        var $content = $(loadTemplate('generic-error')({
+            value: val,
+            field: fld
+        }));
+
+        $content.find(".cancel").click(function(e) {
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+        $content.find(".update").click(function(e) {
+            var sln = {};
+            sln.transform = function(row) {
+                row[fld] = $content.find('input').val();
+
+                return row;
+            };
+
+            I.errors.commitRowWithSolution(flds, row, sln);
+
+            I.errors.closePopups();
+            e.stopPropagation(); // Seems like a hack?
+        });
+
+        return $content;
     };
 
     // side-effecting function
