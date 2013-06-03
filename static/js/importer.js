@@ -5,7 +5,6 @@ var I = {};
 
     I.views = {};
     I.api = {};
-    I.errors = {};
     I.constants = {};
 
     I.constants.species_fields = ['genus', 'species', 'cultivar',
@@ -465,7 +464,7 @@ var I = {};
     };
 
     // Modifies page state
-    I.errors.closePopups = function() {
+    function closeErrorPopups() {
         // Remove old error popups
         $(".error-popup").remove();
     };
@@ -474,7 +473,7 @@ var I = {};
     I.createErrorClickHandler = function($td, flds, row, errors, fld, val) {
         return function() {
             // Remove old error popups
-            I.errors.closePopups();
+            closeErrorPopups();
 
             var popover = _.template($('#error-template').html(), {
                 height: 200,
@@ -486,7 +485,7 @@ var I = {};
                 var content = 'Looking for similar species...';
                 $popover.find('.popover-content').html(content);
 
-                I.errors.getContentForSpeciesError(flds, row, fld, val, errors)
+                getContentForSpeciesError(flds, row, fld, val, errors)
                     .done(function(content) {
                         $popover.find('.popover-content')
                                       .empty()
@@ -498,7 +497,7 @@ var I = {};
                         $popover.click(function(e) { e.stopPropagation(); });
                     });
             } else {
-                var $content = I.errors.getContentForGenericError(
+                var $content = getContentForGenericError(
                     flds, row, fld, val);
 
                 $popover.find('.popover-content')
@@ -513,14 +512,14 @@ var I = {};
         };
     };
 
-    I.errors.getContentForGenericError = function(flds, row, fld, val) {
+    function getContentForGenericError(flds, row, fld, val) {
         var $content = $(loadTemplate('generic-error')({
             value: val,
             field: fld
         }));
 
         $content.find(".cancel").click(function(e) {
-            I.errors.closePopups();
+            closeErrorPopups();
             e.stopPropagation(); // Seems like a hack?
         });
         $content.find(".update").click(function(e) {
@@ -531,9 +530,9 @@ var I = {};
                 return row;
             };
 
-            I.errors.commitRowWithSolution(flds, row, sln);
+            commitRowWithSolution(flds, row, sln);
 
-            I.errors.closePopups();
+            closeErrorPopups();
             e.stopPropagation(); // Seems like a hack?
         });
 
@@ -549,7 +548,7 @@ var I = {};
         $popover.css('top', (-$popover.height()) + "px");
     };
 
-    I.errors.getContentForMoreSpeciesOptions = function(flds, row) {
+    function getContentForMoreSpeciesOptions(flds, row) {
         var source = _.map(TM.speciesData, function(d) {
             return d.cname + " [" + d.sname + "]";
         });
@@ -572,7 +571,7 @@ var I = {};
             });
 
         $content.find(".cancel").click(function(e) {
-            I.errors.closePopups();
+            closeErrorPopups();
             e.stopPropagation(); // Seems like a hack?
         });
 
@@ -590,28 +589,28 @@ var I = {};
                 return row;
             };
 
-            I.errors.commitRowWithSolution(flds, row, sln);
+            commitRowWithSolution(flds, row, sln);
 
-            I.errors.closePopups();
+            closeErrorPopups();
             e.stopPropagation(); // Seems like a hack?
         });
 
         return $content;
     };
 
-    I.errors.getContentForSpeciesError = function(flds, row, fld, val, error) {
-        return I.errors.getSolutionsForSpeciesError(fld, val, error)
+    function getContentForSpeciesError(flds, row, fld, val, error) {
+        return getSolutionsForSpeciesError(fld, val, error)
             .pipe(function (slns) {
                 var best = slns[0];
                 var $error = $(loadTemplate("species-error-content")({
                     possible: best['new_val']
                 }));
 
-                var $more = I.errors.getContentForMoreSpeciesOptions(flds, row);
+                var $more = getContentForMoreSpeciesOptions(flds, row);
 
                 // Wire up events
                 $error.find(".cancel").click(function(e) {
-                    I.errors.closePopups();
+                    closeErrorPopups();
                     e.stopPropagation(); // Seems like a hack?
                 });
                 $error.find(".moreoptions").click(function(e) {
@@ -623,8 +622,8 @@ var I = {};
                     e.stopPropagation(); // Seems like a hack?
                 });
                 $error.find(".yes").click(function(e) {
-                    I.errors.commitRowWithSolution(flds, row, best);
-                    I.errors.closePopups();
+                    commitRowWithSolution(flds, row, best);
+                    closeErrorPopups();
 
                     e.stopPropagation(); // Seems like a hack?
                 });
@@ -635,7 +634,7 @@ var I = {};
     /**
      * Update the given row with a particular solution
      */
-    I.errors.commitRowWithSolution = function(flds, row, sln) {
+    function commitRowWithSolution(flds, row, sln) {
         var r = sln['transform'](_.object(flds, row));
         r.id = row.row;
         I.api.updateRow(r).done(function() {
@@ -654,13 +653,14 @@ var I = {};
      * This method may make calls to the server and this returns
      * a deffered object
      */
-    I.errors.getSolutionsForSpeciesError = function(fld, val, error) {
+    var species_memo;
+    function getSolutionsForSpeciesError(fld, val, error) {
         // No need to make a bunch of extra round trips for
         // no reason
-        I.errors.species_memo = I.errors.species_memo || {};
+        species_memo = species_memo || {};
 
-        if (I.errors.species_memo[error.data]) {
-            return $.when(I.errors.species_memo[error.data]);
+        if (species_memo[error.data]) {
+            return $.when(species_memo[error.data]);
         }
 
         function createRowTransformer(keys, d) {
@@ -690,7 +690,7 @@ var I = {};
                 });
             })
             .done(function(rslt) { // Memoize for future use
-                I.errors.species_memo[error.data] = rslt;
+                species_memo[error.data] = rslt;
             });
     };
 
