@@ -485,6 +485,9 @@ var I = {};
                         $popover.find('.popover-content')
                                       .empty()
                                       .append(content);
+
+                        resizePopovers();
+
                         // Don't trigger td click handlers
                         $popover.click(function(e) { e.stopPropagation(); });
                     });
@@ -493,7 +496,17 @@ var I = {};
             }
 
             $(this).append($popover);
+            resizePopovers();
         };
+    };
+
+    // side-effecting function
+    function resizePopovers() {
+        var $popover = $('.error-popup');
+        var titleHeight = $popover.find('.popover-title').height();
+        var contentHeight = $popover.find('.popover-content').height();
+        $popover.height(contentHeight + titleHeight + 30);
+        $popover.css('top', (-$popover.height()) + "px");
     };
 
     I.errors.getContentForMoreSpeciesOptions = function(flds, row) {
@@ -564,6 +577,9 @@ var I = {};
                 $error.find(".moreoptions").click(function(e) {
                     $error.empty()
                         .append($more);
+
+                    resizePopovers();
+
                     e.stopPropagation(); // Seems like a hack?
                 });
                 $error.find(".yes").click(function(e) {
@@ -643,12 +659,13 @@ var I = {};
             // Remove old error popups
             $(".error-popup").remove();
 
-            var popover = _.template($('#error-template').html(), {
+            var $popover = $(_.template($('#error-template').html(), {
                 height: 200,
                 header: 'Warning',
-                content: warnings['msg']});
+                content: warnings['msg']}));
 
-            $(this).append(popover);
+            $(this).append($popover);
+            resizePopovers();
         };
     };
 
