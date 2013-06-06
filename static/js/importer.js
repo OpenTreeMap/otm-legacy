@@ -251,8 +251,8 @@ var I = {};
             var pct = parseInt((1.0 - counts["3"] / total) * 1000.0) / 10.0;
 
             // Django can do the work
-            if (counts["3"] == 0) {
-                window.location.reload();
+            if (counts["3"] === undefined || counts["3"] == 0) {
+
             }
             $td.text((total - counts["3"]) + "/" + total + " (" + pct + "%)");
         });

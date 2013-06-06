@@ -21,15 +21,21 @@ from importer import errors,fields
 
 from importer.models import TreeImportEvent, TreeImportRow, \
     SpeciesImportEvent, SpeciesImportRow
-from treemap.models import Species, Neighborhood, Plot, ExclusionMask, Resource
+
+from treemap.models import Species, Neighborhood, Plot, \
+    ExclusionMask, Resource, ImportEvent
 
 class ValidationTest(TestCase):
     def setUp(self):
         self.user = User(username='smith')
         self.user.save()
 
+        bie = ImportEvent(file_name="fn")
+        bie.save()
+
         self.ie = TreeImportEvent(file_name='file',
-                                  owner=self.user)
+                                  owner=self.user,
+                                  base_import_event=bie)
         self.ie.save()
 
     def mkrow(self,data):
@@ -101,16 +107,28 @@ class ValidationTest(TestCase):
         setupTreemapEnv()
 
         user = User.objects.get(username="jim")
+        bie1 = ImportEvent(file_name="bie1")
+        bie2 = ImportEvent(file_name="bie2")
+        bie3 = ImportEvent(file_name="bie3")
+        bie4 = ImportEvent(file_name="bie4")
+
+        for bie in [bie1, bie2, bie3, bie4]:
+            bie.save()
+
         p1 = mkPlot(user, geom=Point(25.0000001,25.0000001))
+        p1.import_event = bie1
         p1.save()
 
         p2 = mkPlot(user, geom=Point(25.0000002,25.0000002))
+        p2.import_event = bie2
         p2.save()
 
         p3 = mkPlot(user, geom=Point(25.0000003,25.0000003))
+        p3.import_event = bie3
         p3.save()
 
         p4 = mkPlot(user, geom=Point(27.0000001,27.0000001))
+        p3.import_event = bie4
         p4.save()
 
         n1 = { p.pk for p in [p1,p2,p3] }
@@ -339,8 +357,12 @@ class FileLevelValidationTest(TestCase):
 
 
     def test_empty_file_error(self):
+        bie = ImportEvent(file_name="fn")
+        bie.save()
+
         ie = TreeImportEvent(file_name='file',
-                             owner=self.user)
+                             owner=self.user,
+                             base_import_event=bie)
         ie.save()
 
         base_rows = TreeImportRow.objects.count()
@@ -364,8 +386,12 @@ class FileLevelValidationTest(TestCase):
 
 
     def test_missing_point_field(self):
+        bie = ImportEvent(file_name="fn")
+        bie.save()
+
         ie = TreeImportEvent(file_name='file',
-                             owner=self.user)
+                             owner=self.user,
+                             base_import_event=bie)
         ie.save()
 
         base_rows = TreeImportRow.objects.count()
@@ -388,8 +414,12 @@ class FileLevelValidationTest(TestCase):
         self.assertEqual(etpl, errors.MISSING_POINTS)
 
     def test_unknown_field(self):
+        bie = ImportEvent(file_name="fn")
+        bie.save()
+
         ie = TreeImportEvent(file_name='file',
-                             owner=self.user)
+                             owner=self.user,
+                             base_import_event=bie)
         ie.save()
 
         base_rows = TreeImportRow.objects.count()

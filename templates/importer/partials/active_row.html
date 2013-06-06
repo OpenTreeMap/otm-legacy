@@ -14,7 +14,7 @@
     {{ count }}
   </td><td></td>
 {% else %}
-  {% if ie.status == 3 or ie.status == 5 %}
+  {% if ie.status == 3 or ie.status == 5 or ie.status == 6 %}
     <td>{{ ie.rows.count }}</td>
     <td>
       <a href="{% url 'importer.views.show_tree_import_status' ie.pk %}">

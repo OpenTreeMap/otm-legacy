@@ -13,7 +13,7 @@ from importer import errors
 from datetime import datetime
 
 from treemap.models import Species, Neighborhood, Plot,\
-    Tree, ExclusionMask
+    Tree, ExclusionMask, ImportEvent
 
 import json
 
@@ -27,6 +27,7 @@ class GenericImportEvent(models.Model):
     FINISHED_VERIFICATION = 3
     CREATING = 4
     FINISHED_CREATING = 5
+    FAILED_FILE_VERIFICATION = 6
 
     # Original Name of the file
     file_name = models.CharField(max_length=255)
@@ -55,6 +56,8 @@ class GenericImportEvent(models.Model):
             return "Verification Complete"
         elif self.status == GenericImportEvent.CREATING:
             return "Creating Trees"
+        elif self.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
+            return "Invalid File Structure"
         else:
             return "Finished"
 
@@ -116,6 +119,12 @@ class SpeciesImportEvent(GenericImportEvent):
     def __unicode__(self):
         return u"Species Import #%s" % self.pk
 
+    def status_summary(self):
+        if self.status == GenericImportEvent.CREATING:
+            return "Creating Species Records"
+        else:
+            return super(SpeciesImportEvent, self).status_summary()
+
     def validate_main_file(self):
         """
         Make sure the imported file has rows and valid columns
@@ -125,6 +134,7 @@ class SpeciesImportEvent(GenericImportEvent):
 
             # This is a fatal error. We need to have at least
             # one row to get header info
+            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
             return False
 
@@ -147,6 +157,7 @@ class SpeciesImportEvent(GenericImportEvent):
             self.append_error(errors.UNMATCHED_FIELDS, list(rem))
 
         if errors:
+            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
 
         return not has_errors
@@ -158,6 +169,8 @@ class TreeImportEvent(GenericImportEvent):
     A TreeImportEvent represents an attempt to upload a csv containing
     tree/plot information
     """
+
+    base_import_event = models.ForeignKey(ImportEvent)
 
     # We can do some numeric conversions
     # TODO: Support numeric conversions
@@ -182,6 +195,7 @@ class TreeImportEvent(GenericImportEvent):
 
             # This is a fatal error. We need to have at least
             # one row to get header info
+            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
             return False
 
@@ -202,6 +216,7 @@ class TreeImportEvent(GenericImportEvent):
             self.append_error(errors.UNMATCHED_FIELDS, list(rem))
 
         if errors:
+            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
 
         return not has_errors
@@ -735,7 +750,6 @@ class SpeciesImportRow(GenericImportRow):
         if species is None:
             species = Species()
 
-        #TODO: What to do about gender
         #TODO: Update tree count nonsense
 
         for modelkey, importdatakey in SpeciesImportRow.SPECIES_MAP.iteritems():
@@ -783,20 +797,13 @@ class TreeImportRow(GenericImportRow):
         if not self.validate_row():
             return False
 
-        #TODO: This is a kludge to get it to work with the
-        #      old system. Once everything works we can drop
-        #      this code
-        from treemap.models import ImportEvent
-
-        objs = ImportEvent.objects.filter(file_name=self.import_event.file_name)
-        if len(objs) == 0:
-            import_event = ImportEvent(file_name=self)
-            import_event.save()
-        else:
-            import_event = objs[0]
+        # We need the import event from treemap.models
+        # the names of things are a bit odd here but
+        # self.import_event ->
+        #   TreeImportEvent (importer) ->
+        #     ImportEvent (treemap)
         #
-        # END OF KLUDGE
-        #
+        base_treemap_import_event = self.import_event.base_import_event
 
         # Get our data
         data = self.cleaned
@@ -866,7 +873,7 @@ class TreeImportRow(GenericImportRow):
 
         if plot_edited:
             plot.last_updated_by = data_owner
-            plot.import_event = import_event
+            plot.import_event = base_treemap_import_event
             plot.save()
 
         for modelkey, importdatakey in tree_map.iteritems():
@@ -880,7 +887,7 @@ class TreeImportRow(GenericImportRow):
 
         if tree_edited:
             tree.last_updated_by = data_owner
-            tree.import_event = import_event
+            tree.import_event = base_treemap_import_event
             tree.plot = plot
             tree.save()
 
@@ -938,10 +945,12 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_proximity(self, point):
+        base_import_event = self.import_event.base_import_event
         nearby = Plot.objects\
                      .filter(present=True,
                              geometry__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
+                     .exclude(import_event=base_import_event)\
                      .order_by('distance')[:5]
 
         if len(nearby) > 0:

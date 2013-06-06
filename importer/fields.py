@@ -138,7 +138,7 @@ class trees(object):
                       CULTIVAR, OTHER_PART_OF_NAME, URL,
                       NOTES, OWNER, SPONSOR,
                       STEWARD, DATA_SOURCE,
-                      LOCAL_PROJECTS, NOTES }
+                      LOCAL_PROJECTS, NOTES, ORIG_ID_NUMBER }
 
     POS_FLOAT_FIELDS = { PLOT_WIDTH, PLOT_LENGTH,
                          DIAMETER, TREE_HEIGHT,
@@ -146,8 +146,7 @@ class trees(object):
 
     FLOAT_FIELDS = { POINT_X, POINT_Y }
 
-    POS_INT_FIELDS = { OPENTREEMAP_ID_NUMBER,
-                       ORIG_ID_NUMBER }
+    POS_INT_FIELDS = { OPENTREEMAP_ID_NUMBER }
 
     BOOLEAN_FIELDS = { READ_ONLY, TREE_PRESENT }
 

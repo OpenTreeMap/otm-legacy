@@ -19,7 +19,7 @@ from importer.tasks import run_import_event_validation,\
     commit_import_event
 
 from treemap.models import Species, Neighborhood, Plot,\
-    Tree, ExclusionMask
+    Tree, ExclusionMask, ImportEvent
 
 from importer.models import TreeImportEvent, TreeImportRow,\
     SpeciesImportEvent, SpeciesImportRow, \
@@ -359,7 +359,7 @@ def commit(request, import_event_id, import_type=None):
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
-@transaction.commit_manually
+#@transaction.commit_manually
 def process_csv(request, rowconstructor, fileconstructor):
     files = request.FILES
     filename = files.keys()[0]
@@ -368,6 +368,15 @@ def process_csv(request, rowconstructor, fileconstructor):
     owner = User.objects.all()[0]
     ie = fileconstructor(file_name=filename,
                          owner=owner)
+
+    # If this is a tree import event it also needs an
+    # 'old style' import event
+    bie = ImportEvent(file_name=filename)
+    bie.save()
+
+    if hasattr(ie, 'base_import_event_id'):
+        ie.base_import_event = bie
+
     ie.save()
 
     rows = create_rows_for_event(ie, fileobj,
