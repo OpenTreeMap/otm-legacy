@@ -575,7 +575,7 @@ class SpeciesImportRow(GenericImportRow):
                                       .filter(genus__iexact=genus)\
                                       .filter(species__iexact=species)\
                                       .filter(cultivar_name__iexact=cultivar)\
-                                      .filter(family=family)\
+                                      .filter(family__iexact=family)\
                                       .filter(other_part_of_name__iexact=other_part)
 
             self.cleaned[fields.species.ORIG_SPECIES]\
