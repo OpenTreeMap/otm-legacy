@@ -560,12 +560,14 @@ class SpeciesImportRow(GenericImportRow):
         genus = self.datadict.get(fields.species.GENUS,'')
         species = self.datadict.get(fields.species.SPECIES,'')
         cultivar = self.datadict.get(fields.species.CULTIVAR,'')
+        family = self.datadict.get(fields.species.FAMILY,'')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME,'')
 
         # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
+        self.cleaned[fields.species.FAMILY] = family
         self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
@@ -573,6 +575,7 @@ class SpeciesImportRow(GenericImportRow):
                                       .filter(genus__iexact=genus)\
                                       .filter(species__iexact=species)\
                                       .filter(cultivar_name__iexact=cultivar)\
+                                      .filter(family=family)\
                                       .filter(other_part_of_name__iexact=other_part)
 
             self.cleaned[fields.species.ORIG_SPECIES]\
@@ -985,12 +988,16 @@ class TreeImportRow(GenericImportRow):
         genus = self.datadict.get(fields.trees.GENUS,'')
         species = self.datadict.get(fields.trees.SPECIES,'')
         cultivar = self.datadict.get(fields.trees.CULTIVAR,'')
+        family = self.datadict.get(fields.trees.FAMILY,'')
+        other_part = self.datadict.get(fields.trees.OTHER_PART_OF_NAME,'')
 
         if genus != '' or species != '' or cultivar != '':
             matching_species = Species.objects\
                                       .filter(genus__iexact=genus)\
                                       .filter(species__iexact=species)\
-                                      .filter(cultivar_name__iexact=cultivar)
+                                      .filter(cultivar_name__iexact=cultivar)\
+                                      .filter(family__iexact=family)\
+                                      .filter(other_part_of_name__iexact=other_part)
 
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
