@@ -80,18 +80,31 @@ def counts(request):
 def create(request):
     if request.REQUEST['type'] == 'tree':
         typ = 'tree'
-        processors = {
-            'rowconstructor': TreeImportRow,
-            'fileconstructor': TreeImportEvent
+        kwargs = {
+            'fileconstructor': TreeImportEvent,
+
+            'plot_length_conversion_factor':
+            float(request.REQUEST.get('unit_plot_length', 1.0)),
+
+            'plot_width_conversion_factor':
+            float(request.REQUEST.get('unit_plot_width', 1.0)),
+
+            'diameter_conversion_factor':
+            float(request.REQUEST.get('unit_diameterh', 1.0)),
+
+            'tree_height_conversion_factor':
+            float(request.REQUEST.get('unit_tree_height', 1.0)),
+
+            'canopy_height_conversion_factor':
+            float(request.REQUEST.get('unit_canopy_height', 1.0))
         }
     elif request.REQUEST['type'] == 'species':
         typ = 'species'
-        processors = {
-            'rowconstructor': SpeciesImportRow,
+        kwargs = {
             'fileconstructor': SpeciesImportEvent
         }
 
-    pk = process_csv(request,**processors)
+    pk = process_csv(request,**kwargs)
 
     return HttpResponseRedirect(reverse('importer.views.list_imports'))
 
@@ -357,14 +370,15 @@ def commit(request, import_event_id, import_type=None):
         content_type = 'application/json')
 
 #@transaction.commit_manually
-def process_csv(request, rowconstructor, fileconstructor):
+def process_csv(request, fileconstructor, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
     fileobj = files[filename]
 
     owner = User.objects.all()[0]
     ie = fileconstructor(file_name=filename,
-                         owner=owner)
+                         owner=owner,
+                         **kwargs)
 
     # If this is a tree import event it also needs an
     # 'old style' import event
@@ -376,8 +390,8 @@ def process_csv(request, rowconstructor, fileconstructor):
 
     ie.save()
 
-    rows = create_rows_for_event(ie, fileobj,
-                                 constructor=rowconstructor)
+    rows = create_rows_for_event(ie, fileobj)
+
     transaction.commit()
 
     if rows:
@@ -396,14 +410,14 @@ def process_commit(request, import_id):
         content_type = 'application/json')
 
 
-def create_rows_for_event(importevent, csvfile, constructor):
+def create_rows_for_event(importevent, csvfile):
     rows = []
     reader = csv.DictReader(csvfile)
 
     idx = 0
     for row in reader:
         rows.append(
-            constructor.objects.create(
+            importevent.create_row(
                 data=json.dumps(lowerkeys(row)),
                 import_event=importevent, idx=idx))
 

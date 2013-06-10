@@ -113,6 +113,9 @@ class SpeciesImportEvent(GenericImportEvent):
     A TreeImportEvent represents an attempt to upload a csv containing
     species information
     """
+    def create_row(self, *args, **kwargs):
+        return SpeciesImportRow.objects.create(*args, **kwargs)
+
     def row_set(self):
         return self.speciesimportrow_set
 
@@ -179,6 +182,9 @@ class TreeImportEvent(GenericImportEvent):
     diameter_conversion_factor = models.FloatField(default=1.0)
     tree_height_conversion_factor = models.FloatField(default=1.0)
     canopy_height_conversion_factor = models.FloatField(default=1.0)
+
+    def create_row(self, *args, **kwargs):
+        return TreeImportRow.objects.create(*args, **kwargs)
 
     def row_set(self):
         return self.treeimportrow_set
@@ -800,6 +806,25 @@ class TreeImportRow(GenericImportRow):
         if not self.validate_row():
             return False
 
+        # Get our data
+        data = self.cleaned
+
+        # Convert units
+        converts = {
+            fields.trees.PLOT_WIDTH: self.import_event.plot_width_conversion_factor,
+            fields.trees.PLOT_LENGTH: self.import_event.plot_length_conversion_factor,
+            fields.trees.DIAMETER: self.import_event.diameter_conversion_factor,
+            fields.trees.TREE_HEIGHT: self.import_event.tree_height_conversion_factor,
+            fields.trees.CANOPY_HEIGHT: self.import_event.canopy_height_conversion_factor
+        }
+
+        INCHES_TO_DBH_FACTOR = 1.0 / settings.DBH_TO_INCHES_FACTOR
+
+        for fld, factor in converts.iteritems():
+            if fld in data and factor != 1.0:
+                data[fld] = float(data[fld]) * factor * INCHES_TO_DBH_FACTOR
+
+
         # We need the import event from treemap.models
         # the names of things are a bit odd here but
         # self.import_event ->
@@ -807,9 +832,6 @@ class TreeImportRow(GenericImportRow):
         #     ImportEvent (treemap)
         #
         base_treemap_import_event = self.import_event.base_import_event
-
-        # Get our data
-        data = self.cleaned
 
         plot_edited = False
         tree_edited = False
