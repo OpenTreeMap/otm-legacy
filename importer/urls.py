@@ -4,8 +4,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('importer.views',
-    (r'^start$', 'start'),
-    (r'^list$', 'list_imports'),
+    (r'^$', 'list_imports'),
     (r'^create$', 'create'),
     (r'^status/tree/(?P<import_event_id>\d+)$', 'show_tree_import_status'),
     (r'^status/species/(?P<import_event_id>\d+)$', 'show_species_import_status'),

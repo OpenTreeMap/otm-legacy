@@ -16,15 +16,35 @@
 
 {% block middle_panel %}
 
+  <div id="unitsdialog">
+    <table>
+      <tr><th>Field</th><th>Unit</th></tr>
+      <tr><td>Plot Length</td></tr>
+      <tr><td>Plot Width</td></tr>
+      <tr><td>Diameter</td></tr>
+      <tr><td>Tree Height</td></tr>
+      <tr><td>Canopy Height</td></tr>
+    </table>
+    <button class="create">Create</button>
+    <button class="cancel">Cancel</button>
+  </div>
+
+
 <h1>Bulk Uploader</h1>
 
 <div>
   <h1>Tree Import</h1>
-  <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+  <form id="treeform" method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
     <input type="hidden" name="type" value="tree"></input>
+    <input name="unit_plot_length" value="1" type="hidden">
+    <input name="unit_plot_width" value="1" type="hidden">
+    <input name="unit_diameter" value="1" type="hidden">
+    <input name="unit_tree_height" value="1" type="hidden">
+    <input name="unit_canopy_height" value="1" type="hidden">
+
     File to Upload: <input type="file" name="file"></input>
-    <input type="submit" name="go"></input>
   </form>
+  <button id="submittree">Go</button>
 
   <h1>Species Import</h1>
   <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
@@ -36,19 +56,19 @@
 
 <div>
   <h1>Active Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" %}
+  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="tree" %}
 </div>
 <div>
   <h1>Finished Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" %}
+  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="tree" %}
 </div>
 <div>
   <h1>Active Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" %}
+  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
 </div>
 <div>
   <h1>Finished Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" %}
+  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
 </div>
 
 {% endblock %}
