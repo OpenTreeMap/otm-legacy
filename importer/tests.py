@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from django.http import HttpRequest
 from django.contrib.auth.models import User
@@ -67,10 +68,10 @@ class ValidationTest(TestCase):
                     raise AssertionError('Error code %s found in %s' % (errn,errors))
 
     def test_species_dbh_and_height(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='',
+        s1_gsc = Species(symbol='S1G__', scientific_name='',family='',
                          genus='g1', species='s1', cultivar_name='c1',
                          v_max_height=30, v_max_dbh=19)
-        s1_gs = Species(symbol='S1GS_', scientific_name='',
+        s1_gs = Species(symbol='S1GS_', scientific_name='',family='',
                         genus='g1', species='s1', cultivar_name='',
                         v_max_height=22, v_max_dbh=12)
         s1_gsc.save()
@@ -128,7 +129,7 @@ class ValidationTest(TestCase):
         p3.save()
 
         p4 = mkPlot(user, geom=Point(27.0000001,27.0000001))
-        p3.import_event = bie4
+        p4.import_event = bie4
         p4.save()
 
         n1 = { p.pk for p in [p1,p2,p3] }
@@ -154,16 +155,16 @@ class ValidationTest(TestCase):
 
 
     def test_species_id(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='',
+        s1_gsc = Species(symbol='S1G__', scientific_name='',family='',
                          genus='g1', species='s1', cultivar_name='c1')
-        s1_gs = Species(symbol='S1GS_', scientific_name='',
+        s1_gs = Species(symbol='S1GS_', scientific_name='',family='',
                         genus='g1', species='s1', cultivar_name='')
-        s1_g = Species(symbol='S1GSC', scientific_name='',
+        s1_g = Species(symbol='S1GSC', scientific_name='',family='',
                        genus='g1', species='', cultivar_name='')
 
-        s2_gsc = Species(symbol='S2GSC', scientific_name='',
+        s2_gsc = Species(symbol='S2GSC', scientific_name='',family='',
                          genus='g2', species='s2', cultivar_name='c2')
-        s2_gs = Species(symbol='S2GS_', scientific_name='',
+        s2_gs = Species(symbol='S2GS_', scientific_name='',family='',
                         genus='g2', species='s2', cultivar_name='')
 
         for s in [s1_gsc, s1_gs, s1_g, s2_gsc, s2_gs]:
@@ -369,7 +370,7 @@ class FileLevelValidationTest(TestCase):
 
         c = self.write_csv([['header_field1','header_fields2','header_field3']])
 
-        create_rows_for_event(ie, c, constructor=TreeImportRow)
+        create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         # No rows added and validation failed
@@ -400,7 +401,7 @@ class FileLevelValidationTest(TestCase):
                             ['123 Beach St','5','5'],
                             ['222 Main St','8','8']])
 
-        create_rows_for_event(ie, c, constructor=TreeImportRow)
+        create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
@@ -428,7 +429,7 @@ class FileLevelValidationTest(TestCase):
                             ['123 Beach St','a','b','5','5'],
                             ['222 Main St','a','b','8','8']])
 
-        create_rows_for_event(ie, c, constructor=TreeImportRow)
+        create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
@@ -469,9 +470,7 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r,
-                         rowconstructor=self.rowconstructor(),
-                         fileconstructor=self.constructor())
+        pk = process_csv(r, fileconstructor=self.constructor())
 
         resp = process_status(None, pk, self.constructor())
         content = json.loads(resp.content)
@@ -480,9 +479,7 @@ class IntegrationTests(TestCase):
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r,
-                         rowconstructor=self.rowconstructor(),
-                         fileconstructor=self.constructor())
+        pk = process_csv(r, fileconstructor=self.constructor())
 
         commit(None, pk, self.import_type())
         return pk
@@ -577,7 +574,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=j['pk'])
         s1,s2,s3 = [s.pk for s in Species.objects.all()]
 
-        s4s = Species(symbol='gnsn', scientific_name='',
+        s4s = Species(symbol='gnsn', scientific_name='',family='',
                       genus='genusN', species='speciesN', cultivar_name='',
                       other_part_of_name='var3', v_max_dbh=50.0, v_max_height=100.0)
         s4s.save()
@@ -698,11 +695,12 @@ class SpeciesIntegrationTests(IntegrationTests):
         tgtrsrc = Resource.objects.get(meta_species='BDM_OTHER')
         self.assertEqual({ r.pk for r in s2.resource.all() }, { tgtrsrc.pk })
 
-
-
-
-
 class TreeIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super(TreeIntegrationTests, self).setUp()
+
+        settings.DBH_TO_INCHES_FACTOR = 1.0
 
     def rowconstructor(self):
         return TreeImportRow
@@ -759,7 +757,7 @@ class TreeIntegrationTests(IntegrationTests):
                           errors.UNMATCHED_FIELDS[0]})
 
     def test_faulty_data1(self):
-        s1_g = Species(symbol='S1GSC', scientific_name='',
+        s1_g = Species(symbol='S1GSC', scientific_name='',family='',
                        genus='g1', species='', cultivar_name='',
                        v_max_dbh=50.0, v_max_height=100.0)
         s1_g.save()
@@ -852,8 +850,34 @@ class TreeIntegrationTests(IntegrationTests):
                          [(errors.STRING_TOO_LONG[0],
                            [fields.trees.STEWARD], None)])
 
+    def test_unit_changes(self):
+        csv = """
+        | point x | point y | tree height | canopy height | diameter | plot width | plot length |
+        | 45.53   | 31.1    | 10.0        | 11.0          | 12.0     | 13.0       | 14.0        |
+        """
+
+        r = self.create_csv_request(csv, name='some name')
+        ieid = process_csv(r, fileconstructor=self.constructor(),
+                           plot_length_conversion_factor=1.5,
+                           plot_width_conversion_factor=2.5,
+                           diameter_conversion_factor=3.5,
+                           tree_height_conversion_factor=4.5,
+                           canopy_height_conversion_factor=5.5)
+
+        commit(None, ieid, self.import_type())
+
+        ie = TreeImportEvent.objects.get(pk=ieid)
+        plot = ie.treeimportrow_set.all()[0].plot
+
+        self.assertEqual(plot.width, 13.0*2.5)
+        self.assertEqual(plot.length, 14.0*1.5)
+        self.assertEqual(plot.current_tree().dbh, 3.5*12.0)
+        self.assertEqual(plot.current_tree().height, 10.0 * 4.5)
+        self.assertEqual(plot.current_tree().canopy_height, 11.0 * 5.5)
+
+
     def test_all_tree_data(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='',
+        s1_gsc = Species(symbol='S1G__', scientific_name='',family='',
                          genus='g1', species='s1', cultivar_name='c1')
         s1_gsc.save()
 

@@ -19,6 +19,7 @@ var I = {};
             return loadTemplateCache[t];
         }
     };
+    I.loadTemplate = loadTemplate
 
     /** Dummy function (for now) **/
     I.signalError = function(error) {};
@@ -441,9 +442,14 @@ var I = {};
 
                         } else if (warnings[key]) {
                             $td.addClass('warning');
-                            $td.click(I.createWarningClickHandler(
-                                $td, row, warnings[key], fld));
+
+                            // Don't show errors on the merge panel
+                            if (panel.name != "mergereq") {
+                                $td.click(I.createWarningClickHandler(
+                                    $td, row, warnings[key], fld));
+                            }
                         }
+
                         $td.html('' + fld);
                         $tr.append($td);
                     }
@@ -996,6 +1002,7 @@ I.init.status = function() {
 I.init.list = function() {
     I.api_prefix = '/importer/api/';
 
+    // Auto-updater
     function update_counts() {
         if ($("tr[data-running=true]").length > 0) {
             I.api.getUpdatedCounts()
@@ -1008,8 +1015,66 @@ I.init.list = function() {
         }
     }
 
+    // Create unit types dialog
+    var $unitsDialog = $("#unitsdialog");
+
+    var conversions =
+        { "Inches" : 1.0,
+          "Meters": 39.3701,
+          "Centimeters": 0.393701 }
+
+    var $select = _.reduce(conversions, function ($sel,factor,label) {
+        return $sel.append($("<option>")
+                           .attr("value",factor)
+                           .text(label));
+    }, $("<select>"));
+
+    $unitsDialog.find("tr").each(function (i,row) {
+        if (i > 0) {
+            $(row).append($("<td>").append($select.clone()));
+        }
+    });
+
+    $("body").append($unitsDialog);
+
+    $unitsDialog.dialog({
+        autoOpen: false,
+        width: 350,
+        modal: true
+    });
+
+    $("#submittree").click(function() {
+        $unitsDialog.dialog('open');
+    });
+
+    $unitsDialog.find(".cancel").click(function() {
+        $unitsDialog.dialog('close');
+    });
+
+    $unitsDialog.find(".create").click(function() {
+        var fields = {};
+        // Extract field values
+        $unitsDialog.find("tr").each(function (i,row) {
+            if (i > 0) {
+                var tds = $(row).find("td");
+                fields["unit_" + tds.first().html().replace(" ","_").toLowerCase()] =
+                    tds.last().find("select").val();
+            }
+        });
+
+        // Update hidden format fields
+        var $form = $("#treeform");
+        _.each(fields, function(val,label) {
+            $form.find("input[name=" + label  + "]")
+                .attr("value", val);
+        });
+
+        $form.submit();
+    });
+
+    // Start the updater
     update_counts();
 
 };
 
-$(function() { I.init[window.location.pathname.match('/importer/([a-z]+)')[1]](); });
+$(function() { I.init[_.last(window.location.pathname.match('/importer/([a-z]+)')) || "list"](); });
