@@ -36,9 +36,6 @@ def lowerkeys(h):
 
     return h2
 
-def start(request):
-    return render_to_response('importer/index.html', RequestContext(request,{}))
-
 def find_similar_species(request):
     target = request.REQUEST['target']
 
