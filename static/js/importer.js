@@ -1016,7 +1016,7 @@ I.init.list = function() {
     }
 
     // Create unit types dialog
-    var $unitsDialog = $(I.loadTemplate("units-dialog")());
+    var $unitsDialog = $("#unitsdialog");
 
     var conversions =
         { "Inches" : 1.0,
@@ -1024,11 +1024,10 @@ I.init.list = function() {
           "Centimeters": 0.393701 }
 
     var $select = _.reduce(conversions, function ($sel,factor,label) {
-        console.log($sel);
         return $sel.append($("<option>")
                            .attr("value",factor)
                            .text(label));
-    }, $("<select></select>"));
+    }, $("<select>"));
 
     $unitsDialog.find("tr").each(function (i,row) {
         if (i > 0) {

@@ -8,21 +8,6 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
   <script src="{{ STATIC_URL }}js/importer.js"></script>
 
-  <script type="text/template" id="units-dialog">
-    <div id="unitsdialog">
-      <table>
-        <tr><th>Field</th><th>Unit</th></tr>
-        <tr><td>Plot Length</td></tr>
-        <tr><td>Plot Width</td></tr>
-        <tr><td>Diameter</td></tr>
-        <tr><td>Tree Height</td></tr>
-        <tr><td>Canopy Height</td></tr>
-      </table>
-      <button class="create">Create</button>
-      <button class="cancel">Cancel</button>
-    </div>
-  </script>
-
 {% endblock %}
 
 {% block content_body_top %}
@@ -30,6 +15,20 @@
 
 
 {% block middle_panel %}
+
+  <div id="unitsdialog">
+    <table>
+      <tr><th>Field</th><th>Unit</th></tr>
+      <tr><td>Plot Length</td></tr>
+      <tr><td>Plot Width</td></tr>
+      <tr><td>Diameter</td></tr>
+      <tr><td>Tree Height</td></tr>
+      <tr><td>Canopy Height</td></tr>
+    </table>
+    <button class="create">Create</button>
+    <button class="cancel">Cancel</button>
+  </div>
+
 
 <h1>Bulk Uploader</h1>
 
