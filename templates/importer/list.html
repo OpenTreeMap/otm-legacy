@@ -36,19 +36,19 @@
 
 <div>
   <h1>Active Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" %}
+  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="trees" %}
 </div>
 <div>
   <h1>Finished Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" %}
+  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="trees" %}
 </div>
 <div>
   <h1>Active Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" %}
+  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
 </div>
 <div>
   <h1>Finished Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" %}
+  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
 </div>
 
 {% endblock %}
