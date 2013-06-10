@@ -441,9 +441,14 @@ var I = {};
 
                         } else if (warnings[key]) {
                             $td.addClass('warning');
-                            $td.click(I.createWarningClickHandler(
-                                $td, row, warnings[key], fld));
+
+                            // Don't show errors on the merge panel
+                            if (panel.name != "mergereq") {
+                                $td.click(I.createWarningClickHandler(
+                                    $td, row, warnings[key], fld));
+                            }
                         }
+
                         $td.html('' + fld);
                         $tr.append($td);
                     }
