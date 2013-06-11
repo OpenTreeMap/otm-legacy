@@ -14,7 +14,7 @@
   <script src="{{ STATIC_URL }}js/importer.js"></script>
 
   <script type="text/template" id="error-template">
-    <div class="error-popup popover fade top in" style="bottom: 0px; left: -90px; display: block; width: 200px;">
+    <div class="error-popup popover fade bottom in" style="margin: 0; display: block; width: 200px;">
       <div class="arrow"></div>
       <h3 class="popover-title"><%= header %></h3>
       <div class="popover-content">
@@ -28,9 +28,9 @@
       <div>That species couldn't be found in the database.</div>
       <div>Did you mean: <%= possible %>?</div>
       <div>
-        <a class="yes" href="#">Yes</a>
-        <a class="moreoptions" href="#">More Options</a>
-        <a class="cancel" href="#">Cancel</a>
+        <a class="yes btn btn-success btn-small">Yes</a>
+        <a class="moreoptions btn btn-info btn-small">More Options</a>
+        <a class="cancel btn btn-danger btn-small">Cancel</a>
       </div>
     </div>
   </script>
@@ -38,8 +38,8 @@
   <script type="text/template" id="generic-error">
     <div>
       <input type="text" value="<%= value %>" name="<%= field %>">
-      <a class="update" href="#">Update</a>
-      <a class="cancel" href="#">Cancel</a>
+      <a class="update btn btn-info btn-small">Update</a>
+      <a class="cancel btn btn-alert btn-small">Cancel</a>
     </div>
   </script>
 
@@ -55,8 +55,8 @@
       </select>
     </div>
     <div>
-      <a class="select" href="#">Select</a>
-      <a class="cancel" href="#">Cancel</a>
+      <a class="select btn btn-success btn-small">Select</a>
+      <a class="cancel btn btn-alert btn-small">Cancel</a>
     </div>
   </script>
 
@@ -91,16 +91,19 @@
   </script>
 
   <script type="text/template" id="pager-template">
-    <div class="pages">
-      <a href="#">&lt;</a>
-      <a href="#">&lt;&lt;</a>
-      <% _.each(_.range(start_page, end_page), function(i) { %>
-        <% if (i == page) { %><strong> <% } %>
-        <a href="#"><%= i + 1 %></a>
-        <% if (i == page) { %></strong> <% } %>
-      <% }); %>
-      <a href="#">&gt;&gt;</a>
-      <a href="#">&gt;</a>
+    <div class="pages pagination pagination-small">
+      <ul>
+        <li><a href="#">&lt;</a></li>
+        <li><a href="#">&lt;&lt;</a></li>
+        <% _.each(_.range(start_page, end_page), function(i) { %>
+          <li
+            <% if (i == page) { %> class="active" <% } %>
+            ><a href="#"><%= i + 1 %></a>
+          </li>
+        <% }); %>
+        <li><a href="#">&gt;&gt;</a></li>
+        <li><a href="#">&gt;</a></li>
+      </ul>
     </div>
   </script>
 
@@ -116,10 +119,11 @@
   {% include 'importer/partials/file_level_error.html' with event=event %}
 {% else %}
   <div class="importcontainer">
+    <h1 class="importer-header">Import Status</h1>
     <div id="tabs"></div>
   </div>
 
-  <button id="createtrees">Create Objects</button>
+  <button id="createtrees" class="btn btn-success btn-large">Create Objects &raquo;</button>
 {% endif %}
 
 {% endblock %}

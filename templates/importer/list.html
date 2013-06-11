@@ -5,6 +5,7 @@
 {% block extrahead %}
     {% load compressed %}
     {% compressed_js 'map' %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/importer.css" type="text/css"></link>
   <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
   <script src="{{ STATIC_URL }}js/importer.js"></script>
 
@@ -29,46 +30,49 @@
     <button class="cancel">Cancel</button>
   </div>
 
-
-<h1>Bulk Uploader</h1>
-
 <div>
-  <h1>Tree Import</h1>
-  <form id="treeform" method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
-    <input type="hidden" name="type" value="tree"></input>
-    <input name="unit_plot_length" value="1" type="hidden">
-    <input name="unit_plot_width" value="1" type="hidden">
-    <input name="unit_diameter" value="1" type="hidden">
-    <input name="unit_tree_height" value="1" type="hidden">
-    <input name="unit_canopy_height" value="1" type="hidden">
-
-    File to Upload: <input type="file" name="file"></input>
-  </form>
-  <button id="submittree">Go</button>
-
-  <h1>Species Import</h1>
-  <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
-    <input type="hidden" name="type" value="species"></input>
-    File to Upload: <input type="file" name="file"></input>
-    <input type="submit" name="go"></input>
-  </form>
+  <h1 class="importer-header">Bulk Uploader</h1>
+  <div class="importer-upload">
+    <h2>Tree Import</h2>
+    <form id="treeform" method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+      <input type="hidden" name="type" value="tree"></input>
+      <input name="unit_plot_length" value="1" type="hidden">
+      <input name="unit_plot_width" value="1" type="hidden">
+      <input name="unit_diameter" value="1" type="hidden">
+      <input name="unit_tree_height" value="1" type="hidden">
+      <input name="unit_canopy_height" value="1" type="hidden">
+      File to Upload: <input type="file" name="file"></input>
+    </form>
+    <button id="submittree" class="btn btn-success">Go &raquo;</button>
+  </div>
+  <div class="importer-upload">
+    <h2>Species Import</h2>
+    <form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+      <input type="hidden" name="type" value="species"></input>
+      File to Upload: <input type="file" name="file"></input>
+      <input type="submit" name="go" value="Go &raquo;" class="btn btn-success"></input>
+    </form>
+  </div>
 </div>
 
-<div>
-  <h1>Active Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="tree" %}
-</div>
-<div>
-  <h1>Finished Tree Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="tree" %}
-</div>
-<div>
-  <h1>Active Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
-</div>
-<div>
-  <h1>Finished Species Imports</h1>
-  {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
+<div class="importer-lists">
+  <h1 class="importer-header">All Imports</h1>
+  <div>
+    <h2>Active Tree Imports</h2>
+    {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="tree" %}
+  </div>
+  <div>
+    <h2>Finished Tree Imports</h2>
+    {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="tree" %}
+  </div>
+  <div>
+    <h2>Active Species Imports</h2>
+    {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
+  </div>
+  <div>
+    <h2>Finished Species Imports</h2>
+    {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
+  </div>
 </div>
 
 {% endblock %}

@@ -509,8 +509,12 @@ var I = {};
                 $popover.click(function(e) { e.stopPropagation(); });
             }
 
-            $(this).append($popover);
-            resizePopovers();
+            $(this).parent().parent().parent().parent().parent().append($popover);
+            var tdH = $(this).height(),
+                tdW = $(this).width(),
+                tdX = $(this).position().left + (tdW/2) - 100,
+                tdY = $(this).position().top + tdH;
+            resizePopovers(tdX, tdY);
         };
     };
 
@@ -542,12 +546,16 @@ var I = {};
     };
 
     // side-effecting function
-    function resizePopovers() {
+    function resizePopovers(tdX, tdY) {
         var $popover = $('.error-popup');
         var titleHeight = $popover.find('.popover-title').height();
         var contentHeight = $popover.find('.popover-content').height();
-        $popover.height(contentHeight + titleHeight + 30);
-        $popover.css('top', (-$popover.height()) + "px");
+
+        $popover.height(contentHeight + titleHeight + 38);
+        $popover.css({
+          'top': tdY + "px",
+          'left': tdX + "px"
+        });
     };
 
     function getContentForMoreSpeciesOptions(flds, row) {
