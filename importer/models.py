@@ -159,7 +159,7 @@ class SpeciesImportEvent(GenericImportEvent):
             has_errors = True
             self.append_error(errors.UNMATCHED_FIELDS, list(rem))
 
-        if errors:
+        if has_errors:
             self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
 
@@ -221,7 +221,7 @@ class TreeImportEvent(GenericImportEvent):
             has_errors = True
             self.append_error(errors.UNMATCHED_FIELDS, list(rem))
 
-        if errors:
+        if has_errors:
             self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
             self.save()
 
@@ -802,6 +802,11 @@ class TreeImportRow(GenericImportRow):
         return fields.trees
 
     def commit_row(self):
+        # If this row was already commit... abort
+        if self.plot:
+            self.status = TreeImportRow.SUCCESS
+            self.save()
+
         # First validate
         if not self.validate_row():
             return False

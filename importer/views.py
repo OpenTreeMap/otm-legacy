@@ -61,12 +61,16 @@ def counts(request):
     active_trees = TreeImportEvent\
         .objects\
         .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)
+        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
+        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
+        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
 
     active_species = SpeciesImportEvent\
         .objects\
         .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)
+        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
+        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
+        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
 
     output = {}
     output['trees'] = {t.pk: t.row_type_counts() for t in active_trees}
@@ -369,7 +373,7 @@ def commit(request, import_event_id, import_type=None):
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
-#@transaction.commit_manually
+@transaction.commit_manually
 def process_csv(request, fileconstructor, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
