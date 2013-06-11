@@ -38,6 +38,42 @@ FORCE_MAIL_TO_BE_FROM = None
 
 DEBUG = True
 
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.admin',
+    'django.contrib.databrowse',
+    'django.contrib.gis',
+    'django.contrib.humanize',
+    'django.contrib.webdesign',
+    'django.contrib.markup',
+    'django.contrib.flatpages',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'threadedcomments',
+    'treemap',
+    'api',
+    'registration',
+    'template_utils',
+    'profiles',
+    'django_reputation',
+    'tagging',
+    'south',
+    'sorl.thumbnail',
+    'classfaves',
+    'qs_tiles',
+    'treekey',
+    'badges',
+    'pagination',
+    'django_sorting',
+    'pipeline',
+    'importer',
+    'djcelery',
+    'polygons'
+)
+
 try:
    from impl_settings import *
 except ImportError, e:
@@ -100,42 +136,6 @@ MIDDLEWARE_CLASSES = (
     'pagination.middleware.PaginationMiddleware',
     'django_sorting.middleware.SortingMiddleware',
 
-)
-
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.admin',
-    'django.contrib.databrowse',
-    'django.contrib.gis',
-    'django.contrib.humanize',
-    'django.contrib.webdesign',
-    'django.contrib.markup',
-    'django.contrib.flatpages',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'threadedcomments',
-    'treemap',
-    'api',
-    'registration',
-    'template_utils',
-    'profiles',
-    'django_reputation',
-    'tagging',
-    'south',
-    'sorl.thumbnail',
-    'classfaves',
-    'qs_tiles',
-    'treekey',
-    'badges',
-    'pagination',
-    'django_sorting',
-    'pipeline',
-    'importer',
-    'djcelery',
-    'polygons'
 )
 
 try:
