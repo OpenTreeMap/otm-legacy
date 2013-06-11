@@ -241,7 +241,6 @@ var I = {};
     };
 
     I.views.updateListTableWithNewData = function(table, data) {
-        /** TODO: Need to update when an item is finished */
         _.map(data, function(counts, id) {
             var $tr = $(table).find("tr[data-id=" + id + "]");
             var $td = $(table).find("td[data-count]");
@@ -252,9 +251,6 @@ var I = {};
             var pct = parseInt((1.0 - counts["3"] / total) * 1000.0) / 10.0;
 
             // Django can do the work
-            if (counts["3"] === undefined || counts["3"] == 0) {
-
-            }
             $td.text((total - counts["3"]) + "/" + total + " (" + pct + "%)");
         });
     };
@@ -892,10 +888,10 @@ var I = {};
 I.init = {};
 I.init.status = function() {
 
-    I.importevent = window.location.pathname.match('/([a-z]+)/([0-9]+)')[2];
-    I.import_type = window.location.pathname.match('/([a-z]+)/([0-9]+)')[1];
-    I.api_base = '/importer/api/';
-    I.api_prefix = '/importer/api/' + I.import_type + '/';
+    I.importevent = window.location.pathname.match('/([a-z]+)/([0-9]+)$')[2];
+    I.import_type = window.location.pathname.match('/([a-z]+)/([0-9]+)$')[1];
+    I.api_base = tm_urls.site_root + 'importer/api/';
+    I.api_prefix = tm_urls.site_root + 'importer/api/' + I.import_type + '/';
 
     /**
      * Runtime layout and information
@@ -986,10 +982,9 @@ I.init.status = function() {
     $("#createtrees").click(function() {
         I.rt.mode = 'create';
         I.api.commitEdit(I.importevent)
-            .done(function () { _.map(I.rt.panels, I.updatePane); });
 
-        // Start the update engine
-        _.map(I.rt.panels, I.updatePane);
+        window.location =
+            window.location.pathname.match('(.*/importer/).*$')[1];
     });
 
     // Initially show first panel
@@ -1011,14 +1006,30 @@ I.init.list = function() {
     I.api_prefix = '/importer/api/';
 
     // Auto-updater
+    var numPrevSpeciesCounts = -1;
+    var numPrevTreeCounts = -1;
+
     function update_counts() {
         if ($("tr[data-running=true]").length > 0) {
             I.api.getUpdatedCounts()
                 .done(function(c) {
+                    if ((numPrevSpeciesCounts > 0 &&
+                         _.keys(c.species).length != numPrevSpeciesCounts) ||
+                        (numPrevTreeCounts > 0 &&
+                         _.keys(c.trees).length != numPrevTreeCounts)) {
+                        document.location.reload(true);
+                    }
+
+
                     I.views.updateListTableWithNewData($("#activetree"), c['trees']);
                     I.views.updateListTableWithNewData($("#activespecies"), c['species']);
 
-                    setTimeout(update_counts, 5000);
+                    numPrevSpeciesCounts = _.keys(c.species).length;
+                    numPrevTreeCounts = _.keys(c.trees).length;
+
+                    if (numPrevSpeciesCounts + numPrevTreeCounts > 0) {
+                        setTimeout(update_counts, 5000);
+                    }
                 });
         }
     }
