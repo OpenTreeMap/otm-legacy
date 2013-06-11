@@ -880,8 +880,8 @@ var I = {};
 I.init = {};
 I.init.status = function() {
 
-    I.importevent = window.location.pathname.match('/([a-z]+)/([0-9]+)')[2];
-    I.import_type = window.location.pathname.match('/([a-z]+)/([0-9]+)')[1];
+    I.importevent = window.location.pathname.match('/([a-z]+)/([0-9]+)$')[2];
+    I.import_type = window.location.pathname.match('/([a-z]+)/([0-9]+)$')[1];
     I.api_base = tm_urls.site_root + 'importer/api/';
     I.api_prefix = tm_urls.site_root + 'importer/api/' + I.import_type + '/';
 
