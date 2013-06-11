@@ -40,12 +40,14 @@ tm.init_map = function(div_id){
     tm.init_base_map(div_id);
 
      tm.singleClick = function(olLonlat) {
+        var jsonCallback = tm.showingPolygons ? tm.display_polygon_details : tm.display_tree_details,
+            urlSuffix = tm.showingPolygons ? 'polygons/search' : 'plots/location/';
         window.clearTimeout(tm.clckTimeOut);
         tm.clckTimeOut = null;
         var spp = $.urlParam('species');
-        $.getJSON(tm_static + 'plots/location/',
-                  {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp, 'query': tm.searchParams},
-                  tm.display_tree_details);
+        $.getJSON(tm_static + urlSuffix,
+                      {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp, 'query': tm.searchParams},
+                      jsonCallback);
     };
 
     tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
