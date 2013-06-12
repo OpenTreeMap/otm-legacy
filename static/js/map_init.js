@@ -62,7 +62,7 @@ tm.display_polygon_details = function(ll) {
                     <h4><%= sfmt(sid) %></h4><ul>\
                         <% _.each(classes, function(count, clazz) { %>\
                         <li><%= clazz %>: <%= count %></li>\
-                        <% }) %>\
+                        <% }) %></ul>\
                     <% }) %>\
                 </div>\
              <% }) %>\
@@ -71,7 +71,7 @@ tm.display_polygon_details = function(ll) {
             popupBody = template({
                 json: json,
                 sfmt: sfmt,
-                viewlink: tm_urls.site_root + "polygon"
+                viewlink: tm_urls.site_root + "polygons"
             });
 
             popup = new OpenLayers.Popup.FramedCloud(
@@ -86,6 +86,85 @@ tm.display_polygon_details = function(ll) {
         }
     };
 };
+
+tm.setup_polygon_edits = function() {
+
+    function bind_remove_handlers() {
+        $(".removespecies").click(function() {
+            $(this).parents("tr").remove();
+        });
+    }
+
+    bind_remove_handlers();
+
+    $(".addspecies").click(function() {
+        var sid = $(".specieslist").val();
+        var species = _.filter(tm.speciesData, function(s) {
+            return s.id == sid; })[0];
+
+        var sname = species.sname;
+
+        var polyid = $('.polygon-table').data('id');
+
+        var speciesRow = '<td data-species-id="' + sid + '">' + sname + '</td>';
+        var removeLink = '<td><a href="#" class="removespecies">Remove</a></td>';
+
+        var $row = _.chain($("th[data-dbh-id]"))
+            .map(function(cell) {
+                return $(cell).data('dbh-id'); })
+            .map(function(dbh_id) {
+                return "pval_" + polyid + "_" + sid + "_" + dbh_id; })
+            .map(function(id) {
+                return "<td><input name=\"" + id + "\" value=\"0\"></td>"; })
+            .reduce(function($row,cell) {
+                return $row.append(cell); }, $("<tr>"))
+            .value()
+            .append(removeLink)
+            .prepend(speciesRow);
+
+        $('.polygon-table tbody').append($row);
+
+        tm.setup_polygon_edit_species();
+        bind_remove_handlers();
+    });
+
+    tm.setup_polygon_edit_species = function() {
+        var existingSpecies = $("td[data-species-id]")
+                .map(function(i,o) { return $(o).data('species-id'); });
+
+        var sourceWithIds = _.chain(tm.speciesData)
+                .filter(function (i) {
+                    return !_.contains(existingSpecies, i.id); })
+                .map(function(d) {
+                    return [d.id, d.cname + " [" + d.sname + "]"];
+                }).value();
+
+        var source = _.map(sourceWithIds, function(sid) { return sid[1]; });
+        var sourceIdMap = _.reduce(sourceWithIds, function(m, s) {
+            m[s[1]] = s[0]; return m;
+        }, {});
+
+        function updateDropDown(event, ui) {
+            $(".specieslist")
+                .val(sourceIdMap[$(".speciesbyname").val()]);
+        }
+
+        $(".speciesbyname")
+            .autocomplete({
+                source: source,
+                change: updateDropDown,
+                select: updateDropDown,
+                focus: updateDropDown
+            })
+            .change(updateDropDown)
+            .val("");
+
+        _.reduce(sourceWithIds, function($s, s) {
+            return $s.append('<option value="' + s[0] + '">' + s[1] + "</option>");
+        }, $(".specieslist").empty());
+    };
+};
+
 
 // Search page map init
 tm.init_map = function(div_id){

@@ -18,6 +18,6 @@ class TreeRegionEntry(models.Model):
     polygon = models.ForeignKey(TreeRegionPolygon)
     species = models.ForeignKey(Species)
     dbhclass = models.ForeignKey(DBHClass)
-    count = models.IntegerField()
+    count = models.IntegerField(default=0)
 
     objects = models.GeoManager()
