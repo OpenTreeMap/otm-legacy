@@ -53,19 +53,30 @@ def polygon_update(request, polygon_id):
 
     polygon = TreeRegionPolygon.objects.get(pk=polygon_id)
 
+    all_species = []
+
     for key in request.POST.keys():
         if key.startswith('pval_'):
             (pgonid, speciesid, dbhid) = key.split('_')[1:]
             if pgonid != polygon_id:
                 raise Exception("Invalid polygon id: %s" % pgonid)
 
+            species = Species.objects.get(pk=speciesid)
+
             t, created = TreeRegionEntry.objects.get_or_create(
                 polygon=polygon,
                 dbhclass=DBHClass.objects.get(pk=dbhid),
-                species=Species.objects.get(pk=speciesid))
+                species=species)
+
+            all_species.append(species)
 
             t.count = request.POST[key]
             t.save()
+
+    TreeRegionEntry.objects\
+                   .filter(polygon=polygon)\
+                   .exclude(species__in=all_species)\
+                   .delete()
 
     return HttpResponseRedirect(
         reverse('polygons.views.polygon_view', args=(polygon_id,)))
