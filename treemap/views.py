@@ -402,6 +402,7 @@ def species(request, selection='all', format='html'):
                 "species": x.species,
                 "genus": x.genus,
                 "cultivar": x.cultivar_name,
+                "family": x.family,
                 "other_part": x.other_part_of_name,
                 "id": int(x.id),
                 "count": int(x.tree_count)} for x in species]

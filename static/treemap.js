@@ -1,17 +1,17 @@
 tm_icons = {
     //base folder for shadow and other icon specific stuff
-    base_folder : tm_static + 'static/images/map_icons/v3/', 
+    base_folder : tm_static + 'static/images/map_icons/v3/',
     small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     small_plots : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7_plot.png",
     small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
     focus_tree : tm_static + 'static/images/map_icons/v4/marker-selected.png',
-    pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png', 
+    pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png',
     marker : tm_static + 'static/openlayers/img/marker.png'
     };
 
 tm = {
     speciesData: null,
-    map : null, 
+    map : null,
     tree_markers : [],
     geocoded_locations: {},
     plot_detail_market : null,
@@ -36,26 +36,26 @@ tm = {
 
     benefitUnitTransformer: function(k,v) { return v; },
 
-    //initializes the map where a user places a new tree    
+    //initializes the map where a user places a new tree
     get_icon: function(type, size) {
         var size = new OpenLayers.Size(size, size);
         var offset = new OpenLayers.Pixel(-(size.w/2), -(size.h/2));
         if (type == tm_icons.marker) {
             size = new OpenLayers.Size(33, 32);
-            offset = new OpenLayers.Pixel(-(size.w/2), -(size.h)); 
+            offset = new OpenLayers.Pixel(-(size.w/2), -(size.h));
         }
-        
+
         var icon = new OpenLayers.Icon(type, size, offset);
         return icon
     },
-                    
+
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
 
         return marker
     },
-    
+
     add_location_marker: function (ll) {
         var icon = tm.get_icon(tm_icons.marker,0);
         tm.location_marker = new OpenLayers.Marker(ll, icon);
@@ -77,8 +77,8 @@ tm = {
         tm.location_marker.events.register("mouseout", tm.location_marker, function(e){
             tm.map.removePopup(tm.smallPopup);
         });
-    },        
- 
+    },
+
     display_benefits : function(benefits){
         $('#results_wrapper').show();
         $("#no_results").hide();
@@ -88,8 +88,8 @@ tm = {
         if (benefits['total'] == 0.0)
         {
             $("#no_results").show();
-        }   
-    },         
+        }
+    },
 
     display_summaries : function(summaries){
         $(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
@@ -111,7 +111,7 @@ tm = {
         });
 
     },
-        
+
     display_search_results : function(results){
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         $('#displayResults').hide();
@@ -126,7 +126,7 @@ tm = {
                     var cql = results.featureids;
                     delete tm.tree_layer.params.CQL_FILTER;
                     tm.tree_layer.mergeNewParams({'FEATUREID':cql});
-                    tm.tree_layer.setVisibility(true);     
+                    tm.tree_layer.setVisibility(true);
                 }
                 else if (results.tile_query) {
                     var cql = results.tile_query;
@@ -135,12 +135,12 @@ tm = {
                         var style = tm.set_style(results.tile_query);
                         tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles':style});
                     }
-                    else {                        
+                    else {
                         tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
                     }
-                    tm.tree_layer.setVisibility(true);     
-                }             
-            }  
+                    tm.tree_layer.setVisibility(true);
+                }
+            }
 
             if (results.geography) {
                 var geog = results.geography;
@@ -150,14 +150,14 @@ tm = {
                 $('#summary_subset_val').html('the region');
             }
         }
-        
+
     },
 
-    highlight_geography : function(geometry, geog_type){        
+    highlight_geography : function(geometry, geog_type){
         if (tm.vector_layer){
             tm.vector_layer.destroyFeatures();
         }
-        if (geometry.coordinates.length == 1) {            
+        if (geometry.coordinates.length == 1) {
             var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
             tm.vector_layer.addFeatures(feature);
         }
@@ -166,7 +166,7 @@ tm = {
             tm.vector_layer.addFeatures(feature);
         }
     },
-     
+
     enableEditTreeLocation : function(){
         tm.trackEvent('Edit', 'Location', 'Start');
 
@@ -176,7 +176,7 @@ tm = {
         $('#edit_tree_location').html(save_html);
         return false;
     },
-        
+
     saveTreeLocation : function(){
         tm.trackEvent('Edit', 'Location', 'Save');
 
@@ -190,7 +190,7 @@ tm = {
         if (!point) {
             alert(address + " not found");
             return false;
-        } 
+        }
         var lat_lon = new GLatLng(point.lat(),point.lng(),0);
 
         if (tm.maxExtent && !tm.maxExtent.containsLatLng(lat_lon)){
@@ -199,7 +199,7 @@ tm = {
         }
         return true;
     },
-    
+
     setupEdit: function(field, model, id, options) {
         var editableOptions = {
             submit: 'Save',
@@ -236,7 +236,7 @@ tm = {
         var data = {};
         var plotId = settings.objectId;
         var field = settings.fieldName;
-        
+
         data[field] = tm.coerceFromString(value)
 
         this.innerHTML = "Saving..."; //TODO- is this needed?
@@ -256,12 +256,12 @@ tm = {
                     });
                 } else {
                     var value = response['update'][settings.fieldName];
-                    
+
                     if (settings.fieldName == "width" || settings.fieldName == "length") {
                         if (value == 99.0) {value = "15+"}
                     }
 
-                    settings.obj.innerHTML = value 
+                    settings.obj.innerHTML = value
                     tm.trackEvent("Edit", settings.fieldName)
                 }
             }});
@@ -272,7 +272,7 @@ tm = {
     addTreeStewardship: function(value, date, settings) {
         var data = {};
         var treeId = settings.objectId;
-        
+
         data['activity'] = tm.coerceFromString(value)
         data['performed_date'] = tm.coerceFromString(date)
 
@@ -293,7 +293,7 @@ tm = {
                 } else {
                     var value = response['update']['activity'];
 
-                    settings.obj.innerHTML = value 
+                    settings.obj.innerHTML = value
                     tm.trackEvent("Edit", settings.fieldName)
                     tm.newTreeActivity();
                 }
@@ -306,7 +306,7 @@ tm = {
     addPlotStewardship: function(value, date, settings) {
         var data = {};
         var plotId = settings.objectId;
-        
+
         data['activity'] = tm.coerceFromString(value)
         data['performed_date'] = tm.coerceFromString(date)
 
@@ -327,7 +327,7 @@ tm = {
                 } else {
                     var value = response['update']['activity'];
 
-                    settings.obj.innerHTML = value 
+                    settings.obj.innerHTML = value
                     tm.trackEvent("Edit", settings.fieldName)
                     tm.newPlotActivity();
                 }
@@ -345,12 +345,12 @@ tm = {
 
         if (settings.objectId) {
             data.id = settings.objectId;
-        }    
+        }
 
-        value = tm.coerceFromString(value);        
+        value = tm.coerceFromString(value);
 
         $(this).removeClass("error");
-        
+
         if (settings.fieldName == 'species_id') {
             if (value == 0) {
                 $(this).addClass("error");
@@ -366,16 +366,16 @@ tm = {
             return "Height is too large.";
         }
 
-        if (settings.fieldName == 'height' && isNaN(value)) { 
+        if (settings.fieldName == 'height' && isNaN(value)) {
             $(this).addClass("error");
             return "Height must be a number.";
         }
 
-        
+
         if ($.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
             data['update']['value'] = value;
             data['update']['key'] = settings.fieldName;
-        } else {    
+        } else {
             data['update'][settings.fieldName] = value;
         }
 
@@ -383,8 +383,8 @@ tm = {
             for (key in settings.extraData) {
                 data[key] = settings.extraData[key];
             }
-        } 
-   
+        }
+
         this.innerHTML = "Saving..."; //TODO: Is this needed?
 
         var jsonString = JSON.stringify(data);
@@ -403,7 +403,7 @@ tm = {
                     });
                 } else {
                     var value = response['update'][settings.fieldName];
-                    
+
                     if (!value) {
                         value = response['update']['value'];
                     }
@@ -431,10 +431,10 @@ tm = {
                 }
             }});
         return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
-    },       
+    },
 
-    updateEditableLocation: function(currentPlotId) {                    
-        $("#edit_map_errors")[0].innerHTML = "Saving..."  
+    updateEditableLocation: function(currentPlotId) {
+        $("#edit_map_errors")[0].innerHTML = "Saving..."
         var wkt = $('#id_geometry').val();
         var geoaddy = $("#id_geocode_address").val();
         var data = {
@@ -456,7 +456,7 @@ tm = {
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);                
+                var response =  JSON.parse(xhr.responseText);
                 $("#edit_map_errors")[0].innerHTML = ""
                 $("#edit_map_errors")[0].className = "";
                 if (response['success'] != true) {
@@ -473,7 +473,7 @@ tm = {
                     } else {
                         $("#edit_map_errors")[0].innerHTML = newError;
                     }
-                } else {                                  
+                } else {
                     $("#edit_map_errors")[0].innerHTML = "New location saved."
                     if (tm.update_address_on_location_update) {
                         $("#edit_address_street")[0].innerHTML = geoaddy;
@@ -483,13 +483,15 @@ tm = {
     },
 
     formatTreeName: function(item) {
-        var cultivar_portion = item.cultivar ? item.cultivar + " " : "";
-        return item.cname + " [ " + item.sname + " " + cultivar_portion + "]";
+        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
+        return item.cname + " [ " + item.sname + " " + cultivar_portion +
+            " " + item.family + " " + item.other_part + "]";
     },
 
     formatSpeciesName: function(item) {
-        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : "";
-        return item.sname + cultivar_portion;
+        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
+        return item.sname + cultivar_portion + item.family +
+            " " + item.other_part;
     },
 
     setupAutoComplete: function(field) {
@@ -497,19 +499,19 @@ tm = {
             source:function(request, response){
                 response( $.map( tm.speciesData, function( item ) {
                     if (item.cname.toLowerCase().indexOf(request.term.toLowerCase()) != -1 ||
-                        item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1) 
+                        item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1)
                     {
-					    return {
-						    label: tm.formatTreeName(item),
-						    value: item.id
-					    }
+                                            return {
+                                                    label: tm.formatTreeName(item),
+                                                    value: item.id
+                                            }
                     }
-				}));
-            }, 
+                                }));
+            },
             minLength: 1,
             select: function(event, ui) {
                 field.val(ui.item.label);
-                $("#species_search_id").val(ui.item.value).change(); 
+                $("#species_search_id").val(ui.item.value).change();
                 if ($("#id_species_id").length > 0) {
                     $("#id_species_id").val(ui.item.value).change();
                 }
@@ -520,37 +522,37 @@ tm = {
     },
 
     newTreeActivity: function() {
-        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['tree_stewardship'], "treeActivityTable", 
-                                     tm.handleNewTreeStewardship("treeActivityTypeSelection", 
+        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['tree_stewardship'], "treeActivityTable",
+                                     tm.handleNewTreeStewardship("treeActivityTypeSelection",
                                                            "TreeStewardship",
-                                                           "treeActivityTable", 
+                                                           "treeActivityTable",
                                                            "treeActivityCount"));
     },
     newPlotActivity: function() {
-        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plot_stewardship'], "plotActivityTable", 
-                                     tm.handleNewPlotStewardship("plotActivityTypeSelection", 
+        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plot_stewardship'], "plotActivityTable",
+                                     tm.handleNewPlotStewardship("plotActivityTypeSelection",
                                                            "PlotStewardship",
-                                                           "plotActivityTable", 
+                                                           "plotActivityTable",
                                                            "plotActivityCount"));
     },
     newAction: function() {
         return tm.createAttributeRow("actionTypeSelection", tm.choices['actions'], "actionTable",
-                                     tm.handleNewAttribute("actionTypeSelection", 
-                                                           "TreeAction", 
+                                     tm.handleNewAttribute("actionTypeSelection",
+                                                           "TreeAction",
                                                            "actionTable",
                                                            "actionCount", tm.choices['actions']));
     },
 
     newLocal: function() {
-        return tm.createAttributeRow("localTypeSelection", tm.choices['projects'], "localTable", 
+        return tm.createAttributeRow("localTypeSelection", tm.choices['projects'], "localTable",
                                      tm.handleNewAttribute("localTypeSelection",
                                                            "TreeFlags",
-                                                           "localTable", 
+                                                           "localTable",
                                                            "localCount", tm.choices['projects']));
     },
 
     newHazard: function() {
-        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alerts'], "hazardTable", 
+        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alerts'], "hazardTable",
                                      tm.handleNewAttribute("hazardTypeSelection",
                                                            "TreeAlert",
                                                            "hazardTable",
@@ -561,7 +563,7 @@ tm = {
         var select = $("<select id='" + selectId + "' />");
         for (var i=0; i < typesArray.length;i++) {
             select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
-        }    
+        }
         var row = $("<tr />");
 
         row.append($(""), $("<td colspan='2' />").append(select)).append(
@@ -572,18 +574,18 @@ tm = {
                 })
             )
         );
-        
+
         $("#" + tableName).append(row);
     },
     createAttributeDateRow: function(selectId, typesArray, tableName, submitEvent) {
         var select = $("<select id='" + selectId + "' />");
         for (var i=0; i < typesArray.length;i++) {
             select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
-        }    
+        }
         var row = $("<tr id='data-row' />");
 
         row.append(
-            $(""), 
+            $(""),
             $("<td />").append(select),
             $("<td />").append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" })),
             $("<td />").append(
@@ -593,7 +595,7 @@ tm = {
                 })
             )
         );
-        
+
         $("#" + tableName).append(row);
 
     },
@@ -602,7 +604,7 @@ tm = {
         return function() {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
-            
+
             if (data == "" || data_date == "") {
                 alert("You must enter a date for the tree activity.");
                 return;
@@ -614,16 +616,16 @@ tm = {
                 activity: data,
                 submit: 'Save',
                 cancel: 'Cancel'
-            };    
-            
+            };
+
             $(this.parentNode.parentNode).remove();
             tm.addTreeStewardship(data, data_date, settings);
             var choices = tm.choices['tree_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
-                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
                     break;
                 }
             }
@@ -634,7 +636,7 @@ tm = {
         return function() {
             var data = $("#" + select)[0].value;
             var data_date = $("#" + select + "-datepicker")[0].value;
-            
+
             if (data == "" || data_date == "") {
                 alert("You must enter a date for the planting site activity.");
                 return;
@@ -647,19 +649,19 @@ tm = {
                 performed_date: data_date,
                 submit: 'Save',
                 cancel: 'Cancel'
-            };    
-            
+            };
+
             $(this.parentNode.parentNode).remove();
             tm.addPlotStewardship(data, data_date, settings);
             var choices = tm.choices['plot_stewardship'];
             for (var i=0;i<choices.length; i++) {
                 if (choices[i][0] == data) {
                     $("#" + table).append(
-                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));  
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
                     break;
                 }
-            }  
+            }
         };
     },
 
@@ -677,8 +679,8 @@ tm = {
                 fieldName: data,
                 submit: 'Save',
                 cancel: 'Cancel'
-            };    
-            
+            };
+
             $(this.parentNode.parentNode).remove();
             var d = new Date();
             var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
@@ -686,20 +688,20 @@ tm = {
             for (var i=0;i<data_array.length; i++) {
                 if (data_array[i][0] == data) {
                     $("#" + table).append(
-                        $("<tr><td>"+data_array[i][1]+"</td><td>"+dateStr+"</td><td></td></tr>"));  
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1); 
+                        $("<tr><td>"+data_array[i][1]+"</td><td>"+dateStr+"</td><td></td></tr>"));
+                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
                     break;
                 }
-            }   
+            }
         };
     },
-    
+
     //TODO: These don't delete from the database
     deleteAction: function(key, value, elem) {
-        $(elem.parentNode.parentNode).remove();   
+        $(elem.parentNode.parentNode).remove();
     },
     deleteHazard: function(key, value, elem) {
-        $(elem.parentNode.parentNode).remove();   
+        $(elem.parentNode.parentNode).remove();
     },
     deleteLocal: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
@@ -710,17 +712,17 @@ tm = {
             url: tm_static + 'trees/' + tm.currentTreeId + "/stewardship/" + id + "/delete/",
             complete: function(xhr, textStatus) {
                 $(elem.parentNode.parentNode).remove();
-                $("#treeActivityCount").html(parseInt($("#treeActivityCount")[0].innerHTML) - 1);   
+                $("#treeActivityCount").html(parseInt($("#treeActivityCount")[0].innerHTML) - 1);
             }
         });
     },
-    
+
     deletePlotActivity: function(id, elem) {
         $.ajax({
             url: tm_static + 'plots/' + tm.currentPlotId + "/stewardship/" + id + "/delete/",
             complete: function(xhr, textStatus) {
                 $(elem.parentNode.parentNode).remove();
-                $("#plotActivityCount").html(parseInt($("#plotActivityCount")[0].innerHTML) - 1);   
+                $("#plotActivityCount").html(parseInt($("#plotActivityCount")[0].innerHTML) - 1);
             }
         });
     },
@@ -741,33 +743,33 @@ tm = {
                     var dvals = $.address.parameter(key).split("-");
                     $("#diameter_slider").slider('values', 0, dvals[0]);
                     $("#diameter_slider").slider('values', 1, dvals[1]);
-                }   
+                }
                 if (key == "planted_range") {
                     var pvals = $.address.parameter(key).split("-");
                     $("#planted_slider").slider('values', 0, pvals[0]);
                     $("#planted_slider").slider('values', 1, pvals[1]);
-                }   
+                }
                 if (key == "updated_range") {
                     var uvals = $.address.parameter(key).split("-");
                     $("#updated_slider").slider('values', 0, uvals[0]);
                     $("#updated_slider").slider('values', 1, uvals[1]);
-                }   
+                }
                 if (key == "height_range") {
                     var hvals = $.address.parameter(key).split("-");
                     $("#height_slider").slider('values', 0, hvals[0]);
                     $("#height_slider").slider('values', 1, hvals[1]);
-                }   
+                }
                 if (key == "plot_range") {
                     var plvals = $.address.parameter(key).split("-");
                     $("#plot_slider").slider('values', 0, plvals[0]);
                     $("#plot_slider").slider('values', 1, plvals[1]);
-                }   
+                }
                 if (key == "species") {
                     tm.updateSpeciesFields('species_search',$.address.parameter(key), '');
-                } 
+                }
                 if (key == "location") {
                     tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
-                }    
+                }
                 if (key == "tree_stewardship") {
                     $("#steward-tree").click();
                     var actions = val.split(',');
@@ -793,14 +795,14 @@ tm = {
                     $("#steward-date-1").datepicker("setDate", date1).change();
                     $("#steward-date-2").datepicker("setDate", date2).change();
                 }
-            }    
+            }
         }
         tm.loadingSearch = false;
         tm.updateSearch();
     },
 
     serializeSearchParams: function() {
-        var q = $.query.empty(); 
+        var q = $.query.empty();
         for (var key in tm.searchParams) {
             if (!tm.searchParams[key]){
                 continue;
@@ -814,16 +816,16 @@ tm = {
 
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         if (qstr != '?'+$.query.toString()) {
-            if (!tm.loadingSearch) { 
+            if (!tm.loadingSearch) {
                 $.query.load(qstr);
             }
         }
-       
+
 
         return qstr;
     },
-    
-    updateSearch: function() {        
+
+    updateSearch: function() {
         if (tm.loadingSearch) { return; }
 
         var qs = tm.serializeSearchParams();
@@ -845,16 +847,16 @@ tm = {
                 $('#displayResults').hide();
                 alert("There was an error while executing your search");
             }
-        });    
+        });
     },
 
     updateLocationFields: function(loc){
         if (loc){
             $("#location_search_input").val(loc);
             tm.handleSearchLocation(loc);
-        }      
+        }
     },
-    
+
     updateSpeciesFields: function(field_prefix, spec){
         if (!tm.speciesData) {
             return;
@@ -869,7 +871,7 @@ tm = {
                     break;
                 }
             }
-        }    
+        }
     },
 
 
@@ -895,7 +897,7 @@ tm = {
             return false;
         });
     },
-    
+
     /**
      * Determine if "search" is a zipcode, neighborhood, or address
      * and then <do more search stuff>
@@ -903,29 +905,29 @@ tm = {
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
-       
+
         tm.geocode_address = search;
         // clean up any previous location search params
-        delete tm.searchParams.location; 
+        delete tm.searchParams.location;
         delete tm.searchParams.geoName;
         delete tm.searchParams.lat;
-        delete tm.searchParams.lon;       
+        delete tm.searchParams.lon;
 
         function continueSearchWithFeature(nbhoods) {
             var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
             tm.map.zoomToExtent(bbox, true);
-            
+
             tm.add_location_marker(bbox.getCenterLonLat());
             var featureName = nbhoods.features[0].properties.name;
             if (featureName) {
                 tm.searchParams['geoName'] = featureName;
             }
-            else {    
+            else {
                 featureName = nbhoods.features[0].properties.zip;
                 tm.searchParams['location'] = featureName;
                 tm.geocoded_locations[search] = featureName;
             }
-            
+
             tm.updateSearch();
         }
 
@@ -936,21 +938,21 @@ tm = {
         //    -> Otherwise assume it's an address
         if (tm.isNumber(search)) {
             $.getJSON(tm_static + 'zipcodes/', {format:'json', name: search}, function(zips){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
-         
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)}
+
                 if (zips.features.length > 0) {
-                    continueSearchWithFeature(zips);  
-                }              
+                    continueSearchWithFeature(zips);
+                }
             });
         }
         else
         {
             $.getJSON(tm_static + 'neighborhoods/', {format:'json', name: search}, function(nbhoods){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
+                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)}
 
                 if (nbhoods.features.length > 0) {
                     continueSearchWithFeature(nbhoods);
-                } else {                 
+                } else {
                     tm.geocode(search, function(lat, lng, place) {
                         var olPoint = new OpenLayers.LonLat(lng, lat);
                         var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
@@ -973,13 +975,13 @@ tm = {
         // one value: show box w/ value
         // many values: show boxes w/ split values
         if (!$.isArray(diams)) {diams=[0];}
-        
+
         //diams is either [0] or an array of what's there by this point
         diams = tm.currentTreeDiams || diams;
         var html = '';
 
         tm.currentDiameter = $(field).html();
-	if ($.isArray(diams)){
+        if ($.isArray(diams)){
             for (var i = 0; i < Math.max(diams.length, 1); i++) {
                 var val = '';
                 if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
@@ -989,10 +991,10 @@ tm = {
                 }
                 html += "<br />";
             }
-	} else {
-	    html += "<input type='text' size='7' id='dbh0' name='dbh0' value='"+ parseFloat(diams).toFixed(3) + "' />";
-	    html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
-	    html += "<br />";
+        } else {
+            html += "<input type='text' size='7' id='dbh0' name='dbh0' value='"+ parseFloat(diams).toFixed(3) + "' />";
+            html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+            html += "<br />";
         }
 
         if ($.isArray(diams)) {
@@ -1017,8 +1019,8 @@ tm = {
             $("#edit_dbh").html("Click icon to edit");
         } else {
             $("#edit_dbh").html(parseFloat(tm.currentDiameter).toFixed(1));
-        }            
-    },  
+        }
+    },
 
     addAnotherDiameter: function() {
         var dbh = $("#add_more_dbh")[0];
@@ -1036,17 +1038,17 @@ tm = {
         var sum = 0;
         for (var i = 0; i < tm.currentTreeDiams.length; i++) {
             if ($("#dbh"+i).val()) {
-            
+
                 var val = parseFloat($("#dbh"+i).val());
                 if ($("#circum").attr("checked")) {
                     val = val / Math.PI;
-                }    
+                }
                 vals.push(val);
                 sum += Math.pow(val, 2);
             }
         }
         var total = Math.sqrt(sum);
-        
+
         if (total > 100) {
             $("#edit_dbh").append("<br/><span class='smError'>Total diameter too large.</span>")
             return;
@@ -1057,7 +1059,7 @@ tm = {
             tm.editingDiameter = false;
             return;
         }
-        
+
         tm.currentTreeDiams = vals;
         var editableOptions = {
             submit: 'Save',
@@ -1072,6 +1074,6 @@ tm = {
         };
         tm.updateEditableServerCall(total, editableOptions);
         $("#edit_dbh").html(total.toFixed(1));
-        
+
     }
 };
