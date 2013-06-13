@@ -1,0 +1,55 @@
+{% extends "template_2.html" %}
+
+{% block extrahead %}
+    {% load compressed %}
+    {% compressed_js 'map' %}
+{% endblock %}
+
+{% block middle_panel %}
+
+<h1>Polygon #{{ polygon_id }}</h1>
+
+<form method="POST" action="{{ SITE_ROOT}}polygons/{{ polygon_id}}/update">
+  <table class="polygon-table table" data-id="{{ polygon_id }}" width="100%">
+    <tr>
+      <th>Species</th>
+      {% for cl in classes %}
+      <th data-dbh-id={{ cl.pk }}>{{ cl.label }}</th>
+      {% endfor %}
+      <th></th>
+    </tr>
+    {% for row in polygon %}
+    <tr>
+      {% for item in row %}
+      {% if forloop.first %}
+      <td data-species-id="{{ item.0 }}">{{ item.1 }}</td>
+      {% else %}
+      <td><input name="pval_{{ polygon_id }}_{{ row.0.0 }}_{{ item.0 }}" value="{% if item.1 %}{{ item.1 }}{% else %}0{% endif %}"></td>
+      {% endif %}
+      {% endfor %}
+      <td><a href="#" class="removespecies">Remove</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+<input type="submit" name="submit" value="Update" />
+<a href="{{ SITE_ROOT}}polygons/{{ polygon_id}}">Cancel</a>
+</form>
+
+<div>
+  <div>Find a species by name:</div>
+  <div><input class="speciesbyname"></input></div>
+  <div>Or select from a list:</div>
+  <div>
+    <select class="specieslist">
+    </select>
+  </div>
+
+  <button class="addspecies">Add Row</button>
+</div>
+
+
+<script>
+  tm.setup_polygon_edits();
+</script>
+
+{% endblock %}

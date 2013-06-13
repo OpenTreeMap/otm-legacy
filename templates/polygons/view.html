@@ -1,0 +1,31 @@
+{% extends "template_2.html" %}
+
+{% block extrahead %}
+    {% load compressed %}
+    {% compressed_js 'map' %}
+{% endblock %}
+
+{% block middle_panel %}
+
+<h1>Polygon #{{ polygon_id }}</h1>
+{% if showedit %}
+<a href="{{ SITE_ROOT }}polygons/{{ polygon_id }}/edit"><button>Edit</button></a>
+{% endif %}
+
+<table class="table" width="100%">
+  <tr>
+    <th>Species</th>
+    {% for cl in classes %}
+    <th>{{ cl.label }}</th>
+    {% endfor %}
+  </tr>
+  {% for row in polygon %}
+  <tr>
+    {% for item in row %}
+    <td>{{ item.1 }}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
