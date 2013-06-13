@@ -12,6 +12,10 @@ tm.buildSpeciesList = function() {
         if (spec) {
             tm.updateSpeciesFields("species_search",spec, '');
         }
+
+        if (tm.setup_polygon_edit_species) {
+            tm.setup_polygon_edit_species();
+        }
     });
 };
 
