@@ -49,6 +49,10 @@ urlpatterns = patterns('',
     (r'^accounts/', include('registration.backends.default.urls')),
     (r'^profiles/', include('profiles.urls')),
     (r'^treekey/', include('treekey.urls')),
-    (r'^api/v0.1/', include('api.urls'))
-
+    (r'^api/v0.1/', include('api.urls')),
 )
+
+if 'polygons' in settings.INSTALLED_APPS:
+    urlpatterns += patterns('',
+        (r'^polygons/', include('polygons.urls')),
+    )
