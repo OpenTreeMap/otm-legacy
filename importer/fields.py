@@ -93,7 +93,6 @@ class trees(object):
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
-    FAMILY = 'family'
     OTHER_PART_OF_NAME = 'other part of scientific name'
     DIAMETER = 'diameter'
     TREE_HEIGHT = 'tree height'
