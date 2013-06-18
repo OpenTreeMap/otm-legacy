@@ -250,6 +250,58 @@ tm.init_map = function(div_id){
 
 };
 
+tm.init_polygon_map = function(div, pgonjson) {
+    var lon = 5;
+    var lat = 40;
+    var zoom = 5;
+    var map, layer;
+
+    map = new OpenLayers.Map(div, {
+            maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
+            units: 'm',
+            projection: new OpenLayers.Projection("EPSG:900913"),
+            displayProjection: new OpenLayers.Projection("EPSG:4326"),
+            controls: [new OpenLayers.Control.Attribution(),
+                       new OpenLayers.Control.Navigation(),
+                       new OpenLayers.Control.ArgParser(),
+                       new OpenLayers.Control.PanPanel(),
+                       new OpenLayers.Control.ZoomPanel()]
+        });
+
+    var rings = _.map(pgonjson.coordinates, function (ring) {
+        return new OpenLayers.Geometry.LinearRing(
+            _.map(ring, function(j) {
+                return new OpenLayers.Geometry.Point(j[0], j[1]);
+            }));
+    });
+
+
+    var proj900913 = new OpenLayers.Projection("EPSG:900913");
+    var proj4326 = new OpenLayers.Projection("EPSG:4326");
+
+    var polygon = new OpenLayers.Geometry.Polygon(rings);
+    polygon.transform(proj4326, proj900913);
+
+    var ft = new OpenLayers.Feature.Vector(polygon, {});
+
+    var vectors = new OpenLayers.Layer.Vector("Woodland Polygon");
+
+    vectors.addFeatures([ft]);
+
+    var aerial = new OpenLayers.Layer.Google("Hybrid", {
+        type: google.maps.MapTypeId.HYBRID,
+        sphericalMercator: true,
+        numZoomLevels: 21
+    });
+
+    map.addLayers([aerial, vectors]);
+    map.setBaseLayer(aerial);
+
+    var bounds = vectors.getDataExtent();
+
+    map.zoomToExtent(bounds, false);
+};
+
 tm.init_add_map = function(){
     tm.init_base_map('add_tree_map');
 

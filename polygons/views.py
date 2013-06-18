@@ -112,6 +112,6 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
         RequestContext(
             request,
             {'showedit': showedit,
-             'polygon_id': polygon.pk,
+             'polygonobj': polygon,
              'polygon': poly,
              'classes': alldbhs}))

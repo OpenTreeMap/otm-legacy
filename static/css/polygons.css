@@ -1,3 +1,38 @@
 input {
     width: 40px;
 }
+
+#id_comment {
+    width: 100%;
+}
+
+#polygontable {
+    overflow: auto;
+}
+
+/** CSS for OTM is screwy... we're just going to give
+    up and override styles as needed here **/
+
+#polygonmap {
+    width: 180px;
+    height: 180px;
+}
+
+#tree_comments {
+    margin-top: 0px;
+}
+
+.polygon-image {
+    margin-bottom: 10px;
+}
+
+.image-upload input {
+    width: 100%;
+}
+
+.image-upload {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    display: none;
+}
