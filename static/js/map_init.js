@@ -250,6 +250,13 @@ tm.init_map = function(div_id){
 
 };
 
+tm.init_polygon_links = function() {
+    $("#update-image").click(function(e) {
+        e.preventDefault();
+        $(".image-upload").toggle();
+    });
+};
+
 tm.init_polygon_map = function(div, pgonjson) {
     var lon = 5;
     var lat = 40;
