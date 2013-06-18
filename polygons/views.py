@@ -5,6 +5,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
+from django.core.files.base import ContentFile
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
@@ -89,6 +90,20 @@ def polygon_edit(request, polygon_id):
         raise PermissionDenied('%s cannot access this view because they do not have the required permission' % request.user.username)
 
     return polygon_view(request, polygon_id, template='polygons/edit.html')
+
+@login_required
+def polygon_update_photo(request, polygon_id):
+    polygon = TreeRegionPolygon.objects.get(pk=polygon_id)
+
+    rfile = request.FILES['photo']
+    file_content = ContentFile(rfile.read())
+    fname = rfile.name
+
+    polygon.photo.save(fname, file_content)
+
+    return HttpResponseRedirect(
+        reverse('polygons.views.polygon_view', args=(polygon_id,)))
+
 
 def polygon_view(request, polygon_id,template='polygons/view.html'):
 
