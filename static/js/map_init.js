@@ -52,18 +52,32 @@ tm.display_polygon_details = function(ll) {
 
             var template = _.template(
             '<div id="max_polygon_infowindow">\
-             <% _.each(json, function(species, pid) { %>\
+             <% _.each(json, function(counts, pid) { %>\
                 <div>\
                 <h3>Polygon #<%= pid %> \
                 <a href="<%= viewlink %>/<%= pid %>">View/Edit</a>\
                 </h3>\
                 <div>\
-                    <% _.each(species, function(classes, sid) { %>\
-                    <h4><%= sfmt(sid) %></h4><ul>\
-                        <% _.each(classes, function(count, clazz) { %>\
-                        <li><%= clazz %>: <%= count %></li>\
-                        <% }) %></ul>\
-                    <% }) %>\
+                Species: \
+                    <% if (counts.species.length > 0) { %>\
+                      <%= _.chain(counts.species)\
+                           .map(sfmt)\
+                           .reduce(\
+                              function (a,b) { return a + "," + b; })\
+                            .value() %>\
+                    <% } else { %>\
+                       None Yet\
+                    <% } %>\
+                </div>\
+                <div>\
+                DBH Classes: \
+                    <% if (counts.classes.length > 0) { %>\
+                      <%= _(counts.classes)\
+                           .reduce(\
+                              function (a,b) { return a + ", " + b; }) %>\
+                    <% } else { %>\
+                       None Yet\
+                    <% } %>\
                 </div>\
              <% }) %>\
              </div>');

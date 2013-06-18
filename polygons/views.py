@@ -40,7 +40,18 @@ def polygon_search(request):
 
         polygons = TreeRegionPolygon.objects.filter(geometry__contains=point)
 
-    polys = polygons2dict(polygons)
+    polys = {}
+
+    for polygon in polygons:
+        entries = TreeRegionEntry.objects.filter(polygon=polygon,count__gt=0)
+
+        species = list({e.species.pk for e in entries})
+        classes = {e.dbhclass.pk: e.dbhclass for e in entries}.values()
+
+        sorted(classes, key=lambda a: a.dbh_min)
+
+        polys[polygon.pk] = {"species": species,
+                             "classes": [c.label for c in classes]}
 
     return HttpResponse(json.dumps(polys),
                         content_type='application/json')
