@@ -1,19 +1,13 @@
-{% extends "template_2.html" %}
+{% extends "polygons/base.html" %}
 
-{% block extrahead %}
-    {% load compressed %}
-    {% compressed_js 'map' %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/polygons.css" type="text/css"/>
-{% endblock %}
+{% block polygoncontent %}
 
-{% block middle_panel %}
-
-<h1>Polygon #{{ polygon_id }}</h1>
+<h1>Polygon #{{ polygonobj.pk }}</h1>
 {% if showedit %}
-<a href="{{ SITE_ROOT }}polygons/{{ polygon_id }}/edit"><button>Edit</button></a>
+<a href="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/edit"><button>Edit</button></a>
 {% endif %}
 
-<table class="table" width="100%">
+<table id="polygontable" class="table" width="100%">
   <tr>
     <th>Species</th>
     {% for cl in classes %}
