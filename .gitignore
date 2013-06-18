@@ -1,6 +1,7 @@
 *.idea
 *.pyc
 *.db
+.#*
 local_tiles/*
 media/*
 static/Nodes/*

@@ -5,6 +5,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
+from django.core.files.base import ContentFile
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
@@ -90,6 +91,22 @@ def polygon_edit(request, polygon_id):
 
     return polygon_view(request, polygon_id, template='polygons/edit.html')
 
+@login_required
+def polygon_update_photo(request, polygon_id):
+    polygon = TreeRegionPolygon.objects.get(pk=polygon_id)
+
+    rfile = request.FILES['photo']
+    file_content = ContentFile(rfile.read())
+    fname = rfile.name
+
+    polygon.photo.save(fname, file_content)
+
+    polygon_url = reverse('polygons.views.polygon_view', args=(polygon_id,))
+    next_url = request.REQUEST.get('currentpage', polygon_url)
+
+    return HttpResponseRedirect(next_url)
+
+
 def polygon_view(request, polygon_id,template='polygons/view.html'):
 
     showedit = request.user and request.user.reputation >= 1000
@@ -112,6 +129,6 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
         RequestContext(
             request,
             {'showedit': showedit,
-             'polygon_id': polygon.pk,
+             'polygonobj': polygon,
              'polygon': poly,
              'classes': alldbhs}))

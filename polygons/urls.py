@@ -6,4 +6,5 @@ urlpatterns = patterns('',
     (r'^(?P<polygon_id>[0-9]+)/$', polygon_view),
     (r'^(?P<polygon_id>[0-9]+)/edit$', polygon_edit),
     (r'^(?P<polygon_id>[0-9]+)/update$', polygon_update),
+    (r'^(?P<polygon_id>[0-9]+)/photo$', polygon_update_photo),
 )

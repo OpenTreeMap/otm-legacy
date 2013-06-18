@@ -7,6 +7,7 @@ class TreeRegionPolygon(models.Model):
     region_id = models.FloatField()
     geometry = models.PolygonField(srid=4326)
 
+    photo = models.ImageField(upload_to="polygons/%Y/%m/%d",null=True,blank=True)
     objects = models.GeoManager()
 
 class DBHClass(models.Model):
