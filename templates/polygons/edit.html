@@ -1,12 +1,6 @@
-{% extends "template_2.html" %}
+{% extends "polygons/base.html" %}
 
-{% block extrahead %}
-    {% load compressed %}
-    {% compressed_js 'map' %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/polygons.css" type="text/css"/>
-{% endblock %}
-
-{% block middle_panel %}
+{% block polygoncontent %}
 
 <h1>Polygon #{{ polygonobj.pk }}</h1>
 
@@ -48,9 +42,5 @@
   <button class="addspecies">Add Row</button>
 </div>
 
-
-<script>
-  tm.setup_polygon_edits();
-</script>
 
 {% endblock %}

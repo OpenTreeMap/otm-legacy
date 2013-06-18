@@ -101,8 +101,10 @@ def polygon_update_photo(request, polygon_id):
 
     polygon.photo.save(fname, file_content)
 
-    return HttpResponseRedirect(
-        reverse('polygons.views.polygon_view', args=(polygon_id,)))
+    polygon_url = reverse('polygons.views.polygon_view', args=(polygon_id,))
+    next_url = request.REQUEST.get('currentpage', polygon_url)
+
+    return HttpResponseRedirect(next_url)
 
 
 def polygon_view(request, polygon_id,template='polygons/view.html'):

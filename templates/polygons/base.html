@@ -1,0 +1,119 @@
+{% extends "template_2.html" %}
+
+{% load threadedcommentstags %}
+{% load comment_tags %}
+{% load thumbnail %}
+
+{% block extrahead %}
+    {% load compressed %}
+    {% compressed_js 'map' %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/polygons.css" type="text/css"/>
+    <script>
+      $(function() {
+      var tm_polygon_geojson = {{ polygonobj.geometry.json|safe }};
+      tm.init_polygon_map('polygonmap', tm_polygon_geojson);
+      tm.init_polygon_links();
+      tm.setup_polygon_edits();
+      });
+    </script>
+{% endblock %}
+
+{% block content_body_top %}
+    <!-- start contentbody -->
+
+    <div id="contentbody">
+      <div class="tab-content" id="tab-1">
+        <div class="wrap">
+{% endblock %}
+
+
+{% block middle_panel %}
+
+{% block polygoncontent %}
+{% endblock %}
+
+{% endblock %}
+
+
+{% block left_panel %}
+<!-- start t2_left_panel  -->
+<div id="t2_top_left_panel">
+  <ul id="userImage">
+    <li>
+      {% if polygonobj.photo %}
+      {% thumbnail polygonobj.photo "181x119" crop="center" as image %}
+      <img src="{{ image.url }}" class="polygon-image">
+      {% endthumbnail %}
+      {% else %}
+      <img src="{{ STATIC_URL }}images/es/image14.jpg" alt="Tree" title="Add photos!" width="180" height="120" class="polygon-image" />
+      {% endif %}
+    </li>
+    {% if user.is_authenticated %}
+    <a id="update-image" href="">Update Image</a>
+    <div class="image-upload">
+      <form method="POST" action="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/photo" enctype="multipart/form-data">
+        <input type="file" name="photo">
+        <input type="hidden" name="currentpage" value="{{ request.get_full_path }}">
+        <input type="submit">
+      </form>
+    {% endif %}
+  </ul>
+  <div id="polygonmap"></div>
+  <div class="aside">
+    <div id="tree_comments">
+      <div class="wrap">
+        <h2>Comments</h2>
+      </div>
+      <div class="comment_list">
+        {% get_threaded_comment_tree for polygonobj as comment_tree %}
+        {% for comment in comment_tree %}
+        <div class="comment_item" style="margin-left: {{ comment.depth }}em">
+          <div class="comment_head">
+            {{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+            {% if user.is_authenticated %}
+            {% get_threaded_comment_form as form %}
+            <a class="reply" id="c{{ comment.id }}" href="javascript:threaded.show_reply_form('{{ csrf_token }}', 'c{{ comment.id }}','{% get_comment_url polygonobj comment %}','{{ comment.user }}')"><img src="{{ STATIC_URL }}images/comment-reply.png" alt="Reply" /> Reply</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+            {% if comment|is_flagged:user %}
+            Flagged
+            {% else %}
+            <a class="flag" href="{{ SITE_ROOT }}comments/flag/{{ comment.id }}/?next={% url polygons.views.polygon_view polygonobj.pk %}"><img src="{{ STATIC_URL }}images/comment-flag.png" width="7px" alt="Reply" /> Flag</a>
+            {% endif %}
+            {% endif %}
+          </div>
+          <div class="comment_body">
+            {{ comment.comment }}
+          </div>
+        </div>
+        {% empty %}
+        <div class="comment_item">No comments yet!</div>
+        {% endfor %}
+      </div>
+
+      {% if user.is_authenticated %}
+      {% get_threaded_comment_form as form %}
+      <form action="{% get_comment_url polygonobj %}" id="comment_post" method="post">{% csrf_token %}
+        <input type="hidden" name="next" value="{{request.get_full_path}}" />
+        <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
+        <input type="hidden" name="markup" value="5"></input>
+        <div class="submit">
+          <input type="submit" name="post" class="submit-post btn" value="Post" />
+        </div>
+      </form>
+      <div id="comment_disclaimer"><span>Note:</span> The comment system does not serve as a way to report problems with a tree.</div>
+      {% else %}
+      <div>Please login to add comments</div>
+      {% endif %}
+
+    </div>
+  </div>
+  <div class="wrap">
+    <h2>Recent Edits</h2>
+  </div>
+</ul>
+
+</div>
+<!-- end t2_left_panel  -->
+
+{% endblock left_panel %}
