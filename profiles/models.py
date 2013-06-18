@@ -13,7 +13,7 @@ BOOLEAN_CHOICES =  (
                   (True, "Yes"),
                 )
 
-class UserProfile(models.Model):  
+class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True, verbose_name=_('Username'))
     # not going to use volunteer, comment at a good moment...
     volunteer = models.BooleanField("Volunteer Opportunities",choices=BOOLEAN_CHOICES,default=False)
@@ -23,18 +23,18 @@ class UserProfile(models.Model):
     site_edits = models.IntegerField(_('Site Edits (to track activity)'),default=0,editable=False)
     uid = models.IntegerField(_('Random User ID'),null=True,blank=True,editable=False)
     active = models.BooleanField(choices=BOOLEAN_CHOICES,default=True)
-    
+
     def __unicode__(self):
         name = self.user.get_full_name()
         if name:
             return unicode("%s" % self.user.get_full_name())
         else:
-            return unicode("%s" % self.user.username)          
+            return unicode("%s" % self.user.username)
 
     class Meta:
         verbose_name = _('Profile')
         verbose_name_plural = _('Profiles')
-        
+
     def recently_edited_trees(self):
         trees = Tree.history.filter(last_updated_by=self.user, present=True).exclude(_audit_change_type="U",_audit_diff="").order_by('-last_updated')[:7]
         recent_edits = []
@@ -73,7 +73,7 @@ class UserProfile(models.Model):
             recent_activity.append((p.plot.current_tree().species, p.get_activity(), p.performed_date, p.plot.id))
         print recent_activity
         return sorted(recent_activity, key=itemgetter(2), reverse=True)[:7]
-            
+
 
     def badges(self):
         return BadgeToUser.objects.filter(user=self)
@@ -84,19 +84,19 @@ class UserProfile(models.Model):
             if b.meta_badge.get_progress(self.user) > b.meta_badge.progress_start:
                 if b.meta_badge.get_progress(self.user) < b.meta_badge.progress_finish:
                     return_badges.append((b, b.meta_badge.get_progress(self.user)))
-        
+
         return return_badges
 
     def made_edit(self):
         self.site_edits += 1
         self.save()
-    
+
     def username(self):
         return u"%s" % self.user.username
-        
+
     def first_name(self):
         return u"%s" % self.user.first_name
-    
+
     def last_name(self):
         return u"%s" % self.user.last_name
 
@@ -105,20 +105,20 @@ class UserProfile(models.Model):
 
     def email(self):
         return u"%s" % self.user.email
-        
+
     def remove(self):
         return '<input type="button" value="Remove" onclick="location.href=\'%s/delete/\'" />' % (self.pk)
-    
+
     remove.short_description = ''
     remove.allow_tags = True
 
     def get_absolute_url(self):
         return ('profiles_profile_detail', (), { 'username': self.user.username })
     get_absolute_url = models.permalink(get_absolute_url)
-                    
+
     def get_random_id(self):
         return random.randint(100000,999999)
-        
+
     def account_activated(self):
         return self.user.is_active
     account_activated.boolean = True
@@ -130,6 +130,5 @@ class UserProfile(models.Model):
     def save(self, force_insert=False, force_update=False, using='default'):
         if not self.id:
             self.uid = self.get_random_id()
-        
+
         super(UserProfile, self).save()
-        
