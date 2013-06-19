@@ -55,7 +55,7 @@ tm.display_polygon_details = function(ll) {
              <% _.each(json, function(counts, pid) { %>\
                 <div>\
                 <h3>Polygon #<%= pid %> \
-                <a href="<%= viewlink %>/<%= pid %>">View/Edit</a>\
+                <a target="_blank" href="<%= viewlink %>/<%= pid %>">View/Edit</a>\
                 </h3>\
                 <div>\
                 Species: \
