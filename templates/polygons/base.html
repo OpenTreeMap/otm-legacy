@@ -110,6 +110,23 @@
   </div>
   <div class="wrap">
     <h2>Recent Edits</h2>
+        {% if recent_edits %}
+          {% for edit in recent_edits %}
+<table>
+            <tr><td colspan="2">{{edit.last_updated|date}} by <a href="{% url profiles.views.profile_detail edit.last_updated_by.username %}">{{ edit.last_updated_by.username }}</a></td></tr>
+            {% if edit.species %}
+            <tr><td>Species:</td><td>{{ edit.species }}</td></tr>
+            {% endif %}
+            {% if edit.dbhclass %}
+            <tr><td>DBH Class:</td><td>{{ edit.dbhclass.label }}</td></tr>
+            {% endif %}
+            <tr><td colspan="2">{{ edit.audit_diff }}</td></tr>
+</table>
+<br>
+          {% endfor %}
+        {% else %}
+          <li>No edits yet!</li>
+        {% endif %}
   </div>
 </ul>
 

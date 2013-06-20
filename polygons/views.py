@@ -27,6 +27,62 @@ def polygons2dict(polygons):
 
     return polys
 
+def merge_entry_histories(tree_region_entries):
+    edits_to_each_entry = [entry.history.all() for entry in tree_region_entries]
+
+    merged_edits = []
+    for edits in edits_to_each_entry:
+        for edit in edits:
+            if edit._audit_diff:
+                merged_edits.append(entry_edit_to_dict(edit))
+
+    return merged_edits
+
+def entry_edit_to_dict(edit):
+    "takes an treeregionentry edit and puts it in a nice dictionary"
+    return {
+        'polygon': edit.polygon,
+        'last_updated_by': edit.last_updated_by,
+        'last_updated': edit.last_updated,
+        'species': edit.species,
+        'dbhclass': edit.dbhclass,
+        'audit_diff': edit._audit_diff,
+    }
+
+def polygon_edit_to_dict(edit):
+    "takes an treeregionpolygon edit and puts it in a nice dictionary"
+    return {
+        'polygon': edit.id,
+        'last_updated_by': edit.last_updated_by,
+        'last_updated': edit.last_updated,
+        'species': None,
+        'dbhclass': None,
+        'audit_diff': edit._audit_diff,
+    }
+
+def get_recent_edits_for_polygon(polygon_id):
+
+    polygon = TreeRegionPolygon.objects.get(id=polygon_id)
+
+    # first, get edits to the actual polygon
+    # which should only be photo changes.
+    polygon_edits = polygon.history.all()
+
+    polygon_entries = TreeRegionEntry.objects.filter(polygon=polygon_id)
+
+    entry_edits = merge_entry_histories(polygon_entries)
+
+    all_edits = []
+
+    all_edits += map(polygon_edit_to_dict, list(polygon_edits))
+
+    all_edits += list(entry_edits)
+
+    all_edits.sort(key=(lambda x: x['last_updated']), reverse=True)
+
+    return all_edits
+
+
 def polygon_search(request):
     id = request.GET.get('id', None)
 
@@ -69,7 +125,8 @@ def polygon_update(request, polygon_id):
 
     for key in request.POST.keys():
         if key.startswith('pval_'):
-            (pgonid, speciesid, dbhid) = key.split('_')[1:]
+            new_data = key.split('_')[1:]
+            (pgonid, speciesid, dbhid) = new_data
             if pgonid != polygon_id:
                 raise Exception("Invalid polygon id: %s" % pgonid)
 
@@ -78,11 +135,18 @@ def polygon_update(request, polygon_id):
             t, created = TreeRegionEntry.objects.get_or_create(
                 polygon=polygon,
                 dbhclass=DBHClass.objects.get(pk=dbhid),
-                species=species)
+                species=species,
+                last_updated_by=request.user)
 
             all_species.append(species)
 
-            t.count = request.POST[key]
+            old_count = None if created else t.count
+            new_count = int(request.POST[key])
+            t.count = new_count
+
+            if old_count != new_count:
+                t._audit_diff = "Changed count from %s to %s" % (old_count, new_count)
+
             t.save()
 
     TreeRegionEntry.objects\
@@ -135,6 +199,8 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
 
         poly.append(row)
 
+    recent_edits = get_recent_edits_for_polygon(polygon_id)[:5]
+    
     return render_to_response(
         template,
         RequestContext(
@@ -142,4 +208,19 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
             {'showedit': showedit,
              'polygonobj': polygon,
              'polygon': poly,
+             'recent_edits': recent_edits,
              'classes': alldbhs}))
+
+@login_required
+def recent_edits(request):
+    rep = request.user.reputation
+
+    if rep.reputation < 1000:
+        raise PermissionDenied('%s cannot access this view because they do not have the required permission' % request.user.username)
+
+    recent_entries = TreeRegionEntry.objects.order_by('-polygon__last_updated')[:100]
+    recent_edits = merge_entry_histories(recent_entries)
+
+    return render_to_response('polygons/recent_edits.html',
+                              RequestContext(request,
+                                  {'recent_edits': recent_edits}))
