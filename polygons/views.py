@@ -114,7 +114,8 @@ def polygon_update(request, polygon_id):
 
     for key in request.POST.keys():
         if key.startswith('pval_'):
-            (pgonid, speciesid, dbhid) = key.split('_')[1:]
+            new_data = key.split('_')[1:]
+            (pgonid, speciesid, dbhid) = new_data
             if pgonid != polygon_id:
                 raise Exception("Invalid polygon id: %s" % pgonid)
 
@@ -123,11 +124,18 @@ def polygon_update(request, polygon_id):
             t, created = TreeRegionEntry.objects.get_or_create(
                 polygon=polygon,
                 dbhclass=DBHClass.objects.get(pk=dbhid),
-                species=species)
+                species=species,
+                last_updated_by=request.user)
 
             all_species.append(species)
 
-            t.count = request.POST[key]
+            old_count = None if created else t.count
+            new_count = int(request.POST[key])
+            t.count = new_count
+
+            if old_count != new_count:
+                t._audit_diff = "Changed count from %s to %s" % (old_count, new_count)
+
             t.save()
 
     TreeRegionEntry.objects\
@@ -180,6 +188,8 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
 
         poly.append(row)
 
+    recent_edits = get_recent_edits_for_polygon(polygon_id)[:5]
+    
     return render_to_response(
         template,
         RequestContext(
@@ -187,6 +197,7 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
             {'showedit': showedit,
              'polygonobj': polygon,
              'polygon': poly,
+             'recent_edits': recent_edits,
              'classes': alldbhs}))
 
 @login_required
