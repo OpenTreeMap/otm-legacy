@@ -2,9 +2,9 @@
 
 {% block polygoncontent %}
 
-<h1>Polygon #{{ polygonobj.pk }}</h1>
+<h1 class="polygon-title">Polygon #{{ polygonobj.pk }}</h1>
 {% if showedit %}
-<a href="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/edit"><button>Edit</button></a>
+<a href="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/edit" class="polygon-edit"><button class="btn btn-success">Edit</button></a>
 {% endif %}
 
 <div class="table-container">

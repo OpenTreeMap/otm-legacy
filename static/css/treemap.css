@@ -270,16 +270,17 @@ input.button {
 #max_polygon_infowindow .polygon_infowindow_row {
     clear: both;
 }
+#max_polygon_infowindow .polygon_infowindow_row:hover {
+    background: #EEF5D8;
+}
 #max_polygon_infowindow .polygon_infowindow_row .label {
     width: 100px;
     float: left;
-    padding: 3px 8px 3px 0;
-    background: #FFF;
+    padding: 3px 8px 3px 3px;
     color: #999;
 }
 #max_polygon_infowindow .polygon_infowindow_row .results {
     padding: 3px 8px 3px 10px;
-    background: #FFF;
     color: #666;
 }
 
