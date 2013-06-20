@@ -39,7 +39,6 @@ def merge_entry_histories(tree_region_entries):
     return merged_edits
 
 def entry_edit_to_dict(edit):
-    "takes an treeregionentry edit and puts it in a nice dictionary"
     return {
         'polygon': edit.polygon,
         'last_updated_by': edit.last_updated_by,
@@ -50,7 +49,6 @@ def entry_edit_to_dict(edit):
     }
 
 def polygon_edit_to_dict(edit):
-    "takes an treeregionpolygon edit and puts it in a nice dictionary"
     return {
         'polygon': edit.id,
         'last_updated_by': edit.last_updated_by,
