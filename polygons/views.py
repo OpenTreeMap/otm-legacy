@@ -172,7 +172,11 @@ def polygon_update_photo(request, polygon_id):
     file_content = ContentFile(rfile.read())
     fname = rfile.name
 
-    polygon.photo.save(fname, file_content)
+    polygon.photo.save(fname, file_content, save=False)
+
+    polygon.last_updated_by = request.user
+    polygon._audit_diff = "Uploaded a new photo"
+    polygon.save()
 
     polygon_url = reverse('polygons.views.polygon_view', args=(polygon_id,))
     next_url = request.REQUEST.get('currentpage', polygon_url)
