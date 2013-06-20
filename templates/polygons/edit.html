@@ -2,7 +2,7 @@
 
 {% block polygoncontent %}
 
-<h1>Polygon #{{ polygonobj.pk }}</h1>
+<h1 class="polygon-title">Polygon #{{ polygonobj.pk }}</h1>
 
 <form method="POST" action="{{ SITE_ROOT}}polygons/{{ polygonobj.pk }}/update">
   <div class="table-container">
@@ -23,26 +23,27 @@
         <td><input name="pval_{{ polygonobj.pk }}_{{ row.0.0 }}_{{ item.0 }}" value="{% if item.1 %}{{ item.1 }}{% else %}0{% endif %}"></td>
         {% endif %}
         {% endfor %}
-        <td><a href="#" class="removespecies">Remove</a></td>
+        <td><a href="#" class="removespecies btn btn-mini btn-danger">Remove</a></td>
       </tr>
       {% endfor %}
   </table>
 </div>
 
-<input type="submit" name="submit" value="Update" />
-<a href="{{ SITE_ROOT}}polygons/{{ polygonobj.pk }}">Cancel</a>
+<input type="submit" name="submit" value="Update" class="btn btn-success" />
+<a href="{{ SITE_ROOT}}polygons/{{ polygonobj.pk }}" class="btn">Cancel</a>
 </form>
 
-<div>
-  <div>Find a species by name:</div>
+<div class="polygon-add-species">
+  <h4>Add Species Row</h4>
+  <label>Find a species by name:</label>
   <div><input class="speciesbyname"></input></div>
-  <div>Or select from a list:</div>
+  <label>Or select from a list:</label>
   <div>
     <select class="specieslist">
     </select>
   </div>
 
-  <button class="addspecies">Add Row</button>
+  <button class="addspecies btn btn-primary">Add Row</button>
 </div>
 
 

@@ -247,6 +247,43 @@ input.button {
     margin-right:20px;
 }
 
+#max_polygon_infowindow {
+    padding-left: 8px;
+}
+#max_polygon_infowindow h3 {
+    background: #FFF;
+    font-family: 'Delicious Heavy', serif;
+    font-size: 20px;
+    color: #38AF8D;
+    font-weight: normal;
+    margin: 4px 0 10px;
+}
+#max_polygon_infowindow a {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0 0 0 20px;
+    background: url(../images/icon_popover_edit.png) no-repeat center left;
+    margin: 10px 0 2px 0;
+    color: #38AF8D;
+    display: block;
+}
+#max_polygon_infowindow .polygon_infowindow_row {
+    clear: both;
+}
+#max_polygon_infowindow .polygon_infowindow_row:hover {
+    background: #EEF5D8;
+}
+#max_polygon_infowindow .polygon_infowindow_row .label {
+    width: 100px;
+    float: left;
+    padding: 3px 8px 3px 3px;
+    color: #999;
+}
+#max_polygon_infowindow .polygon_infowindow_row .results {
+    padding: 3px 8px 3px 10px;
+    color: #666;
+}
+
 
 /* MAP MARKER HOVER */
 .olLayerDiv div {

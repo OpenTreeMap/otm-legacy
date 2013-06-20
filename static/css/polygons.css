@@ -1,9 +1,59 @@
 input {
     width: 40px;
 }
+input.speciesbyname {
+    width: 95%;
+    padding: 5px;
+}
 
 #id_comment {
-    width: 100%;
+    width: 94%;
+}
+
+.table-container table {
+    table-layout: fixed;
+}
+.table-container th {
+    vertical-align: bottom;
+    width: 50px;
+    line-height: 16px;
+    padding-top: 15px;
+}
+.table-container th:first-child {
+    width: 100px;
+}
+.table-container th:nth-child(2n),
+.table-container td:nth-child(2n) {
+    rgba(214,232,207,.25);
+}
+
+#update-image {
+    padding: 0 0 5px;
+    display: block;
+}
+
+.polygon-add-species {
+    float: left;
+    background: #D6E8CF;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+.polygon-add-species h4 {
+    font-size: 14px;
+    margin: 0 0 8px;
+}
+
+.polygon-title {
+   font-family: 'Delicious Heavy', Arial, Helvetica;
+   font-size: 36px;
+   font-weight: normal;
+   float: left;
+   margin-top: 25px;
+}
+.polygon-edit {
+   float: left;
+   margin: 26px 0 0 12px;
 }
 
 .table-container {
@@ -29,6 +79,9 @@ input {
 
 .image-upload input {
     width: 100%;
+}
+.image-upload input[type="file"] {
+    border: none;
 }
 
 .image-upload {
