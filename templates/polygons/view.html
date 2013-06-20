@@ -7,20 +7,22 @@
 <a href="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/edit"><button>Edit</button></a>
 {% endif %}
 
-<table id="polygontable" class="table" width="100%">
-  <tr>
-    <th>Species</th>
-    {% for cl in classes %}
-    <th>{{ cl.label }}</th>
+<div class="table-container">
+  <table id="polygontable" class="table" width="100%">
+    <tr>
+      <th>Species</th>
+      {% for cl in classes %}
+      <th>{{ cl.label }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in polygon %}
+    <tr>
+      {% for item in row %}
+      <td>{{ item.1 }}</td>
+      {% endfor %}
+    </tr>
     {% endfor %}
-  </tr>
-  {% for row in polygon %}
-  <tr>
-    {% for item in row %}
-    <td>{{ item.1 }}</td>
-    {% endfor %}
-  </tr>
-  {% endfor %}
-</table>
+  </table>
+</div>
 
 {% endblock %}

@@ -5,27 +5,30 @@
 <h1>Polygon #{{ polygonobj.pk }}</h1>
 
 <form method="POST" action="{{ SITE_ROOT}}polygons/{{ polygonobj.pk }}/update">
-  <table class="polygon-table table" data-id="{{ polygonobj.pk }}" width="100%">
-    <tr>
-      <th>Species</th>
-      {% for cl in classes %}
-      <th data-dbh-id={{ cl.pk }}>{{ cl.label }}</th>
+  <div class="table-container">
+    <table class="polygon-table table" data-id="{{ polygonobj.pk }}" width="100%">
+      <tr>
+        <th>Species</th>
+        {% for cl in classes %}
+        <th data-dbh-id={{ cl.pk }}>{{ cl.label }}</th>
+        {% endfor %}
+        <th></th>
+      </tr>
+      {% for row in polygon %}
+      <tr>
+        {% for item in row %}
+        {% if forloop.first %}
+        <td data-species-id="{{ item.0 }}">{{ item.1 }}</td>
+        {% else %}
+        <td><input name="pval_{{ polygonobj.pk }}_{{ row.0.0 }}_{{ item.0 }}" value="{% if item.1 %}{{ item.1 }}{% else %}0{% endif %}"></td>
+        {% endif %}
+        {% endfor %}
+        <td><a href="#" class="removespecies">Remove</a></td>
+      </tr>
       {% endfor %}
-      <th></th>
-    </tr>
-    {% for row in polygon %}
-    <tr>
-      {% for item in row %}
-      {% if forloop.first %}
-      <td data-species-id="{{ item.0 }}">{{ item.1 }}</td>
-      {% else %}
-      <td><input name="pval_{{ polygonobj.pk }}_{{ row.0.0 }}_{{ item.0 }}" value="{% if item.1 %}{{ item.1 }}{% else %}0{% endif %}"></td>
-      {% endif %}
-      {% endfor %}
-      <td><a href="#" class="removespecies">Remove</a></td>
-    </tr>
-    {% endfor %}
   </table>
+</div>
+
 <input type="submit" name="submit" value="Update" />
 <a href="{{ SITE_ROOT}}polygons/{{ polygonobj.pk }}">Cancel</a>
 </form>

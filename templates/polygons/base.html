@@ -54,7 +54,7 @@
       <form method="POST" action="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/photo" enctype="multipart/form-data">
         <input type="file" name="photo">
         <input type="hidden" name="currentpage" value="{{ request.get_full_path }}">
-        <input type="submit">
+        <input type="submit" value="Submit Photo">
       </form>
     {% endif %}
   </ul>
