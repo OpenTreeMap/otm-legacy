@@ -188,3 +188,17 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
              'polygonobj': polygon,
              'polygon': poly,
              'classes': alldbhs}))
+
+@login_required
+def recent_edits(request):
+    rep = request.user.reputation
+
+    if rep.reputation < 1000:
+        raise PermissionDenied('%s cannot access this view because they do not have the required permission' % request.user.username)
+
+    recent_entries = TreeRegionEntry.objects.order_by('-polygon__last_updated')[:100]
+    recent_edits = merge_entry_histories(recent_entries)
+
+    return render_to_response('polygons/recent_edits.html',
+                              RequestContext(request,
+                                  {'recent_edits': recent_edits}))

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% load pagination_tags %}
+{% load sorting_tags %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
+{% endblock extrahead %}
+
+{% block title %} - Recent Edits {% endblock %}
+
+{% block content %}
+
+{% autosort recent_edits %}
+{% autopaginate recent_edits 20 %}
+
+<div class="content admin">
+	<div class="admin-header">
+		<h2>Recent Edits</h2>
+		{% if perms.auth.change_user %}
+			{% include "treemap/admin_nav.html" %}
+		{% endif %}
+		<div class="clearBoth"></div>
+	</div>
+    {% paginate %}
+	<div>
+		<table>
+			<thead>
+				<tr>
+					<th>Polygon</th>
+					<th>Updated By</th>
+					<th>Updated</th>
+					<th>Species</th>
+					<th>DBH Class</th>
+					<th>Change</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for edit in recent_edits %}
+                  <tr>
+                  <td><a href="{% url polygons.views.polygon_view edit.polygon.id %}">{{ edit.polygon.id }}</a></td>
+                  <td><a href="{% url profiles.views.profile_detail edit.last_updated_by.username %}">{{ edit.last_updated_by.username }}</td>
+                  <td>{{ edit.last_updated }}</td>
+                  <td>{{ edit.species }}</td>
+                  <td>{{ edit.dbhclass.label }}</td>
+                  <td>{{ edit.audit_diff }}</td>
+                  </tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+    {% paginate %}
+</div>
+
+
+{% endblock %}
+
