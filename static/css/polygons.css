@@ -6,8 +6,9 @@ input {
     width: 100%;
 }
 
-#polygontable {
+.table-container {
     overflow: auto;
+    width: 95%;
 }
 
 /** CSS for OTM is screwy... we're just going to give
