@@ -54,11 +54,10 @@ tm.display_polygon_details = function(ll) {
             '<div id="max_polygon_infowindow">\
              <% _.each(json, function(counts, pid) { %>\
                 <div>\
-                <h3>Polygon #<%= pid %> \
-                <a target="_blank" href="<%= viewlink %>/<%= pid %>">View/Edit</a>\
-                </h3>\
-                <div>\
-                Species: \
+                <h3>Polygon #<%= pid %></h3>\
+                <div class="polygon_infowindow_row">\
+                    <div class="label">Species:</div>\
+                    <div class="results"> \
                     <% if (counts.species.length > 0) { %>\
                       <%= _.chain(counts.species)\
                            .map(sfmt)\
@@ -68,9 +67,11 @@ tm.display_polygon_details = function(ll) {
                     <% } else { %>\
                        None Yet\
                     <% } %>\
+                    </div>\
                 </div>\
-                <div>\
-                DBH Classes: \
+                <div class="polygon_infowindow_row">\
+                    <div class="label">DBH Classes:</div>\
+                    <div class="results"> \
                     <% if (counts.classes.length > 0) { %>\
                       <%= _(counts.classes)\
                            .reduce(\
@@ -78,7 +79,9 @@ tm.display_polygon_details = function(ll) {
                     <% } else { %>\
                        None Yet\
                     <% } %>\
+                    </div>\
                 </div>\
+                <a target="_blank" href="<%= viewlink %>/<%= pid %>">View/Edit</a>\
              <% }) %>\
              </div>');
 
