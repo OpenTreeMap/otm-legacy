@@ -27,6 +27,62 @@ def polygons2dict(polygons):
 
     return polys
 
+def merge_entry_histories(tree_region_entries):
+    edits_to_each_entry = [entry.history.all() for entry in tree_region_entries]
+
+    merged_edits = []
+    for edits in edits_to_each_entry:
+        for edit in edits:
+            if edit._audit_diff:
+                merged_edits.append(entry_edit_to_dict(edit))
+
+    return merged_edits
+
+def entry_edit_to_dict(edit):
+    "takes an treeregionentry edit and puts it in a nice dictionary"
+    return {
+        'polygon': edit.polygon,
+        'last_updated_by': edit.last_updated_by,
+        'last_updated': edit.last_updated,
+        'species': edit.species,
+        'dbhclass': edit.dbhclass,
+        'audit_diff': edit._audit_diff,
+    }
+
+def polygon_edit_to_dict(edit):
+    "takes an treeregionpolygon edit and puts it in a nice dictionary"
+    return {
+        'polygon': edit.id,
+        'last_updated_by': edit.last_updated_by,
+        'last_updated': edit.last_updated,
+        'species': None,
+        'dbhclass': None,
+        'audit_diff': edit._audit_diff,
+    }
+
+def get_recent_edits_for_polygon(polygon_id):
+
+    polygon = TreeRegionPolygon.objects.get(id=polygon_id)
+
+    # first, get edits to the actual polygon
+    # which should only be photo changes.
+    polygon_edits = polygon.history.all()
+
+    polygon_entries = TreeRegionEntry.objects.filter(polygon=polygon_id)
+
+    entry_edits = merge_entry_histories(polygon_entries)
+
+    all_edits = []
+
+    all_edits += map(polygon_edit_to_dict, list(polygon_edits))
+
+    all_edits += list(entry_edits)
+
+    all_edits.sort(key=(lambda x: x['last_updated']), reverse=True)
+
+    return all_edits
+
+
 def polygon_search(request):
     id = request.GET.get('id', None)
 
