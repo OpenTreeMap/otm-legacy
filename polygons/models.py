@@ -10,10 +10,17 @@ class TreeRegionPolygon(models.Model):
     photo = models.ImageField(upload_to="polygons/%Y/%m/%d",null=True,blank=True)
     objects = models.GeoManager()
 
+    def __unicode__(self):
+        return u"Polygon #%s, Region ID: %s" % (self.pk, self.region_id)
+
 class DBHClass(models.Model):
     label = models.CharField(max_length=255)
     dbh_min = models.FloatField()
     dbh_max = models.FloatField()
+
+    def __unicode__(self):
+        return u"DBH Class #%s: %s (%s - %s)" % \
+            (self.pk, self.label, self.dbh_min, self.dbh_max)
 
 class TreeRegionEntry(models.Model):
     polygon = models.ForeignKey(TreeRegionPolygon)
@@ -22,3 +29,7 @@ class TreeRegionEntry(models.Model):
     count = models.IntegerField(default=0)
 
     objects = models.GeoManager()
+
+    def __unicode__(self):
+        return u"%s, Species: %s, Count: %s" % \
+            (str(self.polygon), str(self.species), self.count)
