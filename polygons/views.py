@@ -39,7 +39,6 @@ def merge_entry_histories(tree_region_entries):
     return merged_edits
 
 def entry_edit_to_dict(edit):
-    "takes an treeregionentry edit and puts it in a nice dictionary"
     return {
         'polygon': edit.polygon,
         'last_updated_by': edit.last_updated_by,
@@ -50,7 +49,6 @@ def entry_edit_to_dict(edit):
     }
 
 def polygon_edit_to_dict(edit):
-    "takes an treeregionpolygon edit and puts it in a nice dictionary"
     return {
         'polygon': edit.id,
         'last_updated_by': edit.last_updated_by,
@@ -174,7 +172,11 @@ def polygon_update_photo(request, polygon_id):
     file_content = ContentFile(rfile.read())
     fname = rfile.name
 
-    polygon.photo.save(fname, file_content)
+    polygon.photo.save(fname, file_content, save=False)
+
+    polygon.last_updated_by = request.user
+    polygon._audit_diff = "Uploaded a new photo"
+    polygon.save()
 
     polygon_url = reverse('polygons.views.polygon_view', args=(polygon_id,))
     next_url = request.REQUEST.get('currentpage', polygon_url)
