@@ -59,6 +59,8 @@ input.speciesbyname {
 .table-container {
     overflow: auto;
     width: 95%;
+    clear: both;
+    margin-bottom: 8px;
 }
 
 /** CSS for OTM is screwy... we're just going to give
