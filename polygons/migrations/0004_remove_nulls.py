@@ -8,7 +8,12 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        u = orm['auth.User'].objects.all()[0]
+        us = orm['auth.User'].objects.all()
+
+        if us.count() > 0:
+            u = us[0]
+        else:
+            u = None
 
         def fixuptable(T):
             T.objects.filter(last_updated__isnull=True)\
