@@ -189,7 +189,7 @@ def polygon_view(request, polygon_id,template='polygons/view.html'):
     showedit = request.user and request.user.reputation >= 1000
 
     polygon = TreeRegionPolygon.objects.get(pk=polygon_id)
-    alldbhs = DBHClass.objects.order_by(dbh_min)
+    alldbhs = DBHClass.objects.order_by("dbh_min")
 
     poly = []
     for (species, dbhs) in polygons2dict([polygon])[polygon.pk].iteritems():
