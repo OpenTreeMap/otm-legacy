@@ -13,8 +13,8 @@ class TreeRegionPolygon(models.Model):
 
     # required for audit trail
     history = audit.AuditTrail()
-    last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
-    last_updated_by = models.ForeignKey(User, null=True, blank=True,
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(User,
                                         related_name='treeregionpolygon_updated_by')
 
     def __unicode__(self):
@@ -39,11 +39,10 @@ class TreeRegionEntry(models.Model):
 
     # required for audit trail
     history = audit.AuditTrail()
-    last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
-    last_updated_by = models.ForeignKey(User, null=True, blank=True,
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(User,
                                         related_name='treeregionentry_updated_by')
 
     def __unicode__(self):
         return u"%s, Species: %s, Count: %s" % \
             (str(self.polygon), str(self.species), self.count)
-
