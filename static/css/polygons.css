@@ -12,6 +12,7 @@ input.speciesbyname {
 
 .table-container table {
     table-layout: fixed;
+    margin: 0;
 }
 .table-container th {
     vertical-align: bottom;
@@ -22,9 +23,12 @@ input.speciesbyname {
 .table-container th:first-child {
     width: 100px;
 }
+.table-container tr:first-child th {
+   border-top: none;
+}
 .table-container th:nth-child(2n),
 .table-container td:nth-child(2n) {
-    rgba(214,232,207,.25);
+    background: rgba(214,232,207,.25);
 }
 
 #update-image {
