@@ -222,6 +222,8 @@ def recent_edits(request):
     recent_edits = []
     recent_entries = TreeRegionEntry.objects.order_by('-polygon__last_updated')[:100]
     recent_edits += merge_histories(recent_entries, entry_edit_to_dict)
+    recent_photos = TreeRegionPolygon.objects.filter(last_updated__isnull=False).order_by('-last_updated')[:100]
+    recent_edits += merge_histories(recent_photos, polygon_edit_to_dict)
 
     return render_to_response('polygons/recent_edits.html',
                               RequestContext(request,
