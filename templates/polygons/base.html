@@ -52,7 +52,7 @@
     <a id="update-image" href="">Update Image &raquo;</a>
     <div class="image-upload">
       <form method="POST" action="{{ SITE_ROOT }}polygons/{{ polygonobj.pk }}/photo" enctype="multipart/form-data">
-        <input type="file" name="photo">
+        <input type="file" name="photo" size="17">
         <input type="hidden" name="currentpage" value="{{ request.get_full_path }}">
         <input type="submit" value="Submit Photo" class="btn btn-mini btn-success">
       </form>
