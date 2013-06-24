@@ -39,7 +39,7 @@ def merge_histories(qs, to_dict_fn):
 
 def entry_edit_to_dict(edit):
     return {
-        'polygon': edit.polygon,
+        'polygon': edit.polygon.id,
         'last_updated_by': edit.last_updated_by,
         'last_updated': edit.last_updated,
         'species': edit.species,
