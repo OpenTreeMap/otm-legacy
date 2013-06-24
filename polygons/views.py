@@ -75,10 +75,12 @@ def get_recent_edits_for_polygon(polygon_id):
 
     all_edits += list(entry_edits)
 
-    all_edits.sort(key=(lambda x: x['last_updated']), reverse=True)
+    sort_by_recent_updates(all_edits)
 
     return all_edits
 
+def sort_by_recent_updates(seq):
+    seq.sort(key=(lambda x: x['last_updated']), reverse=True)
 
 def polygon_search(request):
     id = request.GET.get('id', None)
@@ -225,6 +227,7 @@ def recent_edits(request):
     recent_photos = TreeRegionPolygon.objects.filter(last_updated__isnull=False).order_by('-last_updated')[:100]
     recent_edits += merge_histories(recent_photos, polygon_edit_to_dict)
 
+    sort_by_recent_updates(recent_edits)
     return render_to_response('polygons/recent_edits.html',
                               RequestContext(request,
                                   {'recent_edits': recent_edits}))
