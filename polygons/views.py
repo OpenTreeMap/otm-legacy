@@ -186,7 +186,8 @@ def polygon_update_photo(request, polygon_id):
 
 def polygon_view(request, polygon_id,template='polygons/view.html'):
 
-    showedit = request.user and request.user.reputation >= 1000
+    showedit = request.user.is_authenticated() and \
+               request.user.reputation.reputation >= 1000
 
     polygon = TreeRegionPolygon.objects.get(pk=polygon_id)
     alldbhs = DBHClass.objects.order_by("dbh_min")
