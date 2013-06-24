@@ -38,10 +38,10 @@
 			<tbody>
 				{% for edit in recent_edits %}
                   <tr>
-                  <td><a href="{% url polygons.views.polygon_view edit.polygon.id %}">{{ edit.polygon.id }}</a></td>
+                  <td><a href="{% url polygons.views.polygon_view edit.polygon %}">{{ edit.polygon }}</a></td>
                   <td><a href="{% url profiles.views.profile_detail edit.last_updated_by.username %}">{{ edit.last_updated_by.username }}</td>
                   <td>{{ edit.last_updated }}</td>
-                  <td>{{ edit.species }}</td>
+                  <td>{{ edit.species|default:"" }}</td>
                   <td>{{ edit.dbhclass.label }}</td>
                   <td>{{ edit.audit_diff }}</td>
                   </tr>
