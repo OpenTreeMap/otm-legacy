@@ -88,6 +88,9 @@ input.speciesbyname {
 }
 .image-upload input[type="file"] {
     border: none;
+    height: 25px;
+    line-height: 30px;
+    margin-bottom: 5px;
 }
 
 .image-upload {
