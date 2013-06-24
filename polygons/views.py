@@ -27,20 +27,19 @@ def polygons2dict(polygons):
 
     return polys
 
-def merge_entry_histories(tree_region_entries):
-    edits_to_each_entry = [entry.history.all() for entry in tree_region_entries]
+def merge_histories(qs, to_dict_fn):
+    edits_to_each_object = [object.history.all() for object in qs]
 
     merged_edits = []
-    for edits in edits_to_each_entry:
+    for edits in edits_to_each_object:
         for edit in edits:
             if edit._audit_diff:
-                merged_edits.append(entry_edit_to_dict(edit))
-
+                merged_edits.append(to_dict_fn(edit))
     return merged_edits
 
 def entry_edit_to_dict(edit):
     return {
-        'polygon': edit.polygon,
+        'polygon': edit.polygon.id,
         'last_updated_by': edit.last_updated_by,
         'last_updated': edit.last_updated,
         'species': edit.species,
@@ -68,7 +67,7 @@ def get_recent_edits_for_polygon(polygon_id):
 
     polygon_entries = TreeRegionEntry.objects.filter(polygon=polygon_id)
 
-    entry_edits = merge_entry_histories(polygon_entries)
+    entry_edits = merge_histories(polygon_entries, entry_edit_to_dict)
 
     all_edits = []
 
@@ -76,10 +75,12 @@ def get_recent_edits_for_polygon(polygon_id):
 
     all_edits += list(entry_edits)
 
-    all_edits.sort(key=(lambda x: x['last_updated']), reverse=True)
+    sort_by_recent_updates(all_edits)
 
     return all_edits
 
+def sort_by_recent_updates(seq):
+    seq.sort(key=(lambda x: x['last_updated']), reverse=True)
 
 def polygon_search(request):
     id = request.GET.get('id', None)
@@ -221,9 +222,13 @@ def recent_edits(request):
     if rep.reputation < 1000:
         raise PermissionDenied('%s cannot access this view because they do not have the required permission' % request.user.username)
 
+    recent_edits = []
     recent_entries = TreeRegionEntry.objects.order_by('-polygon__last_updated')[:100]
-    recent_edits = merge_entry_histories(recent_entries)
+    recent_edits += merge_histories(recent_entries, entry_edit_to_dict)
+    recent_photos = TreeRegionPolygon.objects.filter(last_updated__isnull=False).order_by('-last_updated')[:100]
+    recent_edits += merge_histories(recent_photos, polygon_edit_to_dict)
 
+    sort_by_recent_updates(recent_edits)
     return render_to_response('polygons/recent_edits.html',
                               RequestContext(request,
                                   {'recent_edits': recent_edits}))
