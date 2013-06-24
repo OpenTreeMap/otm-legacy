@@ -1,8 +1,11 @@
 from django.conf import settings
 from django.test import TestCase
+from django.test.client import RequestFactory
 from django.http import HttpRequest
+from django.contrib.auth import SESSION_KEY, BACKEND_SESSION_KEY, login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
+from django.utils.importlib import import_module
 
 import tempfile
 import csv
@@ -458,11 +461,21 @@ class IntegrationTests(TestCase):
 
         return StringIO(csvfile.getvalue())
 
+    def login(self, request, **creds):
+        engine = import_module(settings.SESSION_ENGINE)
+        request.session = engine.SessionStore()
+        user = authenticate(**creds)
+        login(request, user)
+
+
     def create_csv_request(self, stuff, **kwargs):
         rows = [[z.strip() for z in a.split('|')[1:-1]]
                 for a in stuff.split('\n') if len(a.strip()) > 0]
 
         req = HttpRequest()
+        req.user = self.user
+        self.login(req, username="jim", password="jim")
+
         req.FILES = {'filename': self.create_csv_stream(rows)}
         req.REQUEST = kwargs
 
@@ -481,7 +494,11 @@ class IntegrationTests(TestCase):
         r = self.create_csv_request(csv, name='some name')
         pk = process_csv(r, fileconstructor=self.constructor())
 
-        commit(None, pk, self.import_type())
+        req = HttpRequest()
+        req.user = self.user
+        self.login(req, username="jim", password="jim")
+
+        commit(req, pk, self.import_type())
         return pk
 
     def extract_errors(self, json):
@@ -864,7 +881,11 @@ class TreeIntegrationTests(IntegrationTests):
                            tree_height_conversion_factor=4.5,
                            canopy_height_conversion_factor=5.5)
 
-        commit(None, ieid, self.import_type())
+        req = HttpRequest()
+        req.user = self.user
+        self.login(req, username="jim", password="jim")
+
+        commit(req, ieid, self.import_type())
 
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot

@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User
@@ -80,7 +81,7 @@ def counts(request):
         json.dumps(output),
         content_type = 'application/json')
 
-
+@login_required
 def create(request):
     if request.REQUEST['type'] == 'tree':
         typ = 'tree'
@@ -112,6 +113,7 @@ def create(request):
 
     return HttpResponseRedirect(reverse('importer.views.list_imports'))
 
+@login_required
 def list_imports(request):
     trees = TreeImportEvent.objects\
                            .order_by('id')
@@ -140,12 +142,15 @@ def list_imports(request):
              'species_active': active_species,
              'species_finished': finished_species }))
 
+@login_required
 def show_species_import_status(request, import_event_id):
     return show_import_status(request, import_event_id, SpeciesImportEvent)
 
+@login_required
 def show_tree_import_status(request, import_event_id):
     return show_import_status(request, import_event_id, TreeImportEvent)
 
+@login_required
 def show_import_status(request, import_event_id, Model):
     return render_to_response(
         'importer/status.html',
@@ -153,6 +158,7 @@ def show_import_status(request, import_event_id, Model):
             request,
             {'event': Model.objects.get(pk=import_event_id)}))
 
+@login_required
 def update(request, import_type, import_event_id):
     if import_type == 'tree':
         Model = TreeImportEvent
@@ -177,6 +183,7 @@ def update(request, import_type, import_event_id):
 
 
 # TODO: Remove this method
+@login_required
 def update_row(request, import_event_row_id):
     update_keys = { key.split('update__')[1]
                     for key
@@ -197,6 +204,7 @@ def update_row(request, import_event_row_id):
     return HttpResponseRedirect(reverse('importer.views.show_import_status',
                                         args=(row.import_event.pk,)))
 
+@login_required
 def results(request, import_event_id, import_type, subtype):
     """ Return a json array for each row of a given subtype
     where subtype is a valid status for a TreeImportRow
@@ -344,6 +352,7 @@ def solve(request, import_event_id, import_row_idx):
         content_type = 'application/json')
 
 @transaction.commit_manually
+@login_required
 def commit(request, import_event_id, import_type=None):
     #TODO:!!! NEED TO ADD TREES TO WATCH LIST
     #TODO:!!! Trees in the same import event should not cause
@@ -379,7 +388,7 @@ def process_csv(request, fileconstructor, **kwargs):
     filename = files.keys()[0]
     fileobj = files[filename]
 
-    owner = User.objects.all()[0]
+    owner = request.user
     ie = fileconstructor(file_name=filename,
                          owner=owner,
                          **kwargs)
