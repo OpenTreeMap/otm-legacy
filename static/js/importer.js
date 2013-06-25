@@ -400,7 +400,7 @@ var I = {};
             header += '<th>Plot</th>';
         }
 
-        header = _.chain(rows.fields)
+        header = _.chain(panel.data.field_order)
             .map(function(f) { return '<th>' + f + '</th>'; })
             .reduce(concat, header)
             .value();
@@ -426,9 +426,17 @@ var I = {};
                                    'Plot #' + row.plot_id + '</a></td>');
                     }
 
+                    // Key data by field name
+                    var rowdata = {};
                     for (var i=0;i<row.data.length;i++) {
                         var key = rows.fields[i];
                         var fld = row.data[i];
+                        rowdata[key] = fld;
+                    }
+
+                    for (var i=0;i<panel.data.field_order.length;i++) {
+                        var key = panel.data.field_order[i];
+                        var fld = rowdata[key];
 
                         var $td = $('<td></td>');
                         if (errors[key]) {
@@ -901,7 +909,7 @@ I.init.status = function() {
             success: {
                 request_key: 'success',
                 name: 'success',
-                display_name: 'Success',
+                display_name: 'Successfully Added',
                 page: 0
             },
             pending: {
@@ -930,10 +938,10 @@ I.init.status = function() {
             }
         },
         species_panels: {
-            success: {
-                request_key: 'success',
-                name: 'success',
-                display_name: 'Success',
+            newspecies: {
+                request_key: 'verified',
+                name: 'verified',
+                display_name: 'Ready to Add',
                 page: 0
             },
             merge_req: {
@@ -948,10 +956,10 @@ I.init.status = function() {
                 display_name: 'Errors',
                 page: 0
             },
-            newspecies: {
-                request_key: 'verified',
-                name: 'verified',
-                display_name: 'Ready to Create',
+            success: {
+                request_key: 'success',
+                name: 'success',
+                display_name: 'Successfully Added',
                 page: 0
             }
         }
@@ -1003,7 +1011,7 @@ I.init.status = function() {
 };
 
 I.init.list = function() {
-    I.api_prefix = '/importer/api/';
+    I.api_prefix = tm_urls.site_root + 'importer/api/';
 
     // Auto-updater
     var numPrevSpeciesCounts = -1;
