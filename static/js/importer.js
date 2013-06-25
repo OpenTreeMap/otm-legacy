@@ -1003,7 +1003,7 @@ I.init.status = function() {
 };
 
 I.init.list = function() {
-    I.api_prefix = '/importer/api/';
+    I.api_prefix = tm_urls.site_root + 'importer/api/';
 
     // Auto-updater
     var numPrevSpeciesCounts = -1;
