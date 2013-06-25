@@ -35,6 +35,8 @@ class GenericImportEvent(models.Model):
     # Global errors and notices (json)
     errors = models.TextField(default='')
 
+    field_order = models.TextField(default='')
+
     # Metadata about this particular import
     owner = models.ForeignKey(User)
     created = models.DateTimeField(auto_now=True)

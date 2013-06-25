@@ -287,6 +287,9 @@ def results(request, import_event_id, import_type, subtype):
 
         output['rows'].append(data)
 
+    output['field_order'] = [f.lower() for f \
+                             in json.loads(ie.field_order)
+                             if f != "ignore"]
     output['fields'] = header_keys or \
                        ie.rows()[0].datadict.keys()
 
@@ -426,6 +429,10 @@ def process_commit(request, import_id):
 def create_rows_for_event(importevent, csvfile):
     rows = []
     reader = csv.DictReader(csvfile)
+
+    fieldnames = reader.fieldnames
+    importevent.field_order = json.dumps(fieldnames)
+    importevent.save()
 
     idx = 0
     for row in reader:

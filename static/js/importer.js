@@ -400,7 +400,7 @@ var I = {};
             header += '<th>Plot</th>';
         }
 
-        header = _.chain(rows.fields)
+        header = _.chain(panel.data.field_order)
             .map(function(f) { return '<th>' + f + '</th>'; })
             .reduce(concat, header)
             .value();
@@ -426,9 +426,17 @@ var I = {};
                                    'Plot #' + row.plot_id + '</a></td>');
                     }
 
+                    // Key data by field name
+                    var rowdata = {};
                     for (var i=0;i<row.data.length;i++) {
                         var key = rows.fields[i];
                         var fld = row.data[i];
+                        rowdata[key] = fld;
+                    }
+
+                    for (var i=0;i<panel.data.field_order.length;i++) {
+                        var key = panel.data.field_order[i];
+                        var fld = rowdata[key];
 
                         var $td = $('<td></td>');
                         if (errors[key]) {
