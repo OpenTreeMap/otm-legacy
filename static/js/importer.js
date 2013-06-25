@@ -901,7 +901,7 @@ I.init.status = function() {
             success: {
                 request_key: 'success',
                 name: 'success',
-                display_name: 'Success',
+                display_name: 'Successfully Added',
                 page: 0
             },
             pending: {
@@ -930,10 +930,10 @@ I.init.status = function() {
             }
         },
         species_panels: {
-            success: {
-                request_key: 'success',
-                name: 'success',
-                display_name: 'Success',
+            newspecies: {
+                request_key: 'verified',
+                name: 'verified',
+                display_name: 'Ready to Add',
                 page: 0
             },
             merge_req: {
@@ -948,10 +948,10 @@ I.init.status = function() {
                 display_name: 'Errors',
                 page: 0
             },
-            newspecies: {
-                request_key: 'verified',
-                name: 'verified',
-                display_name: 'Ready to Create',
+            success: {
+                request_key: 'success',
+                name: 'success',
+                display_name: 'Successfully Added',
                 page: 0
             }
         }
