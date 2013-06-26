@@ -68,7 +68,8 @@
         <th>Field</th>
         <% _.each(fields.header, function(f) { %><th><%= f %></th><% }) %>
       </tr>
-      <% _.each(fields.data, function(f) { %>
+      <% _.each(field_order, function(fo) {
+         var f = fields.indexed_data[fo]; %>
       <tr data-field="<%= f.field %>">
         <td>
           <%= f.field %></td>

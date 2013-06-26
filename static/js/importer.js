@@ -101,10 +101,16 @@ var I = {};
         }
 
         var rowModel = mergeModels.data[row.row];
+        var rowData = {};
+        for (var i=0;i<rowModel.data.length;i+=1) {
+            rowData[rowModel.data[i].field] = rowModel.data[i];
+        }
+        rowModel.indexed_data = rowData;
 
         var $merge = $(
             _.template($("#merge-template").html(),
-                       { 'fields': rowModel}));
+                       { 'fields': rowModel,
+                         'field_order': panel.data.field_order }));
 
         // Select the correct checkboxes
         updateCheckboxState(rowModel, $merge);
