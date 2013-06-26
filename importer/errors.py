@@ -13,6 +13,7 @@ MISSING_SPECIES_FIELDS = (4, 'You must specify i-Tree Code, Common Name '\
                           'Genus and Species', True)
 
 MISSING_FIELD = (5, 'This field is required', True)
+GENERIC_ERROR = (6, 'There was an exception', True)
 
 INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '\
                 'latitude must be betwen -90 and 90', True)

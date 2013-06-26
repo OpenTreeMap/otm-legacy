@@ -406,12 +406,18 @@ def process_csv(request, fileconstructor, **kwargs):
 
     ie.save()
 
-    rows = create_rows_for_event(ie, fileobj)
+    try:
+        rows = create_rows_for_event(ie, fileobj)
 
-    transaction.commit()
+        transaction.commit()
 
-    if rows:
-        run_import_event_validation.delay(ie)
+        if rows:
+            run_import_event_validation.delay(ie)
+
+    except Exception, e:
+        ie.append_error(errors.GENERIC_ERROR, [], data=str(e))
+        ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
+        ie.save()
 
     return ie.pk
 
