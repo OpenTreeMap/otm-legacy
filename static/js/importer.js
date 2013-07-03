@@ -19,7 +19,8 @@ var I = {};
             return loadTemplateCache[t];
         }
     };
-    I.loadTemplate = loadTemplate
+
+    I.loadTemplate = loadTemplate;
 
     /** Dummy function (for now) **/
     I.signalError = function(error) {};
@@ -1049,61 +1050,71 @@ I.init.list = function() {
     }
 
     // Create unit types dialog
-    var $unitsDialog = $("#unitsdialog");
-
     var conversions =
         { "Inches" : 1.0,
           "Meters": 39.3701,
-          "Centimeters": 0.393701 }
+          "Centimeters": 0.393701 };
 
-    var $select = _.reduce(conversions, function ($sel,factor,label) {
-        return $sel.append($("<option>")
-                           .attr("value",factor)
-                           .text(label));
-    }, $("<select>"));
+    function setupUnitsDialog($unitsDialog, $submit, $form) {
 
-    $unitsDialog.find("tr").each(function (i,row) {
-        if (i > 0) {
-            $(row).append($("<td>").append($select.clone()));
-        }
-    });
+        var $select = _.reduce(conversions, function ($sel,factor,label) {
+            return $sel.append($("<option>")
+                               .attr("value",factor)
+                               .text(label));
+        }, $("<select>"));
 
-    $("body").append($unitsDialog);
-
-    $unitsDialog.dialog({
-        autoOpen: false,
-        width: 350,
-        modal: true
-    });
-
-    $("#submittree").click(function() {
-        $unitsDialog.dialog('open');
-    });
-
-    $unitsDialog.find(".cancel").click(function() {
-        $unitsDialog.dialog('close');
-    });
-
-    $unitsDialog.find(".create").click(function() {
-        var fields = {};
-        // Extract field values
         $unitsDialog.find("tr").each(function (i,row) {
             if (i > 0) {
-                var tds = $(row).find("td");
-                fields["unit_" + tds.first().html().replace(" ","_").toLowerCase()] =
-                    tds.last().find("select").val();
+                $(row).append($("<td>").append($select.clone()));
             }
         });
 
-        // Update hidden format fields
-        var $form = $("#treeform");
-        _.each(fields, function(val,label) {
-            $form.find("input[name=" + label  + "]")
-                .attr("value", val);
+        $("body").append($unitsDialog);
+
+        $unitsDialog.dialog({
+            autoOpen: false,
+            width: 350,
+            modal: true
         });
 
-        $form.submit();
-    });
+        $submit.click(function() {
+            $unitsDialog.dialog('open');
+        });
+
+        $unitsDialog.find(".cancel").click(function() {
+            $unitsDialog.dialog('close');
+        });
+
+        $unitsDialog.find(".create").click(function() {
+            var fields = {};
+            // Extract field values
+            $unitsDialog.find("tr").each(function (i,row) {
+                if (i > 0) {
+                    var tds = $(row).find("td");
+                    fields["unit_" + tds.first().html().replace(" ","_").toLowerCase()] =
+                        tds.last().find("select").val();
+                }
+            });
+
+            // Update hidden format fields
+            _.each(fields, function(val,label) {
+                $form.find("input[name=" + label  + "]")
+                    .attr("value", val);
+            });
+
+            $form.submit();
+        });
+    }
+
+
+    setupUnitsDialog($("#treeunitsdialog"),
+                    $("#submittree"),
+                    $("#treeform"));
+
+    setupUnitsDialog($("#speciesunitsdialog"),
+                    $("#submitspecies"),
+                    $("#speciesform"));
+
 
     // Start the updater
     update_counts();
