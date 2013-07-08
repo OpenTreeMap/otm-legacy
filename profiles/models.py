@@ -35,6 +35,13 @@ class UserProfile(models.Model):
         verbose_name = _('Profile')
         verbose_name_plural = _('Profiles')
 
+    # stripped-down recently_edited_trees to fix neighborhood display
+    # in profiles/edit_profile.html and profile_detail.html
+
+    def re_trees(self):
+        trees = Tree.history.filter(last_updated_by=self.user, present=True).exclude(_audit_change_type="U",_audit_diff="").order_by('-last_updated')[:7]
+        return(trees)
+
     def recently_edited_trees(self):
         trees = Tree.history.filter(last_updated_by=self.user, present=True).exclude(_audit_change_type="U",_audit_diff="").order_by('-last_updated')[:7]
         recent_edits = []

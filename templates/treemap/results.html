@@ -89,7 +89,7 @@
         {% for tree in latest_trees %}
             <tr>
                 <td class="image"><a href="{% url treemap_tree_detail tree.id %}">
-
+                {# TODO: believe should be photo and link of tree, not person #}
                 {% if tree.last_updated_by.get_profile.photo %}
                     {% thumbnail tree.last_updated_by.get_profile.photo "32x32" crop="center" as image %}
                     <img src="{{ image.url }}" alt="image description" width="33" height="32" />
@@ -101,7 +101,8 @@
                 <td>
                     <span>Neighborhood</span>  <br />
 
-                    {{tree.neighborhood.all.0}}
+                    {# fixed Neighborhood, was: {{tree.neighborhood.all.0}} #}
+                    {{ tree.plot.neighborhood.all.0.name }}
                 </td>
                 <td>
                     <span>Tree species</span>  <br />
