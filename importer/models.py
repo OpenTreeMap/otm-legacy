@@ -115,6 +115,10 @@ class SpeciesImportEvent(GenericImportEvent):
     A TreeImportEvent represents an attempt to upload a csv containing
     species information
     """
+
+    max_diameter_conversion_factor = models.FloatField(default=1.0)
+    max_tree_height_conversion_factor = models.FloatField(default=1.0)
+
     def create_row(self, *args, **kwargs):
         return SpeciesImportRow.objects.create(*args, **kwargs)
 
@@ -177,8 +181,6 @@ class TreeImportEvent(GenericImportEvent):
 
     base_import_event = models.ForeignKey(ImportEvent)
 
-    # We can do some numeric conversions
-    # TODO: Support numeric conversions
     plot_length_conversion_factor = models.FloatField(default=1.0)
     plot_width_conversion_factor = models.FloatField(default=1.0)
     diameter_conversion_factor = models.FloatField(default=1.0)
@@ -376,6 +378,14 @@ class GenericImportRow(models.Model):
             return False
         else:
             return i
+
+    def convert_units(self, data, converts):
+        INCHES_TO_DBH_FACTOR = 1.0 / settings.DBH_TO_INCHES_FACTOR
+
+        # Similar to tree
+        for fld, factor in converts.iteritems():
+            if fld in data and factor != 1.0:
+                data[fld] = float(data[fld]) * factor * INCHES_TO_DBH_FACTOR
 
     def validate_numeric_fields(self):
         def cleanup(fields, fn):
@@ -758,6 +768,15 @@ class SpeciesImportRow(GenericImportRow):
         if species is None:
             species = Species()
 
+        # Convert units
+        self.convert_units(data, {
+            fields.species.MAX_DIAMETER:
+            self.import_event.max_diameter_conversion_factor,
+
+            fields.species.MAX_HEIGHT:
+            self.import_event.max_tree_height_conversion_factor
+        })
+
         #TODO: Update tree count nonsense
 
         for modelkey, importdatakey in SpeciesImportRow.SPECIES_MAP.iteritems():
@@ -813,21 +832,22 @@ class TreeImportRow(GenericImportRow):
         # Get our data
         data = self.cleaned
 
-        # Convert units
-        converts = {
-            fields.trees.PLOT_WIDTH: self.import_event.plot_width_conversion_factor,
-            fields.trees.PLOT_LENGTH: self.import_event.plot_length_conversion_factor,
-            fields.trees.DIAMETER: self.import_event.diameter_conversion_factor,
-            fields.trees.TREE_HEIGHT: self.import_event.tree_height_conversion_factor,
-            fields.trees.CANOPY_HEIGHT: self.import_event.canopy_height_conversion_factor
-        }
+        self.convert_units(data, {
+            fields.trees.PLOT_WIDTH:
+            self.import_event.plot_width_conversion_factor,
 
-        INCHES_TO_DBH_FACTOR = 1.0 / settings.DBH_TO_INCHES_FACTOR
+            fields.trees.PLOT_LENGTH:
+            self.import_event.plot_length_conversion_factor,
 
-        for fld, factor in converts.iteritems():
-            if fld in data and factor != 1.0:
-                data[fld] = float(data[fld]) * factor * INCHES_TO_DBH_FACTOR
+            fields.trees.DIAMETER:
+            self.import_event.diameter_conversion_factor,
 
+            fields.trees.TREE_HEIGHT:
+            self.import_event.tree_height_conversion_factor,
+
+            fields.trees.CANOPY_HEIGHT:
+            self.import_event.canopy_height_conversion_factor
+        })
 
         # We need the import event from treemap.models
         # the names of things are a bit odd here but
