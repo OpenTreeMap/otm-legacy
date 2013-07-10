@@ -1796,10 +1796,30 @@ from django.core import serializers
 def verify_edits(request, audit_type='tree'):
 
     changes = []
-    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
-    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
-    plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
-    newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    trees = Tree.history.filter(present=True)\
+                        .filter(_audit_change_type__exact='U')\
+                        .exclude(_audit_diff__exact='')\
+                        .filter(_audit_verified__exact=0)
+
+    newtrees = Tree.history.filter(present=True)\
+                           .filter(_audit_change_type__exact='I')\
+                           .filter(_audit_verified__exact=0)
+
+    plots = Plot.history.filter(present=True)\
+                        .filter(_audit_change_type__exact='U')\
+                        .exclude(_audit_diff__exact='')\
+                        .filter(_audit_verified__exact=0)
+
+    newplots = Plot.history.filter(present=True)\
+                           .filter(_audit_change_type__exact='I')\
+                           .filter(_audit_verified__exact=0)
+
+    if settings.SHOW_ADMIN_EDITS_IN_RECENT_EDITS is False:
+        trees = trees.filter(_audit_user_rep__lt=1000)
+        newtrees = newtrees.filter(_audit_user_rep__lt=1000)
+        plots = plots.filter(_audit_user_rep__lt=1000)
+        newplots = newplots.filter(_audit_user_rep__lt=1000)
+
     treeactions = []
     n = None
 
