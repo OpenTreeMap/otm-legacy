@@ -1,6 +1,7 @@
 import os
 
 ADD_INITIAL_DEFAULTS = {}
+SHOW_ADMIN_EDITS_IN_RECENT_EDITS = False
 
 try:
    from impl_settings import *
@@ -57,7 +58,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_reputation.middleware.ReputationMiddleware', 
+    'django_reputation.middleware.ReputationMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django_sorting.middleware.SortingMiddleware',
 
@@ -105,4 +106,3 @@ if SITE_ROOT is not "/":
     LOGIN_URL = "%s/accounts/login" % SITE_ROOT
 else:
     LOGIN_URL = "/accounts/login"
-

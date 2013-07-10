@@ -9,7 +9,7 @@ from contextlib import closing
 import subprocess
 from operator import itemgetter, attrgetter
 from itertools import chain
-import simplejson 
+import simplejson
 from functools import wraps
 
 from django.conf import settings
@@ -67,7 +67,7 @@ def average(seq):
 def get_app(name):
     app = app_models.get(name)
     return app or 'treemap'
-    
+
 def render_to_json(j):
     response = HttpResponse()
     response.write('%s' % simplejson.dumps(j))
@@ -75,7 +75,7 @@ def render_to_json(j):
     response['Content-Type'] = 'text/plain'
     return response
 
-def user_activated_callback(sender, **kwargs):    
+def user_activated_callback(sender, **kwargs):
     rep = Reputation.objects.reputation_for_user(kwargs['user'])
     #print rep
 user_activated.connect(user_activated_callback)
@@ -135,14 +135,14 @@ def json_home_feeds(request):
 def home_feeds(request):
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
-    
+
     feeds['recent_edits'] = unified_history(recent_trees)
     feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
     feeds['species'] = Species.objects.order_by('-tree_count')[0:4]
-    
+
     #TODO: change from most populated neighborhood to most updates in neighborhood
     feeds['active_nhoods'] = Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]
-    
+
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 
 def get_all_csv(request):
@@ -159,8 +159,8 @@ def get_all_kmz(request):
 
 @require_http_methods(["GET", "HEAD"])
 def get_geocode(request):
-    address = request.GET.get("address")  
-    geocoder_name = request.GET.get("geocoder_name") 
+    address = request.GET.get("address")
+    geocoder_name = request.GET.get("geocoder_name")
     js = {}
     if geocoder_name == "CitizenAtlas":
         g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
@@ -182,12 +182,12 @@ def get_geocode(request):
         js["success"] = False
         js["error"] = "No address specified"
     return render_to_json(js)
-       
+
 @require_http_methods(["GET", "HEAD"])
 def get_reverse_geocode(request):
     lat = request.GET.get("lat")
     lng = request.GET.get("lng")
-    geocoder_name = request.GET.get("geocoder_name") 
+    geocoder_name = request.GET.get("geocoder_name")
     js = {}
     if geocoder_name == "CitizenAtlas":
         g = CitizenAtlas(format_string="%s, Washington DC", threshold=80)
@@ -228,11 +228,11 @@ def result_map(request):
     if "date_planted__min" in min_tree_year and min_tree_year['date_planted__min']:
         min_year = min_tree_year['date_planted__min'].year
 
-    current_year = datetime.now().year    
+    current_year = datetime.now().year
 
     # TODO: Fix this to include updates to treeflag objects
     min_updated = 0
-    max_updated = 0 
+    max_updated = 0
 
     updated = Tree.objects.exclude(last_updated=None, present=False).aggregate(Max("last_updated"), Min("last_updated"))
 
@@ -283,14 +283,14 @@ def plot_location_search(request):
     geom = get_pt_or_bbox(request.GET)
     if not geom:
         return HttpResponseBadRequest()
-    
+
     distance = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
     max_plots = int(request.GET.get('max_plots', 1))
 
     if max_plots > 500: max_plots = 500
 
     orig_trees, orig_plots, geog_obj, agg_object, tile_query = _build_tree_search_result(request, False)
-    
+
     if geom.geom_type == 'Point':
         orig_plots = orig_plots.filter(geometry__dwithin=(geom, float(distance))).distance(geom).order_by('distance')
         if orig_plots.count() > 0:
@@ -308,12 +308,12 @@ def plot_location_search(request):
         extent = plots.extent()
     else:
         extent = []
-    
+
     if len(plots) > 0:
         plots = plots[:max_plots]
 
     return render_to_geojson(plots,
-                             geom_field='geometry', 
+                             geom_field='geometry',
                              excluded_fields=['sidewalk_damage',
                              'address_city',
                              'address_street',
@@ -357,11 +357,11 @@ def species(request, selection='all', format='html'):
      - nearby: return 5 closest species
     """
     page = 0
-    
+
     species = Species.objects.all()
     if selection == 'in-use':
         species = species.filter(tree_count__gt=0).order_by('-tree_count')
-        
+
     if selection == 'nearby':
         location = request.GET.get('location','')
         if not location:
@@ -370,47 +370,47 @@ def species(request, selection='all', format='html'):
         pt = Point(coord[0], coord[1])
         trees =  Tree.objects.filter(present=True).filter(plot__geometry__dwithin = (pt,.001))#.distance(pt).order_by('distance').count()
         species = Species.objects.filter(tree__in=trees)
-    
+
     if selection == 'all':
         species = Species.objects.all().order_by('common_name')
-    
+
     if format == 'json':
-        res = [{"symbol":str(x.symbol or ''), 
+        res = [{"symbol":str(x.symbol or ''),
                  "cname":str(x.common_name or ''),
                  "cultivar":str(x.cultivar_name or ''),
                  "sname":str(x.scientific_name or x.genus),
                  "id": int(x.id),
                  "count": int(x.tree_count)} for x in species]
         return render_to_response('treemap/basic.json',{'json':simplejson.dumps(res)})
-        
+
     if format == 'csv':
         sql_object =  [{
-            "name":"species", 
-            "sql":str(species.query), 
+            "name":"species",
+            "sql":str(species.query),
             "srs":'EPSG:4326'
         }]
-        return ogr_conversion('CSV', sql_object, "", name="species", geo=False)    
+        return ogr_conversion('CSV', sql_object, "", name="species", geo=False)
 
-    #render to html    
+    #render to html
     return render_to_response('treemap/species.html',RequestContext(request,{
         'species' : species,
         'page' : page #so template can do next page kind of stuff
         }))
-        
+
 
 #TODO: is this used anywhere? Does it even do anything?
-@cache_page(60*5)    
+@cache_page(60*5)
 def top_species(request):
-    Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')        
-    return 
+    Species.objects.all().annotate(num_trees=Count('tree')).order_by('-num_trees')
+    return
 
 def favorites(request, username):
     faves = User.objects.get(username=username).treefavorite_set.filter(tree__present=True)
     js = [{
-       'id':f.tree.id, 
+       'id':f.tree.id,
        'coords':[f.tree.plot.geometry.x, f.tree.plot.geometry.y]} for f in faves]
     return render_to_json(js)
-    
+
 def trees(request, tree_id=''):
     # testing - to match what you get in /location query and in map tiles.
     favorite = False
@@ -418,10 +418,10 @@ def trees(request, tree_id=''):
     trees = Tree.objects.all()
     if tree_id:
         trees = trees.filter(pk=tree_id)
-        
+
         if trees.count() == 0:
             raise Http404
-        
+
         plot = trees[0].plot
         if trees[0].present == False:
             if plot.present == False:
@@ -432,16 +432,16 @@ def trees(request, tree_id=''):
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
         history = list(chain(history, plot.history.order_by('-last_updated')[:5]))
-        
+
         recent_edits = unified_history(history)
-    
+
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
                 tree=trees[0], tree__present=True).count() > 0
     else:
-	#TODO: do we ever call this w/o id???
+        #TODO: do we ever call this w/o id???
         trees = Tree.objects.filter(present=True)
-    
+
     if request.GET.get('format','') == 'json':
         return render_to_geojson(trees, geom_field='geometry')
     first = None
@@ -488,7 +488,7 @@ def plot_detail(request, plot_id=''):
         return render_to_response('treemap/tree_detail.html',RequestContext(request,{'favorite': favorite, 'tree':current_tree, 'plot': plot, 'recent': recent_edits}))
 
 @login_required
-def plot_add_tree(request, plot_id): 
+def plot_add_tree(request, plot_id):
     user = request.user
     tree = Tree()
     plot = Plot.objects.get(pk=plot_id)
@@ -532,14 +532,14 @@ def unified_history(trees, plots=[]):
     # sort by the date descending
     return sorted(recent_edits, key=itemgetter(1), reverse=True)
 
-   
+
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
     choices = settings.CHOICES[type_]
     data = SortedDict(choices)
     if hasattr(tree, type_):
         val = getattr(tree, type_)
-        data['selected'] = val   
+        data['selected'] = val
     else:
         #TODO: this code looks to be defunct after switch to choices.py archetecture
         if type_ == "condition":
@@ -550,28 +550,28 @@ def tree_edit_choices(request, tree_id, type_):
             sidewalks = tree.treestatus_set.filter(key="canopy_condition").order_by("-reported")
             if sidewalks.count():
                 data['selected'] = str(int(sidewalks[0].value))
-    return HttpResponse(simplejson.dumps(data))    
+    return HttpResponse(simplejson.dumps(data))
 
-  
+
 def plot_edit_choices(request, plot_id, type_):
     plot = get_object_or_404(Plot, pk=plot_id)
     choices = settings.CHOICES[type_]
     data = SortedDict(choices)
     if hasattr(plot, type_):
         val = getattr(plot, type_)
-        data['selected'] = val   
+        data['selected'] = val
     else:
         #TODO: this code looks to be defunct after switch to choices.py archetecture
         if type_ == "sidewalk_damage":
             sidewalks = plot.treestatus_set.filter(key="sidewalk_damage").order_by("-reported")
             if sidewalks.count():
                 data['selected'] = str(int(sidewalks[0].value))
-    return HttpResponse(simplejson.dumps(data))    
+    return HttpResponse(simplejson.dumps(data))
 
 #http://docs.djangoproject.com/en/dev/topics/forms/modelforms/#model-formsets
 # todo - convert into formsets, to allow adding many photos
 # todo - allow editing/deleting existing photos
-@login_required    
+@login_required
 def tree_add_edit_photos(request, tree_id = ''):
 
     tree = get_object_or_404(Tree, pk=tree_id)
@@ -591,8 +591,8 @@ def tree_add_edit_photos(request, tree_id = ''):
     else:
         form = TreeEditPhotoForm(instance=tree)
 
-    return render_to_response('add_edit_photos.html',RequestContext(request,{ 'instance': tree, 'form': form }))        
-         
+    return render_to_response('add_edit_photos.html',RequestContext(request,{ 'instance': tree, 'form': form }))
+
 
 @login_required
 #TODO: possibly unused
@@ -601,33 +601,33 @@ def batch_edit(request):
 
 @login_required
 def tree_edit(request, tree_id = ''):
-    
+
     tree = get_object_or_404(Tree, pk=tree_id, present=True)
     #if not request.user in (tree.data_owner, tree.tree_owner) and not request.user.is_superuser:
     #    return render_to_response("not_allowed.html", {'user' : request.user, "error_message":"You are not the owner of this tree."})
-    
-    reputation = {        
+
+    reputation = {
         "base_edit": Permission.objects.get(name = 'can_edit_condition'),
-        "user_rep": Reputation.objects.reputation_for_user(request.user)    
+        "user_rep": Reputation.objects.reputation_for_user(request.user)
     }
 
-    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree, 'plot': tree.plot, 'reputation': reputation, 'user': request.user}))           
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': tree, 'plot': tree.plot, 'reputation': reputation, 'user': request.user}))
 
 @login_required
 def plot_edit(request, plot_id = ''):
     plot = get_object_or_404(Plot, pk=plot_id, present=True)
-    reputation = {        
+    reputation = {
         "base_edit": Permission.objects.get(name = 'can_edit_condition'),
-        "user_rep": Reputation.objects.reputation_for_user(request.user)    
+        "user_rep": Reputation.objects.reputation_for_user(request.user)
     }
 
-    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))   
+    return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))
 
 @transaction.commit_on_success
 def tree_delete(request, tree_id):
     tree = Tree.objects.get(pk=tree_id)
     tree.remove()
-    
+
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -637,27 +637,27 @@ def tree_delete(request, tree_id):
 def plot_delete(request, plot_id):
     plot = Plot.objects.get(pk=plot_id)
     plot.remove()
-    
+
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
 
-def photo_delete(request, tree_id, photo_id):    
+def photo_delete(request, tree_id, photo_id):
     tree = Tree.objects.get(pk=tree_id)
     photo = TreePhoto.objects.get(pk=photo_id)
     photo.delete()
-    
+
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-    
+
 def userphoto_delete(request, username):
     profile = UserProfile.objects.get(user__username=username)
     profile.photo = ""
     profile.save()
-    
+
     return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -667,7 +667,7 @@ from django.contrib.auth.decorators import permission_required
 
 @login_required
 @permission_required('auth.change_user')
-def edit_users(request):        
+def edit_users(request):
     users = User.objects.all()
     if 'username' in request.GET:
         users = users.filter(username__icontains=request.GET['username'])
@@ -679,7 +679,7 @@ def edit_users(request):
             users = users.filter(groups=g)
         else:
             users = users.filter(groups__in=g)
-    
+
     groups = Group.objects.all()
     return render_to_response('treemap/user_edit.html',RequestContext(request, {'users': users, 'groups': groups}))
 
@@ -688,8 +688,8 @@ def update_users(request):
     response_dict = {}
     if request.method == 'POST':
         post = simplejson.loads(request.raw_post_data)
-    
-    if post.get('rep_total'):  
+
+    if post.get('rep_total'):
         id = post.get('user_id')
         user = User.objects.get(pk=id)
         user.reputation.reputation = int(post.get('rep_total'))
@@ -712,11 +712,11 @@ def update_users(request):
                 response_dict['user_id'] = user.id
         except Exception:
             user.groups.clear()
-        
+
         response_dict['success'] = True
     else:
         raise Http404
-    
+
     return HttpResponse(
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -753,8 +753,8 @@ def user_opt_export(request, format):
     sql = "select a.username, a.email, case when b.updates = 't' then 'True' when b.updates = 'f' then 'False' end as \"opt-in\" from auth_user as a, profiles_userprofile as b where b.user_id = a.id"
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
-    
-    return ogr_conversion('CSV', [{'name':'emails', 'sql':sql}], name="emails", geo=False)    
+
+    return ogr_conversion('CSV', [{'name':'emails', 'sql':sql}], name="emails", geo=False)
 
 @permission_required('auth.change_user')
 def ban_user(request):
@@ -765,14 +765,14 @@ def ban_user(request):
         user.is_active = False
         user.save()
         response_dict['user_id'] = user.id
-        
+
     response_dict['success'] = True
-     
+
     return HttpResponse(
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-    
+
 @permission_required('auth.change_user')
 def unban_user(request):
     response_dict = {}
@@ -789,7 +789,7 @@ def unban_user(request):
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-        
+
 
 # http://docs.djangoproject.com/en/dev/topics/db/transactions/
 # specific imports needed for the below view, keeping here in case
@@ -807,7 +807,7 @@ import sys
 def multi_status(request):
     if request.method == 'POST':
         if request.META['SERVER_NAME'] == 'testserver':
-            post = request.POST        
+            post = request.POST
         else:
             post = simplejson.loads(request.raw_post_data)
     id = post.get('id')
@@ -817,7 +817,7 @@ def multi_status(request):
     for val in post.get("values"):
         ts = TreeStatus(key=key, val=val, tree=tree)
         ts.save()
-    return HttpResponse("OK")    
+    return HttpResponse("OK")
 
 def get_tree_pend_or_plot_pend_by_id_or_404_not_found(pend_id):
     try:
@@ -855,7 +855,7 @@ def approve_pend(request, pend_id):
     return HttpResponse(
         simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
-    ) 
+    )
 
 @login_required
 @permission_required_or_403_forbidden('treemap.change_pending')
@@ -865,7 +865,7 @@ def reject_pend(request, pend_id):
     return HttpResponse(
         simplejson.dumps({'success': True, 'pend_id': pend_id}, sort_keys=True, indent=4),
         content_type = 'text/plain'
-    ) 
+    )
 
 @login_required
 @permission_required('auth.change_user')
@@ -925,29 +925,29 @@ def view_stewardship(request):
 def object_update(request):
     """
     Generic record and row based update view.
-    
+
     Accepts POST data only, consisting of:
-    
+
       model: model name,
       id: record id,
       update: dict of fields to update with value,
       parent: model/id the posted data should be added to
-    
-    """ 
-           
+
+    """
+
     response_dict = {'success': False, 'errors': []}
-        
+
     parent_instance = None
     post = {}
-    
+
     if request.method == 'POST':
         if request.META['SERVER_NAME'] == 'testserver':
-            post = request.POST        
+            post = request.POST
         else:
             post = simplejson.loads(request.raw_post_data)
     else:
         response_dict['errors'].append('Please POST data')
-    
+
     if post.get('model'):
         mod_name = post['model']
         model_object = get_model(get_app(mod_name),mod_name)
@@ -964,11 +964,11 @@ def object_update(request):
                 # if not passed an 'id' assume we
                 # are creating a new instance/record
                 instance = model_object()
-    
+
             update = post.get('update')
             delete = post.get('delete')
             parent = post.get('parent')
-            
+
             if delete:
                 response_dict['delete'] = {}
                 parent_object = get_model('treemap',parent['model'])
@@ -979,21 +979,21 @@ def object_update(request):
                     all = all.filter(reported_by=request.user)
                 for k,v in delete.items():
                     all = all.filter(**{str(k):v})
-                ids = [x.id for x in all]    
+                ids = [x.id for x in all]
                 if all.count():
                     all.delete()
                     response_dict['delete']['ids'] = ids
-            
-           
+
+
 
             if update:
                 response_dict['update'] = {}
- 
+
                 #check pending feature status and user permisisons
                 #{"model":"Tree","update":{"height":10},"id":6}
                 #{"model":"Tree","update":{"species_id":397},"id":6}
                 #{"model":"Tree","id":6,"update":{"address_street":"12th and L","address_city":"Sacramento","address_zip":"95814","geometry":"POINT (-121.49136539755177 38.5773014443589)"}}
-                
+
                     # if the tree was added by the public, or the current user is not public, skip pending
                 if settings.PENDING_ON and (post['model'] == "Tree" or post['model'] == "Plot"):
                     audit_insert_records = instance.history.filter(_audit_change_type='I')
@@ -1004,7 +1004,7 @@ def object_update(request):
 
                     mgmt_user = request.user.has_perm('auth.change_user')
                     if insert_event_mgmt and not mgmt_user:
-                        for k,v in update.items():  
+                        for k,v in update.items():
                             fld = instance._meta.get_field(k.replace('_id',''))
                             try:
                                 cleaned = fld.clean(v,instance)
@@ -1049,7 +1049,7 @@ def object_update(request):
                             if len(response_dict['errors']):
                                 transaction.rollback()
                             else:
-                                transaction.commit()    
+                                transaction.commit()
                                 response_dict['success'] = True
 
                         return HttpResponse(
@@ -1068,17 +1068,17 @@ def object_update(request):
                 #class MyForm(ModelForm):
                 #    class Meta:
                 #        model = model_object
-                #        exclude = [f.name for f in model_object._meta.fields if True in (f.null,f.blank)]       
+                #        exclude = [f.name for f in model_object._meta.fields if True in (f.null,f.blank)]
                 #form = MyForm(updates,instance=instance)
                 #import pdb;pdb.set_trace()
                 #form.instance.last_updated_by = request.user
                 #if not form.is_valid():
                 #    response_dict.update({'success': False })
                 #    response_dict['errors'].update(form.errors)
-                                        
+
                 # re-implement just the pieces of form validation
                 # we need which is per field cleaning
-                
+
                 #if hasattr(instance,'key') and hasattr(instance,'value'):
                 #    iterable = update.items()
                 #else:
@@ -1088,8 +1088,8 @@ def object_update(request):
                 #   update['key'] = 'dbh'
                 #   circ = update.get('value')
                 #   if circ:
-                #       update['value'] = circ/math.pi 
-                #   #response_dict['update']['']  
+                #       update['value'] = circ/math.pi
+                #   #response_dict['update']['']
                 for k,v in update.items():
                     if hasattr(instance,k):
                         #print k,v
@@ -1113,10 +1113,10 @@ def object_update(request):
                             value = getattr(instance,'display')
                         elif hasattr(instance,'get_%s_display' % k):
                             value = getattr(instance,'get_%s_display' % k)()
-                        else:    
+                        else:
                             value = getattr(instance, k)
 
-                        if isinstance(value,datetime): 
+                        if isinstance(value,datetime):
                             value = value.strftime('%b %d %Y')
                         elif not isinstance(value, basestring):
                             value = unicode(value)
@@ -1132,10 +1132,10 @@ def object_update(request):
             # needs to be set on Tree model
             if hasattr(instance,'last_updated_by_id'):
                 instance.last_updated_by = request.user
-            # needs to be set on models inheriting from TreeItem 
+            # needs to be set on models inheriting from TreeItem
             if hasattr(instance,'reported_by_id'):
                 instance.reported_by = request.user
-            
+
             if parent and not delete:
                 parent_object = get_model('treemap',parent['model'])
                 if not parent_object:
@@ -1149,7 +1149,7 @@ def object_update(request):
                         parent_instance.last_updated = datetime.now()
                         parent_instance.last_updated_by = request.user
                         try:
-                            # get the foreignkey related manager of the parent to be able to 
+                            # get the foreignkey related manager of the parent to be able to
                             # add the new instance back to the parent object
                             # eg. Tree.objects.all()[1].treestatus_set
                             set = getattr(parent_instance,post['model'].lower() + '_set')
@@ -1191,7 +1191,7 @@ def object_update(request):
     if len(response_dict['errors']):
         transaction.rollback()
     else:
-        transaction.commit()    
+        transaction.commit()
         response_dict['success'] = True
 
     return HttpResponse(
@@ -1206,7 +1206,7 @@ def create_pending_records(plot_base, plot_new_flds, user):
         if getattr(plot_base, fld) is not new_field_val:
             pend = PlotPending(plot=plot_base, field=fld, value=new_field_val, status='pending')
             pend.submitted_by = pend.updated_by = user
-        
+
             if fld == 'geometry':
                 pend.geometry = plot_new_flds
 
@@ -1224,7 +1224,7 @@ def create_pending_records(plot_base, plot_new_flds, user):
 
 def parse_post(request):
     if request.META['SERVER_NAME'] == 'testserver':
-        post = request.POST        
+        post = request.POST
     else:
         post = simplejson.loads(request.raw_post_data)
 
@@ -1242,7 +1242,7 @@ def add_tree_stewardship(request, tree_id):
 
     post = parse_post(request)
     tree = get_object_or_404(Tree, pk=tree_id)
-    
+
     try:
         date = datetime.strptime(post['performed_date'],'%m/%d/%Y')
         activity = TreeStewardship(performed_by=request.user, tree=tree, activity=post['activity'], performed_date=date)
@@ -1254,13 +1254,13 @@ def add_tree_stewardship(request, tree_id):
                 msg = reduce(lambda (a,b): a + b, msgs)
                 response_dict["errors"].append("%s: %s" % (fld, msg))
         else:
-            response_dict["errors"] += e.messages    
-    
+            response_dict["errors"] += e.messages
+
     if len(response_dict["errors"]) == 0:
         response_dict['success'] = True
-        response_dict['update'] = {}        
-        response_dict['update']['activity'] = activity.activity  
-        response_dict['update']['performed_date'] = activity.performed_date.strftime("%m/%d/%Y")   
+        response_dict['update'] = {}
+        response_dict['update']['activity'] = activity.activity
+        response_dict['update']['performed_date'] = activity.performed_date.strftime("%m/%d/%Y")
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1278,7 +1278,7 @@ def add_plot_stewardship(request, plot_id):
 
     post = parse_post(request)
     plot = get_object_or_404(Plot, pk=plot_id)
-    
+
     try:
         date = datetime.strptime(post['performed_date'],'%m/%d/%Y')
         activity = PlotStewardship(performed_by=request.user, plot=plot, activity=post['activity'], performed_date=date)
@@ -1290,12 +1290,12 @@ def add_plot_stewardship(request, plot_id):
                 msg = reduce(lambda (a,b): a + b, msgs)
                 response_dict["errors"].append("%s: %s" % (fld, msg))
         else:
-            response_dict["errors"] += e.messages    
-    
+            response_dict["errors"] += e.messages
+
     if len(response_dict["errors"]) == 0:
         response_dict['success'] = True
-        response_dict['update'] = {}        
-        response_dict['update']['activity'] = activity.activity    
+        response_dict['update'] = {}
+        response_dict['update']['activity'] = activity.activity
         response_dict['update']['performed_date'] = activity.performed_date.strftime("%m/%d/%Y")
 
     return HttpResponse(
@@ -1328,11 +1328,11 @@ def update_plot(request, plot_id):
     """ Update items for a given plot """
     response_dict = {'success': False, 'errors': []}
     valid_fields = ["present","width","length","type","powerline_conflict_potential",
-                    "sidewalk_damage","address_street","address_city","address_zip", 
+                    "sidewalk_damage","address_street","address_city","address_zip",
                     "owner_additional_id" ]
 
     post = {}
-    
+
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -1388,18 +1388,18 @@ def update_plot(request, plot_id):
                 msg = reduce(lambda (a,b): a + b, msgs)
                 response_dict["errors"].append("%s: %s" % (fld, msg))
         else:
-            response_dict["errors"] += e.messages        
-        
+            response_dict["errors"] += e.messages
+
     if len(response_dict["errors"]) == 0:
         response_dict['success'] = True
         response_dict['update'] = {}
-        
+
         plot = get_object_or_404(Plot, pk=plot_id)
         for k,v in post.items():
             response_dict['update'][k] = get_attr_or_display(plot,k)
             if settings.PENDING_ON:
                 if insert_event_mgmt and not mgmt_user:
-                    response_dict['update'][k] = "Pending"  
+                    response_dict['update'][k] = "Pending"
 
     return HttpResponse(
             simplejson.dumps(response_dict),
@@ -1422,9 +1422,9 @@ def plot_location_update(request):
     plot.geocoded_address = post.get('address')
     plot.address_city = post.get('city')
     plot.quick_save()
-    
+
     response_dict['success'] = True
-    
+
     return HttpResponse(
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -1432,7 +1432,7 @@ def plot_location_update(request):
 
 @login_required
 def tree_add(request, tree_id = ''):
-            
+
     if request.method == 'POST':
         form = TreeAddForm(request.POST,request.FILES)
 
@@ -1456,7 +1456,7 @@ def tree_add(request, tree_id = ''):
     else:
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
-        'user' : request.user, 
+        'user' : request.user,
         'form' : form }))
 
 def added_today_list(request, user_id=None, format=None):
@@ -1471,9 +1471,9 @@ def added_today_list(request, user_id=None, format=None):
     plots = []
     for plot in new_plots:
         plots.append(Plot.objects.get(pk=plot.id))
-    if format == 'geojson':        
+    if format == 'geojson':
         plot_json = [{
-           'id':plot.id, 
+           'id':plot.id,
            'coords':[plot.geometry.x, plot.geometry.y]} for plot in plots]
         return render_to_json(plot_json)
     return render_to_response('treemap/added_today.html', RequestContext(request,{
@@ -1516,7 +1516,7 @@ def _build_tree_search_result(request, with_benefits=True):
             trees = trees.filter(plot__neighborhood = ns[0])
             plots = plots.filter(neighborhood = ns[0])
             geog_obj = ns[0]
-            tile_query.append("(neighborhoods = '%d' OR neighborhoods LIKE '%% %d' OR neighborhoods LIKE '%d %%')" % (geog_obj.id, geog_obj.id, geog_obj.id)) 
+            tile_query.append("(neighborhoods = '%d' OR neighborhoods LIKE '%% %d' OR neighborhoods LIKE '%d %%')" % (geog_obj.id, geog_obj.id, geog_obj.id))
 
     missing_current_plot_size = request.GET.get('missing_plot_size','')
     missing_current_plot_type = request.GET.get('missing_plot_type','')
@@ -1551,11 +1551,11 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.filter(type__in=pt_list)
 
     missing_sidewalk = request.GET.get("missing_sidewalk", '')
-    if missing_sidewalk: 
+    if missing_sidewalk:
         trees = trees.filter(plot__sidewalk_damage__isnull=True)
         plots = plots.filter(sidewalk_damage__isnull=True)
         tile_query.append("sidewalk_damage IS NULL")
-    else: 
+    else:
         s_cql = []
         s_list = []
         for k, v in settings.CHOICES["sidewalks"]:
@@ -1566,7 +1566,7 @@ def _build_tree_search_result(request, with_benefits=True):
             tile_query.append("(" + " OR ".join(s_cql) + ")")
             trees = trees.filter(plot__sidewalk_damage__in=s_list)
             plots = plots.filter(sidewalk_damage__in=s_list)
-        
+
 
     missing_powerlines = request.GET.get("missing_powerlines", '')
     if missing_powerlines:
@@ -1611,7 +1611,7 @@ def _build_tree_search_result(request, with_benefits=True):
         max = datetime.utcfromtimestamp(max)
         trees = trees.filter(last_updated__gte=min, last_updated__lte=max)
         plots = plots.filter(last_updated__gte=min, last_updated__lte=max)
-        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
+        tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")
 
     local_cql = []
     local_list = []
@@ -1621,7 +1621,7 @@ def _build_tree_search_result(request, with_benefits=True):
             if local:
                 local_list.append(k)
                 local_cql.append("projects LIKE '%" + k + "%'")
-    if len(local_cql) > 0:        
+    if len(local_cql) > 0:
         trees = trees.filter(treeflags__key__in=local_list)
         plots = plots.filter(tree__treeflags__key__in=local_list)
         tile_query.append("(" + " OR ".join(local_cql) + ")")
@@ -1631,7 +1631,7 @@ def _build_tree_search_result(request, with_benefits=True):
         trees = trees.filter(species__isnull=True)
         plots = plots.filter(tree__species__isnull=True)
         tile_query.append("species_id IS NULL")
-    
+
     missing_current_dbh = request.GET.get('missing_diameter','')
     if missing_current_dbh:
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
@@ -1661,11 +1661,11 @@ def _build_tree_search_result(request, with_benefits=True):
         tile_query.append("height BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
     missing_condition = request.GET.get("missing_condition", '')
-    if missing_condition: 
+    if missing_condition:
         trees = trees.filter(condition__isnull=True)
         plots = plots.filter(tree__condition__isnull=True)
         tile_query.append("condition IS NULL")
-    else:   
+    else:
         c_cql = []
         c_list = []
         for k, v in settings.CHOICES["conditions"]:
@@ -1688,7 +1688,7 @@ def _build_tree_search_result(request, with_benefits=True):
         tile_query.append("photo_count > 0")
 
     steward = request.GET.get("steward", "")
-    if steward:    
+    if steward:
         users = User.objects.filter(username__icontains=steward)
         trees = trees.filter(Q(steward_user__in=users) | Q(steward_name__icontains=steward))
         plots = plots.filter(Q(tree__steward_user__in=users) | Q(tree__steward_name__icontains=steward))
@@ -1709,7 +1709,7 @@ def _build_tree_search_result(request, with_benefits=True):
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
         plots = plots.filter(tree__date_planted__gte=min, tree__date_planted__lte=max)
-        tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
+        tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")
 
     species_criteria = {'species' : 'id',
                         'native' : 'native_status',
@@ -1721,17 +1721,17 @@ def _build_tree_search_result(request, with_benefits=True):
     if len(set(species_criteria.keys()).intersection(set(request.GET))):
         species = Species.objects.filter(tree_count__gt=0)
         max_species_count = species.count()
-        
+
         for k in species_criteria.keys():
             v = request.GET.get(k,'')
             if v:
                 attrib = species_criteria[k]
                 if v == 'true': v = True
                 species = species.filter(**{attrib:v})
-                
+
         cur_species_count = species.count()
-        #TODO: This returns wrong behavior if all species in the database are 
-        #      legitimately returned by the criteria above 
+        #TODO: This returns wrong behavior if all species in the database are
+        #      legitimately returned by the criteria above
         if max_species_count != cur_species_count:
             trees = trees.filter(species__in=species)
             plots = plots.filter(tree__species__in=species)
@@ -1746,7 +1746,7 @@ def _build_tree_search_result(request, with_benefits=True):
     else:
         stewardship_reverse = ""
 
-    stewardship_range = request.GET.get("stewardship_range", "") 
+    stewardship_range = request.GET.get("stewardship_range", "")
     if stewardship_range:
         st_min, st_max = map(float,stewardship_range.split("-"))
         st_min = datetime.utcfromtimestamp(st_min)
@@ -1760,10 +1760,10 @@ def _build_tree_search_result(request, with_benefits=True):
             tile_query.append("tree_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
             steward_ids = [s.tree_id for s in TreeStewardship.objects.filter(tree__id__in=steward_ids).filter(activity=a)]
             if stewardship_range:
-                tile_query.append("tree_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND tree_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z") 
-            
+                tile_query.append("tree_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND tree_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z")
+
         if stewardship_reverse:
-            trees = trees.filter(id__in=steward_ids)  
+            trees = trees.filter(id__in=steward_ids)
         else:
             trees = trees.exclude(id__in=steward_ids)
         if stewardship_range:
@@ -1771,14 +1771,14 @@ def _build_tree_search_result(request, with_benefits=True):
             trees = trees.exclude(treestewardship__performed_date__gte=st_max)
 
         plots = Plot.objects.filter(present=True).filter(tree__in=trees)
-        
+
     plot_stewardship = request.GET.get("plot_stewardship", "")
     if plot_stewardship:
         actions = plot_stewardship.split(',')
         steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
         for a in actions:
             tile_query.append("plot_stewardship_" + a + " IS " + stewardship_reverse + " NULL")
-            steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=a)] 
+            steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=a)]
             if stewardship_range:
                 tile_query.append("plot_stewardship_" + a + " AFTER " + st_min.isoformat() + "Z AND plot_stewardship_" + a + " BEFORE " + st_max.isoformat() + "Z")
         if stewardship_reverse:
@@ -1787,21 +1787,21 @@ def _build_tree_search_result(request, with_benefits=True):
             plots = plots.exclude(id__in=steward_ids)
         if stewardship_range:
             plots = plots.exclude(plotstewardship__performed_date__lte=st_min)
-            plots = plots.exclude(plotstewardship__performed_date__gte=st_max)   
+            plots = plots.exclude(plotstewardship__performed_date__gte=st_max)
 
         trees = Tree.objects.filter(present=True).extra(select={'geometry': "select treemap_plot.geometry from treemap_plot where treemap_tree.plot_id = treemap_plot.id"}).filter(plot__in=plots)
-        
+
     agg_object = None
-    
-    if with_benefits:        
+
+    if with_benefits:
         q = request.META['QUERY_STRING'] or ''
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             agg_object = cached_search_agg[0]
         else:
             fields = [x.name for x in ResourceSummaryModel._meta.fields if not x.name in ['id','aggregatesummarymodel_ptr','key','resourcesummarymodel_ptr','last_updated']]
-            with_out_resources = trees.filter(treeresource=None).count() 
-            with_resources = trees.count() - with_out_resources        
+            with_out_resources = trees.filter(treeresource=None).count()
+            with_resources = trees.count() - with_out_resources
 
             agg_object = AggregateSearchResult(key=q)
             agg_object.total_trees = trees.count()
@@ -1818,7 +1818,7 @@ def _build_tree_search_result(request, with_benefits=True):
             except:
                 # another thread has already likely saved the same object...
                 pass
-    
+
     return trees, plots, geog_obj, agg_object, ' AND '.join(tile_query)
 
 
@@ -1840,28 +1840,28 @@ def zip_files(file_paths,archive_name):
         buffer.close()
         return zip_stream
 
-def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=True):   
-    """ 
+def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=True):
+    """
     given  an output type such as CSV, "ESRI ShapeFile" or KML
 
-    plus a list of named_sql in the form of 
+    plus a list of named_sql in the form of
        named_sql =  [{
-            "name":"trees", 
-            "sql":"SELECT * from treemap_tree...", 
+            "name":"trees",
+            "sql":"SELECT * from treemap_tree...",
             "srs":'EPSG:4326' #optional, srs default=EPSG:4236
         },
          {
-          "name":"plots", 
-          "sql":"SELECT * from treemap_plot...", 
-          "srs":'EPSG:4326' 
-         }] 
-        
+          "name":"plots",
+          "sql":"SELECT * from treemap_plot...",
+          "srs":'EPSG:4326'
+         }]
+
     renders a response with the appropriate zip file attachment.
 
     requires gdal/ogr2ogr
-    """ 
-    
-    dbsettings = settings.DATABASES['default'] 
+    """
+
+    dbsettings = settings.DATABASES['default']
     host = dbsettings['HOST']
     port = dbsettings['PORT']
     if host == '':
@@ -1874,8 +1874,8 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
     for s in named_sql:
         sql_name = s["name"]
         sql = s["sql"]
-        srs = s["srs"] if "srs" in s else 'EPSG:4326'        
-        
+        srs = s["srs"] if "srs" in s else 'EPSG:4326'
+
         tmp_dir = os.path.join(tempfile.mkdtemp(), sql_name)
         tmp_dirs.append(tmp_dir)
 
@@ -1884,12 +1884,12 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
             tmp_name = os.path.join(tmp_dir, sql_name + "." + extension)
         else:
             tmp_name = tmp_dir
-        
+
         #command is about to get the db password, careful.
-        command = ['ogr2ogr', '-sql', sql, '-a_srs', srs, '-f', output_type, tmp_name, 
-            'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port, 
+        command = ['ogr2ogr', '-sql', sql, '-a_srs', srs, '-f', output_type, tmp_name,
+            'PG:dbname=%s host=%s port=%s password=%s user=%s' % (dbsettings['NAME'], host, port,
             dbsettings['PASSWORD'], dbsettings['USER'])]
-        
+
         if output_type == 'CSV' and geo:
             command.append('-lco')
             command.append('GEOMETRY=AS_WKT')
@@ -1906,7 +1906,7 @@ def ogr_conversion(output_type, named_sql, extension=None, name="trees", geo=Tru
         except:
             raise Exception("ogr2ogr2 command failed (are the gdal binaries installed?)")
 
-        if done != 0: 
+        if done != 0:
             return render_to_json({'status':'error'})
 
     zipfile = zip_files(tmp_dirs, name)
@@ -1935,14 +1935,14 @@ def geo_search(request):
         h.status_code = 500
         return h
 
-    #TODO - Generate count?                                                                                                                                  
+    #TODO - Generate count?
     trees = Tree.objects.filter(plot__geometry__within=poly, species__isnull=False, dbh__isnull=False).all()
-    
+
     pruned = []
     for tree in trees:
         prune = { "id": tree.pk,
                   "dbh": tree.dbh }
-        
+
         if tree.species and tree.dbh:
             prune["itree_code"] = tree.species.itree_code,
             prune["species"] = tree.species.scientific_name
@@ -1961,7 +1961,7 @@ def geo_search(request):
 def advanced_search(request, format='json'):
     """
         formats: json (default), geojson, shp, kml, csv
-    """  
+    """
     response = {}
 
     trees, plots, geog_object, agg_object, tile_query = _build_tree_search_result(request, True)
@@ -1969,11 +1969,11 @@ def advanced_search(request, format='json'):
     plot_count = plots.count()
     if tree_count == 0:
         tree_query = "SELECT * FROM treemap_tree LIMIT 0";
-    else: 
+    else:
         tree_query = str(trees.query)
     if plot_count == 0:
         plot_query = "SELECT * FROM treemap_plot LIMIT 0";
-    else: 
+    else:
         plot_query = str(plots.query)
 
     species_query = "SELECT * FROM treemap_species order by id asc"
@@ -1988,10 +1988,10 @@ def advanced_search(request, format='json'):
         return ogr_conversion('KML', [trees, plots], 'kml')
     elif format == "csv":
         return ogr_conversion('CSV', [trees, plots, species])
-        
+
     full_count = Tree.objects.filter(present=True).count()
     full_plot_count = Plot.objects.filter(present=True).count()
-        
+
     summaries, benefits = {}, {}
     if agg_object:
         benefits = agg_object.get_benefits()
@@ -1999,7 +1999,7 @@ def advanced_search(request, format='json'):
             if field.startswith('total') or field.startswith('annual'):
                 summaries[field] = getattr(agg_object, field)
 
-    if format == "geojson":     #still used anywhere? 
+    if format == "geojson":     #still used anywhere?
         return render_to_geojson(trees, geom_field='geometry', additional_data={'summaries': summaries, 'benefits': benefits})
 
     geography = None
@@ -2007,12 +2007,12 @@ def advanced_search(request, format='json'):
         if hasattr(geog_object, 'geometry'):
             geography = simplejson.loads(geog_object.geometry.simplify(.0001).geojson)
             geography['name'] = str(geog_object)
-        
+
     response.update({'tile_query' : tile_query, 'summaries' : summaries, 'benefits': benefits, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
     return render_to_json(response)
 
-    
-def summaries(request, model, id=''):    
+
+def summaries(request, model, id=''):
     location = request.GET.get('location','')
     coords = map(float,location.split(','))
     pt = Point(coords)
@@ -2028,7 +2028,7 @@ def check_username(request):
             return render_to_json({'status':'username "%s" not available' % name})
     return render_to_json({'status':''})
 
-#@cache_page(60*5)    
+#@cache_page(60*5)
 def geographies(request, model, id=''):
     """
     return list of nhbds and resource attrs, possibly in json format
@@ -2037,19 +2037,19 @@ def geographies(request, model, id=''):
     location = request.GET.get('location','')
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
-    
+
     ns = model.objects.all().order_by('state','county','name')
     if location:
         coords = map(float,location.split(','))
         pt = Point(coords)
         ns = ns.filter(geometry__contains=pt)
-    
+
     if id:
         ns = ns.filter(id=id)
     if name:
         ns = ns.filter(name__iexact=name)[:1]
         #print ns
-    if list:        
+    if list:
         ns = ns.exclude(aggregates__total_plots=0)
     if format.lower() == 'json':
         #print ns
@@ -2061,7 +2061,7 @@ def geographies(request, model, id=''):
     return render_to_response('treemap/geography.html',RequestContext(request,{'objects':ns}))
 #make some atom feeds
 
-@cache_page(60*5)    
+@cache_page(60*5)
 def zips(request):
     """
     return list of nhbds and resource attrs, possibly in json format
@@ -2069,20 +2069,20 @@ def zips(request):
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
     #print list
-    
+
     ns = ZipCode.objects.all()
-    
+
     if name:
         ns = ns.filter(zip__iexact=name)
     return render_to_geojson(ns, simplify=.0005)
-    
+
 def contact(request):
-    if request.method == 'POST': 
-        form = ContactForm(request.POST) 
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
         if form.is_valid():
             subject = form.cleaned_data['subject']
             sender = form.cleaned_data['sender']
-            message = 'The following feedback was submitted from %s  \n\n' % sender 
+            message = 'The following feedback was submitted from %s  \n\n' % sender
             message += form.cleaned_data['message']
             cc_myself = form.cleaned_data['cc_myself']
 
@@ -2098,7 +2098,7 @@ def contact(request):
         form = ContactForm() # An unbound form
 
     return render_to_response('treemap/contact.html', {
-        'form': form, 
+        'form': form,
     }, RequestContext(request))
 
 def is_number(s):
@@ -2123,19 +2123,39 @@ def clean_key_names(jsonstr):
     diff_clean = {}
     for key in diff:
         diff_clean[key.replace('_', ' ').title()] = diff[key]
-    return diff_clean    
+    return diff_clean
 
 from django.core import serializers
-@login_required 
+@login_required
 def verify_edits(request, audit_type='tree'):
-        
+
     changes = []
-    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)[0:50]
-    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)[0:50]
-    plots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)[0:50]
-    newplots = Plot.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)[0:50]
+    trees = Tree.history.filter(present=True)\
+                        .filter(_audit_change_type__exact='U')\
+                        .exclude(_audit_diff__exact='')\
+                        .filter(_audit_verified__exact=0)[0:50]
+
+    newtrees = Tree.history.filter(present=True)\
+                           .filter(_audit_change_type__exact='I')\
+                           .filter(_audit_verified__exact=0)[0:50]
+
+    plots = Plot.history.filter(present=True)\
+                        .filter(_audit_change_type__exact='U')\
+                        .exclude(_audit_diff__exact='')\
+                        .filter(_audit_verified__exact=0)[0:50]
+
+    newplots = Plot.history.filter(present=True)\
+                           .filter(_audit_change_type__exact='I')\
+                           .filter(_audit_verified__exact=0)[0:50]
+
+    if settings.SHOW_ADMIN_EDITS_IN_RECENT_EDITS:
+        trees = trees.filter(_audit_user_rep__lt=1000)
+        newtrees = newtrees.filter(_audit_user_rep__lt=1000)
+        plots = plots.filter(_audit_user_rep__lt=1000)
+        newplots = newplots.filter(_audit_user_rep__lt=1000)
+
     treeactions = []
-    n = None    
+    n = None
 
     if 'username' in request.GET:
         u = User.objects.filter(username__icontains=request.GET['username'])
@@ -2156,7 +2176,7 @@ def verify_edits(request, audit_type='tree'):
         plots = plots.filter(geometry__within=n.geometry)
         newtrees = newtrees.filter(id__in=ids)
         newplots = newplots.filter(geometry__within=n.geometry)
-    
+
     for plot in plots:
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
@@ -2221,13 +2241,13 @@ def verify_edits(request, audit_type='tree'):
             'change_id': tree._audit_id,
             'type': 'tree'
         })
-        
+
     changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes, "geometry":n}))
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users
-def watch_list(request):    
+def watch_list(request):
     watch_failures = TreeWatch.objects.filter(valid=False)
     n = None
     if 'username' in request.GET:
@@ -2235,16 +2255,16 @@ def watch_list(request):
         watch_failures = watch_failures.filter(tree__last_updated_by__in=u)
     if 'address' in request.GET:
         watch_failures = watch_failures.filter(tree__address_street__icontains=request.GET['address'])
-    if 'test' in request.GET: 
+    if 'test' in request.GET:
         for watch in watch_choices.iteritems():
-            if watch[0] == request.GET['test']: 
+            if watch[0] == request.GET['test']:
                 key = watch[1]
                 watch_failures = watch_failures.filter(key=key)
                 break;
     if 'nhood' in request.GET:
         n = Neighborhood.objects.filter(id=request.GET['nhood'])
         watch_failures = watch_failures.filter(tree__plot__neighborhood=n)
-    
+
     return render_to_response('treemap/watch_list.html', RequestContext(request,{'test_names':watch_choices.iteritems(), "watches": watch_failures, "geography": n}))
 
 @login_required
@@ -2256,7 +2276,7 @@ def validate_watch(request):
     watch = TreeWatch.objects.get(pk=watch_id)
     watch.valid = True
     watch.save()
-    
+
     response_dict = {}
     response_dict['success'] = True
     return HttpResponse(
@@ -2265,19 +2285,19 @@ def validate_watch(request):
     )
 @login_required
 @permission_required('auth.change_user')
-def user_rep_changes(request):  
+def user_rep_changes(request):
     aggs = []
     distinct_dates = UserReputationAction.objects.dates('date_created', 'day', order='DESC')
     for date in distinct_dates.iterator():
         start_time = date.replace(hour = 0, minute = 0, second = 0)
         end_time = date.replace(hour = 23, minute = 59, second = 59)
-        
+
         date_users = UserReputationAction.objects.filter(date_created__range=(start_time, end_time)).values('user').distinct('user')
 
         if 'username' in request.GET:
             u = User.objects.filter(username__icontains=request.GET['username'])
             date_users = date_users.filter(user__in=u)
-        if 'group' in request.GET: 
+        if 'group' in request.GET:
             g = Group.objects.filter(name__icontains=request.GET['group'])
             date_users = date_users.filter(user__groups__in=g)
 
@@ -2285,17 +2305,17 @@ def user_rep_changes(request):
             user = User.objects.get(pk=user_id['user'])
             user_date_newtrees = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='I', _audit_timestamp__range=(start_time, end_time))
             user_date_treeupdate = Tree.history.filter(present=True, last_updated_by=user, _audit_change_type__exact='U', _audit_timestamp__range=(start_time, end_time)).exclude(_audit_diff__exact='')
-            
+
             aggs.append({
-                'user':user.username, 
-                'new':user_date_newtrees.count(), 
-                'update': user_date_treeupdate.count(), 
+                'user':user.username,
+                'new':user_date_newtrees.count(),
+                'update': user_date_treeupdate.count(),
                 'date':date
             })
     return render_to_response('treemap/rep_changes.html',RequestContext(request,{'rep':aggs}))
-    
 
-@login_required 
+
+@login_required
 def verify_rep_change(request, change_type, change_id, rep_dir):
     #parse change type and retrieve change object
     if change_type == 'tree':
@@ -2323,7 +2343,7 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     change._audit_verified = 1
     change.save()
     return render_to_json({'change_type': change_type, 'change_id': change_id})
-    
+
 @login_required
 @permission_required('threadedcomments.change_threadedcomment')
 def view_flagged(request):
@@ -2338,14 +2358,14 @@ def view_flagged(request):
         n = Neighborhood.objects.get(id=request.GET['nhood'])
         comment_list = []
         loop_list = list(comments)
-        for comment in loop_list: 
+        for comment in loop_list:
             plot = Plot.objects.get(pk=comment.object_id)
             if n in plot.neighborhood.all():
                 comment_list.append(comment)
         return render_to_response('comments/edit.html',RequestContext(request,{'comments':comment_list, "geometry":n}))
-        
+
     return render_to_response('comments/edit_flagged.html',RequestContext(request,{'comments': comments, "geometry":n}))
-    
+
 @login_required
 @permission_required('threadedcomments.change_threadedcomment')
 def view_comments(request):
@@ -2360,15 +2380,15 @@ def view_comments(request):
         n = Neighborhood.objects.get(id=request.GET['nhood'])
         comment_list = []
         loop_list = list(comments)
-        for comment in loop_list: 
+        for comment in loop_list:
             plot = Plot.objects.get(pk=comment.object_id)
             if n in plot.neighborhood.all():
                 comment_list.append(comment)
         return render_to_response('comments/edit.html',RequestContext(request,{'comments':comment_list, "geometry":n}))
-        
+
     return render_to_response('comments/edit.html',RequestContext(request,{'comments':comments, "geometry":n}))
-  
-@login_required  
+
+@login_required
 @permission_required('threadedcomments.change_threadedcomment')
 def export_comments(request, format):
     users = UserProfile.objects.filter(active=True)
@@ -2382,7 +2402,7 @@ def export_comments(request, format):
         n = Neighborhood.objects.get(id=request.GET['nhood'])
         comment_list = []
         loop_list = list(ThreadedComments.objects.all())
-        for comment in loop_list: 
+        for comment in loop_list:
             plot = Plot.objects.get(pk=comment.object_id)
             if n in plot.neighborhood.all():
                 comment_list.append(comment)
@@ -2391,11 +2411,11 @@ def export_comments(request, format):
     sql = "select a.username, b.date_submitted as date, b.comment as comment, b.object_id as plot_id from auth_user as a, threadedcomments_threadedcomment as b where b.user_id = a.id"
     if len(where) > 0:
         sql = sql + " and " + ' and '.join(where)
-    
-    return ogr_conversion('CSV', [{'name':'comments', 'sql':sql}], name="comments", geo=False)    
+
+    return ogr_conversion('CSV', [{'name':'comments', 'sql':sql}], name="comments", geo=False)
 
 
-   
+
 def hide_comment(request):
     response_dict = {}
     post = simplejson.loads(request.raw_post_data)
@@ -2408,12 +2428,12 @@ def hide_comment(request):
     comment.is_public = False
     comment.save()
     response_dict['success'] = True
-    
+
     return HttpResponse(
         simplejson.dumps(response_dict, sort_keys=True, indent=4),
         content_type = 'text/plain'
     )
-    
+
 @login_required
 def add_flag(request, comment_id):
     user = request.user
@@ -2428,7 +2448,7 @@ def add_flag(request, comment_id):
         comment_flag.save()
 
     return HttpResponseRedirect(request.REQUEST["next"])
-    
+
 
 def remove_flag(request):
     response_dict = {}
