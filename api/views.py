@@ -791,7 +791,8 @@ def plot_to_dict(plot,longform=False,user=None):
         images = current_tree.treephoto_set.all()
 
         if len(images) > 0:
-            tree_dict["images"] = [{ "id": image.pk, "title": image.title } for image in images]
+            tree_dict["images"] = [{"id": image.pk, "title": image.title, "url": image.photo.url}
+                                   for image in images]
 
         if longform:
             tree_dict['tree_owner'] = current_tree.tree_owner

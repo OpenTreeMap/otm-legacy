@@ -2133,26 +2133,31 @@ def verify_edits(request, audit_type='tree'):
     trees = Tree.history.filter(present=True)\
                         .filter(_audit_change_type__exact='U')\
                         .exclude(_audit_diff__exact='')\
-                        .filter(_audit_verified__exact=0)[0:50]
+                        .filter(_audit_verified__exact=0)
 
     newtrees = Tree.history.filter(present=True)\
                            .filter(_audit_change_type__exact='I')\
-                           .filter(_audit_verified__exact=0)[0:50]
+                           .filter(_audit_verified__exact=0)
 
     plots = Plot.history.filter(present=True)\
                         .filter(_audit_change_type__exact='U')\
                         .exclude(_audit_diff__exact='')\
-                        .filter(_audit_verified__exact=0)[0:50]
+                        .filter(_audit_verified__exact=0)
 
     newplots = Plot.history.filter(present=True)\
                            .filter(_audit_change_type__exact='I')\
-                           .filter(_audit_verified__exact=0)[0:50]
+                           .filter(_audit_verified__exact=0)
 
-    if settings.SHOW_ADMIN_EDITS_IN_RECENT_EDITS:
+    if not settings.SHOW_ADMIN_EDITS_IN_RECENT_EDITS:
         trees = trees.filter(_audit_user_rep__lt=1000)
         newtrees = newtrees.filter(_audit_user_rep__lt=1000)
         plots = plots.filter(_audit_user_rep__lt=1000)
         newplots = newplots.filter(_audit_user_rep__lt=1000)
+
+    trees = trees[0:50]
+    newtrees = newtrees[0:50]
+    plots = plots[0:50]
+    newplots = newplots[0:50]
 
     treeactions = []
     n = None
