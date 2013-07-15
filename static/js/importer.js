@@ -914,16 +914,10 @@ I.init.status = function() {
      */
     I.rt = {
         tree_panels: {
-            success: {
-                request_key: 'success',
-                name: 'success',
-                display_name: 'Successfully Added',
-                page: 0
-            },
-            pending: {
-                request_key: 'waiting',
-                name: 'pending',
-                display_name: 'Pending',
+            verified: {
+                request_key: 'verified',
+                name: 'verified',
+                display_name: 'Ready to Add',
                 page: 0
             },
             errors: {
@@ -938,10 +932,16 @@ I.init.status = function() {
                 display_name: 'Tree Watch',
                 page: 0
             },
-            verified: {
-                request_key: 'verified',
-                name: 'verified',
-                display_name: 'Verified',
+            success: {
+                request_key: 'success',
+                name: 'success',
+                display_name: 'Successfully Added',
+                page: 0
+            },
+            pending: {
+                request_key: 'waiting',
+                name: 'pending',
+                display_name: 'Pending',
                 page: 0
             }
         },
