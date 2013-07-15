@@ -430,18 +430,10 @@ class GenericImportRow(models.Model):
             value = self.datadict.get(field, None)
             if value:
                 all_choices = settings.CHOICES[choice_key]
-                choices = { value for (id,value) in all_choices }
+                choices = { value: id for (id, value) in all_choices }
 
                 if value in choices:
-                    # Some plot choice fields aren't automatically
-                    # converting to choice values so we do it forcibly
-                    # here
-                    if field in self.model_fields.PLOT_CHOICES:
-                        self.cleaned[field] = [id for (id,v)
-                                                    in all_choices
-                                                    if v == value][0]
-                    else:
-                        self.cleaned[field] = value
+                    self.cleaned[field] = choices[value]
                 else:
                     has_errors = True
                     self.append_error(errors.INVALID_CHOICE,
