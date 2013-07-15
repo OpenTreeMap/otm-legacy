@@ -959,9 +959,9 @@ class TreeIntegrationTests(IntegrationTests):
         ie = TreeImportEvent.objects.get(pk=ieid)
         tree = ie.treeimportrow_set.all()[0].plot.current_tree()
 
-        self.assertEqual(tree.condition, 'Dead')
-        self.assertEqual(tree.canopy_condition, 'Full - No Gaps')
-        self.assertEqual(tree.pests, 'Phytophthora alni')
+        self.assertEqual(tree.condition, '1')
+        self.assertEqual(tree.canopy_condition, '1')
+        self.assertEqual(tree.pests, '9')
 
         #TODO: Projects and Actions work differently...
         #      need to handle those cases
