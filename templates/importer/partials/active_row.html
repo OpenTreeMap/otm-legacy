@@ -17,6 +17,10 @@
   {% if ie.status == 3 or ie.status == 5 or ie.status == 6 %}
     <td>{{ ie.rows.count }}</td>
     <td>
+      <a href="{{ SITE_ROOT }}importer/export/{{ link }}/{{ ie.pk }}">
+        Export
+      </a>
+      |
       <a href="{{ SITE_ROOT }}importer/status/{{ link }}/{{ ie.pk}}">
         View
       </a>

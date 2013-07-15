@@ -1,5 +1,6 @@
 import csv
 import json
+from StringIO import StringIO
 from datetime import datetime
 
 from django.db import transaction
@@ -420,6 +421,123 @@ def process_csv(request, fileconstructor, **kwargs):
         ie.save()
 
     return ie.pk
+
+@login_required
+def export_all_species(request):
+    io = StringIO()
+
+    # Maps [attr on species model] -> field name
+    fieldmap = SpeciesImportRow.SPECIES_MAP
+    fields = fieldmap.values()
+
+    writer = csv.DictWriter(io, fields)
+    writer.writeheader()
+
+    for s in Species.objects.all():
+        obj = {v: getattr(s, k) for (k, v) in fieldmap.iteritems()}
+        writer.writerow(obj)
+
+    response = HttpResponse(io.getvalue(), mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=species.csv'
+
+    return response
+
+@login_required
+def export_single_species_import(request, import_event_id):
+    fieldmap = SpeciesImportRow.SPECIES_MAP
+    fields = fieldmap.values()
+
+    ie = SpeciesImportEvent.objects.get(pk=import_event_id)
+
+    io = StringIO()
+
+    writer = csv.DictWriter(io, fields)
+    writer.writeheader()
+
+    for r in ie.rows():
+        if r.species:
+            obj = {v: getattr(r.species, k) for (k, v) in fieldmap.iteritems()}
+        else:
+            obj = lowerkeys(json.loads(r.data))
+
+        writer.writerow(obj)
+
+    response = HttpResponse(io.getvalue(), mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=species.csv'
+
+    return response
+
+@login_required
+def export_single_tree_import(request, import_event_id):
+    plotmap = TreeImportRow.PLOT_MAP
+    treemap = TreeImportRow.TREE_MAP
+
+    all_fields = list(fields.trees.ALL)
+
+    ie = TreeImportEvent.objects.get(pk=import_event_id)
+
+    io = StringIO()
+
+    writer = csv.DictWriter(io, all_fields)
+    writer.writeheader()
+
+    for r in ie.rows():
+        if r.plot:
+            obj = {}
+            obj[fields.trees.POINT_X] = r.plot.geometry.x
+            obj[fields.trees.POINT_Y] = r.plot.geometry.y
+
+            obj[fields.trees.ADDRESS] = r.plot.address_street
+            obj[fields.trees.PLOT_WIDTH] = r.plot.width
+            obj[fields.trees.PLOT_LENGTH] = r.plot.length
+            obj[fields.trees.READ_ONLY] = r.plot.readonly
+            obj[fields.trees.OPENTREEMAP_ID_NUMBER] = r.plot.pk
+            obj[fields.trees.ORIG_ID_NUMBER] = r.plot.owner_orig_id
+            obj[fields.trees.DATA_SOURCE] = r.plot.owner_additional_id
+            obj[fields.trees.NOTES] = r.plot.owner_additional_properties
+            obj[fields.trees.SIDEWALK] = r.plot.sidewalk_damage
+            obj[fields.trees.POWERLINE_CONFLICT] = r.plot.powerline_conflict_potential
+            obj[fields.trees.PLOT_TYPE] = r.plot.type
+
+            tree = r.plot.current_tree()
+
+            obj[fields.trees.TREE_PRESENT] = tree is not None
+
+            if tree:
+                species = tree.species
+
+                if species:
+                    obj[fields.trees.GENUS] = species.genus
+                    obj[fields.trees.SPECIES] = species.species
+                    obj[fields.trees.CULTIVAR] = species.cultivar_name
+                    obj[fields.trees.OTHER_PART_OF_NAME] = species.other_part_of_name
+
+
+                obj[fields.trees.DIAMETER] = tree.dbh
+                obj[fields.trees.TREE_HEIGHT] = tree.height
+                obj[fields.trees.CANOPY_HEIGHT] = tree.canopy_height
+                obj[fields.trees.DATE_PLANTED] = tree.date_planted
+                obj[fields.trees.OWNER] = tree.tree_owner
+                obj[fields.trees.SPONSOR] = tree.sponsor
+                obj[fields.trees.STEWARD] = tree.steward_name
+                obj[fields.trees.URL] = tree.url
+
+                obj[fields.trees.TREE_CONDITION] = tree.condition
+                obj[fields.trees.CANOPY_CONDITION] = tree.canopy_condition
+                obj[fields.trees.PESTS] = tree.pests
+                obj[fields.trees.LOCAL_PROJECTS] = tree.projects
+
+        else:
+            obj = lowerkeys(json.loads(r.data))
+
+        writer.writerow(obj)
+
+    response = HttpResponse(io.getvalue(), mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=trees.csv'
+
+    return response
+
+
 
 def process_commit(request, import_id):
     ie = TreeImportEvent.objects.get(pk=import_id)
