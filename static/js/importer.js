@@ -575,7 +575,8 @@ var I = {};
 
     function getContentForMoreSpeciesOptions(flds, row) {
         var source = _.map(TM.speciesData, function(d) {
-            return d.cname + " [" + d.sname + "]";
+            var sciname = d.genus + ' ' + d.species + ' ' + d.cultivar + ' ' + d.other_part;
+            return d.cname + " [" + sciname + "]";
         });
 
         var $content = $(loadTemplate("species-error-more-content")({
