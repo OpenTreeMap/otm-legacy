@@ -801,6 +801,36 @@ class TreeImportRow(GenericImportRow):
     WATCH=2
     VERIFIED=4
 
+    PLOT_MAP = {
+        'geometry': fields.trees.POINT,
+        'width': fields.trees.PLOT_WIDTH,
+        'length': fields.trees.PLOT_LENGTH,
+        'type': fields.trees.PLOT_TYPE,
+        'readonly': fields.trees.READ_ONLY,
+        'sidewalk_damage': fields.trees.SIDEWALK,
+        'powerline_conflict_potential': fields.trees.POWERLINE_CONFLICT,
+        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+        'owner_additional_id': fields.trees.DATA_SOURCE,
+        'owner_additional_properties': fields.trees.NOTES
+    }
+
+    TREE_MAP = {
+        'tree_owner': fields.trees.OWNER,
+        'steward_name': fields.trees.STEWARD,
+        'dbh': fields.trees.DIAMETER,
+        'height': fields.trees.TREE_HEIGHT,
+        'canopy_height': fields.trees.CANOPY_HEIGHT,
+        'species': fields.trees.SPECIES_OBJECT,
+        'sponsor': fields.trees.SPONSOR,
+        'date_planted': fields.trees.DATE_PLANTED,
+        'readonly': fields.trees.READ_ONLY,
+        'projects': fields.trees.LOCAL_PROJECTS,
+        'condition': fields.trees.TREE_CONDITION,
+        'canopy_condition': fields.trees.CANOPY_CONDITION,
+        'url': fields.trees.URL,
+        'pests': fields.trees.PESTS
+    }
+
     # plot that was created from this row
     plot = models.ForeignKey(Plot, null=True, blank=True)
 
@@ -875,37 +905,7 @@ class TreeImportRow(GenericImportRow):
 
         data_owner = self.import_event.owner
 
-        plot_map = {
-            'geometry': fields.trees.POINT,
-            'width': fields.trees.PLOT_WIDTH,
-            'length': fields.trees.PLOT_LENGTH,
-            'type': fields.trees.PLOT_TYPE,
-            'readonly': fields.trees.READ_ONLY,
-            'sidewalk_damage': fields.trees.SIDEWALK,
-            'powerline_conflict_potential': fields.trees.POWERLINE_CONFLICT,
-            'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
-            'owner_additional_id': fields.trees.DATA_SOURCE,
-            'owner_additional_properties': fields.trees.NOTES
-        }
-
-        tree_map = {
-            'tree_owner': fields.trees.OWNER,
-            'steward_name': fields.trees.STEWARD,
-            'dbh': fields.trees.DIAMETER,
-            'height': fields.trees.TREE_HEIGHT,
-            'canopy_height': fields.trees.CANOPY_HEIGHT,
-            'species': fields.trees.SPECIES_OBJECT,
-            'sponsor': fields.trees.SPONSOR,
-            'date_planted': fields.trees.DATE_PLANTED,
-            'readonly': fields.trees.READ_ONLY,
-            'projects': fields.trees.LOCAL_PROJECTS,
-            'condition': fields.trees.TREE_CONDITION,
-            'canopy_condition': fields.trees.CANOPY_CONDITION,
-            'url': fields.trees.URL,
-            'pests': fields.trees.PESTS
-        }
-
-        for modelkey, importdatakey in plot_map.iteritems():
+        for modelkey, importdatakey in TreeImportRow.PLOT_MAP.iteritems():
             importdata = data.get(importdatakey, None)
 
             if importdata:
@@ -917,7 +917,7 @@ class TreeImportRow(GenericImportRow):
             plot.import_event = base_treemap_import_event
             plot.save()
 
-        for modelkey, importdatakey in tree_map.iteritems():
+        for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
             importdata = data.get(importdatakey, None)
 
             if importdata:

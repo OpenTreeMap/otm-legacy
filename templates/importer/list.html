@@ -83,6 +83,11 @@
     <h2>Finished Species Imports</h2>
     {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
   </div>
+  <h3>
+    <a href="{{ SITE_ROOT }}importer/export/species/all">
+      Export All Species
+    </a>
+  </h3>
 </div>
 
 {% endblock %}
