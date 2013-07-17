@@ -472,7 +472,39 @@ def export_single_tree_import(request, import_event_id):
     plotmap = TreeImportRow.PLOT_MAP
     treemap = TreeImportRow.TREE_MAP
 
-    all_fields = list(fields.trees.ALL)
+    all_fields = (
+        fields.trees.POINT_X,
+        fields.trees.POINT_Y,
+        fields.trees.ADDRESS,
+        fields.trees.PLOT_WIDTH,
+        fields.trees.PLOT_LENGTH,
+        fields.trees.PLOT_TYPE,
+        fields.trees.POWERLINE_CONFLICT,
+        fields.trees.SIDEWALK,
+        fields.trees.READ_ONLY,
+        fields.trees.OPENTREEMAP_ID_NUMBER,
+        fields.trees.TREE_PRESENT,
+        fields.trees.GENUS,
+        fields.trees.SPECIES,
+        fields.trees.CULTIVAR,
+        fields.trees.OTHER_PART_OF_NAME,
+        fields.trees.DIAMETER,
+        fields.trees.TREE_HEIGHT,
+        fields.trees.ORIG_ID_NUMBER,
+        fields.trees.CANOPY_HEIGHT,
+        fields.trees.DATE_PLANTED,
+        fields.trees.TREE_CONDITION,
+        fields.trees.CANOPY_CONDITION,
+        fields.trees.ACTIONS,
+        fields.trees.PESTS,
+        fields.trees.URL,
+        fields.trees.NOTES,
+        fields.trees.OWNER,
+        fields.trees.SPONSOR,
+        fields.trees.STEWARD,
+        fields.trees.LOCAL_PROJECTS,
+        fields.trees.DATA_SOURCE)
+
 
     ie = TreeImportEvent.objects.get(pk=import_event_id)
 
