@@ -131,14 +131,14 @@ class Signing(TestCase):
     def test_signed_header(self):
         key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
         key.save()
-        
+
         ret = self.client.get("%s/version" % API_PFX, **{ "HTTP_X_API_KEY": key.key })
         self.assertEqual(ret.status_code, 200)
 
     def test_url_param(self):
         key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
         key.save()
-        
+
         ret = self.client.get("%s/version?apikey=%s" % (API_PFX,key.key))
         self.assertEqual(ret.status_code, 200)
 
@@ -174,7 +174,7 @@ class Authentication(TestCase):
     def test_401(self):
         ret = self.client.get("%s/login" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 401)
-        
+
 
     def test_ok(self):
         auth = base64.b64encode("jim:password")
@@ -227,12 +227,12 @@ class Authentication(TestCase):
         withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/login" % API_PFX, **withauth)
-        
+
         self.assertEqual(ret.status_code, 200)
         json = loads(ret.content)
 
-        self.assertEqual(json['username'], user.username)        
-        self.assertEqual(json['user_type'], typ)        
+        self.assertEqual(json['username'], user.username)
+        self.assertEqual(json['user_type'], typ)
 
     def create_user(self, username):
         ben = User.objects.create_user(username, "%s@test.org" % username, username)
@@ -241,7 +241,7 @@ class Authentication(TestCase):
         ben_profile = UserProfile(user=ben)
         ben_profile.save()
         ben.reputation = Reputation(user=ben)
-        ben.reputation.save()        
+        ben.reputation.save()
         return ben
 
     def test_user_is_admin(self):
@@ -250,25 +250,25 @@ class Authentication(TestCase):
         ben.save()
 
         self.user_has_type(ben, {'name': 'administrator', 'level': 1000 })
-    
+
         ben.delete()
-    
+
     def test_user_is_editor(self):
         carol = self.create_user("carol")
         carol.reputation.reputation = 1001
         carol.reputation.save()
-    
+
         self.user_has_type(carol, {'name': 'editor', 'level': 500 })
-    
+
         carol.delete()
-    
+
     def test_user_is_public(self):
         dave = self.create_user("dave")
         dave.reputation.reputation = 0
         dave.reputation.save()
-    
+
         self.user_has_type(dave, {"name": "public", 'level': 0})
-    
+
         dave.delete()
 
 
@@ -287,7 +287,7 @@ class Logging(TestCase):
 
         ret = self.client.get("%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 200)
-        
+
         logs = APILog.objects.all()
 
         self.assertTrue(logs is not None and len(logs) == 1)
@@ -336,7 +336,7 @@ class TileRequest(TestCase):
 
     def tearDown(self):
         teardownTreemapEnv()
-        
+
     def test_returns(self):
         p1 = mkPlot(self.u)
         p1.geometry = Point(-77,36)
@@ -361,7 +361,7 @@ class TileRequest(TestCase):
         p2y = 36.1
         p2xM = -8582732.0
         p2yM = 4314389.0
-        
+
         # Offset X values
         p1offsetx = p1xM - -8682920 #xmin
         p2offsetx = p2xM - -8682920 #xmin
@@ -391,7 +391,7 @@ class TileRequest(TestCase):
         outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX, **self.sign)
 
         self.assertEqual(testoutp, outp.content)
-        
+
 
     def test_eats_same_point(self):
         x = 128 # these values come from the test_returns
@@ -421,11 +421,11 @@ class TileRequest(TestCase):
         # | File Header           | Section Header             | Pts                                        |
         # |0xA3A5EA00 | int: size | byte: style | short: # pts | 00 | byte:x1 | byte:y1 | byte:x2 | byte:y2 |
         testoutp = struct.pack("<IIBHxBB", 0xA3A5EA00, npts, style, npts, x,y)
-        
+
         outp = self.client.get("%s/tiles?bbox=-78,35,-76,37" % API_PFX, **self.sign)
 
         self.assertEqual(testoutp, outp.content)
-        
+
 
 class PlotListing(TestCase):
     def setUp(self):
@@ -462,7 +462,7 @@ class PlotListing(TestCase):
 
         ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 1) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], p.pk)
         self.assertEqual(json[0]['id'], reputation1.pk)
@@ -478,7 +478,7 @@ class PlotListing(TestCase):
 
         ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 2) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], p2.pk)
         self.assertEqual(json[0]['id'], reputation2.pk)
@@ -498,7 +498,7 @@ class PlotListing(TestCase):
 
         ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 3) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], t3.plot.pk)
         self.assertEqual(json[0]['id'], reputation3.pk)
@@ -511,7 +511,7 @@ class PlotListing(TestCase):
 
         ret = self.client.get("%s/user/%s/edits?offset=1" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 2) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], p2.pk)
         self.assertEqual(json[0]['id'], reputation2.pk)
@@ -521,22 +521,22 @@ class PlotListing(TestCase):
 
         ret = self.client.get("%s/user/%s/edits?offset=2&length=1" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 1) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], p.pk)
         self.assertEqual(json[0]['id'], reputation1.pk)
 
         ret = self.client.get("%s/user/%s/edits?length=1" % (API_PFX, user.pk), **withauth)
         json = loads(ret.content)
-        
+
         self.assertEqual(len(json), 1) # Just on reputation item
         self.assertEqual(json[0]['plot_id'], t3.plot.pk)
         self.assertEqual(json[0]['id'], reputation3.pk)
-        
+
         reputation1.delete()
         reputation2.delete()
         reputation3.delete()
-        content_type_p.delete()                
+        content_type_p.delete()
         p.delete()
         p2.delete()
         t3.delete()
@@ -568,7 +568,7 @@ class PlotListing(TestCase):
 
         leroi = User(username="leroi")
         leroi.active = True
-        leroi.save() # double save required for m2m... 
+        leroi.save() # double save required for m2m...
         leroi.reputation = Reputation(user=leroi)
         leroi.user_permissions.add(p)
         leroi.user_permissions.add(t)
@@ -578,7 +578,7 @@ class PlotListing(TestCase):
         p_peon_0 = mkPlot(peon)
         p_peon_1 = mkPlot(peon)
         p_duke_2 = mkPlot(duke)
-        
+
         t_duke_0 = mkTree(duke, plot=p_peon_0)
         t_peon_1 = mkTree(peon, plot=p_peon_1)
         t_duke_2 = mkTree(duke, plot=p_duke_2)
@@ -621,12 +621,12 @@ class PlotListing(TestCase):
         self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_peon_1, peon))
         self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_duke_2, duke))
 
-        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_0, duke))        
-        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_peon_1, peon))        
-        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_2, duke))        
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_0, duke))
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_peon_1, peon))
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_duke_2, duke))
 
-        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_roi_3, leroi)) 
-        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_roi_3, leroi)) 
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(p_roi_3, leroi))
+        self.assertEqual(mkd(True,True), plot_or_tree_permissions(t_roi_3, leroi))
 
         #################################
         # An admin user can always do anything
@@ -661,11 +661,11 @@ class PlotListing(TestCase):
         for t in trees:
             for u in users:
                 self.assertEqual(mkd(False,False), plot_or_tree_permissions(t, u))
-        
-        
-        
 
-        
+
+
+
+
     def test_basic_data(self):
         p = mkPlot(self.u)
         p.width = 22
@@ -679,7 +679,7 @@ class PlotListing(TestCase):
         info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
-        
+
         json = loads(info.content)
 
         self.assertEqual(len(json), 1)
@@ -706,7 +706,7 @@ class PlotListing(TestCase):
         info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
-        
+
         json = loads(info.content)
 
         self.assertEqual(len(json), 1)
@@ -721,7 +721,7 @@ class PlotListing(TestCase):
         info = self.client.get("%s/plots" % API_PFX, **self.sign)
 
         self.assertEqual(info.status_code, 200)
-        
+
         json = loads(info.content)
 
         self.assertEqual(len(json), 1)
@@ -990,8 +990,8 @@ class PendingTrigger(TestCase):
          p.delete()
 
       updated_values = {'geometry': {'lat': 70, 'lon': 60},
-                        'plot_width': 11, 
-                        'plot_length': 22, 
+                        'plot_width': 11,
+                        'plot_length': 22,
                         'geocoded_address': 'bar'}
 
 
@@ -1016,7 +1016,7 @@ class PendingTrigger(TestCase):
          self.assertEqual(4, len(PlotPending.objects.all()),
                           "Expected 4 pends, one for each edited field")
 
-         self.assertEqual(4, len(response_json['pending_edits'].keys()), 
+         self.assertEqual(4, len(response_json['pending_edits'].keys()),
                           "Expected the json response to have a "\
                           "pending_edits dict with 4 keys, one for each field")
 
@@ -1032,18 +1032,18 @@ class PendingTrigger(TestCase):
 
    def test_public_edits_public(self):
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
-      self.make_and_edit(self.public_user1, self.public_user2_sign, 
+      self.make_and_edit(self.public_user1, self.public_user2_sign,
                          expectpends=False)
 
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = True
-      self.make_and_edit(self.public_user1, self.public_user2_sign, 
+      self.make_and_edit(self.public_user1, self.public_user2_sign,
                          expectpends=True)
 
    def test_public_edits_mgmt(self):
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
       self.make_and_edit(self.user, self.public_user1_sign,
                          expectpends=True)
-    
+
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = True
       self.make_and_edit(self.user, self.public_user1_sign,
                          expectpends=True)
@@ -1052,7 +1052,7 @@ class PendingTrigger(TestCase):
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
       self.make_and_edit(self.public_user1, self.public_user1_sign,
                          expectpends=False)
-    
+
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = True
       self.make_and_edit(self.public_user1, self.public_user1_sign,
                          expectpends=False)
@@ -1061,7 +1061,7 @@ class PendingTrigger(TestCase):
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
       self.make_and_edit(self.user, self.sign,
                          expectpends=False)
-    
+
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = True
       self.make_and_edit(self.user, self.sign,
                          expectpends=False)
@@ -1070,7 +1070,7 @@ class PendingTrigger(TestCase):
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = False
       self.make_and_edit(self.public_user1, self.sign,
                          expectpends=False)
-    
+
       settings.PENDING_REQUIRED_FOR_PUBLIC_EDITING_PUBLIC_TREES = True
       self.make_and_edit(self.public_user1, self.sign,
                          expectpends=False)
@@ -1441,6 +1441,19 @@ class UpdatePlotAndTree(TestCase):
         response_dict = loads(response.content)
         self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
         self.assertEqual(tree.species.pk, response_dict['species'])
+
+    def test_cant_register_with_space_in_username(self):
+        self.assertTrue(User.objects.filter(username='foobar').count() == 0, "The test expects the foobar user to not exists.")
+        data = {
+            'username': 'foo bar',
+            'firstname': 'foo',
+            'lastname': 'bar',
+            'email': 'foo@bar.com',
+            'password': 'drowssap',
+            'zipcode': 19107
+        }
+        response = post_json("%s/user/" % API_PFX, data, self.client, self.sign)
+        self.assertEqual(400, response.status_code, "Expected 400 status code after creating user")
 
     def test_registration(self):
         self.assertTrue(User.objects.filter(username='foobar').count() == 0, "The test expects the foobar user to not exists.")
@@ -1925,5 +1938,3 @@ class CQLFiltering(TestCase):
         params = {'tree_owner' : 'John Doe'}
         expected_cql =  "tree_owner LIKE '%John Doe%'"
         self.assertParamsProduceResponse(params, expected_cql)
-
-
