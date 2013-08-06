@@ -7,8 +7,13 @@ For issues or questions you can try mailing the user list: http://groups.google.
 This is v1.3 of OpenTreeMap, the in development version.
 
 #Other Repositories
-OpenTreeMap is also available for iOS. The code is available at https://github.com/azavea/OpenTreeMap-iOS <br>
-Default graphics and config files for the OpenTreeMap iOS are available at https://github.com/azavea/OpenTreeMap-iOS-skin
+OpenTreeMap is also available for iOS and Android.
+
+iOS app code is available at https://github.com/azavea/OpenTreeMap-iOS <br>
+Default graphics and config files for the OpenTreeMap iOS app are available at https://github.com/azavea/OpenTreeMap-iOS-skin
+
+Android app code is available at https://github.com/azavea/OpenTreeMap-Android <br>
+A default skin is included in the repository, as are "howto.pdf" build instructions.
 
 #Installation Instructions#
 ###Required programs:###
