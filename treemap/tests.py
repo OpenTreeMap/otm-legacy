@@ -45,17 +45,12 @@ class EcoBenefitTests(TestCase):
 
         self.u = User.objects.get(username="jim")
 
-    def test_simple_eco_generation(self):
-        species = Species.objects.get(symbol="s1")
+        ExclusionMask.objects.all().delete()
 
-        plot = mkPlot(self.u,)
-        tree = mkTree(self.u, plot, species=species)
-        tree.dbh = 23.0
+    def tearDown(self):
+        settings.MULTI_REGION_ITREE_ENABLED = False
 
-        tree.save()
-
-        tr = TreeResource.objects.get(tree=tree)
-
+    def _resource_as_dict(self, tr):
         things = ['annual_stormwater_management',
                   'annual_electricity_conserved',
                   'annual_energy_conserved',
@@ -72,9 +67,72 @@ class EcoBenefitTests(TestCase):
                   'annual_voc',
                   'annual_bvoc']
 
-        for thing in things:
-            self.assertTrue(getattr(tr, thing) is not None and
-                            getattr(tr, thing) != 0.0)
+        return {thing: getattr(tr, thing) for thing in things}
+
+    def test_simple_eco_generation(self):
+        species = Species.objects.get(symbol="s1")
+
+        plot = mkPlot(self.u,)
+        tree = mkTree(self.u, plot, species=species)
+        tree.dbh = 23.0
+
+        tree.save()
+
+        tr = TreeResource.objects.get(tree=tree)
+
+        for benefit_value in self._resource_as_dict(tr).values():
+            self.assertTrue(benefit_value is not None and
+                            benefit_value != 0.0)
+
+
+    def test_location_based_itree_benefits(self):
+        settings.MULTI_REGION_ITREE_ENABLED = True
+        pt1 = Point(5,5)
+        pt2 = Point(-5, -5)
+
+        p1 = Polygon( ((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)) )
+        p2 = Polygon( ((0, 0), (-10, 0), (-10, -10), (0, -10), (0, 0)) )
+
+        p1 = MultiPolygon(p1)
+        p2 = MultiPolygon(p2)
+
+        c1 = ClimateZone(geometry=p1, itree_region='CaNCCoJBK')
+        c2 = ClimateZone(geometry=p2, itree_region='CenFlaXXX')
+
+        c1.save()
+        c2.save()
+
+        rsrc1 = Resource(meta_species="BDM OTHER", region="CaNCCoJBK")
+        rsrc2 = Resource(meta_species="BDM OTHER", region="CenFlaXXX")
+        rsrc1.save()
+        rsrc2.save()
+
+        species = Species.objects.get(symbol="s1")
+        species.resource = [rsrc1, rsrc2]
+        species.save()
+
+        plot = mkPlot(self.u)
+        plot.geometry = pt1
+        plot.save()
+
+        self.assertEqual(plot.itree_region(), 'CaNCCoJBK')
+
+        tree = mkTree(self.u, plot, species=species)
+        tree.dbh = 23.0
+        tree.save()
+
+        tr1 = self._resource_as_dict(TreeResource.objects.get(tree=tree))
+
+        plot.geometry = pt2
+        plot.save()
+
+        self.assertEqual(plot.itree_region(), 'CenFlaXXX')
+
+        tree = Tree.objects.get(pk=tree.pk)
+
+        tr2 = self._resource_as_dict(TreeResource.objects.get(tree=tree))
+
+        self.assertNotEqual(tr1, tr2)
 
 
 
@@ -86,7 +144,7 @@ class SpeciesViewTests(TransactionTestCase):
     def setUp(self):
         setupTreemapEnv()
 
-        self.z1 = ZipCode.objects.get(zip="19107")
+        self.z1 = ZipCode.objects.get(zip="19-107")
         self.n1 = Neighborhood.objects.get(name="n1")
 
         self.u = User.objects.get(username="jim")

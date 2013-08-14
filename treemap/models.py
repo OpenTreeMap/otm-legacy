@@ -470,6 +470,14 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
 
     readonly = models.BooleanField(default=False)
 
+    def itree_region(self):
+        zone = ClimateZone.objects.filter(geometry__contains=self.geometry)
+
+        if len(zone) == 0:
+            return None
+        else:
+            return zone[0].itree_region
+
     def validate(self):
         self.full_clean()
         em = ExclusionMask.objects.filter(geometry__contains=self.geometry)
@@ -585,6 +593,9 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+
+        if self.current_tree():
+            set_environmental_summaries(self.current_tree())
 
         super(Plot, self).save(*args,**kwargs)
 

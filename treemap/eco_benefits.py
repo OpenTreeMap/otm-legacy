@@ -21,7 +21,7 @@ RESOURCE_NAMES = {'Hydro interception': 'hydro_interception',
 INCHES_PER_CM = 2.54
 
 def set_environmental_summaries(tree):
-    from treemap.models import TreeResource
+    from treemap.models import TreeResource, ClimateZone
 
     species = tree.species
     dbh = tree.dbh
@@ -32,14 +32,23 @@ def set_environmental_summaries(tree):
     dbh_cm = convert_dbh_to_inches(dbh) * INCHES_PER_CM
 
     tr = TreeResource.objects.filter(tree=tree)
-    resources = species.resource.all()
+
+    # Determine which region the tree is currently in:
+    if settings.MULTI_REGION_ITREE_ENABLED:
+        target_region = tree.plot.itree_region()
+
+        if target_region is None:
+            return False
+
+        resources = species.resource.filter(region=target_region)
+    else:
+        resources = species.resource.all()
 
     if not resources:
         if tr:
             tr.delete()
 
         return False
-
 
     region = resources[0].region
     code = resources[0].meta_species
