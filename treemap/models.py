@@ -153,7 +153,11 @@ class Resource(models.Model):
     def __unicode__(self): return u'%s' % (self.meta_species)
 
 
+class ClimateZone(models.Model):
+    itree_region = models.CharField(max_length=40)
+    geometry = models.MultiPolygonField(srid=4326)
 
+    objects = models.GeoManager()
 
 class Species(models.Model):
     """
