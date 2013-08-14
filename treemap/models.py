@@ -20,7 +20,7 @@ import simplejson
 from sorl.thumbnail import ImageField
 from threadedcomments.models import ThreadedComment
 
-from treemap.eco import set_environmental_summaries
+from treemap.eco_benefits import set_environmental_summaries
 
 status_choices = (
         ('height','Height (in feet)'),
@@ -149,30 +149,6 @@ class Resource(models.Model):
     """
     meta_species = models.CharField(max_length=150, null=True, blank=True)
     region = models.CharField(max_length=150, null=True, blank=True)
-    hydro_interception_dbh = models.TextField(null=True, blank=True)
-    #property_value_dbh = models.TextField()
-    aq_ozone_dep_dbh = models.TextField(null=True, blank=True)
-    aq_nox_dep_dbh = models.TextField(null=True, blank=True)
-    aq_pm10_dep_dbh = models.TextField(null=True, blank=True)
-    aq_sox_dep_dbh = models.TextField(null=True, blank=True)
-    aq_nox_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_pm10_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_sox_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_voc_avoided_dbh = models.TextField(null=True, blank=True)
-    bvoc_dbh = models.TextField(null=True, blank=True)
-    #net_vocs_dbh = models.TextField()
-    co2_sequestered_dbh = models.TextField(null=True, blank=True)
-    #co2_decomp_dbh = models.TextField()
-    #co2_maint_dbh = models.TextField()
-    #net_co2_sequestered_dbh = models.TextField()
-    co2_avoided_dbh = models.TextField(null=True, blank=True)
-    natural_gas_dbh = models.TextField(null=True, blank=True)
-    electricity_dbh = models.TextField(null=True, blank=True)
-    #lsa_dbh = models.TextField()
-    #cpa_dbh = models.TextField()
-    #dbh_by_age_class_dbh = models.TextField()
-    co2_storage_dbh = models.TextField(null=True, blank=True)
-    objects = models.GeoManager()
 
     def __unicode__(self): return u'%s' % (self.meta_species)
 
@@ -804,18 +780,7 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
 
         super(Tree, self).save(*args,**kwargs)
 
-        set_environmental_summaries(self)
-        #set new species counts
-        if hasattr(self,'old_species') and self.old_species:
-            self.old_species.save()
-        if hasattr(self,'species') and self.species:
-            self.species.save()
-
-        super(Tree, self).save(*args,**kwargs)
-
-        self.plot.last_updated = self.last_updated
-        self.plot.save()
-
+        self.quick_save(*args, **kwargs)
 
     def quick_save(self,*args,**kwargs):
         super(Tree, self).save(*args,**kwargs)
