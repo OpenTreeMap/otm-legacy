@@ -20,7 +20,7 @@ import simplejson
 from sorl.thumbnail import ImageField
 from threadedcomments.models import ThreadedComment
 
-from treemap.eco import set_environmental_summaries
+from treemap.eco_benefits import set_environmental_summaries
 
 status_choices = (
         ('height','Height (in feet)'),
@@ -149,35 +149,15 @@ class Resource(models.Model):
     """
     meta_species = models.CharField(max_length=150, null=True, blank=True)
     region = models.CharField(max_length=150, null=True, blank=True)
-    hydro_interception_dbh = models.TextField(null=True, blank=True)
-    #property_value_dbh = models.TextField()
-    aq_ozone_dep_dbh = models.TextField(null=True, blank=True)
-    aq_nox_dep_dbh = models.TextField(null=True, blank=True)
-    aq_pm10_dep_dbh = models.TextField(null=True, blank=True)
-    aq_sox_dep_dbh = models.TextField(null=True, blank=True)
-    aq_nox_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_pm10_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_sox_avoided_dbh = models.TextField(null=True, blank=True)
-    aq_voc_avoided_dbh = models.TextField(null=True, blank=True)
-    bvoc_dbh = models.TextField(null=True, blank=True)
-    #net_vocs_dbh = models.TextField()
-    co2_sequestered_dbh = models.TextField(null=True, blank=True)
-    #co2_decomp_dbh = models.TextField()
-    #co2_maint_dbh = models.TextField()
-    #net_co2_sequestered_dbh = models.TextField()
-    co2_avoided_dbh = models.TextField(null=True, blank=True)
-    natural_gas_dbh = models.TextField(null=True, blank=True)
-    electricity_dbh = models.TextField(null=True, blank=True)
-    #lsa_dbh = models.TextField()
-    #cpa_dbh = models.TextField()
-    #dbh_by_age_class_dbh = models.TextField()
-    co2_storage_dbh = models.TextField(null=True, blank=True)
-    objects = models.GeoManager()
 
     def __unicode__(self): return u'%s' % (self.meta_species)
 
 
+class ClimateZone(models.Model):
+    itree_region = models.CharField(max_length=40)
+    geometry = models.MultiPolygonField(srid=4326)
 
+    objects = models.GeoManager()
 
 class Species(models.Model):
     """
@@ -490,6 +470,14 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
 
     readonly = models.BooleanField(default=False)
 
+    def itree_region(self):
+        zone = ClimateZone.objects.filter(geometry__contains=self.geometry)
+
+        if len(zone) == 0:
+            return None
+        else:
+            return zone[0].itree_region
+
     def validate(self):
         self.full_clean()
         em = ExclusionMask.objects.filter(geometry__contains=self.geometry)
@@ -605,6 +593,9 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+
+        if self.current_tree():
+            set_environmental_summaries(self.current_tree())
 
         super(Plot, self).save(*args,**kwargs)
 
@@ -804,18 +795,7 @@ class Tree(models.Model, ManagementMixin, PendingMixin):
 
         super(Tree, self).save(*args,**kwargs)
 
-        set_environmental_summaries(self)
-        #set new species counts
-        if hasattr(self,'old_species') and self.old_species:
-            self.old_species.save()
-        if hasattr(self,'species') and self.species:
-            self.species.save()
-
-        super(Tree, self).save(*args,**kwargs)
-
-        self.plot.last_updated = self.last_updated
-        self.plot.save()
-
+        self.quick_save(*args, **kwargs)
 
     def quick_save(self,*args,**kwargs):
         super(Tree, self).save(*args,**kwargs)

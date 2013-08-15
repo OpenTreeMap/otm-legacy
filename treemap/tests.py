@@ -38,6 +38,104 @@ import tempfile
 import zipfile
 import shutil
 
+class EcoBenefitTests(TestCase):
+
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.u = User.objects.get(username="jim")
+
+        ExclusionMask.objects.all().delete()
+
+    def tearDown(self):
+        settings.MULTI_REGION_ITREE_ENABLED = False
+
+    def _resource_as_dict(self, tr):
+        things = ['annual_stormwater_management',
+                  'annual_electricity_conserved',
+                  'annual_energy_conserved',
+                  'annual_natural_gas_conserved',
+                  'annual_air_quality_improvement',
+                  'annual_co2_sequestered',
+                  'annual_co2_avoided',
+                  'annual_co2_reduced',
+                  'total_co2_stored',
+                  'annual_ozone',
+                  'annual_nox',
+                  'annual_pm10',
+                  'annual_sox',
+                  'annual_voc',
+                  'annual_bvoc']
+
+        return {thing: getattr(tr, thing) for thing in things}
+
+    def test_simple_eco_generation(self):
+        species = Species.objects.get(symbol="s1")
+
+        plot = mkPlot(self.u,)
+        tree = mkTree(self.u, plot, species=species)
+        tree.dbh = 23.0
+
+        tree.save()
+
+        tr = TreeResource.objects.get(tree=tree)
+
+        for benefit_value in self._resource_as_dict(tr).values():
+            self.assertTrue(benefit_value is not None and
+                            benefit_value != 0.0)
+
+
+    def test_location_based_itree_benefits(self):
+        settings.MULTI_REGION_ITREE_ENABLED = True
+        pt1 = Point(5,5)
+        pt2 = Point(-5, -5)
+
+        p1 = Polygon( ((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)) )
+        p2 = Polygon( ((0, 0), (-10, 0), (-10, -10), (0, -10), (0, 0)) )
+
+        p1 = MultiPolygon(p1)
+        p2 = MultiPolygon(p2)
+
+        c1 = ClimateZone(geometry=p1, itree_region='CaNCCoJBK')
+        c2 = ClimateZone(geometry=p2, itree_region='CenFlaXXX')
+
+        c1.save()
+        c2.save()
+
+        rsrc1 = Resource(meta_species="BDM OTHER", region="CaNCCoJBK")
+        rsrc2 = Resource(meta_species="BDM OTHER", region="CenFlaXXX")
+        rsrc1.save()
+        rsrc2.save()
+
+        species = Species.objects.get(symbol="s1")
+        species.resource = [rsrc1, rsrc2]
+        species.save()
+
+        plot = mkPlot(self.u)
+        plot.geometry = pt1
+        plot.save()
+
+        self.assertEqual(plot.itree_region(), 'CaNCCoJBK')
+
+        tree = mkTree(self.u, plot, species=species)
+        tree.dbh = 23.0
+        tree.save()
+
+        tr1 = self._resource_as_dict(TreeResource.objects.get(tree=tree))
+
+        plot.geometry = pt2
+        plot.save()
+
+        self.assertEqual(plot.itree_region(), 'CenFlaXXX')
+
+        tree = Tree.objects.get(pk=tree.pk)
+
+        tr2 = self._resource_as_dict(TreeResource.objects.get(tree=tree))
+
+        self.assertNotEqual(tr1, tr2)
+
+
+
 # Needs to be a TransactionTestCase because
 # we use ogr2ogr externally for csv generation
 class SpeciesViewTests(TransactionTestCase):
@@ -46,7 +144,7 @@ class SpeciesViewTests(TransactionTestCase):
     def setUp(self):
         setupTreemapEnv()
 
-        self.z1 = ZipCode.objects.get(zip="19107")
+        self.z1 = ZipCode.objects.get(zip="19-107")
         self.n1 = Neighborhood.objects.get(name="n1")
 
         self.u = User.objects.get(username="jim")
@@ -79,8 +177,8 @@ class SpeciesViewTests(TransactionTestCase):
 
     def test_full_species_list(self):
         """
-        different ways to get the full list: 
-        - no args 
+        different ways to get the full list:
+        - no args
         - all
 
         With and without 'json'
@@ -90,7 +188,7 @@ class SpeciesViewTests(TransactionTestCase):
         # html page. That page should get a context object
         # of species
         response = self.client.get("/species/")
-        self.assertTemplateUsed(response, 'treemap/species.html') 
+        self.assertTemplateUsed(response, 'treemap/species.html')
 
         context_ids = set([s.pk for s in response.context["species"]])
         db_ids = set([s.pk for s in Species.objects.all()])
@@ -99,8 +197,8 @@ class SpeciesViewTests(TransactionTestCase):
 
         # I guess this just returns the same thing?
         response = self.client.get("/species/all/")
-        self.assertTemplateUsed(response, 'treemap/species.html') 
-        
+        self.assertTemplateUsed(response, 'treemap/species.html')
+
         context_ids = set([s.pk for s in response.context["species"]])
         self.assertEquals(context_ids, db_ids)
 
@@ -114,7 +212,7 @@ class SpeciesViewTests(TransactionTestCase):
 
         response = self.client.get("/species/json/")
         json_species = loads(response.content)
-    
+
         json_ids = set([j['id'] for j in json_species])
         self.assertEqual(json_ids, db_ids)
 
@@ -170,7 +268,7 @@ class SpeciesViewTests(TransactionTestCase):
 
         self.assertEqual(response_csv.status_code, 200)
         self.assertEqual(response_csv['content-type'], 'application/zip')
-        self.assertEqual(response_csv['content-disposition'], 
+        self.assertEqual(response_csv['content-disposition'],
                          'attachment; filename=species.zip')
 
         from zipfile import ZipFile
@@ -208,10 +306,10 @@ class SpeciesViewTests(TransactionTestCase):
             url = "/species/nearby/"
             location = {'location': '%s,%s' % (x,y)}
 
-            return self.make_request(url, location)            
+            return self.make_request(url, location)
 
         def makeIt(x,y,s):
-            mkTree(self.u, 
+            mkTree(self.u,
                    plot=mkPlot(self.u,geom=Point(x,y)),
                    species=s)
 
@@ -280,7 +378,7 @@ class ViewTests(TestCase):
         self.t3 = t3
 
         self.ie = ImportEvent.objects.get(file_name='site_add')
-        
+
 
 
 ##############################################
@@ -327,8 +425,8 @@ class ViewTests(TestCase):
         self.assertEqual(
             set(trees),
             set([self.t1.pk]))
-            
-        
+
+
 
 ##############################################
 #  Assertion helpers
@@ -343,7 +441,7 @@ class ViewTests(TestCase):
             if t == nhood:
                 return
         self.fail("Point not in Neighborhood: %s" % nhood.name)
-        
+
 
 
 ##############################################
@@ -358,9 +456,9 @@ class ViewTests(TestCase):
 #############################################
 #  shortcut tests
 
-    def test_add_initial_defaults(self):        
+    def test_add_initial_defaults(self):
         settings.ADD_INITIAL_DEFAULTS = {
-            'dbh': "Size", 
+            'dbh': "Size",
         }
         # the changed setting should show up
         self.assertEqual(get_add_initial('dbh'), 'Size')
@@ -370,11 +468,11 @@ class ViewTests(TestCase):
 #############################################
 #  page setup tests
 
-    def test_homepage_feeds(self):  
+    def test_homepage_feeds(self):
         response = self.client.get("/home/")
-        self.assertTemplateUsed(response, 'treemap/index.html') 
+        self.assertTemplateUsed(response, 'treemap/index.html')
         response = self.client.get("/home/feeds/")
-        self.assertTemplateUsed(response, 'treemap/index.html') 
+        self.assertTemplateUsed(response, 'treemap/index.html')
         feeds = response.context["feeds"]
         self.assertNotEqual(len(feeds["active_nhoods"]), 0)
         self.assertIsInstance(feeds["active_nhoods"][0], Neighborhood)
@@ -384,18 +482,18 @@ class ViewTests(TestCase):
         self.assertNotEqual(len(feeds["recent_edits"]), 0)
         self.assertEqual(feeds["recent_edits"][0][0], u'jim')
         self.assertIsInstance(feeds["recent_edits"][0][1], datetime)
-        
+
         response = self.client.get("/home/feeds/json/")
         json = loads(response.content)
         self.assertNotEqual(len(json["species"]), 0)
         self.assertNotEqual(len(json["active_nhoods"]), 0)
-        
+
 
     def test_get_choices(self):
         response = self.client.get("/choices/")
         choices = loads(response.content)
         self.assertNotEqual(len(choices['plot_types']), 0)
-                
+
 
 #############################################
 #  Geocoder Tests
@@ -412,7 +510,7 @@ class ViewTests(TestCase):
         json = loads(response.content)
         self.assertFalse(json["success"])
         self.assertIn("No address", json["error"])
-    
+
         form["address"] = "100 somewhere"
         response = self.client.get("/geocode/", form)
         json = loads(response.content)
@@ -472,7 +570,7 @@ class ViewTests(TestCase):
         # Requires lat,lon or bbox
         response = self.client.get("/plots/location/")
         self.assertEqual(response.status_code, 400)
-        
+
         response = self.client.get("/plots/location/?lat=-77")
         self.assertEqual(response.status_code, 400)
 
@@ -495,11 +593,11 @@ class ViewTests(TestCase):
         # Limit distance to 5, expect to get only two (50,50) and (51,51) back
         response = self.client.get(reqstr % (50,50,5,100))
         geojson = loads(response.content)
-        
+
         exp = set([self.p1_no_tree.pk, self.p2_tree.pk])
 
         self.assert_geojson_has_ids(geojson, exp)
-        
+
         ##################################################################
         # Effective unlimited distance should return all plots
         response = self.client.get(reqstr % (50,50,10000,100))
@@ -533,7 +631,7 @@ class ViewTests(TestCase):
         #      AND results in NO distance matches
         #      THEN return the original results, unfiltered
         #
-        
+
         response = self.client.get(reqstr % (1000000))
         geojson = loads(response.content)
 
@@ -544,7 +642,7 @@ class ViewTests(TestCase):
         # Test main result map page
         # Note -> This page does not depend at all on the request
         #
-        
+
         p1 = Plot(geometry=Point(50,50), last_updated_by=self.u, import_event=self.ie,present=True, width=100, length=100, data_owner=self.u)
         p2 = Plot(geometry=Point(60,50), last_updated_by=self.u, import_event=self.ie,present=True, width=90, length=110, data_owner=self.u)
 
@@ -571,8 +669,8 @@ class ViewTests(TestCase):
 
         t1 = Tree(plot=p1, species=None, last_updated_by=self.u, import_event=self.ie)
         t1.present = True
-        
-        current_year = datetime.now().year    
+
+        current_year = datetime.now().year
         t1.date_planted = date(1999,9,9)
 
         t2 = Tree(plot=p2, species=None, last_updated_by=self.u, import_event=self.ie)
@@ -584,7 +682,7 @@ class ViewTests(TestCase):
         set_auto_now(t1, "last_updated", False)
         t1.last_updated = date(1999,9,9)
         t1.save()
-        
+
         response = self.client.get("/map/")
         req = response.context
 
@@ -615,13 +713,13 @@ class ViewTests(TestCase):
         self.assertEqual(req['max_updated'], max_updated)
         # 'min_updated': min_updated,
         # 'max_updated': max_updated,
-        
+
     def test_search_results(self):
         ##################################################################
         # Test search result view
-        #        
+        #
 
-        def assert_counts(tree_count, plot_count, req):            
+        def assert_counts(tree_count, plot_count, req):
             self.assertEqual(req['summaries']['total_trees'], tree_count)
             self.assertEqual(req['summaries']['total_plots'], plot_count)
 
@@ -678,7 +776,7 @@ class ViewTests(TestCase):
         ts1 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t1, activity=tsteward_choices[0][0])
         ts2 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t2, activity=tsteward_choices[1][0])
         ts3 = TreeStewardship(performed_by=self.u, performed_date=datetime.now(), tree=t2, activity=tsteward_choices[2][0])
-        
+
         save_this = [tf1,tf2, ts1,ts2,ts3]
         for obj in save_this: obj.save()
 
@@ -738,7 +836,7 @@ class ViewTests(TestCase):
         plot_list = [1, 2]
         plot_name_list = [to_search_string(plot_type_choices[0][1]),to_search_string(plot_type_choices[1][1])]
         response = self.client.get("/search/?%s=true&%s=true" % (plot_name_list[0], plot_name_list[1]))
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(plot__type__in=plot_list)
         plots = present_plots.filter(type__in=plot_list)
 
@@ -746,7 +844,7 @@ class ViewTests(TestCase):
         assert_benefits(req)
         self.assertTrue('plot_type' in req['tile_query'])
 
-        plot_range = [3, 11]      
+        plot_range = [3, 11]
         response = self.client.get("/search/?plot_range=%s-%s" % (plot_range[0], plot_range[1]) )
         req = loads(response.content)
         trees = present_trees.filter(Q(plot__length__gte=plot_range[0]) | Q(plot__width__gte=plot_range[0])).filter(Q(plot__length__lte=plot_range[1]) | Q(plot__width__lte=plot_range[1]))
@@ -757,9 +855,9 @@ class ViewTests(TestCase):
         self.assertTrue('plot_width' in req['tile_query'])
         self.assertTrue('plot_length' in req['tile_query'])
 
-        sidewalk_list = [1]        
+        sidewalk_list = [1]
         response = self.client.get("/search/?%s=true" % (to_search_string(sidewalk_choices[0][1])) )
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__sidewalk_damage__in=sidewalk_list)
         plots = present_plots.filter(sidewalk_damage__in=sidewalk_list)
 
@@ -767,18 +865,18 @@ class ViewTests(TestCase):
         assert_benefits(req, True)
         self.assertTrue('sidewalk_damage' in req['tile_query'])
 
-        powerline_list = [2]        
+        powerline_list = [2]
         response = self.client.get("/search/?%s=true" % (to_search_string(powerline_choices[1][1])) )
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__powerline_conflict_potential__in=powerline_list)
         plots = present_plots.filter(powerline_conflict_potential__in=powerline_list)
 
-        assert_counts(trees.count(), plots.count(), req)        
+        assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req, True)
         self.assertTrue('powerline' in req['tile_query'])
-  
+
         response = self.client.get("/search/?owner=%s" % self.u.username)
-        req = loads(response.content)                
+        req = loads(response.content)
         users = User.objects.filter(username__icontains=self.u.username)
         trees = present_trees.filter(plot__data_owner__in=users)
         plots = present_plots.filter(data_owner__in=users)
@@ -786,11 +884,11 @@ class ViewTests(TestCase):
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
         self.assertTrue('data_owner' in req['tile_query'])
-        
+
         plot_stewardship_list = [1,2]
         response = self.client.get("/search/?plot_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=true" % (plot_stewardship_list[0], plot_stewardship_list[1], qs_date_min, qs_date_max) )
-        req = loads(response.content)                
-        steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")] 
+        req = loads(response.content)
+        steward_ids = [s.plot_id for s in PlotStewardship.objects.order_by("plot__id").distinct("plot__id")]
         for ps in plot_stewardship_list:
             steward_ids = [s.plot_id for s in PlotStewardship.objects.filter(plot__id__in=steward_ids).filter(activity=ps)]
         plots = present_plots.filter(id__in=steward_ids).exclude(plotstewardship__performed_date__lte=date_min).exclude(plotstewardship__performed_date__gte=date_max)
@@ -801,7 +899,7 @@ class ViewTests(TestCase):
         self.assertTrue('plot_stewardship' in req['tile_query'])
 
         response = self.client.get("/search/?plot_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=false" % (plot_stewardship_list[0],plot_stewardship_list[1], qs_date_min, qs_date_max) )
-        req = loads(response.content)                
+        req = loads(response.content)
         plots = present_plots.exclude(id__in=steward_ids).exclude(plotstewardship__performed_date__lte=date_min).exclude(plotstewardship__performed_date__gte=date_max)
         trees = present_trees.filter(plot__in=plots)
 
@@ -813,10 +911,10 @@ class ViewTests(TestCase):
         # Test tree data searches
         #    diameter, height, condition, photos, steward, sponsor
         #    projects, planted date range, tree stewardship
-        #    
+        #
         diameter_list = [11,25]
         response = self.client.get("/search/?diameter_range=%s-%s" % (diameter_list[0],diameter_list[1]) )
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(dbh__gte=diameter_list[0]).filter(dbh__lte=diameter_list[1])
         plots = present_plots.filter(tree__dbh__gte=diameter_list[0]).filter(tree__dbh__lte=diameter_list[1])
 
@@ -826,7 +924,7 @@ class ViewTests(TestCase):
 
         height_list = [0,50]
         response = self.client.get("/search/?height_range=%s-%s" % (height_list[0],height_list[1]) )
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(height__gte=height_list[0]).filter(height__lte=height_list[1])
         plots = present_plots.filter(tree__height__gte=height_list[0]).filter(tree__height__lte=height_list[1])
 
@@ -836,7 +934,7 @@ class ViewTests(TestCase):
 
         condition_list = [1,2]
         response = self.client.get("/search/?%s=true&%s=true" % (to_search_string(condition_choices[0][1]), to_search_string(condition_choices[1][1])) )
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(condition__in=condition_list)
         plots = present_plots.filter(tree__condition__in=condition_list)
 
@@ -845,7 +943,7 @@ class ViewTests(TestCase):
         self.assertTrue('condition' in req['tile_query'])
 
         response = self.client.get("/search/?photos=true" )
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(treephoto__isnull=False)
         plots = present_plots.filter(tree__treephoto__isnull=False)
 
@@ -854,7 +952,7 @@ class ViewTests(TestCase):
         self.assertTrue('photo_count' in req['tile_query'])
 
         response = self.client.get("/search/?steward=%s" % self.u.username)
-        req = loads(response.content)                
+        req = loads(response.content)
         users = User.objects.filter(username__icontains=self.u.username)
         trees = present_trees.filter(Q(steward_user__in=users) | Q(steward_name__icontains=self.u.username))
         plots = present_plots.filter(Q(tree__steward_user__in=users) | Q(tree__steward_name__icontains=self.u.username))
@@ -865,7 +963,7 @@ class ViewTests(TestCase):
         self.assertTrue('steward_name' in req['tile_query'])
 
         response = self.client.get("/search/?funding=%s" % self.u.username)
-        req = loads(response.content)        
+        req = loads(response.content)
         trees = present_trees.filter(sponsor__icontains=self.u.username)
         plots = present_plots.filter(tree__sponsor__icontains=self.u.username)
 
@@ -875,7 +973,7 @@ class ViewTests(TestCase):
 
         planted_range_list = ["2010-01-01","2012-12-31"]
         response = self.client.get("/search/?planted_range=2010-2012" )
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(date_planted__gte=planted_range_list[0], date_planted__lte=planted_range_list[1])
         plots = present_plots.filter(tree__date_planted__gte=planted_range_list[0], tree__date_planted__lte=planted_range_list[1])
 
@@ -887,7 +985,7 @@ class ViewTests(TestCase):
 
         local_list = [1, 2]
         response = self.client.get("/search/?%s=true&%s=true" % (to_search_string(flag_choices[0][1]), to_search_string(flag_choices[1][1])) )
-        req = loads(response.content)  
+        req = loads(response.content)
         trees = present_trees.filter(treeflags__key__in=local_list)
         plots = present_plots.filter(tree__treeflags__key__in=local_list)
 
@@ -897,7 +995,7 @@ class ViewTests(TestCase):
 
         tree_stewardship_list = [1,2]
         response = self.client.get("/search/?tree_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=true" % (tree_stewardship_list[0], tree_stewardship_list[1], qs_date_min, qs_date_max) )
-        req = loads(response.content)                
+        req = loads(response.content)
         steward_ids = [s.tree_id for s in TreeStewardship.objects.order_by("tree__id").distinct("tree__id")]
         for ts in tree_stewardship_list:
             steward_ids = [s.tree_id for s in TreeStewardship.objects.filter(tree__id__in=steward_ids).filter(activity=ts)]
@@ -909,7 +1007,7 @@ class ViewTests(TestCase):
         self.assertTrue('tree_stewardship' in req['tile_query'])
 
         response = self.client.get("/search/?tree_stewardship=%s,%s&stewardship_range=%s-%s&stewardship_reverse=false" % (tree_stewardship_list[0],tree_stewardship_list[1], qs_date_min, qs_date_max) )
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.exclude(id__in=steward_ids).exclude(treestewardship__performed_date__lte=date_min).exclude(treestewardship__performed_date__gte=date_max)
         plots = present_plots.filter(tree__in=trees)
 
@@ -920,9 +1018,9 @@ class ViewTests(TestCase):
         ##################################################################
         # Test species data searches
         #    id, native, edible, fall color, flowering, wildlife
-        #  
+        #
         present_species = Species.objects.filter(tree_count__gt=0)
-        def check_species(species_list, req):    
+        def check_species(species_list, req):
             max_species = present_species.count()
             trees = present_trees.filter(species__in=species_list)
             plots = present_plots.filter(tree__species__in=species_list)
@@ -932,7 +1030,7 @@ class ViewTests(TestCase):
                 self.assertTrue('species_id' in req['tile_query'])
 
         response = self.client.get("/search/?species=%s" % self.s1.id )
-        req = loads(response.content)                
+        req = loads(response.content)
         species = present_species.filter(id=self.s1.id)
         check_species(species, req)
         assert_benefits(req)
@@ -944,19 +1042,19 @@ class ViewTests(TestCase):
         assert_benefits(req)
 
         response = self.client.get("/search/?edible=true" )
-        req = loads(response.content)                
+        req = loads(response.content)
         species = present_species.filter(palatable_human=True)
         check_species(species, req)
         assert_benefits(req)
 
         response = self.client.get("/search/?color=true" )
-        req = loads(response.content)                
+        req = loads(response.content)
         species = present_species.filter(fall_conspicuous=True)
         check_species(species, req)
         assert_benefits(req)
 
         response = self.client.get("/search/?flowering=true" )
-        req = loads(response.content)                
+        req = loads(response.content)
         species = present_species.filter(flower_conspicuous=True)
         check_species(species, req)
         assert_benefits(req)
@@ -973,7 +1071,7 @@ class ViewTests(TestCase):
         #    - These test search both trees and plots in the same way
         #
         response = self.client.get("/search/?updated_by=%s" % self.u.username)
-        req = loads(response.content)                
+        req = loads(response.content)
         users = User.objects.filter(username__icontains=self.u.username)
         trees = present_trees.filter(last_updated_by__in=users)
         plots = present_plots.filter(last_updated_by__in=users)
@@ -983,7 +1081,7 @@ class ViewTests(TestCase):
         self.assertTrue('last_updated_by' in req['tile_query'])
 
         response = self.client.get("/search/?updated_range=%s-%s" % (qs_date_min, qs_date_max) )
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(last_updated__gte=date_min, last_updated__lte=date_max)
         plots = present_plots.filter(last_updated__gte=date_min, last_updated__lte=date_max)
 
@@ -991,16 +1089,16 @@ class ViewTests(TestCase):
         assert_benefits(req)
         self.assertTrue('last_updated' in req['tile_query'])
 
-        
+
         ##################################################################
         # Test missing data searches
-        #    species, diameter, height, plot type, plot size, condition, 
+        #    species, diameter, height, plot type, plot size, condition,
         #    sidewalk damage, powerlines, photos
         #    - Some searches count 0 values as 'missing'
         #
         response = self.client.get("/search/?missing_species=true")
         req = loads(response.content)
-                
+
         trees = present_trees.filter(species__isnull=True)
         plots = present_plots.filter(tree__species__isnull=True)
         assert_counts(trees.count(), plots.count(), req)
@@ -1008,7 +1106,7 @@ class ViewTests(TestCase):
         self.assertTrue('species_id' in req['tile_query'])
 
         response = self.client.get("/search/?missing_diameter=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
         plots = present_plots.filter(Q(tree__dbh__isnull=True) | Q(tree__dbh=0))
 
@@ -1017,16 +1115,16 @@ class ViewTests(TestCase):
         self.assertTrue('dbh' in req['tile_query'])
 
         response = self.client.get("/search/?missing_height=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(Q(height__isnull=True) | Q(height=0))
         plots = present_plots.filter(Q(tree__height__isnull=True) | Q(tree__height=0))
 
         assert_counts(trees.count(), plots.count(), req)
         assert_benefits(req)
         self.assertTrue('height' in req['tile_query'])
-        
+
         response = self.client.get("/search/?missing_plot_type=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__type__isnull=True)
         plots = present_plots.filter(type__isnull=True)
 
@@ -1035,7 +1133,7 @@ class ViewTests(TestCase):
         self.assertTrue('plot_type' in req['tile_query'])
 
         response = self.client.get("/search/?missing_plot_size=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(Q(plot__length__isnull=True) | Q(plot__width__isnull=True))
         plots = present_plots.filter(Q(length__isnull=True) | Q(width__isnull=True))
 
@@ -1044,7 +1142,7 @@ class ViewTests(TestCase):
         self.assertTrue('plot_length' in req['tile_query'])
 
         response = self.client.get("/search/?missing_condition=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(condition__isnull=True)
         plots = present_plots.filter(tree__condition__isnull=True)
 
@@ -1053,7 +1151,7 @@ class ViewTests(TestCase):
         self.assertTrue('condition' in req['tile_query'])
 
         response = self.client.get("/search/?missing_sidewalk=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__sidewalk_damage__isnull=True)
         plots = present_plots.filter(sidewalk_damage__isnull=True)
 
@@ -1062,7 +1160,7 @@ class ViewTests(TestCase):
         self.assertTrue('sidewalk_damage' in req['tile_query'])
 
         response = self.client.get("/search/?missing_powerlines=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__powerline_conflict_potential__isnull=True)
         plots = present_plots.filter(powerline_conflict_potential__isnull=True)
 
@@ -1071,7 +1169,7 @@ class ViewTests(TestCase):
         self.assertTrue('powerline_conflict_potential' in req['tile_query'])
 
         response = self.client.get("/search/?missing_photos=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(treephoto__isnull=True)
         plots = present_plots.filter(tree__treephoto__isnull=True)
 
@@ -1085,7 +1183,7 @@ class ViewTests(TestCase):
         #    - Missing species + species id = 0 results
         #
         response = self.client.get("/search/?missing_plot_type=true&tree_pit=true")
-        req = loads(response.content)                
+        req = loads(response.content)
         trees = present_trees.filter(plot__type__isnull=True)
         plots = present_plots.filter(type__isnull=True)
 
@@ -1095,7 +1193,7 @@ class ViewTests(TestCase):
 
         response = self.client.get("/search/?missing_species=true&species=%s" % self.s1.id)
         req = loads(response.content)
-                
+
         assert_counts(0,0, req)
         assert_benefits(req, True)
         self.assertTrue('species_id' in req['tile_query'])
@@ -1110,9 +1208,9 @@ class ViewTests(TestCase):
         form['target']="view"
         form['initial_map_location'] = "20,20"
         ##################################################################
-        # Test required information: 
+        # Test required information:
         #     lat,lon,entered address and geocoded address
-        
+
         form['lat'] = 1000
         form['lon'] = 1000
         self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
@@ -1137,7 +1235,7 @@ class ViewTests(TestCase):
         self.assertNotEqual(len(response.context['plots']), 0)
         new_plot = response.context['plots'][0]
         self.assertTrue(new_plot.geocoded_address, form['geocode_address'])
-        
+
         response = self.client.get('/trees/new/%i/geojson/' % self.u.id)
         json_plots = loads(response.content)
         self.assertEqual(json_plots[0]['id'], new_plot.id)
@@ -1145,46 +1243,46 @@ class ViewTests(TestCase):
         new_plot = None
 
         ##################################################################
-        # Test plot-only creation: 
+        # Test plot-only creation:
         #     Info in these fields creates a plot object, and does not
         #     create a tree object
-        
+
         form['edit_address_city'] = "Philadelphia"
         form['edit_address_zip'] = "19107"
         form['plot_width'] = "50"   #bad
-        form['plot_width_in'] = "0"  
+        form['plot_width_in'] = "0"
         form['plot_length'] = "6"
         form['plot_length_in'] = "6"
-        form['plot_type'] = "Open"  
-        form['power_lines'] = 1  
-        form['sidewalk_damage'] = 1  
+        form['plot_type'] = "Open"
+        form['power_lines'] = 1
+        form['sidewalk_damage'] = 1
 
         # plot width < 15
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')      
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['plot_width'] = "5"
         # plot width inches < 12
         form['plot_width_in'] = "20"
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['plot_width_in'] = "6"
         # plot type in type list
         form['plot_type'] = "Blargh"
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['plot_type'] = 1
         # powerlines = 1, 2, or 3
         form['power_lines'] = 15
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['power_lines'] = 1
         # sidewalk damage = 1, 2, or 3
         form['sidewalk_damage'] = 15
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['sidewalk_damage'] = 1
         form['owner_additional_id'] = 111
-    
+
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
-        
+
         response = self.client.get('/trees/new/%i/' % self.u.id)
-        new_plot = response.context['plots'][0]   
+        new_plot = response.context['plots'][0]
         self.assertAlmostEqual(new_plot.width, 5.5)
         self.assertAlmostEqual(new_plot.length, 6.5)
         self.assertEqual(new_plot.current_tree(), None)
@@ -1192,55 +1290,55 @@ class ViewTests(TestCase):
         self.assert_point_in_nhood(new_plot.geometry, self.n1)
 
         new_plot = None
-        
+
         ##################################################################
-        # Test exclusion zones: 
+        # Test exclusion zones:
         #     Turn on exclusions in the settings and move point into exclusion zone
 
         form['lat'] = 20
         form['lon'] = 20
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
-        
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+
         form['lat'] = 50
         form['lon'] = 50
 
         ##################################################################
-        # Test tree creation: 
+        # Test tree creation:
         #     Info in the rest of the fields creates a tree object as well as a plot
 
         form['species_id'] = self.s1.id
         form['species_other1'] = 'newgenus'
         form['species_other2'] = 'newspecies'
-        form['height'] = 50  
-        form['canopy_height'] = 40  
-        form['dbh'] = 2 
+        form['height'] = 50
+        form['canopy_height'] = 40
+        form['dbh'] = 2
         form['dbh_type'] = "circumference"
-        form['condition'] = "Good"  
+        form['condition'] = "Good"
         form['canopy_condition'] = "Full - No Gaps"
-        
+
         # height <= 300
         form['height'] = 500
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
-        form['height'] = 60 
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
+        form['height'] = 60
         # canopy height <= 300
         form['canopy_height'] = 550
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         # canopy height <= height
         form['canopy_height'] = 80
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['canopy_height'] = 40
         # condition in list
         form['condition'] = "Blah"
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')  
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['condition'] = 1
         # canopy condition in list
         form['canopy_condition'] = "Blah"
-        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html') 
+        self.assertTemplateUsed(self.client.post("/trees/add/", form), 'treemap/tree_add.html')
         form['canopy_condition'] = 1
 
         response = self.client.post("/trees/add/", form)
         self.assertRedirects(response, '/trees/new/%i/' % self.u.id)
-        
+
         # diameter instead
         del form['dbh_type']
         # no species
@@ -1266,7 +1364,7 @@ class ViewTests(TestCase):
         tr = TreeResource.objects.get(tree=new_tree)
         self.assertNotEqual(tr, None)
         self.assertNotEqual(tr.get_benefits()['total'], 0.0)
-        
+
     def test_add_empty_tree(self):
         c = self.client
         c.login(username='jim',password='jim')
@@ -1293,7 +1391,7 @@ class ViewTests(TestCase):
         c = self.client
 
         p = self.p1_no_tree
-        
+
         #
         # Test - Login redirect required
         #
@@ -1358,7 +1456,7 @@ class ViewTests(TestCase):
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 120)
 
-        
+
         response_dict = loads(response.content)
         self.assertEqual(len(response_dict["errors"]), 1)
         self.assertTrue("geocoded_address" in response_dict["errors"][0])
@@ -1379,7 +1477,7 @@ class ViewTests(TestCase):
         self.assertEqual(p.present, True)
         self.assertEqual(p.width, 120)
         self.assertEqual(p.length, 220)
-        
+
         response_dict = loads(response.content)
         self.assertEqual(len(response_dict["errors"]), 1)
         self.assertTrue("length" in response_dict["errors"][0])
@@ -1399,7 +1497,7 @@ class ViewTests(TestCase):
         c.login(username='amy',password='amy')
 
         p = self.p1_no_tree
-        
+
         #
         # Test - update all 'valid' fields and nothing
         # will be saved (instead pending records will be created)
@@ -1534,22 +1632,22 @@ class ViewTests(TestCase):
         f.close()
         is_zipfile = zipfile.is_zipfile(tmp_file)
         self.assertTrue(is_zipfile, msg='error: %s does not look like a zip file.' % tmp_file)
-        
+
         zf = zipfile.ZipFile(tmp_file, 'r')
-        
+
         file_lists_match = (sorted(files) == sorted(zf.namelist()))
-        self.assertTrue(file_lists_match, 
+        self.assertTrue(file_lists_match,
             msg="error: file list in %s is: %s but I expected: %s" % (tmp_file, sorted(zf.namelist()), sorted(files)))
-        
+
         zf.close()
-        
+
         if (file_lists_match and is_zipfile): # leave the tmp file in case of an error.
-            shutil.rmtree(tmp_dir) 
+            shutil.rmtree(tmp_dir)
 
         return
-        
- 
-    def test_ogr_search_csv(self): 
+
+
+    def test_ogr_search_csv(self):
         response = self.client.get("/search/csv/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/zip')
@@ -1563,8 +1661,8 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=trees.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["eco.kml", "trees.kml", "plots.kml"])   
-    
+        self.assert_zip_response_contains_files(response, ["eco.kml", "trees.kml", "plots.kml"])
+
     def test_ogr_search_shp(self):
         response = self.client.get("/search/shp/")
         self.assertEqual(response.status_code, 200)
@@ -1573,7 +1671,7 @@ class ViewTests(TestCase):
         self.assertNotEqual(len(response.content), 0)
         self.assert_zip_response_contains_files(response, [
                 "eco.dbf", "eco.prj", "eco.shp", "eco.shx",
-                "plots.dbf", "plots.prj", "plots.shp", 
+                "plots.dbf", "plots.prj", "plots.shp",
                 "plots.shx", "trees.dbf", "trees.prj",
                 ])
 
@@ -1587,7 +1685,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=comments.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["comments.csv"])      
+        self.assert_zip_response_contains_files(response, ["comments.csv"])
 
     def test_ogr_users_optin_csv(self):
         # Test the admin-only exports
@@ -1598,7 +1696,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['content-type'], 'application/zip')
         self.assertEqual(response['content-disposition'], 'attachment; filename=emails.zip')
         self.assertNotEqual(len(response.content), 0)
-        self.assert_zip_response_contains_files(response, ["emails.csv"])   
+        self.assert_zip_response_contains_files(response, ["emails.csv"])
 
 ##################################################################
 # Tree/Plot Detail tests
@@ -1609,7 +1707,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
         response = self.client.get('/trees/%i/' % self.t3.id)
-        self.assertTemplateUsed(response, 'treemap/tree_detail.html') 
+        self.assertTemplateUsed(response, 'treemap/tree_detail.html')
         self.assertIs(type(response.context['tree']), Tree)
         self.assertIs(type(response.context['plot']), Plot)
         self.assertEqual(response.context['tree'].id, self.t3.id)
@@ -1620,9 +1718,9 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
         response = self.client.get('/plots/%i/' % 9999)
         self.assertEqual(response.status_code, 404)
-        
+
         response = self.client.get('/plots/%i/' % self.p2_tree.id)
-        self.assertTemplateUsed(response, 'treemap/tree_detail.html') 
+        self.assertTemplateUsed(response, 'treemap/tree_detail.html')
         self.assertIs(type(response.context['tree']), Tree)
         self.assertIs(type(response.context['plot']), Plot)
         self.assertEqual(response.context['tree'].id, self.p2_tree.current_tree().id)
@@ -1630,7 +1728,7 @@ class ViewTests(TestCase):
 
         plot_format = {'format':'popup'}
         response = self.client.get('/plots/%i/' % self.p2_tree.id, plot_format)
-        self.assertTemplateUsed(response, 'treemap/plot_detail_infowindow.html') 
+        self.assertTemplateUsed(response, 'treemap/plot_detail_infowindow.html')
         self.assertIs(type(response.context['tree']), Tree)
         self.assertIs(type(response.context['plot']), Plot)
         self.assertEqual(response.context['tree'].id, self.p2_tree.current_tree().id)
@@ -1638,7 +1736,7 @@ class ViewTests(TestCase):
 
 
     def test_get_choice_values(self):
-        
+
         tree_url = ('/trees/%i/edit/choices/' % self.p2_tree.current_tree().id) + '%s/'
         plot_url = ('/plots/%i/edit/choices/' % self.p2_tree.id) + '%s/'
 
@@ -1651,14 +1749,14 @@ class ViewTests(TestCase):
         response = self.client.get(tree_url % 'actions')
         choices = loads(response.content)
         self.assertEquals(CHOICES['actions'][0][1], choices[CHOICES['actions'][0][0]] )
-        
+
         response = self.client.get(plot_url % 'sidewalks')
         choices = loads(response.content)
         self.assertEquals(CHOICES['sidewalks'][0][1], choices[CHOICES['sidewalks'][0][0]] )
         response = self.client.get(plot_url % 'powerlines')
         choices = loads(response.content)
         self.assertEquals(CHOICES['powerlines'][0][1], choices[CHOICES['powerlines'][0][0]] )
-    
+
 
 ##################################################################
 # stewardship tests
@@ -1677,7 +1775,7 @@ class ViewTests(TestCase):
         response_dict = loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_dict["success"], True)
-        
+
         p = Plot.objects.get(pk=self.p2_tree.pk)
         t = p.current_tree()
         self.assertEqual(p.plotstewardship_set.count(), 1)
@@ -1751,35 +1849,35 @@ class ViewTests(TestCase):
     def test_watch_list(self):
         c = self.client
         c.login(username='jim',password='jim')
-        
+
         response = c.post('/trees/watch/')
         self.assertTemplateUsed(response, 'treemap/watch_list.html')
 
     def test_user_rep_list(self):
         c = self.client
         c.login(username='jim',password='jim')
-        
+
         response = c.get('/users/activity/')
         self.assertTemplateUsed(response, 'treemap/rep_changes.html')
 
     def test_comments_list(self):
         c = self.client
         c.login(username='jim',password='jim')
-        
+
         response = c.get('/comments/all/')
         self.assertTemplateUsed(response, 'comments/edit.html')
 
     def test_flagged_comments_list(self):
         c = self.client
         c.login(username='jim',password='jim')
-        
+
         response = c.get('/comments/moderate/')
         self.assertTemplateUsed(response, 'comments/edit_flagged.html')
 
     def test_images_list(self):
         c = self.client
         c.login(username='jim',password='jim')
-        
+
         response = c.get('/images/')
         self.assertTemplateUsed(response, 'treemap/images.html')
 
@@ -1814,7 +1912,7 @@ class ExportModuleTests(TestCase):
 
         condition_characteristic_query = sanitize_raw_sql(self.raw_condition_characteristic_query)
 
-        self.assertEqual(condition_characteristic_query, 
+        self.assertEqual(condition_characteristic_query,
                          self.correct_condition_characteristic_query)
 
     def test_condition_query(self):
