@@ -1,20 +1,25 @@
 Arguments:
 	input file name: dbf or csv file
 	data owner id: data owner user id from the site, must already exist
+	Optional: base_srid (defaults to 4326)
+		  read_only (bool, defaults to False)
 	
 Options:
 	--verbose: generate debug output to sdtout
 
+Example:
+	python manage.py uimport --verbose tree-data.csv 2
+
 Input file fields:
 	
-	ID		 - number
+	ID		 - original tree identifier, stored as text
 	POINT_X		 - EPSG:4326
 	POINT_Y		 - EPSG:4326
-	GENUS		 - text, case sensitive
-	SPECIES		 - text, case sensitive
-	CULTIVAR	 - text, no quotation marks, case sensitive
-	GENDER  	 - text, case sensitive 
-	ADDRESS		 - Geocodable street address (city, state, zip and neighborhood auto generated)
+	*GENUS		 - text, case sensitive
+	*SPECIES	 - text, case sensitive
+	*CULTIVAR	 - text, no quotation marks, case sensitive
+	*GENDER  	 - text, case sensitive 
+	+ADDRESS	 - Geocodable street address
 	PLOTTYPE	 - one of the db plot choices, case sensitive
 	PLOTLENGTH	 - number, feet
 	PLOTWIDTH	 - number, feet
@@ -33,8 +38,26 @@ Input file fields:
 	PROJECT3	 - text, one of db special project names, case sensitive
 	
 
+* If the species table only identifies genus and species, but NOT cultivar
+or gender, then in the tree record input the two fields may be combined into a
+single field labeled SCIENTIFIC, formatted as "Genus species".  Whichever format
+is used, the fields must match (except for case) the corresponding fields
+(genus,species,cultivar,gender or scientific_name) in the species table.
+
++ ADDRESS, the street address like '26 Bailey Ave'. The city, zip and
+neighborhood are auto generated. The state portion of address is hard-coded
+in uimport.py as 'CA', change as desired. Only the street-address is seemingly
+used at present.
+
+The ID is saved in plot.owner_orig_id separate from the newly-assigned plot and
+tree id's.  Additional fields, ORIGID, OWNER_ADDITIONAL_PROPERTIES,
+OWNER_ADDITIONAL_ID, may also be imported from the spreadsheet if needed for
+special purposes. See the uimport.py code for details. None of these fields is
+displayed in the user interface.
+
 Output file:
-	If any row has unrecoverable errors, the row is written to <input_file_name>.err as a csv
+If any row has unrecoverable errors, the row is written to
+<input_file_name>.err as a csv:
 		- missing or 0,0 coordinates
 		- species not found in db
 		
