@@ -10,7 +10,7 @@ urlpatterns = patterns('importer.views',
     (r'^status/species/(?P<import_event_id>\d+)$', 'show_species_import_status'),
     (r'^update/(?P<import_event_row_id>\d+)$', 'update_row'),
 
-    (r'^export/species/all', 'export_all_species'),
+    url(r'^export/species/all', 'export_all_species', name='export_all_species'),
     (r'^export/species/(?P<import_event_id>\d+)$', 'export_single_species_import'),
     (r'^export/tree/(?P<import_event_id>\d+)$', 'export_single_tree_import'),
 

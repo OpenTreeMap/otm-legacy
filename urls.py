@@ -36,7 +36,7 @@ urlpatterns = patterns('',
     (r'^comments/', include('threadedcomments.urls')),
 
     (r'^', include('treemap.urls')),
-    (r'^importer/', include('importer.urls')),
+    (r'^importer/', include('importer.urls', namespace='importer')),
     #(r'^', include('qs_tiles.urls')),
 
     # using new 0.8 beta with "backends" support
