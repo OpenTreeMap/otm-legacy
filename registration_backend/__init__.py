@@ -8,6 +8,10 @@ from profiles.models import UserProfile
 from django.db import transaction
 from treemap.localization import PostalCodeField
 
+# If you modify this constant, be sure to update
+# the html templates for registration forms.
+MINIMUM_PASSWORD_LENGTH = 6
+
 class TreeRegistrationForm(RegistrationForm):
     volunteer = forms.BooleanField(required=False)
     updates = forms.BooleanField(required=False)
@@ -25,6 +29,14 @@ class TreeRegistrationForm(RegistrationForm):
                                 required=False)
     zip_code = PostalCodeField(required=False)
     photo = forms.ImageField(required=False)
+
+    def clean_password1(self):
+        """ Make sure the password has at least 6 characters """
+        password = self.cleaned_data['password1']
+        if len(password) < MINIMUM_PASSWORD_LENGTH:
+            raise forms.ValidationError("Password too short.")
+        else:
+            return self.cleaned_data['password1']
 
 
 class TreeBackend(DefaultBackend):

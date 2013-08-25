@@ -22,6 +22,8 @@ from treemap.models import BenefitValues, Resource, AggregateNeighborhood
 from treemap.views import *
 from treemap.shortcuts import get_add_initial
 
+from registration_backend import MINIMUM_PASSWORD_LENGTH
+
 from profiles.models import UserProfile
 from django_reputation.models import Reputation, ReputationAction
 
@@ -1919,3 +1921,41 @@ class ExportModuleTests(TestCase):
         condition_query = sanitize_raw_sql(self.raw_condition_query)
 
         self.assertEqual(condition_query, self.correct_condition_query)
+
+
+class RegistrationTest(TestCase):
+    """
+    Test local modifications to django registration
+
+    OTM adds an additional validation method to ensure that passwords
+    meet a minimum length requirement.
+    """
+    def test_registration_password_acceptable_length(self):
+        """
+        Test that a password of length six redirects to an approval page.
+        """
+
+        # generate a password of acceptable length
+        password = 'x' * MINIMUM_PASSWORD_LENGTH
+
+        response = self.client.post('/accounts/register/',
+                                    {'username': 'foo',
+                                     'password1': password,
+                                     'password2': password,
+                                     'email': 'foo@bar.com'})
+        self.assertEqual(response.status_code, 302)
+
+    def test_registration_password_too_short(self):
+        """
+        Test that a password of length six does not redirect to an approval
+        page.
+        """
+        # generate a password of acceptable length
+        password = 'x' * (MINIMUM_PASSWORD_LENGTH - 1)
+
+        response = self.client.post('/accounts/register/',
+                                    {'username': 'foo',
+                                     'password1': password,
+                                     'password2': password,
+                                     'email': 'foo@bar.com'})
+        self.assertEqual(response.status_code, 200)
