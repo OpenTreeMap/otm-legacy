@@ -1,6 +1,5 @@
 import csv
 import json
-from StringIO import StringIO
 from datetime import datetime
 
 from django.db import transaction
@@ -447,19 +446,18 @@ all_species_fields = (
 
 @login_required
 def export_all_species(request):
-    io = StringIO()
+    response = HttpResponse(mimetype='text/csv')
 
     # Maps [attr on species model] -> field name
     fieldmap = SpeciesImportRow.SPECIES_MAP
 
-    writer = csv.DictWriter(io, all_species_fields)
+    writer = csv.DictWriter(response, all_species_fields)
     writer.writeheader()
 
     for s in Species.objects.all():
         obj = {v: getattr(s, k) for (k, v) in fieldmap.iteritems()}
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=species.csv'
 
     return response
@@ -471,9 +469,9 @@ def export_single_species_import(request, import_event_id):
 
     ie = SpeciesImportEvent.objects.get(pk=import_event_id)
 
-    io = StringIO()
+    response = HttpResponse(io.getvalue(), mimetype='text/csv')
 
-    writer = csv.DictWriter(io, all_species_fields)
+    writer = csv.DictWriter(response, all_species_fields)
     writer.writeheader()
 
     for r in ie.rows():
@@ -484,7 +482,6 @@ def export_single_species_import(request, import_event_id):
 
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=species.csv'
 
     return response
@@ -530,9 +527,9 @@ def export_single_tree_import(request, import_event_id):
 
     ie = TreeImportEvent.objects.get(pk=import_event_id)
 
-    io = StringIO()
+    response = HttpResponse(mimetype='text/csv')
 
-    writer = csv.DictWriter(io, all_fields)
+    writer = csv.DictWriter(response, all_fields)
     writer.writeheader()
 
     for r in ie.rows():
@@ -586,7 +583,6 @@ def export_single_tree_import(request, import_event_id):
 
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=trees.csv'
 
     return response
