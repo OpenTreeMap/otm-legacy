@@ -25,8 +25,6 @@ urlpatterns = patterns('',
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA}),
-    (r'^Species/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.MEDIA_ROOT + "/Species"}),
     (r'^Nodes/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT + "/Nodes"}),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
