@@ -1,5 +1,7 @@
 {% extends "template_3.html" %}
 
+{% load url from future %}
+
 {% block extrahead %}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}tablesorter/style.css" media="screen" />
 
@@ -15,7 +17,7 @@
 
     {% block left_panel %}
 			<h2>Species List</h2>
-     Download as <a href="./csv">CSV</a>
+     Download as <a href="{% url 'importer:export_all_species' %}">CSV</a>
 	 
 	 {% if page %}
             You are looking at species {{page.start_index}} through {{page.end_index}} <br>
@@ -26,7 +28,7 @@
 
         <div id="species_list">
 
-		Need Help identifying a tree? View our <a href="{{ SITE_ROOT }}treekey/">Tree Key</a>.
+		Need Help identifying a tree? View our <a href="{% url 'export_all_species' %}">Tree Key</a>.
             <table id="species_list_table">
                 <thead>
                 <tr>
