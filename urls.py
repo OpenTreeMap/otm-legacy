@@ -25,8 +25,6 @@ urlpatterns = patterns('',
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DATA}),
-    (r'^Species/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.MEDIA_ROOT + "/Species"}),
     (r'^Nodes/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT + "/Nodes"}),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
@@ -36,7 +34,7 @@ urlpatterns = patterns('',
     (r'^comments/', include('threadedcomments.urls')),
 
     (r'^', include('treemap.urls')),
-    (r'^importer/', include('importer.urls')),
+    (r'^importer/', include('importer.urls', namespace='importer')),
     #(r'^', include('qs_tiles.urls')),
 
     # using new 0.8 beta with "backends" support
