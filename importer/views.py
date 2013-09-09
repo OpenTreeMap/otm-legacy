@@ -111,7 +111,7 @@ def create(request):
 
     pk = process_csv(request,**kwargs)
 
-    return HttpResponseRedirect(reverse('importer.views.list_imports'))
+    return HttpResponseRedirect(reverse('importer:list_imports'))
 
 @login_required
 def list_imports(request):
@@ -201,7 +201,7 @@ def update_row(request, import_event_row_id):
     row.save()
     row.validate_row()
 
-    return HttpResponseRedirect(reverse('importer.views.show_import_status',
+    return HttpResponseRedirect(reverse('importer:show_import_status',
                                         args=(row.import_event.pk,)))
 
 @login_required
@@ -465,11 +465,10 @@ def export_all_species(request):
 @login_required
 def export_single_species_import(request, import_event_id):
     fieldmap = SpeciesImportRow.SPECIES_MAP
-    fields = fieldmap.values()
 
     ie = SpeciesImportEvent.objects.get(pk=import_event_id)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
+    response = HttpResponse(mimetype='text/csv')
 
     writer = csv.DictWriter(response, all_species_fields)
     writer.writeheader()
