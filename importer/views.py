@@ -448,7 +448,7 @@ def _build_species_object(species, fieldmap, included_fields):
     obj = {}
 
     for k, v in fieldmap.iteritems():
-        if k in included_fields:
+        if v in included_fields:
             val = getattr(species, k)
             if val:
                 if isinstance(val, unicode):
