@@ -520,7 +520,10 @@ class SpeciesImportRow(GenericImportRow):
             'v_max_height': fields.species.MAX_HEIGHT,
             'fact_sheet': fields.species.FACT_SHEET,
             'family': fields.species.FAMILY,
-            'other_part_of_name': fields.species.OTHER_PART_OF_NAME
+            'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
+            'id': fields.species.ID,
+            'tree_count': fields.species.TREE_COUNT,
+            'scientific_name': fields.species.SCIENTIFIC_NAME,
         }
 
     # Species reference

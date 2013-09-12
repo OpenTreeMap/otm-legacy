@@ -111,7 +111,7 @@ def create(request):
 
     pk = process_csv(request,**kwargs)
 
-    return HttpResponseRedirect(reverse('importer.views.list_imports'))
+    return HttpResponseRedirect(reverse('importer:list_imports'))
 
 @login_required
 def list_imports(request):
@@ -201,7 +201,7 @@ def update_row(request, import_event_row_id):
     row.save()
     row.validate_row()
 
-    return HttpResponseRedirect(reverse('importer.views.show_import_status',
+    return HttpResponseRedirect(reverse('importer:show_import_status',
                                         args=(row.import_event.pk,)))
 
 @login_required
@@ -444,6 +444,22 @@ all_species_fields = (
     fields.species.FACT_SHEET,
 )
 
+def _build_species_object(species, fieldmap, included_fields):
+    obj = {}
+
+    for k, v in fieldmap.iteritems():
+        if k in included_fields:
+            val = getattr(species, k)
+            if val:
+                if isinstance(val, unicode):
+                    newval = val.encode("utf-8")
+                else:
+                    newval = str(val)
+                obj[v] = newval
+
+    return obj
+
+
 @login_required
 def export_all_species(request):
     response = HttpResponse(mimetype='text/csv')
@@ -451,11 +467,22 @@ def export_all_species(request):
     # Maps [attr on species model] -> field name
     fieldmap = SpeciesImportRow.SPECIES_MAP
 
-    writer = csv.DictWriter(response, all_species_fields)
+    include_extra_fields = request.GET.get('include_extra_fields', False)
+
+    if include_extra_fields:
+        extra_fields = (fields.species.ID,
+                        fields.species.TREE_COUNT,
+                        fields.species.SCIENTIFIC_NAME)
+    else:
+        extra_fields = tuple()
+
+    included_fields = all_species_fields + extra_fields
+
+    writer = csv.DictWriter(response, included_fields)
     writer.writeheader()
 
     for s in Species.objects.all():
-        obj = {v: getattr(s, k) for (k, v) in fieldmap.iteritems()}
+        obj = _build_species_object(s, fieldmap, included_fields)
         writer.writerow(obj)
 
     response['Content-Disposition'] = 'attachment; filename=species.csv'
@@ -465,18 +492,17 @@ def export_all_species(request):
 @login_required
 def export_single_species_import(request, import_event_id):
     fieldmap = SpeciesImportRow.SPECIES_MAP
-    fields = fieldmap.values()
 
     ie = SpeciesImportEvent.objects.get(pk=import_event_id)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
+    response = HttpResponse(mimetype='text/csv')
 
     writer = csv.DictWriter(response, all_species_fields)
     writer.writeheader()
 
     for r in ie.rows():
         if r.species:
-            obj = {v: getattr(r.species, k) for (k, v) in fieldmap.iteritems()}
+            obj = _build_species_object(r.species, fieldmap, all_species_fields)
         else:
             obj = lowerkeys(json.loads(r.data))
 
