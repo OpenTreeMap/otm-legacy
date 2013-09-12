@@ -712,6 +712,32 @@ class SpeciesIntegrationTests(IntegrationTests):
         tgtrsrc = Resource.objects.get(meta_species='BDM_OTHER')
         self.assertEqual({ r.pk for r in s2.resource.all() }, { tgtrsrc.pk })
 
+class SpeciesExportTests(TestCase):
+
+    def setUp(self):
+        Species.objects.create(symbol='S1GSC', scientific_name='', family='',
+                               genus='g1', species='', cultivar_name='',
+                               v_max_dbh=50.0, v_max_height=100.0)
+        User.objects.create_user(username='foo',
+                                 email='foo@bar.com',
+                                 password='bar')
+        self.client.login(username='foo', password='bar')
+
+    def test_export_all_species(self):
+        response = self.client.get('/importer/export/species/all')
+        reader = csv.reader(response)
+        reader_rows = [r for r in reader][1:]
+
+        self.assertEqual('g1',
+                         reader_rows[1][reader_rows[0].index('genus')])
+        self.assertEqual('S1GSC',
+                         reader_rows[1][reader_rows[0].index('usda symbol')])
+        self.assertEqual('50',
+                         reader_rows[1][reader_rows[0]
+                         .index('max diameter at breast height')])
+        self.assertEqual('100',
+                         reader_rows[1][reader_rows[0].index('max height')])
+
 class TreeIntegrationTests(IntegrationTests):
 
     def setUp(self):

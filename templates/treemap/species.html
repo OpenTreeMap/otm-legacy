@@ -17,7 +17,7 @@
 
     {% block left_panel %}
 			<h2>Species List</h2>
-     Download as <a href="{% url 'importer:export_all_species' %}">CSV</a>
+     Download as <a href="{% url 'importer:export_all_species' %}/?include_extra_fields=True">CSV</a>
 	 
 	 {% if page %}
             You are looking at species {{page.start_index}} through {{page.end_index}} <br>

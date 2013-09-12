@@ -29,6 +29,9 @@ class species(object):
     MAX_DIAMETER = 'max diameter at breast height'
     MAX_HEIGHT = 'max height'
     FACT_SHEET = 'fact sheet'
+    TREE_COUNT = 'number of trees in database'
+    ID = 'database id of species'
+    SCIENTIFIC_NAME = 'scientific name'
 
 
     CHOICE_MAP = {
