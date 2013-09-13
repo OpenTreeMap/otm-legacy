@@ -1,6 +1,5 @@
 import csv
 import json
-from StringIO import StringIO
 from datetime import datetime
 
 from django.db import transaction
@@ -112,7 +111,7 @@ def create(request):
 
     pk = process_csv(request,**kwargs)
 
-    return HttpResponseRedirect(reverse('importer.views.list_imports'))
+    return HttpResponseRedirect(reverse('importer:list_imports'))
 
 @login_required
 def list_imports(request):
@@ -202,7 +201,7 @@ def update_row(request, import_event_row_id):
     row.save()
     row.validate_row()
 
-    return HttpResponseRedirect(reverse('importer.views.show_import_status',
+    return HttpResponseRedirect(reverse('importer:show_import_status',
                                         args=(row.import_event.pk,)))
 
 @login_required
@@ -422,22 +421,70 @@ def process_csv(request, fileconstructor, **kwargs):
 
     return ie.pk
 
+
+all_species_fields = (
+    fields.species.GENUS,
+    fields.species.SPECIES,
+    fields.species.CULTIVAR,
+    fields.species.OTHER_PART_OF_NAME,
+    fields.species.COMMON_NAME,
+    fields.species.USDA_SYMBOL,
+    fields.species.ALT_SYMBOL,
+    fields.species.ITREE_CODE,
+    fields.species.FAMILY,
+    fields.species.NATIVE_STATUS,
+    fields.species.FALL_COLORS,
+    fields.species.EDIBLE,
+    fields.species.FLOWERING,
+    fields.species.FLOWERING_PERIOD,
+    fields.species.FRUIT_PERIOD,
+    fields.species.WILDLIFE,
+    fields.species.MAX_DIAMETER,
+    fields.species.MAX_HEIGHT,
+    fields.species.FACT_SHEET,
+)
+
+def _build_species_object(species, fieldmap, included_fields):
+    obj = {}
+
+    for k, v in fieldmap.iteritems():
+        if v in included_fields:
+            val = getattr(species, k)
+            if val:
+                if isinstance(val, unicode):
+                    newval = val.encode("utf-8")
+                else:
+                    newval = str(val)
+                obj[v] = newval
+
+    return obj
+
+
 @login_required
 def export_all_species(request):
-    io = StringIO()
+    response = HttpResponse(mimetype='text/csv')
 
     # Maps [attr on species model] -> field name
     fieldmap = SpeciesImportRow.SPECIES_MAP
-    fields = fieldmap.values()
 
-    writer = csv.DictWriter(io, fields)
+    include_extra_fields = request.GET.get('include_extra_fields', False)
+
+    if include_extra_fields:
+        extra_fields = (fields.species.ID,
+                        fields.species.TREE_COUNT,
+                        fields.species.SCIENTIFIC_NAME)
+    else:
+        extra_fields = tuple()
+
+    included_fields = all_species_fields + extra_fields
+
+    writer = csv.DictWriter(response, included_fields)
     writer.writeheader()
 
     for s in Species.objects.all():
-        obj = {v: getattr(s, k) for (k, v) in fieldmap.iteritems()}
+        obj = _build_species_object(s, fieldmap, included_fields)
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=species.csv'
 
     return response
@@ -445,24 +492,22 @@ def export_all_species(request):
 @login_required
 def export_single_species_import(request, import_event_id):
     fieldmap = SpeciesImportRow.SPECIES_MAP
-    fields = fieldmap.values()
 
     ie = SpeciesImportEvent.objects.get(pk=import_event_id)
 
-    io = StringIO()
+    response = HttpResponse(mimetype='text/csv')
 
-    writer = csv.DictWriter(io, fields)
+    writer = csv.DictWriter(response, all_species_fields)
     writer.writeheader()
 
     for r in ie.rows():
         if r.species:
-            obj = {v: getattr(r.species, k) for (k, v) in fieldmap.iteritems()}
+            obj = _build_species_object(r.species, fieldmap, all_species_fields)
         else:
             obj = lowerkeys(json.loads(r.data))
 
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=species.csv'
 
     return response
@@ -508,9 +553,9 @@ def export_single_tree_import(request, import_event_id):
 
     ie = TreeImportEvent.objects.get(pk=import_event_id)
 
-    io = StringIO()
+    response = HttpResponse(mimetype='text/csv')
 
-    writer = csv.DictWriter(io, all_fields)
+    writer = csv.DictWriter(response, all_fields)
     writer.writeheader()
 
     for r in ie.rows():
@@ -564,7 +609,6 @@ def export_single_tree_import(request, import_event_id):
 
         writer.writerow(obj)
 
-    response = HttpResponse(io.getvalue(), mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=trees.csv'
 
     return response

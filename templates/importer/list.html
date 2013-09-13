@@ -44,7 +44,7 @@
   <h1 class="importer-header">Bulk Uploader</h1>
   <div class="importer-upload">
     <h2>Tree Import</h2>
-    <form id="treeform" method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+    <form id="treeform" method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
       <input type="hidden" name="type" value="tree"></input>
       <input name="unit_plot_length" value="1" type="hidden">
       <input name="unit_plot_width" value="1" type="hidden">
@@ -57,7 +57,7 @@
   </div>
   <div class="importer-upload">
     <h2>Species Import</h2>
-    <form id="speciesform" method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+    <form id="speciesform" method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
       <input type="hidden" name="type" value="species"></input>
       File to Upload: <input type="file" name="file"></input>
     </form>

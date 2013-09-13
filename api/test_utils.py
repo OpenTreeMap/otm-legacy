@@ -75,18 +75,9 @@ def setupTreemapEnv():
     dbh = "[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]"
     dbh2 = "[2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]"
 
-    rsrc1 = Resource(meta_species="BDM_OTHER", electricity_dbh=dbh, co2_avoided_dbh=dbh,
-                     aq_pm10_dep_dbh=dbh, region="Sim City", aq_voc_avoided_dbh=dbh,
-                     aq_pm10_avoided_dbh=dbh, aq_ozone_dep_dbh=dbh, aq_nox_avoided_dbh=dbh,
-                     co2_storage_dbh=dbh,aq_sox_avoided_dbh=dbh, aq_sox_dep_dbh=dbh,
-                     bvoc_dbh=dbh, co2_sequestered_dbh=dbh, aq_nox_dep_dbh=dbh,
-                     hydro_interception_dbh=dbh, natural_gas_dbh=dbh)
-    rsrc2 = Resource(meta_species="BDL_OTHER", electricity_dbh=dbh2, co2_avoided_dbh=dbh2,
-                    aq_pm10_dep_dbh=dbh2, region="Sim City", aq_voc_avoided_dbh=dbh2,
-                    aq_pm10_avoided_dbh=dbh2, aq_ozone_dep_dbh=dbh2, aq_nox_avoided_dbh=dbh2,
-                    co2_storage_dbh=dbh2,aq_sox_avoided_dbh=dbh2, aq_sox_dep_dbh=dbh2,
-                    bvoc_dbh=dbh2, co2_sequestered_dbh=dbh2, aq_nox_dep_dbh=dbh2,
-                    hydro_interception_dbh=dbh2, natural_gas_dbh=dbh2)
+    rsrc1 = Resource(meta_species="BDM OTHER", region="NoEastXXX")
+    rsrc2 = Resource(meta_species="BDL OTHER", region="NoEastXXX")
+
     rsrc1.save()
     rsrc2.save()
 

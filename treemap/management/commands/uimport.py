@@ -9,6 +9,7 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.auth.models import User
 from treemap.models import Species, Tree, Plot, Neighborhood, ZipCode, TreeFlags, ImportEvent
 
+# Change explicit value of plot.address_street (see 'TODO' below) as desired.
 # Load CHOICES from your implementation-specific file (e.g. "from choices_SanDiego import *")
 from choices import CHOICES as choices
 
@@ -63,7 +64,7 @@ class Command(BaseCommand):
             if len(args) > 2:
                 self.base_srid = int(args[2])
                 self.tf = CoordTransform(SpatialReference(self.base_srid), SpatialReference(4326))
-                print "Using transformaton object: %s" % self.tf
+                print "Using transformation object: %s" % self.tf
             else:
                 self.base_srid = 4326
             if len(args) > 3:
@@ -72,7 +73,7 @@ class Command(BaseCommand):
             else:
                 self.readonly = False
         except:
-            print "Arguments:  Input_File_Name.[dbf|csv], Data_Owner_User_Id, (Base_SRID optional)"
+            print "Arguments:  Input_File_Name.[dbf|csv] Data_Owner_User_Id (Optional: Base_SRID ReadOnly-bool)"
             print "Options:    --verbose"
             return
 
@@ -136,30 +137,30 @@ class Command(BaseCommand):
 
         if row.get('SCIENTIFIC'):
             name = str(row['SCIENTIFIC']).strip()
-            species = Species.objects.filter(scientific_name__iexact=name)
+            species_obj = Species.objects.filter(scientific_name__iexact=name)
             self.log_verbose("  Looking for species: %s" % name)
         else:
             genus = str(row['GENUS']).strip()
-            species = ''
+            species_field = ''
             cultivar = ''
             gender = ''
             name = genus
             if row.get('SPECIES'):
-                species = str(row['SPECIES']).strip()
-                name = name + " " + species
+                species_field = str(row['SPECIES']).strip()
+                name = name + " " + species_field
             if row.get('CULTIVAR'):
                 cultivar = str(row['CULTIVAR']).strip()
                 name = name + " " + cultivar
             if row.get('GENDER'):
                 gender = str(row['GENDER']).strip()
                 name = name + " " + gender
-            species = Species.objects.filter(scientific_name__iexact=name)
-            self.log_verbose("  Looking for species: %s %s %s %s" % (genus, species, cultivar, gender))
+            species_obj = Species.objects.filter(genus__iexact=genus,species__iexact=species_field,cultivar_name__iexact=cultivar,gender__iexact=gender)
+            self.log_verbose("  Looking for species: %s" % name)
 
 
-        if species: #species match found
-            self.log_verbose("  Found species %r" % species[0])
-            return (True, species)
+        if species_obj: #species match found
+            self.log_verbose("  Found species %r" % species_obj[0])
+            return (True, species_obj)
 
         #species data but no match, check it manually
         self.log_error("ERROR:  Unknown species %r" % name, row)
@@ -351,7 +352,7 @@ class Command(BaseCommand):
         if row.get('POWERLINE'):
             for k, v in choices['powerlines']:
                 if v == row['POWERLINE']:
-                    plot.powerline = k
+                    plot.powerline_conflict_potential = k
                     break;
 
         sidewalk_damage = row.get('SIDEWALK')

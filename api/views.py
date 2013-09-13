@@ -251,6 +251,12 @@ def register(request):
             { "status": "failure", "id": -1, "detail": "Username %s exists" % data["username"]}
         ))
 
+    if ' ' in data['username']:
+        response = HttpResponse()
+        response.status_code = 400
+        response.content = simplejson.dumps({"error": "Invalid username"})
+        return response
+
     user = User(username=data["username"],
                 first_name=data["firstname"],
                 last_name=data["lastname"],

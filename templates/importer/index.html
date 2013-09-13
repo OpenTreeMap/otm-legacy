@@ -14,14 +14,14 @@
 
 {% block middle_panel %}
 <h1>Tree Import</h1>
-<form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+<form method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
 <input type="hidden" name="type" value="tree"></input>
 File to Upload: <input type="file" name="file"></input>
 <input type="submit" name="go"></input>
 </form>
 
 <h1>Species Import</h1>
-<form method="POST" action="{% url 'importer.views.create' %}" enctype="multipart/form-data">
+<form method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
 <input type="hidden" name="type" value="species"></input>
 File to Upload: <input type="file" name="file"></input>
 <input type="submit" name="go"></input>
