@@ -143,6 +143,26 @@ MIDDLEWARE_CLASSES = (
 
 )
 
+CLIMATE_ZONE_MAPPINGS = {
+   'Inland Empire': 'InlEmpCLM',
+   'Northeast': 'NoEastXXX',
+   'Pacific Northwest': 'PacfNWLOG',
+   'South': 'PiedmtCLT',
+   'Midwest': 'MidWstMSP',
+   'Northern California Coast': 'CaNCCoJBK',
+   'Lower Midwest': 'LoMidWXXX',
+   'North': 'NMtnPrFNL',
+   'Inland Valleys': 'InlValMOD',
+   'Southern California Coast': 'SoCalCSMA',
+   'Southwest Desert': 'SWDsrtGDL',
+   'Coastal Plain': 'GulfCoCHS',
+   'Central Florida': 'CenFlaXXX',
+   'Interior West':  'InterWABQ',
+   'Tropical': 'TropicPacXXX',
+   'Temperate Interior West': 'TpIntWBOI'
+}
+
+
 try:
     from local_settings import *
 except ImportError, exp:
