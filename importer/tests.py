@@ -572,6 +572,20 @@ class SpeciesIntegrationTests(IntegrationTests):
                           (errors.MISSING_FIELD[0],
                            ['i-tree code'], None)])
 
+    def test_multiregion_itree(self):
+        itree = 'NoEastXXX:ACPL,NMtnPrFNL:BDL OTHER'
+        csv = """
+        | genus   | species    | common name | i-tree code  |
+        | testus1 | specieius9 | g1 s2 wowza | %s           |
+        """ % itree
+
+        seid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=seid)
+        s = ie.rows().all()[0].species
+
+        self.assertEqual({(r.meta_species, r.region) for r in s.resource.all()},
+                         {('ACPL', 'NoEastXXX'), ('BDL OTHER', 'NMtnPrFNL')})
+
     def test_species_matching(self):
         csv = """
         | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
