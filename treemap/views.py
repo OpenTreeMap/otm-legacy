@@ -10,7 +10,9 @@ import subprocess
 from operator import itemgetter, attrgetter
 from itertools import chain
 import simplejson
+import json
 from functools import wraps
+from collections import namedtuple
 
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
@@ -151,6 +153,21 @@ def json_home_feeds(request):
     return render_to_json(feeds)
 
 def home_feeds(request):
+    def total_eco_benefits():
+        request = namedtuple('Data', ['GET', 'META'])({}, {'QUERY_STRING': None})
+        result = advanced_search(request)
+
+        data = json.loads(result.content)
+        if 'benefits' in data:
+            benefits = data['benefits']
+            if 'total' in benefits:
+                try:
+                    return int(benefits['total'])
+                except ValueError:
+                    pass
+
+        return '$0'
+
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
 
@@ -160,6 +177,7 @@ def home_feeds(request):
 
     #TODO: change from most populated neighborhood to most updates in neighborhood
     feeds['active_nhoods'] = Neighborhood.objects.order_by('-aggregates__total_trees')[0:6]
+    feeds['eco'] = total_eco_benefits
 
     return render_to_response('treemap/index.html', RequestContext(request,{'feeds': feeds}))
 

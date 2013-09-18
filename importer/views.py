@@ -15,6 +15,7 @@ from django.contrib.gis.measure import D
 from django.contrib.auth.models import User
 
 import fields
+import io
 
 from importer.tasks import run_import_event_validation,\
     commit_import_event
@@ -390,6 +391,12 @@ def process_csv(request, fileconstructor, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
     fileobj = files[filename]
+
+    # Need to use "universal-newline mode"
+    # for weird endings
+    # http://docs.python.org/2/glossary.html#term-universal-newlines
+    fileobj = io.StringIO(unicode(fileobj.read()), newline=None)
+
 
     owner = request.user
     ie = fileconstructor(file_name=filename,

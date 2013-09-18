@@ -6,10 +6,11 @@
 {% endblock %}
 
 {% block extrahead %}
-  {% load compressed %}
-  {% compressed_js 'map' %}
+
   <link rel="stylesheet" href="{{ STATIC_URL }}css/importer.css" type="text/css"></link>
   <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+
   <script src="{{ STATIC_URL }}js/importer.js"></script>
 
   <script type="text/template" id="error-template">

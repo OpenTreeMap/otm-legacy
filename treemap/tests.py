@@ -146,7 +146,7 @@ class SpeciesViewTests(TransactionTestCase):
     def setUp(self):
         setupTreemapEnv()
 
-        self.z1 = ZipCode.objects.get(zip="19-107")
+        self.z1 = ZipCode.objects.get(zip="19107")
         self.n1 = Neighborhood.objects.get(name="n1")
 
         self.u = User.objects.get(username="jim")
