@@ -285,7 +285,7 @@ tm.generateSpeciesDropdown = function(speciesData) {
     var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
     $("#searchSpeciesList").append(ul).hide();
     for(var i=0; i<speciesData.length;i++) {
-        if (speciesData[i].count == 0) {continue;}
+        if (!tm_show_all_species && speciesData[i].count == 0) {continue;}
         var c = "ac_odd";
         if (i%2 == 0) {c = 'ac-even';}
         ul.append("<li id='" + speciesData[i].id + "' class='" + c + "'>" + tm.formatTreeName(speciesData[i]) + "</li>")
