@@ -577,12 +577,14 @@ class SpeciesImportRow(GenericImportRow):
         species = self.datadict.get(fields.species.SPECIES,'')
         cultivar = self.datadict.get(fields.species.CULTIVAR,'')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME,'')
+        family = self.datadict.get(fields.species.FAMILY,'')
 
         # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
         self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
+        self.cleaned[fields.species.FAMILY] = family
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects\
