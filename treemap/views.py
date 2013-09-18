@@ -1927,6 +1927,7 @@ def verify_edits(request, audit_type='tree'):
         })
 
     changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
+
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes, "geometry":n}))
 
 @login_required
@@ -2009,7 +2010,7 @@ def verify_rep_change(request, change_type, change_id, rep_dir):
     elif change_type == 'plot':
         change = Plot.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.last_updated_by_id)
-        obj = get_object_or_404(Tree, pk=change.id)
+        obj = get_object_or_404(Plot, pk=change.id)
     elif change_type == 'action':
         change = TreeAction.history.filter(_audit_id__exact=change_id)[0]
         user = get_object_or_404(User, pk=change.reported_by_id)
