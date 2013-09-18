@@ -543,8 +543,8 @@ class SpeciesIntegrationTests(IntegrationTests):
     def test_noerror_load(self):
         csv = """
         | genus   | species    | common name | i-tree code  |
-        | g1      | s1         | g1 s1 wowza | BDM_OTHER    |
-        | g2      | s2         | g2 s2 wowza | BDL_OTHER    |
+        | g1      | s1         | g1 s1 wowza | BDM OTHER    |
+        | g2      | s2         | g2 s2 wowza | BDL OTHER    |
         """
 
         j = self.run_through_process_views(csv)
@@ -555,7 +555,7 @@ class SpeciesIntegrationTests(IntegrationTests):
     def test_invalid_itree(self):
         csv = """
         | genus   | species    | common name | i-tree code  |
-        | testus1 | specieius9 | g1 s2 wowza | BDL_OTHER    |
+        | testus1 | specieius9 | g1 s2 wowza | BDL OTHER    |
         | genus   |            | common name | failure      |
         | testus1 | specieius9 | g1 s2 wowza |              |
         """
@@ -589,11 +589,11 @@ class SpeciesIntegrationTests(IntegrationTests):
     def test_species_matching(self):
         csv = """
         | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
-        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |      |
-        | genus   | blah       | common name | BDL_OTHER    | s1          |     |      |
-        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    | s2          |     |      |
-        | testus2 | specieius2 | g1 s2 wowza | BDL_OTHER    | s1          | a3  |      |
-        | genusN  | speciesN   | gN sN wowza | BDL_OTHER    |             |     | var3 |
+        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |      |
+        | genus   | blah       | common name | BDL OTHER    | s1          |     |      |
+        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    | s2          |     |      |
+        | testus2 | specieius2 | g1 s2 wowza | BDL OTHER    | s1          | a3  |      |
+        | genusN  | speciesN   | gN sN wowza | BDL OTHER    |             |     | var3 |
         """
 
         j = self.run_through_process_views(csv)
@@ -628,7 +628,7 @@ class SpeciesIntegrationTests(IntegrationTests):
     def test_all_species_data(self):
         csv = """
         | genus     | species     | common name | i-tree code  | usda symbol | alternative symbol |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | sym1        | a1    |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | sym1        | a1    |
         """
 
         seid = self.run_through_commit_views(csv)
@@ -640,14 +640,17 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(s.common_name, 'g1 s2 wowza')
         self.assertEqual(s.symbol, 'sym1')
         self.assertEqual(s.alternate_symbol, 'a1')
-        self.assertEqual(s.itree_code, 'BDL_OTHER')
+        self.assertEqual(s.itree_code, 'BDL OTHER')
 
-        tgtrsrc = Resource.objects.get(meta_species='BDL_OTHER')
-        self.assertEqual({ r.pk for r in s.resource.all() }, { tgtrsrc.pk })
+        tgtrsrc = { r.meta_species for r in
+                    Resource.objects.filter(meta_species='BDL OTHER')}
+        self.assertNotEqual(len(tgtrsrc), 0)
+        self.assertEqual({r.meta_species for r in s.resource.all()},
+                         tgtrsrc)
 
         csv = """
         | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
-        | newgenus2 | newspecies1 | g1 s2 wowza | BDL_OTHER    | cvar     | sci | fam |
+        | newgenus2 | newspecies1 | g1 s2 wowza | BDL OTHER    | cvar     | sci | fam |
         """ % ('other part of scientific name', 'family')
 
         seid = self.run_through_commit_views(csv)
@@ -660,7 +663,7 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
-        | newgenus3 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | true  | true |
+        | newgenus3 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | true  | true |
         """ % ('native status', 'fall colors', 'palatable human')
 
         seid = self.run_through_commit_views(csv)
@@ -673,20 +676,22 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s      | %s   |
-        | newgenus4 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | summer  | fall |
+        | newgenus4 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | summer  | fall |
         """ % ('flowering', 'flowering period', 'fruit or nut period')
 
         seid = self.run_through_commit_views(csv)
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
 
+        seasons = {k: v for (v,k) in settings.CHOICES['seasons']}
+
         self.assertEqual(s.flower_conspicuous, True)
-        self.assertEqual(s.bloom_period, 'summer')
-        self.assertEqual(s.fruit_period, 'fall')
+        self.assertEqual(s.bloom_period, seasons['summer'])
+        self.assertEqual(s.fruit_period, seasons['fall'])
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s | %s | %s |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL_OTHER    | true | 10 | 91 | fs |
+        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | 10 | 91 | fs |
         """ % ('wildlife', 'max diameter at breast height', 'max height', 'fact sheet')
 
         seid = self.run_through_commit_views(csv)
@@ -702,8 +707,8 @@ class SpeciesIntegrationTests(IntegrationTests):
     def test_overrides_species(self):
         csv = """
         | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
-        | testus1 | specieius1 | g1 s2 wowza | BDL_OTHER    |             |     |
-        | genus   | blah       | common name | BDM_OTHER    | s2          |     |
+        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |
+        | genus   | blah       | common name | BDM OTHER    | s2          |     |
         """
 
         seid = self.run_through_commit_views(csv)
@@ -715,16 +720,23 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(s1.species, 'specieius1')
         self.assertEqual(s1.common_name, 'g1 s2 wowza')
 
-        tgtrsrc = Resource.objects.get(meta_species='BDL_OTHER')
-        self.assertEqual({ r.pk for r in s1.resource.all() }, { tgtrsrc.pk })
+        tgtrsrc = { r.meta_species for r in
+                    Resource.objects.filter(meta_species='BDL OTHER')}
+        self.assertNotEqual(len(tgtrsrc), 0)
+        self.assertEqual({r.meta_species for r in s1.resource.all()},
+                         tgtrsrc)
 
         s2 = Species.objects.get(symbol='s2')
         self.assertEqual(s2.genus, 'genus')
         self.assertEqual(s2.species, 'blah')
         self.assertEqual(s2.common_name, 'common name')
 
-        tgtrsrc = Resource.objects.get(meta_species='BDM_OTHER')
-        self.assertEqual({ r.pk for r in s2.resource.all() }, { tgtrsrc.pk })
+
+        tgtrsrc = { r.meta_species for r in
+                    Resource.objects.filter(meta_species='BDM OTHER')}
+        self.assertNotEqual(len(tgtrsrc), 0)
+        self.assertEqual({r.meta_species for r in s2.resource.all()},
+                         tgtrsrc)
 
 class SpeciesExportTests(TestCase):
 
@@ -989,19 +1001,30 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree.readonly, True)
         self.assertEqual(tree.url, 'http://spam')
 
+        valid_canopy_type = settings.CHOICES['canopy_conditions'][0][1]
+        tgt_canopy_type = settings.CHOICES['canopy_conditions'][0][0]
+
+        valid_cond_type = settings.CHOICES['conditions'][0][1]
+        tgt_cond_type = settings.CHOICES['conditions'][0][0]
+
+        valid_pest_type = settings.CHOICES['pests'][0][1]
+        tgt_pest_type = settings.CHOICES['pests'][0][0]
+
+        valid_lcl_type = settings.CHOICES['projects'][0][1]
+        tgt_lcl_type = settings.CHOICES['projects'][0][0]
+
         csv = """
         | point x | point y | condition | canopy condition | pests and diseases | local projects |
-        | 45.66   | 53.13   | Dead      | %s               | %s                 | %s             |
-        """ % ('Full - No Gaps', 'Phytophthora alni', 'San Francisco Landmark')
-
+        | 45.66   | 53.13   | %s        | %s               | %s                 | %s             |
+        """ % (valid_cond_type, valid_canopy_type, valid_pest_type, valid_lcl_type)
 
         ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
         tree = ie.treeimportrow_set.all()[0].plot.current_tree()
 
-        self.assertEqual(tree.condition, '1')
-        self.assertEqual(tree.canopy_condition, '1')
-        self.assertEqual(tree.pests, '9')
+        self.assertEqual(tree.condition, tgt_cond_type)
+        self.assertEqual(tree.canopy_condition, tgt_canopy_type)
+        self.assertEqual(tree.pests, tgt_pest_type)
 
         #TODO: Projects and Actions work differently...
         #      need to handle those cases
@@ -1009,10 +1032,13 @@ class TreeIntegrationTests(IntegrationTests):
 
 
     def test_all_plot_data(self):
+        valid_plot_type = settings.CHOICES['plot_types'][0][1]
+        tgt_plot_type = settings.CHOICES['plot_types'][0][0]
+
         csv = """
         | point x | point y | plot width | plot length | plot type | read only |
-        | 45.53   | 31.1    | 19.2       | 13          | Other     | false     |
-        """
+        | 45.53   | 31.1    | 19.2       | 13          | %s        | false     |
+        """ % valid_plot_type
 
         ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
@@ -1022,7 +1048,7 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(plot.geometry.y*100), 3110)
         self.assertEqual(plot.width, 19.2)
         self.assertEqual(plot.length, 13)
-        self.assertEqual(plot.type, '10')
+        self.assertEqual(plot.type, tgt_plot_type)
         self.assertEqual(plot.readonly, False)
 
         csv = """
