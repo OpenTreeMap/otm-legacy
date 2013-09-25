@@ -762,6 +762,8 @@ class SpeciesImportRow(GenericImportRow):
                 if all([diff.keys() == ['id'] for diff in diffs]):
                     self.merged = True
                     same = True
+
+                    self.species = species[0]
                 else:
                     diff_keys = set()
 
@@ -792,6 +794,10 @@ class SpeciesImportRow(GenericImportRow):
         # First validate
         if not self.validate_row():
             return False
+
+        if self.status == SpeciesImportRow.SUCCESS:
+            # Nothing changed!
+            return True
 
         # Get our data
         data = self.cleaned
