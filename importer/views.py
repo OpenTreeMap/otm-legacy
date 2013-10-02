@@ -478,8 +478,7 @@ def export_all_species(request):
 
     if include_extra_fields:
         extra_fields = (fields.species.ID,
-                        fields.species.TREE_COUNT,
-                        fields.species.SCIENTIFIC_NAME)
+                        fields.species.TREE_COUNT)
     else:
         extra_fields = tuple()
 
