@@ -386,7 +386,7 @@ def commit(request, import_event_id, import_type=None):
         json.dumps({'status': 'done'}),
         content_type = 'application/json')
 
-@transaction.commit_manually
+#@transaction.commit_manually
 def process_csv(request, fileconstructor, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
