@@ -38,7 +38,8 @@ def commit_rows(ie, i):
     # this works right now because they are the same
     # value (0) but that's not really great
     for row in ie.rows()[i:(i + BLOCK_SIZE)]:
-        if row.status != TreeImportRow.SUCCESS:
+        needs_merge = hasattr(row, 'merged') and not row.merged
+        if row.status != TreeImportRow.SUCCESS and not needs_merge:
             row.commit_row()
 
     if not has_waiting_rows(ie):
