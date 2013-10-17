@@ -1003,9 +1003,10 @@ I.init.status = function() {
     $("#createtrees").click(function() {
         I.rt.mode = 'create';
         I.api.commitEdit(I.importevent)
-
-        window.location =
-            window.location.pathname.match('(.*/importer/).*$')[1];
+            .done(function() {
+                window.location =
+                    window.location.pathname.match('(.*/importer/).*$')[1];
+            });
     });
 
     // Initially show first panel
