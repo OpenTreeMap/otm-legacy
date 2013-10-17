@@ -837,6 +837,11 @@ var I = {};
      * Update a given panel
      */
     I.updatePane = function (pane) {
+        // Clear merge data
+        if (pane && pane.mergeModel) {
+            pane.mergeModel = null;
+        }
+
         I.api.fetchPanel(pane)
             .done(I.views.rowCountUpdater(pane))
             .pipe(setter(pane, 'data'))
