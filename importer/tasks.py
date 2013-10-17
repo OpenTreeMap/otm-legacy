@@ -5,10 +5,10 @@ from importer.models import TreeImportRow, GenericImportEvent, \
 
 BLOCK_SIZE = 250
 
-def has_waiting_rows(ie):
+def get_waiting_row_count(ie):
     return ie.rows()\
              .filter(status=GenericImportRow.WAITING)\
-             .exists()
+             .count()
 
 
 @task()
@@ -16,7 +16,7 @@ def validate_rows(ie, i):
     for row in ie.rows()[i:(i+BLOCK_SIZE)]:
         row.validate_row()
 
-    if not has_waiting_rows(ie):
+    if get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
         ie.save()
 
@@ -37,12 +37,17 @@ def commit_rows(ie, i):
     #TODO: Refactor out [Tree]ImportRow.SUCCESS
     # this works right now because they are the same
     # value (0) but that's not really great
+    missing_merges = 0
+
     for row in ie.rows()[i:(i + BLOCK_SIZE)]:
         needs_merge = hasattr(row, 'merged') and not row.merged
         if row.status != TreeImportRow.SUCCESS and not needs_merge:
             row.commit_row()
 
-    if not has_waiting_rows(ie):
+        if needs_merge:
+            missing_merges += 1
+
+    if get_waiting_row_count(ie) <= missing_merges:
         ie.status = GenericImportEvent.FINISHED_CREATING
         ie.save()
 
