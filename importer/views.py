@@ -34,7 +34,7 @@ def lowerkeys(h):
     for (k,v) in h.iteritems():
         k = k.lower().strip()
         if k != 'ignore':
-            h2[k] = v.strip()
+            h2[k] = unicode(v.strip(), 'utf-8')
 
     return h2
 
@@ -392,10 +392,9 @@ def process_csv(request, fileconstructor, **kwargs):
     filename = files.keys()[0]
     fileobj = files[filename]
 
-    # Need to use "universal-newline mode"
-    # for weird endings
-    # http://docs.python.org/2/glossary.html#term-universal-newlines
-    fileobj = io.StringIO(unicode(fileobj.read()), newline=None)
+    fileobj = io.BytesIO(fileobj.read()\
+                         .decode('latin1')\
+                         .encode('utf-8'))
 
 
     owner = request.user
@@ -422,7 +421,8 @@ def process_csv(request, fileconstructor, **kwargs):
             run_import_event_validation.delay(ie)
 
     except Exception, e:
-        ie.append_error(errors.GENERIC_ERROR, [], data=str(e))
+        raise
+        ie.append_error(errors.GENERIC_ERROR, data=str(e))
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
         ie.save()
 
