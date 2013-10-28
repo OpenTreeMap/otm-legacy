@@ -1,6 +1,7 @@
 import os
 
-from choices import *
+# Commenting out the CHOICES import because the vagrant-based installation instructions concatenate choices.py to the bottom of this file instead of importing them
+#from choices import *
 
 DATABASES = {
     'default': {
