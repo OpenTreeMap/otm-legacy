@@ -40,6 +40,7 @@ tm.init_base_map = function(div_id, controls){
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: restr,
+            zoomMethod: null, // fix animation lag
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -54,6 +55,7 @@ tm.init_base_map = function(div_id, controls){
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: restr,
+            zoomMethod: null, // fix animation lag
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -63,11 +65,13 @@ tm.init_base_map = function(div_id, controls){
     
     tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
+        transitionEffect: null, // fix animation lag
         numZoomLevels: 21
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
         type: google.maps.MapTypeId.HYBRID,
+        transitionEffect: null, // fix animation lag
         sphericalMercator: true,
         numZoomLevels: 21
     });
@@ -76,6 +80,7 @@ tm.init_base_map = function(div_id, controls){
         tm_urls.tc_url,
         {
             layername: tm_urls.tc_layer_name,
+            transitionEffect: null, // fix animation lag
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,
