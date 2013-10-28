@@ -18,12 +18,12 @@ tm.benefitFactors = {
     'annual_air_quality_improvement': 0.453592, // kg per lb
     'annual_stormwater_management': 3.78541, // liters per gal
     'annual_energy_conserved': 1.0, // kWh
-    'annual_co2_reduced': 0.453592, // kg per lb
+    'annual_co2_reduced': 0.453592 // kg per lb
 };
 
 tm.benefitUnitTransformer = function(k,v) { 
     if (tm.benefitFactors[k]) {
-        return parseInt(tm.benefitFactors[k] * v)
+        return parseInt(tm.benefitFactors[k] * v);
     } else {
         console.log("* UNIT NOT CONVERTED *");
         return v;
@@ -67,7 +67,7 @@ tm.init_base_map = function(div_id, controls){
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
-        type: google.maps.MapTypeId.HYBRID,            
+        type: google.maps.MapTypeId.HYBRID,
         sphericalMercator: true,
         numZoomLevels: 21
     });
