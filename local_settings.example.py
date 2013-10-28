@@ -20,6 +20,7 @@ MEDIA_URL = 'media/'
 
 TILECACHE_URL = "{tc_url}"
 TILECACHE_LAYER = "{tc_layer}"
+TILECACHE_POLYGON_LAYER = "{tc_polygon_layer}"
 
 GEOSERVER_GEO_LAYER = '{geo_layer}'
 GEOSERVER_URL = '{geo_url}'
