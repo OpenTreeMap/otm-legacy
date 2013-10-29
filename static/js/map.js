@@ -18,12 +18,12 @@ tm.benefitFactors = {
     'annual_air_quality_improvement': 0.453592, // kg per lb
     'annual_stormwater_management': 3.78541, // liters per gal
     'annual_energy_conserved': 1.0, // kWh
-    'annual_co2_reduced': 0.453592, // kg per lb
+    'annual_co2_reduced': 0.453592 // kg per lb
 };
 
 tm.benefitUnitTransformer = function(k,v) { 
     if (tm.benefitFactors[k]) {
-        return parseInt(tm.benefitFactors[k] * v)
+        return parseInt(tm.benefitFactors[k] * v);
     } else {
         console.log("* UNIT NOT CONVERTED *");
         return v;
@@ -40,6 +40,7 @@ tm.init_base_map = function(div_id, controls){
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: restr,
+            zoomMethod: null, // fix animation lag
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -54,6 +55,7 @@ tm.init_base_map = function(div_id, controls){
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
             restrictedExtent: restr,
+            zoomMethod: null, // fix animation lag
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:900913"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -63,11 +65,13 @@ tm.init_base_map = function(div_id, controls){
     
     tm.baseLayer = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
+        transitionEffect: null, // fix animation lag
         numZoomLevels: 21
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
-        type: google.maps.MapTypeId.HYBRID,            
+        type: google.maps.MapTypeId.HYBRID,
+        transitionEffect: null, // fix animation lag
         sphericalMercator: true,
         numZoomLevels: 21
     });
@@ -76,6 +80,7 @@ tm.init_base_map = function(div_id, controls){
         tm_urls.tc_url,
         {
             layername: tm_urls.tc_layer_name,
+            transitionEffect: null, // fix animation lag
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,
