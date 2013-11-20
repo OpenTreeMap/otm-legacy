@@ -1770,9 +1770,9 @@ def contact(request):
             if settings.FORCE_MAIL_TO_BE_FROM:
                 sender = settings.FORCE_MAIL_TO_BE_FROM
 
-            recipients = settings.CONTACT_EMAILS
+            recipients = tuple(settings.CONTACT_EMAILS)
             if cc_myself or settings.FORCE_MAIL_TO_BE_FROM:
-                recipients.append(sender)
+                recipients += (sender,)
 
             from django.core.mail import send_mail
             send_mail(subject, message, sender, recipients)
