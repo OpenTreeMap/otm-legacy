@@ -2086,9 +2086,9 @@ def contact(request):
             message += form.cleaned_data['message']
             cc_myself = form.cleaned_data['cc_myself']
 
-            recipients = settings.CONTACT_EMAILS
+            recipients = tuple(settings.CONTACT_EMAILS)
             if cc_myself:
-                recipients.append(sender)
+                recipients += (sender,)
 
             from django.core.mail import send_mail
             send_mail(subject, message, sender, recipients)
