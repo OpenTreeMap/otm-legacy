@@ -28,7 +28,7 @@ if (typeof OpenLayers != "undefined") {
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             tm.clckTimeOut = window.setTimeout(function() {
-                tm.singleClick(mapCoord)
+                tm.singleClick(mapCoord);
             },300);
         }
 
@@ -231,6 +231,20 @@ tm.init_map = function(div_id){
     tm.click.activate();
 
     tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+
+    // after upgrading to a newer version of OpenLayers, the zoom
+    // animation developed a lag between when the map layer was updated
+    // and when the search tile was updated.
+    //
+    // this solution, also done on other projects, causes the layer to be
+    // re-added to the map, which automatically handles the timely redrawing.
+    tm.map.events.on({
+        'zoomend': function (e) {
+            tm.map.removeLayer(tm.tree_layer);
+            tm.map.addLayer(tm.tree_layer);
+        }
+    });
+
     tm.map.setCenter(
         new OpenLayers.LonLat(treemap_settings.mapCenterLon, treemap_settings.mapCenterLat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
         , tm.start_zoom);
@@ -356,7 +370,7 @@ tm.init_add_map = function(){
                 alert("Reverse Geocode was not successful.");
             }
         });
-    }
+    };
 
 
     if (tm.mask) {tm.map.addLayer(tm.mask);}
@@ -394,10 +408,10 @@ tm.init_add_map = function(){
         var address = $('#id_edit_address_street').val();
         var city = $('#id_edit_address_city').val();
         if (city == "Enter a City") {
-            city = ""
+            city = "";
         }
         if (!address || address == "Enter an Address or Intersection") {return;}
-        geo_address = address + " " + city
+        geo_address = address + " " + city;
         tm.geocode(geo_address, function (lat, lng, place) {
             var olPoint = new OpenLayers.LonLat(lng, lat);
             var zoom = tm.add_zoom;
@@ -419,7 +433,7 @@ tm.init_add_map = function(){
 
             $('#id_lat').val(olPoint.lat);
             $('#id_lon').val(olPoint.lon);
-            $('#id_geocode_address').val(place)
+            $('#id_geocode_address').val(place);
             $('#id_initial_map_location').val(olPoint.lat + "," + olPoint.lon);
             $('#update_map').html("Update Map");
             $("#mapHolder").show();
@@ -439,11 +453,11 @@ tm.init_add_map = function(){
 tm.init_favorite_map = function(user){
     tm.init_base_map('favorite_tree_map');
 
-    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
     tm.map.addLayers([tm.tree_layer]);
 
     //load in favorite trees
-    var url = ['trees/favorites/' + user + '/geojson/']
+    var url = ['trees/favorites/' + user + '/geojson/'];
     $.getJSON(tm_static + url, function(json){
         $.each(json, function(i,f){
             var coords = f.coords;
@@ -463,12 +477,12 @@ tm.init_favorite_map = function(user){
 tm.init_new_map = function(user){
     tm.init_base_map('add_tree_map');
 
-    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
     tm.map.addLayers([tm.tree_layer]);
-    var url = []
+    var url = [];
     //load in new trees
-    if (user) {url = ['trees/new/' + user + '/geojson/']}
-    else {url = ['trees/new/geojson/']}
+    if (user) { url = ['trees/new/' + user + '/geojson/']; }
+    else { url = ['trees/new/geojson/']; }
     $.getJSON(tm_static + url, function(json){
         $.each(json, function(i,f){
             var coords = f.coords;
@@ -485,17 +499,18 @@ tm.init_new_map = function(user){
 
 //returns a large or small markerLight
 tm.get_marker_light = function(t, size) {
-    var ll = new OpenLayers.LonLat(t.lon, t.lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+    var icon, marker,
+        ll = new OpenLayers.LonLat(t.lon, t.lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
 
     if (size == 'small') {
-        if (t.cmplt) { var icon = tm.get_icon(tm_icons.small_trees_complete, 13);}
-        else { var icon = tm.get_icon(tm_icons.small_trees, 13);}
-        var marker = new OpenLayers.Marker(ll, icon);
+        if (t.cmplt) { icon = tm.get_icon(tm_icons.small_trees_complete, 13);}
+        else { icon = tm.get_icon(tm_icons.small_trees, 13);}
+        marker = new OpenLayers.Marker(ll, icon);
     } else {
-        var icon = tm.get_icon(tm_icons.focus_tree, 19);
-        var marker = new OpenLayers.Marker(ll, icon);
+        icon = tm.get_icon(tm_icons.focus_tree, 19);
+        marker = new OpenLayers.Marker(ll, icon);
     }
-    return marker
+    return marker;
 };
 
 
@@ -534,8 +549,8 @@ tm.init_tree_map = function(editable){
     };
 
 
-    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style })
-    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+    tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors', { style: vector_style });
+    tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer');
 
     if (tm.mask) {tm.map.addLayer(tm.mask);}
     if (tm.parcels) {tm.map.addLayer(tm.parcels);}
@@ -544,14 +559,14 @@ tm.init_tree_map = function(editable){
     tm.drag_control.onComplete = function(feature, mousepix) {
         var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
         mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-        $('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
+        $('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')');
         tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
             if ($('#edit_address_city')) {
                 $('#edit_address_city').val(city);
                 $('#edit_address_city').html(city);
             }
             if ($('#id_geocode_address')) {
-                var geocode_address = full_address.split(city)[0].split(',')[0]
+                var geocode_address = full_address.split(city)[0].split(',')[0];
                 $('#id_geocode_address').val(geocode_address);
                 $('#id_geocode_address').html(geocode_address);
             }
@@ -560,7 +575,7 @@ tm.init_tree_map = function(editable){
                 $('#edit_address_zip').html(zip);
             }
         });
-    }
+    };
 
     tm.click = new OpenLayers.Control.Click({handlerOptions:{"single":true}});
     tm.map.addControl(tm.click);
@@ -629,9 +644,9 @@ tm.add_new_tree_marker = function(ll, do_reverse_geocode) {
         tm.add_vector_layer.destroyFeatures();
     }
     var tree_marker = new OpenLayers.Geometry.Point(ll.lon, ll.lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-    var tree_vector = new OpenLayers.Feature.Vector(tree_marker)
+    var tree_vector = new OpenLayers.Feature.Vector(tree_marker);
 
-    tm.add_vector_layer.addFeatures([tree_vector])
+    tm.add_vector_layer.addFeatures([tree_vector]);
     if (do_reverse_geocode) {
         tm.reverse_geocode(ll, function(ll, full_address, city, zip) {
             tm.update_add_address(ll, full_address, city, zip);
@@ -690,21 +705,21 @@ tm.update_add_address = function(ll, full_address, city, zip) {
 
 tm.update_nearby_trees_list = function (ll, plots, distance) {
     if ($('#nearby_trees')) {
-        $('#nearby_trees').html("Loading...")
+        $('#nearby_trees').html("Loading...");
         var url = ['plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
         $.getJSON(tm_static + url, function(geojson){
             if (geojson.features.length == 0) {
-                $('#nearby_trees').html("No other trees nearby.")
+                $('#nearby_trees').html("No other trees nearby.");
             }
             else {
-                $('#nearby_trees').html("Found " + geojson.features.length + " planting site(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                $('#nearby_trees').html("Found " + geojson.features.length + " planting site(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:");
                 $.each(geojson.features, function(i,f){
                     var tree = $('#nearby_trees');
                     if (f.properties.common_name){
                         tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
                     }
                     else {
-                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        tree.append("<div class='nearby_tree_info'><a href='" + tm_static + "plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>");
                     }
                     if (f.properties.current_dbh){
                         tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
