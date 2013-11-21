@@ -231,6 +231,20 @@ tm.init_map = function(div_id){
     tm.click.activate();
 
     tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+
+    // after upgrading to a newer version of OpenLayers, the zoom
+    // animation developed a lag between when the map layer was updated
+    // and when the search tile was updated.
+    //
+    // this solution, also done on other projects, causes the layer to be
+    // re-added to the map, which automatically handles the timely redrawing.
+    tm.map.events.on({
+        'zoomend': function (e) {
+            tm.map.removeLayer(tm.tree_layer);
+            tm.map.addLayer(tm.tree_layer);
+        }
+    });
+
     tm.map.setCenter(
         new OpenLayers.LonLat(treemap_settings.mapCenterLon, treemap_settings.mapCenterLat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
         , tm.start_zoom);
