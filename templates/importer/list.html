@@ -88,6 +88,28 @@
       Export All Species
     </a>
   </h3>
+  <div>
+    <h2>Merge Species</h2>
+    <div id="merge-errors"></div>
+    <div>
+      Remove species:
+      <select id="species-to-remove">
+        {% for s in all_species %}
+        <option value="{{ s.pk }}">{{ s.scientific_name }} ({{ s.pk }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      Replace with:
+      <select id="species-to-update-to">
+        {% for s in all_species %}
+        <option value="{{ s.pk }}">{{ s.scientific_name }} ({{ s.pk }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button id="merge-species">Merge</button>
+  </div>
 </div>
 
 {% endblock %}

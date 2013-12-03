@@ -141,7 +141,35 @@ def list_imports(request):
             {'trees_active': active_trees,
              'trees_finished': finished_trees,
              'species_active': active_species,
-             'species_finished': finished_species }))
+             'species_finished': finished_species,
+             'all_species': Species.objects.all() }))
+
+@login_required
+@transaction.commit_on_success
+def merge_species(request):
+    if not request.user.is_staff:
+        raise Exception("Must be admin")
+
+    species_to_delete_id = request.REQUEST['species_to_delete']
+    species_to_replace_with_id = request.REQUEST['species_to_replace_with']
+
+    species_to_delete = Species.objects.get(pk=species_to_delete_id)
+    species_to_replace_with = Species.objects.get(pk=species_to_replace_with_id)
+
+    if species_to_delete.pk == species_to_replace_with.pk:
+        return HttpResponse(
+            json.dumps({"error": "Must pick different species"}),
+            content_type = 'application/json',
+            status=400)
+
+    Tree.objects.filter(species=species_to_delete)\
+                .update(species=species_to_replace_with)
+
+    species_to_delete.delete()
+
+    return HttpResponse(
+        json.dumps({"status": "ok"}),
+        content_type = 'application/json')
 
 @login_required
 def show_species_import_status(request, import_event_id):

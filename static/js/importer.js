@@ -1031,6 +1031,41 @@ I.init.list = function() {
     var numPrevSpeciesCounts = -1;
     var numPrevTreeCounts = -1;
 
+    var $merge_errors = $("#merge-errors");
+    $("#merge-species").click(function() {
+        var species_to_delete = $("#species-to-remove").val(),
+            species_to_replace_with = $("#species-to-update-to").val();
+
+        $merge_errors.empty();
+
+        var req = $.ajax({
+            url: I.api_prefix + 'merge',
+            type: "POST",
+            data: {
+                species_to_delete: species_to_delete,
+                species_to_replace_with: species_to_replace_with
+            }
+        });
+
+        req.fail(function(e) {
+            var message = "An error occured, please try again later";
+            if (e.responseText && e.responseText[0] == '{') {
+                var parsed = JSON.parse(e.responseText);
+                if (parsed.error) {
+                    message = parsed.error;
+                }
+            }
+            $merge_errors.html(message);
+        });
+
+        req.done(function(f) {
+            $merge_errors.html("Success!");
+
+            $("#species-to-remove option[value=" + species_to_delete + "]").remove();
+            $("#species-to-update-to option[value=" + species_to_delete + "]").remove();
+        });
+    });
+
     function update_counts() {
         if ($("tr[data-running=true]").length > 0) {
             I.api.getUpdatedCounts()

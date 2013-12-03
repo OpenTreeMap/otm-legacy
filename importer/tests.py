@@ -19,15 +19,89 @@ from StringIO import StringIO
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from importer.views import create_rows_for_event, \
-    process_csv, process_status, commit
+    process_csv, process_status, commit, merge_species
 
 from importer import errors,fields
 
 from importer.models import TreeImportEvent, TreeImportRow, \
     SpeciesImportEvent, SpeciesImportRow
 
+from django_reputation.models import Reputation
+
 from treemap.models import Species, Neighborhood, Plot, \
-    ExclusionMask, Resource, ImportEvent
+    ExclusionMask, Resource, ImportEvent, Tree
+
+class MergeTest(TestCase):
+    def setUp(self):
+        setupTreemapEnv()
+
+        self.user = User(username='smith')
+        self.user.save()
+        self.user.reputation = Reputation()
+        self.user.save()
+
+        ie = ImportEvent(file_name="bie1")
+        ie.save()
+
+        p1 = mkPlot(self.user, geom=Point(25.0000001,25.0000001))
+        p1.import_event = ie
+        p1.save()
+
+        p2 = mkPlot(self.user, geom=Point(25.0000002,25.0000002))
+        p2.import_event = ie
+        p2.save()
+
+        ss = Species.objects.all()
+        self.s1 = ss[0]
+        self.s2 = ss[1]
+
+        self.t1 = Tree(plot=p1, species=self.s1, last_updated_by=self.user)
+        self.t1.import_event = ie
+        self.t1.save()
+
+        self.t2 = Tree(plot=p2, species=self.s2, last_updated_by=self.user)
+        self.t2.import_event = ie
+        self.t2.save()
+
+    def test_cant_merge_same_species(self):
+        r = HttpRequest()
+        r.REQUEST = {
+            'species_to_delete': self.s1.pk,
+            'species_to_replace_with': self.s1.pk
+        }
+
+        r.user = self.user
+        r.user.is_staff = True
+
+        spcnt = Species.objects.all().count()
+
+        resp = merge_species(r)
+
+        self.assertEqual(Species.objects.all().count(), spcnt)
+        self.assertEqual(resp.status_code, 400)
+
+
+    def test_merges(self):
+        r = HttpRequest()
+        r.REQUEST = {
+            'species_to_delete': self.s1.pk,
+            'species_to_replace_with': self.s2.pk
+        }
+
+        r.user = self.user
+        r.user.is_staff = True
+
+        merge_species(r)
+
+        self.assertRaises(Species.DoesNotExist,
+                          Species.objects.get, pk=self.s1.pk)
+
+        t1r = Tree.objects.get(pk=self.t1.pk)
+        t2r = Tree.objects.get(pk=self.t2.pk)
+
+        self.assertEqual(t1r.species.pk, self.s2.pk)
+        self.assertEqual(t2r.species.pk, self.s2.pk)
+
 
 class ValidationTest(TestCase):
     def setUp(self):
