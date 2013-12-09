@@ -16,6 +16,7 @@ urlpatterns = patterns(
     url(r'^export/tree/(?P<import_event_id>\d+)$', 'export_single_tree_import', name='export_single_tree_import'),
 
     # API
+    url(r'^api/merge$', 'merge_species', name='merge'),
     url(r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/results/(?P<subtype>[a-zA-Z]+)$', 'results', name='results'),
     url(r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/commit$', 'commit', name='commit'),
     url(r'^api/(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)/update$', 'update', name='update'),
