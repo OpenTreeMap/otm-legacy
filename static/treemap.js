@@ -496,17 +496,22 @@ tm = {
 
     setupAutoComplete: function(field) {
         return field.autocomplete({
-            source:function(request, response){
-                response( $.map( tm.speciesData, function( item ) {
-                    if (item.cname.toLowerCase().indexOf(request.term.toLowerCase()) != -1 ||
-                        item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1)
-                    {
-                                            return {
-                                                    label: tm.formatTreeName(item),
-                                                    value: item.id
-                                            }
+            source: function(request, response) {
+                response($.map(tm.speciesData, function(item) {
+                    var lcTerm = request.term.toLowerCase(),
+                        itemIContainsSearchTerm =
+                            (item.cname.toLowerCase().indexOf(lcTerm) !== -1 ||
+                             item.sname.toLowerCase().indexOf(lcTerm) !== -1);
+
+                    if (itemIContainsSearchTerm) {
+                        return {
+                            label: tm.formatTreeName(item),
+                            value: item.id
+                        };
+                    } else {
+                        return null;
                     }
-                                }));
+                }));
             },
             minLength: 1,
             select: function(event, ui) {
