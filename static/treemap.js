@@ -490,7 +490,7 @@ tm = {
 
     formatSpeciesName: function(item) {
         var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
-        return item.sname + cultivar_portion + item.family +
+        return item.sname + cultivar_portion +
             " " + item.other_part;
     },
 
