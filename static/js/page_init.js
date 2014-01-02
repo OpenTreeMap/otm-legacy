@@ -282,10 +282,11 @@ tm.generateLocationDropdown = function(locations) {
 
 tm.generateSpeciesDropdown = function(speciesData) {
     //TODO - use css for striping
+    var show_all_species = typeof tm_show_all_species !== 'undefined' && tm_show_all_species;
     var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
     $("#searchSpeciesList").append(ul).hide();
     for(var i=0; i<speciesData.length;i++) {
-        if (!tm_show_all_species && speciesData[i].count == 0) {continue;}
+        if (!show_all_species && speciesData[i].count == 0) {continue;}
         var c = "ac_odd";
         if (i%2 == 0) {c = 'ac-even';}
         ul.append("<li id='" + speciesData[i].id + "' class='" + c + "'>" + tm.formatTreeName(speciesData[i]) + "</li>")
