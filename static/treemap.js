@@ -485,7 +485,7 @@ tm = {
     formatTreeName: function(item) {
         var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
         return item.cname + " [ " + item.sname + " " + cultivar_portion +
-            " " + item.family + " " + item.other_part + "]";
+            " " + item.other_part + "]";
     },
 
     formatSpeciesName: function(item) {
