@@ -134,6 +134,9 @@ def list_imports(request):
     finished_species = species.filter(
         status=GenericImportEvent.FINISHED_CREATING)
 
+    all_species = Species.objects.all()
+    all_species = sorted(all_species, key=lambda s: s.get_long_name())
+
     return render_to_response(
         'importer/list.html',
         RequestContext(
@@ -142,7 +145,7 @@ def list_imports(request):
              'trees_finished': finished_trees,
              'species_active': active_species,
              'species_finished': finished_species,
-             'all_species': Species.objects.all() }))
+             'all_species': all_species }))
 
 @login_required
 @transaction.commit_on_success

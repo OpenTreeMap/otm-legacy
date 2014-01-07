@@ -204,6 +204,17 @@ class Species(models.Model):
     resource = models.ManyToManyField(Resource, null=True)
     objects = models.GeoManager()
 
+    def get_long_name(self):
+        sn = self.scientific_name
+        if not sn:
+            sn = self.species.genus
+        if self.cultivar_name:
+            sn += " '%s'" % self.cultivar_name
+        if self.other_part_of_name:
+            sn += " " + self.other_part_of_name
+        return sn
+
+
     #tree_count should always be set on tree update..
     def save(self,*args,**kwargs):
         self.tree_count = self.tree_set.filter(present=True).count()

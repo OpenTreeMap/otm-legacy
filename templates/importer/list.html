@@ -95,7 +95,7 @@
       Remove species:
       <select id="species-to-remove">
         {% for s in all_species %}
-        <option value="{{ s.pk }}">{{ s.scientific_name }} ({{ s.pk }})</option>
+        <option value="{{ s.pk }}">{{ s.get_long_name }} ({{ s.pk }})</option>
         {% endfor %}
       </select>
     </div>
@@ -103,7 +103,7 @@
       Replace with:
       <select id="species-to-update-to">
         {% for s in all_species %}
-        <option value="{{ s.pk }}">{{ s.scientific_name }} ({{ s.pk }})</option>
+        <option value="{{ s.pk }}">{{ s.get_long_name }} ({{ s.pk }})</option>
         {% endfor %}
       </select>
     </div>
