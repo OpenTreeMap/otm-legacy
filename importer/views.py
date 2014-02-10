@@ -34,7 +34,11 @@ def lowerkeys(h):
     for (k,v) in h.iteritems():
         k = k.lower().strip()
         if k != 'ignore':
-            h2[k] = unicode(v.strip(), 'utf-8')
+            v = v.strip()
+            if not isinstance(v, unicode):
+                v = unicode(v, 'utf-8')
+
+            h2[k] = v
 
     return h2
 
