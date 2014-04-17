@@ -174,6 +174,10 @@ def merge_species(request):
 
     species_to_delete.delete()
 
+    # Force a tree count update
+    species_to_replace_with.tree_count = 0
+    species_to_replace_with.save()
+
     return HttpResponse(
         json.dumps({"status": "ok"}),
         content_type = 'application/json')
