@@ -3,6 +3,8 @@ from django.core.management.base import BaseCommand
 from optparse import make_option
 
 from treemap.models import Tree, Plot
+
+import sys
 import json
 
 # this was selectively copied from the migrating code on the otm2 side.
@@ -209,7 +211,7 @@ class Command(BaseCommand):
 
         skipped = tree_skipped + plot_skipped
 
-        self.stdout.write("EXPORTED: %s audits" % audit_count - 1)
-        self.stdout.write("SKIPPED: %s audits" % skipped)
+        sys.stdout.write("EXPORTED: %s audits" % (audit_count - 1))
+        sys.stdout.write("SKIPPED: %s audits" % skipped)
         output = open(options['outfile'], 'w+b')
         json.dump(tree_hashes + plot_hashes, output)
