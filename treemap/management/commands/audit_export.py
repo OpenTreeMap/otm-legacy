@@ -115,9 +115,9 @@ def _parse_diff(audit, model):
     # process record level changes
     if diff_j == '':
         if audit._audit_change_type == 'I':
-            return [('id', None, audit.id)]
+            return [('id', None, audit.id)], []
         elif audit._audit_change_type == 'D':
-            return [('id', audit.id, None)]
+            return [('id', audit.id, None)], []
         else:
             raise AuditParseException('No diff on an update?')
 
@@ -128,6 +128,7 @@ def _parse_diff(audit, model):
         model_rules = MODELS[model]
 
         changes = []
+        rejects = []
         for k, v in paired_diff.iteritems():
 
             # TODO: Sanitize values in a centralized place
@@ -145,30 +146,27 @@ def _parse_diff(audit, model):
             elif k in model_rules['common_fields']:
                 changes.append(
                     (k, v.get('previous', None), v.get('current', None)))
-
-            elif k == 'new photo':
-                # TODO: figure out how to support these and add them
-                self.stdout.write("SKIPPING UNHANDLED NEW PHOTO: '{%s: %s}'" % (k, v))
-            elif k in model_rules.get('foreign_events', set()):
-                # TODO: figure out how to support these and add them
-                self.stdout.write("SKIPPING UNHANDLED FOREIGN EVENT: '{%s: %s}'" % (k, v))
             else:
-                raise Exception("ERROR: UNHANDLED DIFF KEY - '{%s: %s}'" % (k, v))
+                # TODO: figure out how to support these and add them
+                rejects.append(
+                    (k, v.get('previous', None), v.get('current', None)))
 
-        return changes
+        return changes, rejects
 
 def get_audit_dicts(qs, model_name, audit_count):
     lowercase_model_name = model_name.lower()
     audit_dicts = []
+    reject_dicts = []
     skipped = 0
     for model in qs:
         history = model.history.order_by('_audit_timestamp')
         for audit in history:
             try:
-                changes = _parse_diff(audit, lowercase_model_name)
-                for field, previous_value, current_value in changes:
-                    audit_dict = {
-                        'pk': audit_count + 1,
+                changes, rejects = _parse_diff(audit, lowercase_model_name)
+
+                def make_audit_dict(field, previous_value, current_value):
+                    return {
+                        'pk': audit_count,
                         'model': 'treemap.audit',
                         'fields': {
                             'model': model_name,
@@ -184,12 +182,17 @@ def get_audit_dicts(qs, model_name, audit_count):
                             'updated': audit._audit_timestamp.isoformat()
                         }
                     }
-                    audit_dicts.append(audit_dict)
+
+                for change in changes:
                     audit_count += 1
+                    audit_dicts.append(make_audit_dict(*change))
+                for change in rejects:
+                    audit_count += 1
+                    reject_dicts.append(make_audit_dict(*change))
             except AuditParseException:
                 skipped += 1
 
-    return audit_dicts, skipped, audit_count
+    return audit_dicts, reject_dicts, skipped, audit_count
 
 class Command(BaseCommand):
 
@@ -199,19 +202,26 @@ class Command(BaseCommand):
                     type='string',
                     dest='outfile',
                     help='path to export the data to'),
+        make_option('-e', '--errorfile',
+                    action='store',
+                    type='string',
+                    dest='errorfile',
+                    help='path to export the data to')
     )
 
     def handle(self, *args, **options):
         audit_count = 1
-        trees = Tree.objects.all()
-        plots = Plot.objects.all()
+        trees = Tree.objects.all().iterator()
+        plots = Plot.objects.all().iterator()
 
-        tree_hashes, tree_skipped, audit_count = get_audit_dicts(trees, 'Tree', audit_count)
-        plot_hashes, plot_skipped, audit_count = get_audit_dicts(plots, 'Plot', audit_count)
+        tree_hashes, tree_errors, tree_skipped, audit_count = get_audit_dicts(trees, 'Tree', audit_count)
+        plot_hashes, plot_errors, plot_skipped, audit_count = get_audit_dicts(plots, 'Plot', audit_count)
 
         skipped = tree_skipped + plot_skipped
 
         sys.stdout.write("EXPORTED: %s audits" % (audit_count - 1))
         sys.stdout.write("SKIPPED: %s audits" % skipped)
         output = open(options['outfile'], 'w+b')
+        error_output = open(options['errorfile'], 'w+b')
         json.dump(tree_hashes + plot_hashes, output)
+        json.dump(tree_errors + plot_errors, error_output)
