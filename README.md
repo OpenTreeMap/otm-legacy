@@ -1,4 +1,10 @@
-![OpenTreeMap Logo](https://github.com/azavea/OpenTreeMap/raw/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
+![OpenTreeMap Logo](https://github.com/OpenTreeMap/OpenTreeMap/raw/master/static/images/Philadelphia/es/2011_opentreemap_trans.png)
+
+#Deprecated Repository
+
+This repository contains the code for OTM1, the old version of the OpenTreeMap software (also known as OTM v1.0 through v1.3). Development is largely suspended on OTM1. "OTM2", available in [another repository](http://github.com/OpenTreeMap/OTM2), is the newest, next-generation version of the OpenTreeMap software. If you're just getting started, we highly recommend starting with the OTM2 code - it has been re-engineered from the ground up and the target for all current and future development.
+
+This OTM1 repository exists primarily for archival purposes.
 
 #Updates? Issues? Questions?#
 For updates join the announcement email list here: http://groups.google.com/group/opentreemap-user
