@@ -3,7 +3,7 @@ numpy==1.7.1
 git+git://github.com/azavea/eco.py.git
 BeautifulSoup==3.2.0
 celery-with-redis==3.0
-Django==1.3.4
+Django==1.11.29
 PIL==1.1.7
 South==0.7.5
 Unidecode==0.04.9
