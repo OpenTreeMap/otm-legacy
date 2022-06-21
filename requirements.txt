@@ -1,5 +1,5 @@
 http://downloads.sourceforge.net/project/dbfpy/dbfpy/2.2.5/dbfpy-2.2.5.tar.gz
-numpy==1.7.1
+numpy==1.22.0
 git+git://github.com/azavea/eco.py.git
 BeautifulSoup==3.2.0
 celery-with-redis==3.0
